@@ -1,13 +1,13 @@
 ---
 name: enhance-existing-features
-description: Build and extend brownfield features in an existing codebase. Use when a request requires understanding module dependencies, researching the latest official docs for current tech stacks/APIs/external dependencies, and implementing tested changes in a mature project. For multi-module changes, produce a PRD and obtain explicit user approval before coding.
+description: Build and extend brownfield features in an existing codebase. Use specs (`spec.md`/`tasks.md`/`checklist.md`) with explicit user approval before coding when scope is 高複雜度變更, 關鍵模塊變更, or 跨模組變更. Even when specs are not required, still add and run related tests for unit/property-based/對用戶關鍵邏輯鏈路整合/E2E coverage.
 ---
 
 # Enhance Existing Features
 
 ## Overview
 
-Extend existing systems safely by mapping dependencies first, verifying the latest authoritative docs, writing a PRD for multi-module changes, obtaining explicit PRD approval from the user, implementing minimal changes, and updating tests that match the scenario.
+Safely extend brownfield systems by mapping dependencies first, verifying authoritative docs, classifying change risk, using specs for high-risk scope, implementing minimal changes, and always completing test coverage for the changed behavior.
 
 ## Workflow
 
@@ -16,54 +16,76 @@ Extend existing systems safely by mapping dependencies first, verifying the late
 - Locate entrypoints, configuration, and primary data flow.
 - Trace module relationships (imports, call graph, shared models, side effects).
 - Identify integration points (DB, RPC, external APIs, queues, filesystems).
-- Classify scope as single-module or multi-module before editing.
-- Summarize findings in working notes before editing.
+- Identify user-critical logic chains affected by the change.
+- Summarize findings before editing.
 
 ### 2) Verify latest authoritative docs
 
 - Identify the tech stack, libraries, and external dependencies involved.
-- Use official documentation as the source of truth.
-- Prefer Context7 for library/framework APIs; use web search for latest authorized docs and public APIs.
-- If required docs are private or missing, request access or user-provided references before proceeding.
+- Use official documentation as source of truth.
+- Prefer Context7 for framework/library APIs; use web for latest official docs.
+- If required docs are private or missing, request access or user-provided references.
 
-### 3) Write PRD when change is multi-module
+### 3) Decide whether specs are required
 
-- Trigger this step when the change touches multiple modules, cross-layer contracts, shared models, or external integrations.
-- Generate PRD with `python3 scripts/create_prd.py "<feature name>"`.
-- Use `references/prd-template.md` as the template source.
-- Store PRD at `docs/plans/{YYYY-MM-DD}-{feature_name}.md`.
-- Write the PRD in the user's language by default.
-- Fill Reference, Core Requirements, Business Flow, Clarification Questions, and Test Plan sections.
-- Share the PRD and obtain explicit user approval on the PRD before implementation.
-- Do not modify implementation code until PRD approval is received.
+Trigger specs when **any** of the following is true:
+- 高複雜度變更 (high complexity)
+- 關鍵模塊變更 (critical module)
+- 跨模組變更 (cross-module)
+
+If triggered:
+- Generate specs with `python3 scripts/create-specs "<功能名稱>" --change-name <kebab-case>`.
+- Templates must come from:
+  - `references/templates/spec.md`
+  - `references/templates/tasks.md`
+  - `references/templates/checklist.md`
+- Store specs at `docs/plans/{YYYY-MM-DD}_{change_name}/`.
+- Fill `spec.md`/`tasks.md`/`checklist.md` completely.
+- Obtain explicit user approval on specs before implementation.
+- Do not modify implementation code before approval.
+
+If not triggered:
+- You may implement directly after dependency/doc checks.
+- You must still complete the same testing coverage requirements in step 5.
 
 ### 4) Implement the feature
 
-- If step 3 was triggered, begin implementation only after explicit PRD approval from the user.
 - Reuse existing patterns and abstractions; avoid over-engineering.
 - Keep changes focused and minimal; preserve current behavior unless required.
 - Follow project conventions (naming, linting, formatting, configuration).
-- Update configuration or environment examples only if new inputs are required.
+- Update environment examples only when new inputs are required.
 
-### 5) Update/add test cases
+### 5) Testing coverage (required even without specs)
 
-- Choose the appropriate test type(s) for the scenario.
-- Add tests near existing suites and follow current fixtures/conventions.
-- Update mocks/stubs/fixtures to reflect the new behavior.
+For every non-trivial change, evaluate all categories and add test cases or record justified `N/A`:
+- Unit tests: changed logic, boundaries, and failure paths.
+- Property-based tests: invariants and broad input combinations.
+- Integration tests: **user-critical logic chain** across modules/layers.
+- E2E tests: key user-visible path impacted by this change.
+
+Rules:
+- If E2E is too costly/unstable, add stronger integration coverage for the same risk and record reason.
+- If property-based is not suitable, record `N/A` with concrete reason.
 - Run relevant tests when possible and fix failures.
 
-## PRD Resources
+### 6) Completion updates
 
-Open the following references when step 3 is required:
+- If specs were used, update `tasks.md` and `checklist.md` checkboxes and results based on actual completion/test outcomes.
+- If specs were not used, provide a concise execution summary including test IDs/results and any `N/A` reasons.
 
-- `scripts/create_prd.py` to generate date-based PRD files from template.
-- `references/prd-template.md` as the required PRD structure.
+## Working Rules
 
-## Test References
+- Keep the solution minimal and executable.
+- Maintain traceability between requirements, tasks, and tests.
+- Treat checklists as living artifacts: adjust items to match real change scope.
 
-Open the following references based on the testing scenario:
+## References
 
-- `references/unit-tests.md` for isolated logic and boundary conditions.
-- `references/property-based-tests.md` for invariants and broad input coverage.
-- `references/integration-tests.md` for multi-module or external-system interactions.
-- `references/e2e-tests.md` for full user or system flows.
+- `scripts/create-specs`: specs generator script.
+- `references/templates/spec.md`: overall requirements template (BDD).
+- `references/templates/tasks.md`: task breakdown template.
+- `references/templates/checklist.md`: behavior-to-test checklist template.
+- `references/unit-tests.md`: unit testing guidance.
+- `references/property-based-tests.md`: property-based testing guidance.
+- `references/integration-tests.md`: integration testing guidance.
+- `references/e2e-tests.md`: E2E decision and design guidance.

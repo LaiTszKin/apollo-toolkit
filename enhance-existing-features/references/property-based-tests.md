@@ -1,26 +1,23 @@
-# Property-Based Tests
+# Property-based 測試指南
 
-## Purpose
+## 目的
+- 驗證不變量在大量輸入組合下仍成立。
+- 捕捉人工列舉案例難以覆蓋的邊界行為。
 
-Validate invariants across a broad range of inputs, beyond hand-picked examples.
+## 必做時機
+- 只要變更涉及可描述不變量的邏輯（計算、轉換、排序、聚合、序列化），應新增或更新 property-based 測試。
+- 若不適用，必須記錄 `N/A` 與具體原因。
 
-## Use When
+## 常見不變量
+- round-trip：`decode(encode(x)) == x`
+- 冪等性：重複執行結果不變
+- 單調性/守恆性/集合不變性
 
-- You can describe rules that must always hold (invariants).
-- Behavior should be stable under many input combinations.
-- Bugs are likely to appear with unusual or boundary inputs.
+## 設計建議
+- 不變量要可機器驗證。
+- 生成策略需涵蓋邊界與極端值。
+- 控制執行成本，保留可重現性。
 
-## Scenarios
-
-- Idempotence (running twice yields same result).
-- Round-trip properties (encode/decode, serialize/deserialize).
-- Ordering or commutativity constraints.
-- Monotonicity (increasing input never decreases output).
-- Data structure invariants (sortedness, uniqueness, bounds).
-
-## Guidance
-
-- Choose a property-based framework suitable for the stack (e.g., Hypothesis, fast-check, jqwik).
-- Define simple, composable properties; keep assertions minimal but strict.
-- Constrain generators to valid domains to avoid meaningless failures.
-- Keep runtime reasonable; cap examples and shrink failing cases.
+## 記錄規則
+- 若規劃了 specs，請在 `checklist.md` 記錄案例與結果。
+- 若未使用 specs，請在回覆中記錄案例或 `N/A` 理由。

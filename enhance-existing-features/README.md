@@ -1,76 +1,72 @@
 # enhance-existing-features
 
-An agent skill for safely extending features in brownfield codebases.
+針對既有（brownfield）系統的功能擴充 skill：先釐清依賴、再驗證文件、再實作。
 
-This repository packages a reusable workflow for AI agents to understand
-existing dependencies first, verify official docs, implement focused changes,
-and update tests with minimal risk.
+## 核心能力
 
-## What this skill does
+- 先做依賴與資料流盤點，降低改動風險。
+- specs 條件觸發：只有在以下範圍才強制建立 specs 並先取得使用者確認：
+  - 高複雜度變更
+  - 關鍵模塊變更
+  - 跨模組變更
+- specs 產物固定為：`spec.md`、`tasks.md`、`checklist.md`。
+- specs 輸出路徑固定為：`docs/plans/{YYYY-MM-DD}_{change_name}/`。
+- 即便不需要 specs，仍必須補齊相關測試（或明確標註 `N/A` 理由）：
+  - 單元測試
+  - Property-based 測試
+  - 對用戶關鍵邏輯鏈路的整合測試
+  - 端對端（E2E）測試
 
-This skill guides an agent to:
-
-1. Explore the existing codebase and map dependencies before editing.
-2. Verify current behavior against authoritative, up-to-date documentation.
-3. Write a PRD first when the change crosses multiple modules.
-4. Obtain explicit user approval on the PRD before implementation.
-5. Implement minimal, focused feature changes by reusing existing patterns.
-6. Add or update tests that match the change scope.
-
-## Skill files
-
-- `SKILL.md`: Core workflow and operating rules.
-- `agents/openai.yaml`: Agent interface metadata and default prompt.
-- `scripts/create_prd.py`: PRD file generator for multi-module changes.
-- `references/prd-template.md`: PRD template used by the script.
-- `references/unit-tests.md`: Unit testing guidance.
-- `references/property-based-tests.md`: Property-based testing guidance.
-- `references/integration-tests.md`: Integration testing guidance.
-- `references/e2e-tests.md`: End-to-end testing guidance.
-
-## Workflow summary
-
-1. Map entry points, data flow, dependencies, and integration boundaries.
-2. Confirm APIs/framework behavior with official documentation.
-3. Generate a PRD for multi-module changes.
-4. Obtain explicit user approval on the PRD.
-5. Implement only the required change in existing conventions.
-6. Select and update the right test level (unit/property/integration/e2e).
-
-## Usage
-
-Use this skill when working on existing projects where safety, compatibility,
-and test coverage are critical.
-
-Basic prompt:
+## 檔案結構
 
 ```text
-Use $enhance-existing-features to add the new behavior, create a PRD if multiple modules are involved, wait for explicit PRD approval, verify docs, and update tests.
+.
+├── SKILL.md
+├── agents/
+│   └── openai.yaml
+├── references/
+│   ├── templates/
+│   │   ├── spec.md
+│   │   ├── tasks.md
+│   │   └── checklist.md
+│   ├── unit-tests.md
+│   ├── property-based-tests.md
+│   ├── integration-tests.md
+│   └── e2e-tests.md
+└── scripts/
+    └── create-specs
 ```
 
-## Example
-
-Practical brownfield request example:
+## 使用方式
 
 ```text
-Use $enhance-existing-features to add pagination + date filtering to /api/orders,
-keep backward compatibility with existing query params, and add integration tests
-for repository + service + API handler flow.
+Use $enhance-existing-features to extend this brownfield feature.
+If scope is high complexity / critical module / cross-module, create specs first,
+wait for explicit approval, then implement.
+Even without specs, still add tests for unit/property-based/integration of
+user-critical logic chain/e2e (or record clear N/A reasons).
 ```
 
-Expected execution style:
+## 建立 specs（必要時）
 
-- Map API handler/service/repository dependencies before edits.
-- Write a PRD first because this request spans multiple modules.
-- Wait for explicit user approval on the PRD before implementation.
-- Confirm framework parsing and validation behavior from official docs.
-- Keep implementation minimal and compatible with existing response contracts.
-- Add or update tests at the integration level for changed behavior.
+```bash
+python3 scripts/create-specs "功能名稱" --change-name your-change-name
+```
 
-## Version
+預設產出：
 
-Current release tag: `v0.1.2`
+```text
+docs/plans/<today>_your-change-name/
+├── spec.md
+├── tasks.md
+└── checklist.md
+```
 
-## License
+## 測試要求（每次變更都要評估）
 
-MIT (see `LICENSE`)
+- Unit：變更邏輯、邊界、失敗路徑
+- Property-based：不變量與廣域輸入組合
+- Integration：對用戶關鍵邏輯鏈路（跨層/跨模組）
+- E2E：受影響關鍵用戶路徑
+
+若 E2E 不可行，需以更強整合測試替代並記錄理由。

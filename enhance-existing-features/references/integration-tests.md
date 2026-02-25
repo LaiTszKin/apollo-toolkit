@@ -1,26 +1,23 @@
-# Integration Tests
+# 整合測試指南
 
-## Purpose
+## 目的
+- 驗證跨層/跨模組協作是否正確。
+- 特別覆蓋「對用戶的關鍵邏輯鏈路」。
 
-Validate behavior across multiple modules or services working together.
+## 必做時機
+- 任何影響 service/repository/API handler/事件流程的變更，都應新增或更新整合測試。
+- 即便不使用 specs，也必須補齊對用戶關鍵邏輯鏈路的整合測試。
 
-## Use When
+## 覆蓋重點
+- 入口到輸出的關鍵資料流。
+- 跨模組契約與配置互動。
+- 常見失敗模式（逾時、資料不一致、外部依賴失敗）。
 
-- A feature spans multiple internal components.
-- Data flows through adapters, repositories, or service layers.
-- Realistic behavior depends on configuration or environment.
-- External integrations (DB, queues, APIs) must be exercised.
+## 設計建議
+- 優先接近真實依賴；必要時使用穩定替身。
+- 測試資料可重建、可清理。
+- 每個案例都要對應一個可說明的風險。
 
-## Scenarios
-
-- Repository + service + domain logic combined.
-- API handlers that call business logic and persistence.
-- Contract validation against external services or SDKs.
-- Migrations or schema changes that affect behavior.
-
-## Guidance
-
-- Prefer realistic dependencies where possible; otherwise use stable test doubles.
-- Use fixtures to provision test state and clean up reliably.
-- Isolate external side effects (namespaces, temp data, test accounts).
-- Mark or tag integration tests to separate from unit tests.
+## 記錄規則
+- specs 流程：在 `checklist.md` 記錄 IT 案例與結果。
+- 非 specs 流程：在回覆中列出關鍵鏈路整合測試與結果。

@@ -1,4 +1,4 @@
 interface:
   display_name: "enhance-existing-features"
-  short_description: "Build brownfield features with dependency mapping and PRD approval gating for multi-module changes"
-  default_prompt: "Use $enhance-existing-features to extend an existing codebase, create a PRD for cross-module changes, get explicit user approval on the PRD, and update tests."
+  short_description: "Extend brownfield features with dependency mapping, conditional specs gating, and mandatory test coverage"
+  default_prompt: "Use $enhance-existing-features to extend a brownfield feature. If scope is high complexity / critical module / cross-module, create specs and wait for explicit approval before coding. Even without specs, still add tests for unit/property-based/user-critical integration chain/e2e (or record clear N/A reasons)."

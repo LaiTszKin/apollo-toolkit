@@ -1,24 +1,23 @@
-# End-to-End (E2E) Tests
+# E2E 測試指南
 
-## Purpose
+## 目的
+- 驗證關鍵用戶路徑在端到端層級可用。
+- 補強跨層整合後的真實行為信心。
 
-Validate full system behavior from the user or API boundary through all layers.
+## 必做時機
+- 變更影響用戶可見關鍵流程時，應新增或更新 E2E 測試。
+- 即便不使用 specs，也必須評估 E2E；若不適用需明確記錄理由。
 
-## Use When
+## E2E 決策規則
+- 優先建立 E2E：當變更高風險、高影響、跨多步驟流程。
+- 可用整合測試替代：當 E2E 成本過高、環境不穩定、難以可靠維護。
+- 替代時必須補強同等風險覆蓋，並記錄替代案例與理由。
 
-- The feature changes user-visible flows or critical business paths.
-- Multiple subsystems must work together in production-like conditions.
-- Regressions are costly and require high-confidence coverage.
+## 設計建議
+- 聚焦最小必要關鍵路徑，避免過度擴張。
+- 使用穩定測試資料與可重現流程。
+- 優先驗證業務結果，不依賴脆弱 UI 細節。
 
-## Scenarios
-
-- UI or API workflows spanning authentication, data creation, and retrieval.
-- Background jobs or async flows triggered by user actions.
-- Cross-service integrations in a staging-like environment.
-
-## Guidance
-
-- Keep E2E scope minimal and focus on critical paths.
-- Use stable, production-like environments and test data.
-- Avoid brittle UI assertions; prefer business outcomes.
-- Run E2E tests less frequently than unit/integration tests if they are slow.
+## 記錄規則
+- specs 流程：在 `checklist.md` 記錄 E2E 或替代方案與結果。
+- 非 specs 流程：在回覆中說明 E2E 實施或替代測試與理由。
