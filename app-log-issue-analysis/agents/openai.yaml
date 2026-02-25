@@ -1,0 +1,4 @@
+interface:
+  display_name: "App Log Issue Analysis"
+  short_description: "Analyze logs with code context to detect issues"
+  default_prompt: "Use $app-log-issue-analysis to inspect application logs with code context, identify evidence-backed issues, and suggest concrete remediation steps."

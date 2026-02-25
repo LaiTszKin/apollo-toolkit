@@ -1,0 +1,4 @@
+interface:
+  display_name: "feature-propose"
+  short_description: "Propose prioritized product features"
+  default_prompt: "Use $feature-propose to explore a codebase, classify user-facing functions, and propose numbered MVP/Important/Enhancement/Performance features."

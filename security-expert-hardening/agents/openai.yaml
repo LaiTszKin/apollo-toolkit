@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Expert Hardening"
+  short_description: "Modular hardening with interaction/auto execution modes"
+  default_prompt: "Use $security-expert-hardening in interaction mode by default to audit this system, reproduce exploitable security flaws with evidence, apply minimal fixes, and write failing-then-passing security tests. Only switch to auto mode when explicitly requested."

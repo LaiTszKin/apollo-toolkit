@@ -1,0 +1,4 @@
+interface:
+  display_name: "enhance-existing-features"
+  short_description: "Build brownfield features with dependency mapping and PRD approval gating for multi-module changes"
+  default_prompt: "Use $enhance-existing-features to extend an existing codebase, create a PRD for cross-module changes, get explicit user approval on the PRD, and update tests."
