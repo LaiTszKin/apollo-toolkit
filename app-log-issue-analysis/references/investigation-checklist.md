@@ -43,3 +43,14 @@ Use this checklist before finalizing conclusions.
 - [ ] Identify missing log fields needed for faster diagnosis.
 - [ ] Suggest alert thresholds for early detection.
 - [ ] Recommend observability gaps to close (metrics/traces/health checks).
+
+## 8) GitHub issue publication
+
+- [ ] Resolve target repo (`--repo owner/name` or git `origin`).
+- [ ] Detect issue language from target repo remote README (Chinese -> Chinese issue; otherwise English issue).
+- [ ] If `gh auth status` succeeds, publish with `gh issue create`.
+- [ ] If `gh` is not authenticated, publish with `GITHUB_TOKEN`/`GH_TOKEN` via REST API.
+- [ ] If both auth paths are unavailable, return draft issue content and reason.
+- [ ] Ensure every issue body includes `問題描述` / `Problem Description`.
+- [ ] Ensure every issue body includes `推測原因` / `Suspected Cause`.
+- [ ] Ensure every issue body includes `重現條件（如有）` / `Reproduction Conditions (if available)`.

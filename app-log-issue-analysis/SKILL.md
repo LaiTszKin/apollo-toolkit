@@ -35,6 +35,12 @@ Use this skill to analyze application logs systematically with the codebase and 
    - Rank by severity and user/business impact.
    - Recommend the smallest safe fixes first.
    - Suggest additional instrumentation only when current logs cannot confirm root cause.
+6. Publish confirmed issues to GitHub
+   - Resolve target repository from `--repo owner/name` or current git `origin`.
+   - Detect issue language from the target repository remote README.
+   - If README is Chinese, use Chinese issue sections; otherwise use English sections.
+   - Auth order is strict: `gh auth status` success -> use `gh issue create`; otherwise use `GITHUB_TOKEN`/`GH_TOKEN` via GitHub REST API.
+   - If both auth paths are unavailable, keep draft issue content in the response and do not block analysis.
 
 ## Evidence requirements
 
@@ -46,6 +52,28 @@ For each reported issue, include:
 - Confidence level: high / medium / low, with reason.
 
 If evidence is insufficient, report as **hypothesis** and specify exactly what additional logs/metrics are needed.
+
+## GitHub issue publishing rules
+
+For each confirmed issue, publish exactly one GitHub issue.
+
+Use deterministic publishing script:
+
+```bash
+python scripts/publish_log_issue.py \
+  --title "[Log] <short symptom>" \
+  --problem-description "<symptom + impact + key log evidence>" \
+  --suspected-cause "<path:line + causal chain + confidence>" \
+  --reproduction "<steps/conditions or leave empty>" \
+  --repo <owner/repo>
+```
+
+Issue body sections must always include these three parts:
+
+- Chinese mode: `問題描述`, `推測原因`, `重現條件（如有）`
+- English mode: `Problem Description`, `Suspected Cause`, `Reproduction Conditions (if available)`
+
+If reproduction is unknown, explicitly state it is not yet reliably reproducible and more runtime evidence is required.
 
 ## Output format
 
@@ -67,8 +95,12 @@ Use this structure in responses:
 4. Monitoring and prevention improvements
    - Missing alerts/log fields
    - Suggested guardrails or dashboards
+5. GitHub issue publication status
+   - Publication mode (`gh-cli` / `github-token` / `draft-only`)
+   - Created issue URLs or draft bodies with fallback reason
 
 ## Resources
 
 - `references/investigation-checklist.md`: Step-by-step checklist for evidence-driven log investigations.
 - `references/log-signal-patterns.md`: Common log signatures, likely causes, validation hints, and false-positive guards.
+- `scripts/publish_log_issue.py`: Deterministic issue publishing helper with auth fallback and README language detection.
