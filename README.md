@@ -20,6 +20,23 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - text-to-short-video
 - video-production
 
+## One-click installer
+
+Use `install_skills.sh` to install all skills as symlinks.
+
+```bash
+# Select mode interactively
+./install_skills.sh
+
+# Install into ~/.codex/skills
+./install_skills.sh codex
+
+# Install into ~/.openclaw/workspace*/skills
+./install_skills.sh openclaw
+```
+
+The installer replaces existing files/directories at target paths and keeps only symlinks.
+
 ## Notes
 
 - This repository is intended for personal toolkit curation and experimentation.
