@@ -1,33 +1,33 @@
-# E2E 測試原則
+# E2E Testing Principles
 
-## 重要規則
-- E2E 不再以「使用者是否明確要求」作為唯一條件。
-- Agent 必須依據功能重要性、複雜度、跨層風險自行判斷是否建立 E2E。
-- 關鍵使用者路徑且風險高的功能，應優先建立最小必要 E2E。
-- 若 E2E 難以穩定、成本過高或受環境限制，至少補齊可覆蓋關鍵風險的整合測試，並記錄替代方案。
+## Core rules
+- E2E is not decided solely by explicit user request.
+- The agent must decide E2E based on feature importance, complexity, and cross-layer risk.
+- For high-risk key user paths, create the smallest necessary E2E coverage first.
+- If E2E is unstable, too costly, or environment-limited, add integration coverage for equivalent risk and record the alternative.
 
-## 目的
-- 驗證最關鍵的端到端使用者路徑是否可用。
-- 捕捉跨系統、跨層整合後的行為落差。
-- 在高風險情境提供接近真實使用流程的信心。
+## Purpose
+- Verify critical end-to-end user paths are usable.
+- Catch behavior gaps after cross-system/cross-layer integration.
+- Provide confidence close to real usage for high-risk scenarios.
 
-## 判斷準則
-- 重要性：是否為核心功能、關鍵營收路徑或高影響流程。
-- 複雜度：是否涉及多步驟狀態轉換、分支流程、跨服務協作。
-- 風險：是否存在歷史回歸、整合脆弱點或使用者可見重大錯誤。
-- 可維護性：是否可用可控測試資料與穩定環境執行。
+## Decision criteria
+- Importance: core feature, critical revenue flow, or high-impact process.
+- Complexity: multi-step state transitions, branching flows, cross-service collaboration.
+- Risk: historical regressions, fragile integrations, major user-visible failures.
+- Maintainability: stable environment and controllable test data.
 
-## 不適用情境
-- 功能風險低且可由單元/整合測試充分覆蓋。
-- E2E 執行不穩定且成本遠高於收益，且已有整合測試可覆蓋關鍵風險。
+## Not suitable when
+- Feature risk is low and unit/integration tests already cover it sufficiently.
+- E2E is unstable and disproportionately expensive while integration tests can cover key risk.
 
-## 設計要點
-- 僅覆蓋最關鍵路徑，避免擴張為全面 UI 測試。
-- 測試資料可控：固定 seed 或可回收測試資料。
-- 追求穩定性：避免依賴不穩定外部系統，必要時使用替身環境。
-- 成本透明：說明為何做或不做 E2E，並記錄替代測試策略。
+## Design guidance
+- Cover only the most critical paths; avoid expanding into full UI test suites.
+- Keep test data controllable (fixed seeds or recyclable fixtures).
+- Prioritize stability; avoid brittle external dependencies, use controlled substitutes if needed.
+- Keep cost decisions explicit: document why E2E is done or not done and what alternative strategy is used.
 
-## spec/checklist 填寫指引
-- 在 `spec.md` 的需求描述中標示哪些路徑屬高風險關鍵路徑。
-- 在 `checklist.md` 記錄 E2E 決策、對應測試案例與結果。
-- 若不做 E2E，必須在 `checklist.md` 指定替代整合測試案例（IT-xx）與理由。
+## Spec/checklist authoring hints
+- Mark high-risk key paths in `spec.md` requirement descriptions.
+- Record E2E decisions, mapped test cases, and results in `checklist.md`.
+- If skipping E2E, specify replacement integration test cases (`IT-xx`) and rationale in `checklist.md`.

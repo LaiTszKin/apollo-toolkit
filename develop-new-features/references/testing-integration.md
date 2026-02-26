@@ -1,33 +1,33 @@
-# 整合測試原則
+# Integration Testing Principles
 
-## 目的
-- 驗證跨模組、跨層或外部依賴的行為是否正確協作。
-- 覆蓋單元測試無法捕捉的整合風險（序列、配置、IO 失敗）。
+## Purpose
+- Verify collaboration across modules/layers and external dependencies.
+- Cover integration risks unit tests cannot capture (sequence, config, IO failure).
 
-## 使用時機
-- 模組間介面互動（例如 service ↔ repository）。
-- 涉及 DB、RPC、檔案、快取、訊息佇列等 IO 依賴。
-- 需要驗證設定組合或環境差異的行為。
-- E2E 不適合時，作為關鍵流程的最低替代保障。
+## When to use
+- Interface interactions between modules (for example service ↔ repository).
+- Changes touching IO dependencies such as DB, RPC, files, cache, queues.
+- Behaviors that depend on configuration combinations or environment differences.
+- As minimum safety replacement when E2E is not suitable.
 
-## 不適用情境
-- 單一純函式或純邏輯行為（用單元測試）。
-- 需要完整端到端真實使用者流程且 E2E 可穩定實作的情境。
+## Not suitable when
+- Single pure-function or pure-logic behavior (use unit tests).
+- Full end-to-end user flow can be stably covered by E2E.
 
-## 與 E2E 的關係
-- 若功能重要性/複雜度高且 E2E 可行，優先以最小必要 E2E 驗證關鍵路徑。
-- 若 E2E 困難或成本過高，必須至少設計可覆蓋同等關鍵風險的整合測試。
-- 在 `checklist.md` 記錄替代關係（E2E-xx ↔ IT-xx）與理由。
+## Relationship with E2E
+- If change importance/complexity is high and E2E is feasible, prefer minimal E2E for key paths.
+- If E2E is hard or too costly, integration tests must cover equivalent key risks.
+- Record replacement mapping in `checklist.md` (E2E-xx ↔ IT-xx) with rationale.
 
-## 設計要點
-- 聚焦關鍵整合點：每個測試都要能說明風險與價值。
-- 控制依賴範圍：必要時使用測試替身或本地 stub。
-- 保持可重現：測試資料可控、環境可復原。
-- 故障模式覆蓋：包含超時、連線失敗、資料不一致等情境。
-- 成本可控：避免大量重複或全面覆蓋（交給單元測試）。
+## Design guidance
+- Focus on high-value integration points; each test should justify risk/value.
+- Limit dependency scope; use test doubles/local stubs when needed.
+- Keep reproducible: controlled test data and recoverable environment.
+- Cover failure modes such as timeout, connection failure, inconsistent data.
+- Keep cost controlled; avoid broad redundant coverage (leave that to unit tests).
 
-## spec/checklist 填寫指引
-- 依賴/範圍：列出涉及的模組或外部系統。
-- 情境：描述跨模組互動的流程或關鍵分支。
-- 目的：說明整合風險、失敗模式或配置風險。
-- 在 `checklist.md` 對齊行為、測試案例 ID 與測試結果。
+## Spec/checklist authoring hints
+- Dependency scope: list involved modules/external systems.
+- Scenario: describe cross-module flow or critical branch.
+- Purpose: explain integration/configuration/failure risk being covered.
+- Map behavior, test IDs, and test outcomes in `checklist.md`.

@@ -1,52 +1,52 @@
-# Checklist： [功能名稱]
+# Checklist: [Feature Name]
 
 - Date: [YYYY-MM-DD]
-- Feature: [功能名稱]
+- Feature: [Feature Name]
 
 ## Usage Notes
-- 此清單是「起始模板」，請依功能實際情況新增、刪減或改寫項目，不要機械照抄。
-- 所有條目使用 `- [ ]`；完成後改為 `- [x]`。
-- 若項目不適用，請保留或補充 `N/A` 與原因，避免留下模糊狀態。
-- 測試結果建議使用：`PASS / FAIL / BLOCKED / NOT RUN / N/A`。
+- This checklist is a starter template. Add, remove, or rewrite items based on actual scope.
+- Use `- [ ]` for all items; mark completed items as `- [x]`.
+- If an item is not applicable, keep `N/A` with a concrete reason.
+- Suggested test result values: `PASS / FAIL / BLOCKED / NOT RUN / N/A`.
 
-## Clarification & Approval Gate（有澄清回覆時必填）
-- [ ] 已記錄使用者澄清回覆（`spec.md` 對應段落；若無澄清回覆填 `N/A`）。
-- [ ] 已審視並更新受影響規格（`spec.md` / `tasks.md` / `checklist.md`；若無需更新填 `N/A` + 原因）。
-- [ ] 已取得使用者對更新後規格的明確同意（日期/對話索引：[待填]）。
+## Clarification & Approval Gate (required when clarification replies exist)
+- [ ] User clarification responses are recorded (map to `spec.md`; if none, mark `N/A`).
+- [ ] Affected specs are reviewed/updated (`spec.md` / `tasks.md` / `checklist.md`; if no updates needed, mark `N/A` + reason).
+- [ ] Explicit user approval on updated specs is obtained (date/conversation reference: [to be filled]).
 
-## Behavior-to-Test Checklist（可增刪）
+## Behavior-to-Test Checklist (customizable)
 
-- [ ] CL-01 [可觀察行為]
-  - 需求對應：[R1.x]
-  - 實際測試案例：[UT/PBT/IT/E2E-xx]
-  - 測試層級：[Unit / Property-based / Integration / E2E]
-  - 測試結果：`PASS / FAIL / BLOCKED / NOT RUN / N/A`
-  - 備註（可選）：[風險、限制、觀察]
+- [ ] CL-01 [Observable behavior]
+  - Requirement mapping: [R1.x]
+  - Actual test case IDs: [UT/PBT/IT/E2E-xx]
+  - Test level: [Unit / Property-based / Integration / E2E]
+  - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
+  - Notes (optional): [risk, limitation, observation]
 
-- [ ] CL-02 [可觀察行為]
-  - 需求對應：[R?.?]
-  - 實際測試案例：[UT/PBT/IT/E2E-xx]
-  - 測試層級：[Unit / Property-based / Integration / E2E]
-  - 測試結果：`PASS / FAIL / BLOCKED / NOT RUN / N/A`
-  - 備註（可選）：[風險、限制、觀察]
+- [ ] CL-02 [Observable behavior]
+  - Requirement mapping: [R?.?]
+  - Actual test case IDs: [UT/PBT/IT/E2E-xx]
+  - Test level: [Unit / Property-based / Integration / E2E]
+  - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
+  - Notes (optional): [risk, limitation, observation]
 
-- [ ] CL-03 [可觀察行為]
-  - 需求對應：[R?.?]
-  - 實際測試案例：[UT/PBT/IT/E2E-xx]
-  - 測試層級：[Unit / Property-based / Integration / E2E]
-  - 測試結果：`PASS / FAIL / BLOCKED / NOT RUN / N/A`
-  - 備註（可選）：[風險、限制、觀察]
+- [ ] CL-03 [Observable behavior]
+  - Requirement mapping: [R?.?]
+  - Actual test case IDs: [UT/PBT/IT/E2E-xx]
+  - Test level: [Unit / Property-based / Integration / E2E]
+  - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
+  - Notes (optional): [risk, limitation, observation]
 
-## E2E Decision Record（擇一或自訂）
-- [ ] 建立 E2E（案例：[E2E-xx]；原因：[重要性/複雜度/跨層風險]）
-- [ ] 不建立 E2E，改以整合測試覆蓋（替代案例：[IT-xx]；原因：[穩定性/成本/環境限制]）
-- [ ] 不需額外 E2E/整合強化（原因：[風險可由現有測試充分覆蓋]）
+## E2E Decision Record (pick one or customize)
+- [ ] Build E2E (case: [E2E-xx]; reason: [importance/complexity/cross-layer risk]).
+- [ ] Do not build E2E; cover with integration tests instead (alternative case: [IT-xx]; reason: [stability/cost/environment limitation]).
+- [ ] No additional E2E/integration hardening required (reason: [existing coverage already addresses risk]).
 
-## Execution Summary（依實際填寫）
-- [ ] 單元測試：`PASS / FAIL / NOT RUN / N/A`
-- [ ] Property-based 測試：`PASS / FAIL / NOT RUN / N/A`
-- [ ] 整合測試：`PASS / FAIL / NOT RUN / N/A`
-- [ ] E2E 測試：`PASS / FAIL / NOT RUN / N/A`
+## Execution Summary (fill with actual results)
+- [ ] Unit tests: `PASS / FAIL / NOT RUN / N/A`
+- [ ] Property-based tests: `PASS / FAIL / NOT RUN / N/A`
+- [ ] Integration tests: `PASS / FAIL / NOT RUN / N/A`
+- [ ] E2E tests: `PASS / FAIL / NOT RUN / N/A`
 
 ## Completion Rule
-- [ ] Agent 已依實際情況更新 checkbox、測試結果與必要備註（含新增/刪減項目）。
+- [ ] Agent has updated checkboxes, test outcomes, and necessary notes based on real execution (including added/removed items).

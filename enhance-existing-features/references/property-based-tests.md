@@ -1,23 +1,23 @@
-# Property-based 測試指南
+# Property-based Testing Guide
 
-## 目的
-- 驗證不變量在大量輸入組合下仍成立。
-- 捕捉人工列舉案例難以覆蓋的邊界行為。
+## Purpose
+- Verify invariants across large input combinations.
+- Catch boundary behavior that manual enumeration misses.
 
-## 必做時機
-- 只要變更涉及可描述不變量的邏輯（計算、轉換、排序、聚合、序列化），應新增或更新 property-based 測試。
-- 若不適用，必須記錄 `N/A` 與具體原因。
+## Required when
+- If changes include logic with describable invariants (calculation, transformation, sorting, aggregation, serialization), add/update property-based tests.
+- If not applicable, record `N/A` with a concrete reason.
 
-## 常見不變量
-- round-trip：`decode(encode(x)) == x`
-- 冪等性：重複執行結果不變
-- 單調性/守恆性/集合不變性
+## Common invariants
+- Round-trip: `decode(encode(x)) == x`
+- Idempotency: repeated execution does not change the result
+- Monotonicity/conservation/set invariance
 
-## 設計建議
-- 不變量要可機器驗證。
-- 生成策略需涵蓋邊界與極端值。
-- 控制執行成本，保留可重現性。
+## Design guidance
+- Invariants must be machine-verifiable.
+- Generator strategy should include boundaries and extremes.
+- Control execution cost while preserving reproducibility.
 
-## 記錄規則
-- 若規劃了 specs，請在 `checklist.md` 記錄案例與結果。
-- 若未使用 specs，請在回覆中記錄案例或 `N/A` 理由。
+## Recording rules
+- If specs are used, record cases and outcomes in `checklist.md`.
+- If specs are not used, record cases or `N/A` reasons in the response.

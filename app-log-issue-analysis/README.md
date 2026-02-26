@@ -10,8 +10,8 @@ This skill helps agents analyze logs end-to-end, correlate runtime signals with 
 - A strict evidence standard (log lines + code correlation + impact + confidence).
 - A checklist to avoid false conclusions.
 - A pattern catalog for common operational failures (timeouts, retry storms, auth errors, resource pressure, schema mismatch, race conditions, and dependency outages).
-- Optional GitHub Issue publishing for confirmed findings, with auth fallback order: `gh` login -> `GITHUB_TOKEN`/`GH_TOKEN` -> draft only.
-- Issue language selection based on target repository remote README: Chinese README -> Chinese issue body, otherwise English issue body.
+- Optional GitHub issue publishing for confirmed findings, with auth fallback order: `gh` login -> `GITHUB_TOKEN`/`GH_TOKEN` -> draft only.
+- Issue language selection based on target repository remote README: Chinese README -> localized issue body, otherwise English issue body.
 
 ## Repository structure
 
@@ -47,8 +47,11 @@ Issue publication behavior for each confirmed finding:
 
 Each issue body always includes exactly three sections:
 
-- Chinese: `問題描述`, `推測原因`, `重現條件（如有）`
-- English: `Problem Description`, `Suspected Cause`, `Reproduction Conditions (if available)`
+- `Problem Description`
+- `Suspected Cause`
+- `Reproduction Conditions (if available)`
+
+For localized repositories, use translated section titles with the same meaning.
 
 Best results come from including:
 

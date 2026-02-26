@@ -1,23 +1,23 @@
-# 單元測試指南
+# Unit Testing Guide
 
-## 目的
-- 驗證單一函式/模組的正確性，快速定位錯誤。
-- 覆蓋變更後最小行為單元的正常與失敗路徑。
+## Purpose
+- Verify correctness of a single function/module and localize failures quickly.
+- Cover both success and failure paths for the smallest changed behavior unit.
 
-## 必做時機
-- 任何非 trivial 的邏輯變更都應新增或更新單元測試。
-- 即便本次變更不需要 specs，也不可省略單元測試評估。
+## Required when
+- Any non-trivial logic change should add or update unit tests.
+- Unit test evaluation is required even when specs are not used.
 
-## 覆蓋重點
-- 核心邏輯分支與邊界值。
-- 錯誤處理、驗證失敗、狀態不符。
-- 回歸風險最高的函式路徑。
+## Coverage focus
+- Core logic branches and boundary values.
+- Error handling, validation failures, and incompatible states.
+- Function paths with highest regression risk.
 
-## 設計建議
-- 隔離外部依賴（mock/stub/fake）。
-- 測試小而精，一個測試聚焦一個行為。
-- 維持可重現、可快速執行。
+## Design guidance
+- Isolate external dependencies (mock/stub/fake).
+- Keep tests small and focused: one behavior per test.
+- Keep tests reproducible and fast.
 
-## 記錄規則
-- 若規劃了 specs，請在 `checklist.md` 對應測試案例與結果。
-- 若未使用 specs，請在回覆中列出測試 ID 與結果。
+## Recording rules
+- If specs are used, record mapped test cases and results in `checklist.md`.
+- If specs are not used, list test IDs and results in the response.

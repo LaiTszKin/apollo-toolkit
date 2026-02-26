@@ -1,34 +1,34 @@
-# Tasks： [功能名稱]
+# Tasks: [Feature Name]
 
 - Date: [YYYY-MM-DD]
-- Feature: [功能名稱]
+- Feature: [Feature Name]
 
-## **Task 1: [任務標題]**
+## **Task 1: [Task Title]**
 
-[「任務內容」及需求對應（例如：對應 R1.x，核心目的為 [一句話描述]）]
+[Describe task purpose and requirement mapping (for example: maps to R1.x, core objective is [one sentence]).]
 
-- 1. [ ] [主任務內容]
-  - 1.1 [ ] [子任務內容]
-  - 1.2 [ ] [子任務內容]
+- 1. [ ] [Main task item]
+  - 1.1 [ ] [Subtask item]
+  - 1.2 [ ] [Subtask item]
 
-## **Task 2: [任務標題]**
+## **Task 2: [Task Title]**
 
-[「任務內容」及需求對應（例如：對應 R2.x，核心目的為 [一句話描述]）]
+[Describe task purpose and requirement mapping (for example: maps to R2.x, core objective is [one sentence]).]
 
-- 2. [ ] [主任務內容]
-  - 2.1 [ ] [子任務內容]
-  - 2.2 [ ] [子任務內容]
+- 2. [ ] [Main task item]
+  - 2.1 [ ] [Subtask item]
+  - 2.2 [ ] [Subtask item]
 
-## **Task 3: [任務標題]**
+## **Task 3: [Task Title]**
 
-[「任務內容」及需求對應（例如：對應 R3.x，核心目的為 [一句話描述]）]
+[Describe task purpose and requirement mapping (for example: maps to R3.x, core objective is [one sentence]).]
 
-- 3. [ ] [主任務內容]
-  - 3.1 [ ] [子任務內容]
-  - 3.2 [ ] [子任務內容]
+- 3. [ ] [Main task item]
+  - 3.1 [ ] [Subtask item]
+  - 3.2 [ ] [Subtask item]
 
 ## Notes
-- 任務順序需反映實作先後。
-- 每個主任務必須可對應回 `spec.md` 的 Requirements 編號。
-- Agent 在任務完成後，必須依實際進度更新對應 checkbox（完成改 `[x]`，未完成維持 `[ ]`）。
-- 所有以 `[]` 包裹的指引文字在填寫完成後都必須刪除。
+- Task order should reflect actual implementation sequence.
+- Every main task must map back to `spec.md` requirement IDs.
+- After execution, the agent must update each checkbox (`[x]` for done, `[ ]` for not done).
+- Remove all placeholder guidance text in square brackets after filling.

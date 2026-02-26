@@ -2,72 +2,72 @@
 
 ## Brief Introduction
 
-An agent skill for Codex/Claude workflows that applies a structured debugging loop: hypothesis, minimal logging, user reproduction, evidence-based fix, and log cleanup.
+An agent skill for Codex/Claude workflows that applies a structured debugging loop: hypothesis, minimal logging, user reproduction, evidence-based fixes, and log cleanup.
 
-一個提供給 Codex/Claude 類代理使用的「系統化除錯」技能，目標是在不臆測的前提下，用最小修改快速定位問題、迭代修復，最後清理所有臨時日誌。
+This skill is designed to locate root causes quickly with minimal code changes, avoid speculation, and iterate based on real runtime evidence.
 
-## 這個技能解決什麼問題
+## Problems this skill solves
 
-當你遇到以下情境時，特別適合使用本技能：
+Use this skill when:
 
-- 問題可以重現，但根因不明
-- 錯誤發生在多個模組交界，僅靠肉眼難以判斷
-- 需要和使用者反覆協作（重現 → 回報日誌 → 修復）
-- 希望避免一次改太多造成新風險
+- The issue is reproducible but root cause is unclear
+- Failures happen across module boundaries and are hard to reason about by inspection alone
+- You need iterative collaboration with users (reproduce -> share logs -> fix)
+- You want to avoid large speculative changes that increase regression risk
 
-## 核心方法
+## Core method
 
-本技能採用固定迭代循環：
+This skill follows a fixed iteration loop:
 
-1. **判斷最可能原因**：先讀程式碼與現有訊息，形成可驗證假設。
-2. **加入最小必要日誌**：只在關鍵路徑加可判斷的上下文。
-3. **提供重現步驟**：引導使用者重現並回報日誌。
-4. **依日誌修復**：以證據修正，再請使用者驗證。
-5. **移除臨時日誌**：問題解決後，清理所有額外日誌。
+1. **Infer the most likely cause**: read code and available signals to form a testable hypothesis.
+2. **Add minimal required logs**: instrument only critical paths with diagnostic context.
+3. **Provide reproduction steps**: guide users to reproduce and return logs.
+4. **Fix from log evidence**: implement evidence-based fixes and re-validate.
+5. **Remove temporary logs**: clean up all added logs after resolution.
 
-## 設計原則
+## Design principles
 
-- **證據優先**：不靠猜測、不憑直覺直接大改。
-- **最小變更**：每輪只做必要修改，降低回歸風險。
-- **可回收性**：所有臨時日誌都要可追蹤、可移除。
-- **可溝通性**：每次迭代都清楚交付「做了什麼、為何而做」。
+- **Evidence first**: no guesswork-driven large changes.
+- **Minimal change**: keep each iteration tightly scoped.
+- **Reversible instrumentation**: every temporary log should be trackable and removable.
+- **Clear communication**: each iteration should state what changed and why.
 
-## 典型交付內容
+## Typical deliverables
 
-每一輪除錯建議輸出：
+For each debugging iteration, provide:
 
-- 新增日誌的位置與目的
-- 提供給使用者的重現步驟
-- 根據日誌得到的修復內容
-- 清理臨時日誌的確認
+- Added log locations and purpose
+- Reproduction steps for the user
+- Fix summary derived from logs
+- Confirmation that temporary logs were removed
 
-## 範例：一次完整除錯回合
+## Example: one full debugging cycle
 
-### 使用者問題
+### User issue
 
-> 「登入後偶發 500，但我無法穩定重現。」
+> "Intermittent 500 after login, but I cannot reproduce it reliably."
 
-### 代理實作（精簡版）
+### Agent execution (condensed)
 
-1. 判斷可疑點：`auth callback` 在 token 交換後進入錯誤分支。
-2. 新增最小日誌：記錄 request id、token provider 回應狀態、錯誤碼。
-3. 提供重現步驟：
-   - 使用測試帳號登入 10 次
-   - 回報發生 500 當次的 request id 與完整錯誤日誌
-4. 依日誌修復：發現第三方回傳 timeout 時，程式誤當作無效 token。
-5. 驗證後移除日誌：確認修復成功後清除所有臨時 log。
+1. Identify suspicion: `auth callback` enters an error branch after token exchange.
+2. Add minimal logs: record request id, token-provider status, and error code.
+3. Provide reproduction steps:
+   - Sign in with a test account 10 times
+   - Return the request id and full error log for the failed run
+4. Fix from logs: provider timeout was incorrectly treated as invalid token.
+5. Remove logs after validation: delete all temporary instrumentation after fix confirmation.
 
-### 預期輸出
+### Expected output
 
-- 本輪新增日誌位置與目的
-- 使用者重現步驟
-- 依日誌完成的修復內容
-- 臨時日誌已清理的確認
+- This-round log additions with purpose
+- User reproduction steps
+- Log-backed fix summary
+- Confirmation that temporary logs are removed
 
-## 檔案結構
+## Repository layout
 
-- `SKILL.md`：技能定義與完整流程規範
+- `SKILL.md`: skill definition and full workflow rules
 
-## 授權
+## License
 
-本專案採用 [MIT License](LICENSE)。
+This project is licensed under [MIT License](LICENSE).

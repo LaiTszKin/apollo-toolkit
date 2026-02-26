@@ -1,47 +1,47 @@
 # text-to-short-video
 
-把文章、腳本、章節、筆記轉成 30–60 秒短影片的 Codex Skill（API-only 版本）。
+A Codex skill that converts articles, scripts, chapters, or notes into 30-60 second short videos (API-only workflow).
 
-此 Skill 會：
+This skill will:
 
-- 從文字抽出一段短影片提示詞（或直接使用使用者鎖定 prompt）
-- 使用 `roles.json` 維持角色一致性（既有角色只改 `description`）
-- 直接呼叫 OpenAI 相容的影片生成 API
-- 輪詢任務直到完成並下載 MP4
-- 必要時執行比例/尺寸後處理
+- Extract a short-video prompt from input text (or use a user-locked prompt directly)
+- Use `roles.json` to keep character consistency (existing roles only update `description`)
+- Call an OpenAI-compatible video generation API directly
+- Poll job status until completion and download MP4 output
+- Apply optional aspect-ratio/size post-processing when needed
 
-## 依賴 Skills
+## Dependency skills
 
-無強制依賴。
+No mandatory dependencies.
 
-> 此 skill 不使用 `openai-text-to-image-storyboard` 與 `remotion-best-practices`。
+> This skill does not use `openai-text-to-image-storyboard` or `remotion-best-practices`.
 
-## 角色一致性（roles.json）
+## Character consistency (`roles.json`)
 
-- 角色檔固定使用：`<project_dir>/pictures/<content_name>/roles.json`
-- JSON 格式固定為 `characters` 陣列，角色欄位包含：
+- Role file path is fixed: `<project_dir>/pictures/<content_name>/roles.json`
+- JSON schema uses a `characters` array with fields:
   - `id`
   - `name`
   - `appearance`
   - `outfit`
   - `description`
-- 為了保持一致性：既有角色只能更新 `description`，不得改寫 `id/name/appearance/outfit`
+- To preserve consistency: existing roles may only update `description`; do not rewrite `id/name/appearance/outfit`
 
-## 環境設定
+## Environment setup
 
-1. 複製環境範本：
+1. Copy env template:
 
 ```bash
 cp /Users/tszkinlai/.codex/skills/text-to-short-video/.env.example \
    /Users/tszkinlai/.codex/skills/text-to-short-video/.env
 ```
 
-2. 至少填入：
+2. Required values:
 
 - `OPENAI_API_URL`
 - `OPENAI_API_KEY`
 
-3. 可選設定：
+3. Optional values:
 
 - `OPENAI_VIDEO_MODEL`
 - `OPENAI_VIDEO_DURATION_SECONDS`
@@ -51,9 +51,9 @@ cp /Users/tszkinlai/.codex/skills/text-to-short-video/.env.example \
 - `TEXT_TO_SHORT_VIDEO_WIDTH`
 - `TEXT_TO_SHORT_VIDEO_HEIGHT`
 
-## 比例修正（後處理，可選）
+## Aspect-ratio correction (optional post-processing)
 
-當 API 生成影片比例或尺寸與目標不一致時，執行：
+If API-generated video ratio/size does not match the target, run:
 
 ```bash
 python /Users/tszkinlai/.codex/skills/text-to-short-video/scripts/enforce_video_aspect_ratio.py \
@@ -63,7 +63,7 @@ python /Users/tszkinlai/.codex/skills/text-to-short-video/scripts/enforce_video_
   --force
 ```
 
-## 檔案結構
+## Repository layout
 
 ```text
 text-to-short-video/
@@ -79,4 +79,4 @@ text-to-short-video/
 
 ## License
 
-本專案採用 [MIT License](./LICENSE)。
+This project is licensed under [MIT License](./LICENSE).

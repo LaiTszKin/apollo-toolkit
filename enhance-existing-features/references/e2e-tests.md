@@ -1,23 +1,23 @@
-# E2E 測試指南
+# E2E Testing Guide
 
-## 目的
-- 驗證關鍵用戶路徑在端到端層級可用。
-- 補強跨層整合後的真實行為信心。
+## Purpose
+- Verify critical user-visible paths at end-to-end level.
+- Increase confidence in real behavior after cross-layer integration.
 
-## 必做時機
-- 變更影響用戶可見關鍵流程時，應新增或更新 E2E 測試。
-- 即便不使用 specs，也必須評估 E2E；若不適用需明確記錄理由。
+## Required when
+- If changes impact key user-visible flows, add or update E2E tests.
+- E2E must still be evaluated even when specs are not used; if not applicable, record explicit rationale.
 
-## E2E 決策規則
-- 優先建立 E2E：當變更高風險、高影響、跨多步驟流程。
-- 可用整合測試替代：當 E2E 成本過高、環境不穩定、難以可靠維護。
-- 替代時必須補強同等風險覆蓋，並記錄替代案例與理由。
+## E2E decision rules
+- Prefer E2E for high-risk, high-impact, multi-step flow changes.
+- Integration tests may replace E2E when E2E is too costly, unstable, or hard to maintain.
+- When replacing E2E, provide equivalent risk coverage and record replacement cases plus reasons.
 
-## 設計建議
-- 聚焦最小必要關鍵路徑，避免過度擴張。
-- 使用穩定測試資料與可重現流程。
-- 優先驗證業務結果，不依賴脆弱 UI 細節。
+## Design guidance
+- Focus on minimal critical path coverage; avoid over-expansion.
+- Use stable test data and reproducible flows.
+- Prioritize business outcomes over brittle UI details.
 
-## 記錄規則
-- specs 流程：在 `checklist.md` 記錄 E2E 或替代方案與結果。
-- 非 specs 流程：在回覆中說明 E2E 實施或替代測試與理由。
+## Recording rules
+- Specs flow: record E2E or replacement strategy with outcomes in `checklist.md`.
+- Non-specs flow: explain E2E execution or replacement testing with rationale in the response.

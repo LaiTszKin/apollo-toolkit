@@ -1,24 +1,24 @@
 # enhance-existing-features
 
-針對既有（brownfield）系統的功能擴充 skill：先釐清依賴、再驗證文件、再實作。
+A feature-extension skill for brownfield systems: map dependencies first, verify docs second, implement third.
 
-## 核心能力
+## Core capabilities
 
-- 先做依賴與資料流盤點，降低改動風險。
-- specs 條件觸發：只有在以下範圍才強制建立 specs 並先取得使用者確認：
-  - 高複雜度變更
-  - 關鍵模塊變更
-  - 跨模組變更
-- specs 產物固定為：`spec.md`、`tasks.md`、`checklist.md`。
-- specs 輸出路徑固定為：`docs/plans/{YYYY-MM-DD}_{change_name}/`。
-- 若使用者在 specs 階段回覆澄清問題，agent 必須先勾選澄清相關 checkbox、審視並更新規格，並再次取得同意後才可實作。
-- 即便不需要 specs，仍必須補齊相關測試（或明確標註 `N/A` 理由）：
-  - 單元測試
-  - Property-based 測試
-  - 對用戶關鍵邏輯鏈路的整合測試
-  - 端對端（E2E）測試
+- Maps dependencies and data flow first to reduce change risk.
+- Spec-trigger conditions: specs are required only for these scopes, with explicit user approval before coding:
+  - High-complexity changes
+  - Critical module changes
+  - Cross-module changes
+- Required spec artifacts: `spec.md`, `tasks.md`, `checklist.md`.
+- Spec output path: `docs/plans/{YYYY-MM-DD}_{change_name}/`.
+- If users answer clarification questions during spec phase, agent must mark clarification checkboxes, update specs, and get approval again before implementation.
+- Even when specs are not required, related tests (or explicit `N/A` reasons) are still required:
+  - Unit tests
+  - Property-based tests
+  - Integration tests for user-critical logic chains
+  - End-to-end (E2E) tests
 
-## 檔案結構
+## Repository layout
 
 ```text
 .
@@ -38,7 +38,7 @@
     └── create-specs
 ```
 
-## 使用方式
+## Usage
 
 ```text
 Use $enhance-existing-features to extend this brownfield feature.
@@ -48,13 +48,13 @@ Even without specs, still add tests for unit/property-based/integration of
 user-critical logic chain/e2e (or record clear N/A reasons).
 ```
 
-## 建立 specs（必要時）
+## Create specs (when required)
 
 ```bash
-python3 scripts/create-specs "功能名稱" --change-name your-change-name
+python3 scripts/create-specs "Feature Name" --change-name your-change-name
 ```
 
-預設產出：
+Default output:
 
 ```text
 docs/plans/<today>_your-change-name/
@@ -63,11 +63,11 @@ docs/plans/<today>_your-change-name/
 └── checklist.md
 ```
 
-## 測試要求（每次變更都要評估）
+## Test requirements (evaluate for every change)
 
-- Unit：變更邏輯、邊界、失敗路徑
-- Property-based：不變量與廣域輸入組合
-- Integration：對用戶關鍵邏輯鏈路（跨層/跨模組）
-- E2E：受影響關鍵用戶路徑
+- Unit: changed logic, boundaries, failure paths
+- Property-based: invariants and broad input combinations
+- Integration: user-critical logic chain across layers/modules
+- E2E: affected key user-visible path
 
-若 E2E 不可行，需以更強整合測試替代並記錄理由。
+If E2E is not feasible, replace with stronger integration tests and record the reason.

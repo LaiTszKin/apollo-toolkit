@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Strengthen selection criteria to require a standalone mini-story arc plus lingering-question potential.
 - Update plan template with standalone-story basis, lingering question, and story satisfaction checks.
-- Update README and default agent prompt to explicitly enforce "完整但意猶未盡" narrative outcomes.
+- Update README and default agent prompt to explicitly enforce "complete yet still curiosity-inducing" narrative outcomes.
 
 ## [0.2.0] - 2026-02-16
 

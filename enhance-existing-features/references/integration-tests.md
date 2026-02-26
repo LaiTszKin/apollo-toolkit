@@ -1,23 +1,23 @@
-# 整合測試指南
+# Integration Testing Guide
 
-## 目的
-- 驗證跨層/跨模組協作是否正確。
-- 特別覆蓋「對用戶的關鍵邏輯鏈路」。
+## Purpose
+- Verify correctness of cross-layer/cross-module collaboration.
+- Focus especially on user-critical logic chains.
 
-## 必做時機
-- 任何影響 service/repository/API handler/事件流程的變更，都應新增或更新整合測試。
-- 即便不使用 specs，也必須補齊對用戶關鍵邏輯鏈路的整合測試。
+## Required when
+- Any change affecting service/repository/API handlers/event flows should add or update integration tests.
+- Integration tests for user-critical logic chains are required even when specs are not used.
 
-## 覆蓋重點
-- 入口到輸出的關鍵資料流。
-- 跨模組契約與配置互動。
-- 常見失敗模式（逾時、資料不一致、外部依賴失敗）。
+## Coverage focus
+- Key data flow from entrypoint to output.
+- Cross-module contract and configuration interaction.
+- Common failure patterns (timeout, data inconsistency, external dependency failure).
 
-## 設計建議
-- 優先接近真實依賴；必要時使用穩定替身。
-- 測試資料可重建、可清理。
-- 每個案例都要對應一個可說明的風險。
+## Design guidance
+- Prefer near-real dependencies; use stable test doubles when necessary.
+- Keep test data reconstructable and cleanable.
+- Each test case should map to an explainable risk.
 
-## 記錄規則
-- specs 流程：在 `checklist.md` 記錄 IT 案例與結果。
-- 非 specs 流程：在回覆中列出關鍵鏈路整合測試與結果。
+## Recording rules
+- Specs flow: record IT cases and outcomes in `checklist.md`.
+- Non-specs flow: list user-critical integration tests and outcomes in the response.

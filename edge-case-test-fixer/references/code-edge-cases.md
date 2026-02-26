@@ -1,46 +1,46 @@
-# 程式碼層常見邊緣案例（參考清單）
+# Common Code-level Edge Cases (Reference List)
 
-## 使用方式
-- 只挑與本次變更直接相關的 2–5 項。
-- 優先覆蓋「可觀測失敗」與「高風險輸入」。
+## How to use
+- Pick only 2-5 items directly related to the current change.
+- Prioritize observable failures and high-risk inputs.
 
-## 輸入與型別
-- 空值/缺欄位：None/null、空字串、空集合
-- 非預期型別：字串/數字混用、布林與整數
-- 超長輸入：長字串、大陣列、深層巢狀
-- 編碼問題：UTF-8/非 ASCII、不可見字元
+## Input and typing
+- Null/missing fields: None/null, empty string, empty collection
+- Unexpected types: string-number mixing, boolean-integer confusion
+- Oversized input: long strings, large arrays, deeply nested objects
+- Encoding issues: UTF-8/non-ASCII, invisible characters
 
-## 邊界與數值
-- off-by-one：索引 0/1、長度邊界
-- 溢位/下溢：整數、時間戳
-- NaN/Inf：浮點特殊值
-- 精度損失：金額/比率計算
-- 負值：不應為負的欄位
+## Boundaries and numerics
+- Off-by-one: index 0/1 and length boundaries
+- Overflow/underflow: integer/timestamp boundaries
+- NaN/Inf: floating-point special values
+- Precision loss: money/ratio calculations
+- Negative values where invalid
 
-## 結構與順序
-- 重複元素：去重/累加邏輯
-- 順序假設：排序、穩定性、依輸入順序
-- 空/單元素集合：reduce、min/max、avg
-- 不可變/可變：傳入結構被就地修改
+## Structure and ordering
+- Duplicate elements: dedup/accumulation logic
+- Ordering assumptions: sorting stability, input-order dependence
+- Empty/singleton collections: reduce/min/max/avg behavior
+- Mutable/immutable mismatch: in-place mutation of input data
 
-## 例外與錯誤處理
-- 解析錯誤：日期/時間區、JSON、CSV
-- 外部依賴錯誤：429/500/timeout
-- 錯誤被吞：except pass、未記錄
-- 回復策略：重試次數、退避、降級
+## Exceptions and error handling
+- Parsing failures: date/timezone, JSON, CSV
+- External dependency failures: 429/500/timeout
+- Swallowed errors: `except pass` or missing logs
+- Recovery strategy: retry count, backoff, degradation
 
-## 狀態與副作用
-- 重入：同一請求多次呼叫
-- 全域狀態污染：cache/單例
-- 預設可變參數：Python list/dict default
-- 釋放資源：檔案/連線未關閉
+## State and side effects
+- Reentrancy: same request invoked multiple times
+- Global state contamination: cache/singleton bleed-through
+- Mutable default parameters: Python list/dict defaults
+- Resource release: file/connection not closed
 
-## 安全與驗證
-- 權限不足：缺權限時錯誤訊息
-- 驗證繞過：空值/0/False
-- 路徑/注入：字串拼接
+## Security and validation
+- Insufficient authorization behavior
+- Validation bypass via null/0/False
+- Path/injection risks from string concatenation
 
-## 效能與限制
-- N+1：迴圈內查詢
-- 大量資料：超時、記憶體
-- 熱點：高頻呼叫下的鎖競爭
+## Performance and limits
+- N+1 query patterns inside loops
+- Large-data stress: timeout/memory pressure
+- Hotspots: lock contention under high-frequency calls

@@ -47,10 +47,10 @@ Use this checklist before finalizing conclusions.
 ## 8) GitHub issue publication
 
 - [ ] Resolve target repo (`--repo owner/name` or git `origin`).
-- [ ] Detect issue language from target repo remote README (Chinese -> Chinese issue; otherwise English issue).
+- [ ] Detect issue language from target repo remote README (Chinese repo -> localized issue body; otherwise English issue body).
 - [ ] If `gh auth status` succeeds, publish with `gh issue create`.
 - [ ] If `gh` is not authenticated, publish with `GITHUB_TOKEN`/`GH_TOKEN` via REST API.
 - [ ] If both auth paths are unavailable, return draft issue content and reason.
-- [ ] Ensure every issue body includes `問題描述` / `Problem Description`.
-- [ ] Ensure every issue body includes `推測原因` / `Suspected Cause`.
-- [ ] Ensure every issue body includes `重現條件（如有）` / `Reproduction Conditions (if available)`.
+- [ ] Ensure every issue body includes `Problem Description` (or localized equivalent).
+- [ ] Ensure every issue body includes `Suspected Cause` (or localized equivalent).
+- [ ] Ensure every issue body includes `Reproduction Conditions (if available)` (or localized equivalent).
