@@ -1,16 +1,17 @@
 # version-release
 
-A Codex skill for explicit release workflows: version bump, changelog update, tagging, and push.
+A Codex skill for explicit release workflows: code/documentation alignment, version bump, changelog update, tagging, and push.
 
 ## What this skill does
 
 `version-release` helps agents perform release work in a repeatable flow:
 
 1. Inspect release scope from git history.
-2. Resolve version and tag details.
-3. Update version files and changelog.
-4. Commit release metadata.
-5. Create and push the release tag.
+2. Align project code and project docs (excluding development planning docs).
+3. Resolve version and tag details.
+4. Update version files and changelog.
+5. Commit release metadata.
+6. Create and push the release tag.
 
 ## Scope
 
