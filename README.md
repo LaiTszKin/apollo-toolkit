@@ -26,7 +26,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 Use `install_skills.sh` to install all skills as symlinks.
 
 ```bash
-# Select mode interactively
+# Select install options interactively (supports multiple choices)
 ./install_skills.sh
 
 # Install into ~/.codex/skills
@@ -34,6 +34,12 @@ Use `install_skills.sh` to install all skills as symlinks.
 
 # Install into ~/.openclaw/workspace*/skills
 ./install_skills.sh openclaw
+
+# Install into ~/.trae/skills
+./install_skills.sh trae
+
+# Install all targets
+./install_skills.sh all
 ```
 
 The installer replaces existing files/directories at target paths and keeps only symlinks.

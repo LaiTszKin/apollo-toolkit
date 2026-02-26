@@ -14,24 +14,24 @@
 ## Functional Behaviors (BDD)
 
 ### Requirement 1： [需求標題]
-GIVEN [前置條件]
-AND [補充條件]
-WHEN [觸發行為]
-THEN [可驗證結果]
-AND [補充結果或副作用]
+**GIVEN** [前置條件]
+**AND** [補充條件]
+**WHEN** [觸發行為]
+**THEN** [可驗證結果]
+**AND** [補充結果或副作用]
 
-Requirements:
+**Requirements**:
 - [ ] R1.1 [可驗收需求]
 - [ ] R1.2 [可驗收需求]
 
 ### Requirement 2： [需求標題]
-GIVEN [前置條件]
-AND [補充條件]
-WHEN [觸發行為]
-THEN [可驗證結果]
-AND [補充結果或副作用]
+**GIVEN** [前置條件]
+**AND** [補充條件]
+**WHEN** [觸發行為]
+**THEN** [可驗證結果]
+**AND** [補充結果或副作用]
 
-Requirements:
+**Requirements**:
 - [ ] R2.1 [可驗收需求]
 - [ ] R2.2 [可驗收需求]
 
