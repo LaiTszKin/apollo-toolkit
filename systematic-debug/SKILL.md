@@ -1,6 +1,6 @@
 ---
 name: systematic-debug
-description: Systematic debugging workflow for program issues: understand observed vs expected behavior, inspect codebase paths, reproduce all plausible causes with tests, diagnose the real root cause, and complete a validated fix. Auto-invoke whenever behavior does not match expectations (even if the user did not explicitly request debugging), including bugs, errors, crashes, regressions, flaky behavior, and failing tests.
+description: "Systematic debugging workflow for program issues: understand observed vs expected behavior, inspect codebase paths, reproduce all plausible causes with tests, diagnose the real root cause, and complete a validated fix. Auto-invoke whenever behavior does not match expectations (even if the user did not explicitly request debugging), including bugs, errors, crashes, regressions, flaky behavior, and failing tests."
 ---
 
 # Systematic Debug
