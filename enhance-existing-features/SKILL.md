@@ -1,6 +1,6 @@
 ---
 name: enhance-existing-features
-description: Build and extend brownfield features in an existing codebase. Use specs (`spec.md`/`tasks.md`/`checklist.md`) with explicit user approval before coding when scope is 高複雜度變更, 關鍵模塊變更, or 跨模組變更. Even when specs are not required, still add and run related tests for unit/property-based/對用戶關鍵邏輯鏈路整合/E2E coverage.
+description: Build and extend brownfield features in an existing codebase. Use specs (`spec.md`/`tasks.md`/`checklist.md`) with explicit user approval before coding when scope is 高複雜度變更, 關鍵模塊變更, or 跨模組變更. Even when specs are not required, still add and run related tests for unit/property-based/對用戶關鍵邏輯鏈路整合/E2E coverage. If users answer clarification questions during specs, update related checkboxes, review/adjust specs, and get approval again before coding.
 ---
 
 # Enhance Existing Features
@@ -41,6 +41,8 @@ If triggered:
   - `references/templates/checklist.md`
 - Store specs at `docs/plans/{YYYY-MM-DD}_{change_name}/`.
 - Fill `spec.md`/`tasks.md`/`checklist.md` completely.
+- If users answer clarification questions, first check related clarification checkboxes in `checklist.md`, then review whether `spec.md`/`tasks.md`/`checklist.md` must be adjusted.
+- After any clarification-driven adjustment, obtain explicit approval on the updated specs again.
 - Obtain explicit user approval on specs before implementation.
 - Do not modify implementation code before approval.
 

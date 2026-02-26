@@ -1,6 +1,6 @@
 ---
 name: develop-new-features
-description: Spec-first feature development workflow that generates spec/tasks/checklist documents from templates, captures BDD requirements and executable test plans, then waits for user confirmation before implementation. Use when users ask to design or implement new features, change product behavior, request a planning-first process, or ask for a greenfield feature; for any greenfield project, this skill is mandatory and must complete specs writing before implementation.
+description: Spec-first feature development workflow that generates spec/tasks/checklist documents from templates, captures BDD requirements and executable test plans, then waits for user confirmation before implementation. Use when users ask to design or implement new features, change product behavior, request a planning-first process, or ask for a greenfield feature; for any greenfield project, this skill is mandatory and must complete specs writing before implementation. If users answer clarification questions, update related checkboxes, review/adjust specs, and get approval again before coding.
 ---
 
 # Develop New Features
@@ -39,11 +39,15 @@ description: Spec-first feature development workflow that generates spec/tasks/c
    - 單元與 Property-based 測試依需求風險規劃。
    - E2E 由 agent 根據功能重要性、複雜度、跨層風險判斷是否建立，不再等待使用者特別要求。
    - 若 E2E 難以穩定或成本過高，至少補齊覆蓋關鍵路徑的整合測試，並在 `checklist.md` 記錄原因。
-8. 取得使用者確認。
+8. 處理使用者澄清回覆（有回覆時必做）。
+   - 先在 `checklist.md` 勾選對應的澄清處理 checkbox。
+   - 審視是否需要調整 `spec.md`、`tasks.md`、`checklist.md`；若需要，先完成調整。
+9. 取得使用者確認。
+   - 若剛完成澄清後調整，需以「更新後規格」再次取得使用者明確同意。
    - 明確詢問是否可以開始實作。
    - 未獲得確認前，不要修改或新增產品程式碼。
-9. 使用者確認後才開始實作。
-10. 完成實作與測試後，回填文件狀態。
+10. 使用者確認後才開始實作。
+11. 完成實作與測試後，回填文件狀態。
    - `tasks.md`：依實際完成情況勾選/保留每個任務 checkbox。
    - `checklist.md`：依實際測試與驗證結果勾選對應 checkbox，並更新結果欄位。
 

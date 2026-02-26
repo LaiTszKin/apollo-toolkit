@@ -14,6 +14,7 @@ Spec-first 的功能開發技能，先產生並確認 `spec.md`、`tasks.md`、`
 - `spec.md` 要記錄官方文件、預計修改檔案、澄清問題與 BDD 需求行為
 - `tasks.md` 要用 `## **Task N: ...**` + `- N. [ ]` / `- N.x [ ]` 格式
 - `checklist.md` 必須使用 `- [ ]` 清單格式，並可依實際情況彈性增刪條目與調整測試層級
+- 若使用者回覆澄清問題，agent 必須先勾選澄清相關 checkbox、審視並更新規格，再次取得同意後才可實作
 - E2E 由 agent 依功能重要性與複雜度判斷是否建立；若不適合 E2E，至少補整合測試
 - Agent 完成後必須依實際情況回填 `tasks.md` 與 `checklist.md` 的 checkbox
 - **未獲使用者確認前，不進入實作**
@@ -81,15 +82,16 @@ python3 scripts/create-specs "功能名稱" \
 5. 補齊 `tasks.md`：主任務/子任務拆解與實作順序
 6. 補齊 `checklist.md`：行為與測試案例對齊 + 測試結果
 7. 由 agent 依重要性與複雜度決定是否建立 E2E；若 E2E 不適合，至少補整合測試
-8. 取得使用者「可開始實作」確認
-9. 再進入程式碼修改
-10. 完成後回填 `tasks.md` 與 `checklist.md` 的 checkbox 與結果
+8. 若使用者回覆澄清問題，先勾選澄清相關 checkbox，並審視是否需要更新 `spec.md` / `tasks.md` / `checklist.md`
+9. 更新完成後再次取得使用者「可開始實作」確認
+10. 再進入程式碼修改
+11. 完成後回填 `tasks.md` 與 `checklist.md` 的 checkbox 與結果
 
 ## 文件填寫規範
 
 - `spec.md`：使用 BDD 關鍵詞 `GIVEN / WHEN / THEN / AND / Requirements`
 - `tasks.md`：每個主任務都用 `## **Task N: [任務標題]**`，正文描述「任務內容」及需求對應，並用 `- N. [ ]`、`- N.x [ ]` 列出任務
-- `checklist.md`：必須使用 `- [ ]` 格式，不使用表格；它是起始模板，允許增刪/改寫條目，完成後依實際情況更新 checkbox 與 `PASS/FAIL/BLOCKED/NOT RUN/N/A`
+- `checklist.md`：必須使用 `- [ ]` 格式，不使用表格；它是起始模板，允許增刪/改寫條目，包含澄清回覆與再同意 gate，完成後依實際情況更新 checkbox 與 `PASS/FAIL/BLOCKED/NOT RUN/N/A`
 
 ## 測試策略參考
 

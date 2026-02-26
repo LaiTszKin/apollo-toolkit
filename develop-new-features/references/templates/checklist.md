@@ -9,6 +9,11 @@
 - 若項目不適用，請保留或補充 `N/A` 與原因，避免留下模糊狀態。
 - 測試結果建議使用：`PASS / FAIL / BLOCKED / NOT RUN / N/A`。
 
+## Clarification & Approval Gate（有澄清回覆時必填）
+- [ ] 已記錄使用者澄清回覆（`spec.md` 對應段落；若無澄清回覆填 `N/A`）。
+- [ ] 已審視並更新受影響規格（`spec.md` / `tasks.md` / `checklist.md`；若無需更新填 `N/A` + 原因）。
+- [ ] 已取得使用者對更新後規格的明確同意（日期/對話索引：[待填]）。
+
 ## Behavior-to-Test Checklist（可增刪）
 
 - [ ] CL-01 [可觀察行為]

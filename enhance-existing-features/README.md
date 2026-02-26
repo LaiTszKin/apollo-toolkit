@@ -11,6 +11,7 @@
   - 跨模組變更
 - specs 產物固定為：`spec.md`、`tasks.md`、`checklist.md`。
 - specs 輸出路徑固定為：`docs/plans/{YYYY-MM-DD}_{change_name}/`。
+- 若使用者在 specs 階段回覆澄清問題，agent 必須先勾選澄清相關 checkbox、審視並更新規格，並再次取得同意後才可實作。
 - 即便不需要 specs，仍必須補齊相關測試（或明確標註 `N/A` 理由）：
   - 單元測試
   - Property-based 測試
@@ -42,7 +43,7 @@
 ```text
 Use $enhance-existing-features to extend this brownfield feature.
 If scope is high complexity / critical module / cross-module, create specs first,
-wait for explicit approval, then implement.
+wait for explicit approval. If user clarifies requirements, update checklist/specs and get approval again before implementation.
 Even without specs, still add tests for unit/property-based/integration of
 user-critical logic chain/e2e (or record clear N/A reasons).
 ```
