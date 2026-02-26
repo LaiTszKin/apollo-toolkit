@@ -1,6 +1,6 @@
 ---
 name: systematic-debug
-description: Systematic debugging workflow for program issues: understand the user report, inspect the codebase to infer all plausible root causes, write tests to reproduce each plausible cause, and fix the implementation until all reproduction tests pass. Must be used when users report bugs, errors, crashes, wrong behavior, flaky behavior, or failing tests.
+description: Systematic debugging workflow for program issues: understand observed vs expected behavior, inspect codebase paths, reproduce all plausible causes with tests, diagnose the real root cause, and complete a validated fix. Auto-invoke whenever behavior does not match expectations (even if the user did not explicitly request debugging), including bugs, errors, crashes, regressions, flaky behavior, and failing tests.
 ---
 
 # Systematic Debug
@@ -19,12 +19,16 @@ Use this skill by default whenever the request indicates a program problem, incl
 - error, exception, crash, 4xx/5xx failure
 - failing/flaky tests, intermittent failures, unstable behavior
 - "why is this not working" style troubleshooting requests
+- explicit or implicit observed-vs-expected mismatch ("it should do X but does Y")
+
+Also auto-invoke this skill when mismatch evidence appears during normal execution (logs, test output, runtime output), even if the original request was not phrased as a debugging task.
 
 ## Required Workflow
 
-1. **Understand and inspect**: Parse the user issue, explore the relevant code paths, and build a list of plausible root causes.
+1. **Understand and inspect**: Parse expected vs observed behavior, explore relevant code paths, and build a list of plausible root causes.
 2. **Reproduce with tests**: Write or extend tests that reproduce every plausible cause.
-3. **Fix and validate**: Implement fixes and iterate until all reproduction tests pass.
+3. **Diagnose and confirm**: Use reproduction evidence to confirm the true root cause and explicitly rule out non-causes.
+4. **Fix and validate**: Implement focused fixes and iterate until all reproduction tests pass.
 
 ## Implementation Guidelines
 

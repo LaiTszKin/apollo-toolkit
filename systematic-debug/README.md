@@ -23,14 +23,18 @@ This skill should be invoked by default for any program-problem request, such as
 - runtime errors, exceptions, crashes, or HTTP 4xx/5xx failures
 - failing or flaky tests
 - intermittent or hard-to-reproduce incorrect behavior
+- any observed-vs-expected mismatch (for example: "it should do X but did Y")
+
+It should also auto-invoke when mismatch evidence is detected during normal task execution (logs, test failures, runtime output), even if debugging was not explicitly requested.
 
 ## Core method
 
 This skill follows a fixed workflow:
 
-1. **Understand and inspect**: interpret the user report, inspect relevant code, and list all plausible causes.
+1. **Understand and inspect**: interpret expected vs observed behavior, inspect relevant code, and list all plausible causes.
 2. **Reproduce with tests**: create or extend tests to reproduce each plausible cause.
-3. **Fix and validate**: apply focused fixes and iterate until all reproduction tests pass.
+3. **Diagnose and confirm**: use reproduction evidence to confirm the true root cause and rule out non-causes.
+4. **Fix and validate**: apply focused fixes and iterate until all reproduction tests pass.
 
 ## Design principles
 
