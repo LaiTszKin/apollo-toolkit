@@ -2,6 +2,16 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v0.6.0] - 2026-02-27
+
+### Added
+- Add default worktree guidance to `github-issue-fix-pr-workflow` debug dependencies.
+
+### Changed
+- Quote a multiline skill description in `systematic-debug` to keep YAML metadata valid.
+- Refine `systematic-debug` auto-invoke criteria and examples for mismatched behavior debugging.
+- Clarify `version-release` workflow requirements for release range review and code/documentation alignment.
+
 ## [v0.5.0] - 2026-02-26
 
 ### Added
