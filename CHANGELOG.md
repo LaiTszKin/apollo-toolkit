@@ -2,6 +2,19 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v0.5.0] - 2026-02-26
+
+### Added
+- Add `commit-and-push` skill for commit+push-only submission workflows.
+- Add `version-release` skill for explicit version/tag/changelog release workflows.
+- Add new skill documents and references for the split submit/release workflows.
+
+### Changed
+- Replace legacy `submit-changes` with two dedicated skills: `commit-and-push` and `version-release`.
+- Translate project documentation, templates, and testing/reference guides to English across skills.
+- Update multiple skill definitions to English wording for consistent skill documentation language.
+- Clarify spec-first requirements in feature-planning skills, including mandatory re-approval after clarification updates.
+
 ## [v0.4.0] - 2026-02-26
 
 ### Added
