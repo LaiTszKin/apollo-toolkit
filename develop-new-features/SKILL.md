@@ -1,6 +1,6 @@
 ---
 name: develop-new-features
-description: Spec-first feature development workflow that generates spec/tasks/checklist documents from templates, captures BDD requirements and executable test plans, then waits for user confirmation before implementation. Use when users ask to design or implement new features, change product behavior, request a planning-first process, or ask for a greenfield feature that is complex and has no existing base (plan before action).
+description: Spec-first feature development workflow that generates spec/tasks/checklist documents from templates, captures BDD requirements and executable test plans, then waits for user confirmation before implementation. Use when users ask to design or implement new features, change product behavior, request a planning-first process, or ask for a greenfield feature; for any greenfield project, this skill is mandatory and must complete specs writing before implementation.
 ---
 
 # Develop New Features
