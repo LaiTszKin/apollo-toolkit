@@ -1,33 +1,41 @@
 ---
 name: systematic-debug
-description: Systematic debugging workflow: infer the most likely root cause from the user report, add minimal targeted logs, provide reproduction steps for user validation, iterate fixes based on returned logs, and remove all temporary logs after resolution. Use when iterative debugging with user-provided logs is required.
+description: Systematic debugging workflow for program issues: understand the user report, inspect the codebase to infer all plausible root causes, write tests to reproduce each plausible cause, and fix the implementation until all reproduction tests pass. Must be used when users report bugs, errors, crashes, wrong behavior, flaky behavior, or failing tests.
 ---
 
 # Systematic Debug
 
 ## Core Principles
 
-- Establish facts before acting; avoid speculation.
-- Add only the minimum logs needed for diagnosis, and keep them easy to remove.
-- Iterate in a loop: add logs -> user reproduces -> fix from evidence, until resolved.
+- Gather facts from user reports and code behavior before changing implementation.
+- Cover all plausible causes with reproducible tests instead of guessing a single cause.
+- Keep fixes minimal, focused, and validated by passing tests.
+
+## Trigger Conditions
+
+Use this skill by default whenever the request indicates a program problem, including:
+
+- bug, defect, regression, broken behavior
+- error, exception, crash, 4xx/5xx failure
+- failing/flaky tests, intermittent failures, unstable behavior
+- "why is this not working" style troubleshooting requests
 
 ## Required Workflow
 
-1. **Infer likely cause**: Read related code and existing signals from the user report to identify the most likely failure point.
-2. **Add targeted logs**: Insert minimal logs on critical paths and suspicious branches with enough context to validate the hypothesis.
-3. **Provide reproduction steps**: Give clear steps for the user to reproduce and return the resulting logs.
-4. **Fix from log evidence and iterate**: Implement fixes based on observed logs, ask for user confirmation, and repeat from step 1 if unresolved.
-5. **Remove temporary logs**: After confirmed resolution, remove all debugging logs added during the process.
+1. **Understand and inspect**: Parse the user issue, explore the relevant code paths, and build a list of plausible root causes.
+2. **Reproduce with tests**: Write or extend tests that reproduce every plausible cause.
+3. **Fix and validate**: Implement fixes and iterate until all reproduction tests pass.
 
 ## Implementation Guidelines
 
-- Log fields should include decisive context (inputs, state, branches, external responses) without excessive noise.
-- Keep code changes minimal and avoid unrelated refactors.
-- In each iteration, record where logs were added and why, so cleanup is straightforward.
+- Read related modules end-to-end before editing.
+- Prefer existing test patterns and fixtures over creating new frameworks.
+- Keep the scope to bug reproduction and resolution; avoid unrelated refactors.
+- If a hypothesized cause cannot be reproduced, document why and deprioritize it explicitly.
 
 ## Deliverables
 
-- Added log locations and purpose for this iteration
-- Reproduction steps sent to the user
-- Fix summary based on returned logs
-- Confirmation that temporary logs were removed
+- Plausible root-cause list tied to concrete code paths
+- Reproduction tests for each plausible cause
+- Fix summary mapped to failing-then-passing tests
+- Final confirmation that all related tests pass

@@ -2,71 +2,75 @@
 
 ## Brief Introduction
 
-An agent skill for Codex/Claude workflows that applies a structured debugging loop: hypothesis, minimal logging, user reproduction, evidence-based fixes, and log cleanup.
+An agent skill for Codex/Claude workflows that applies a test-first debugging process: understand the issue, inspect code paths, reproduce all plausible causes with tests, and fix until all related tests pass.
 
-This skill is designed to locate root causes quickly with minimal code changes, avoid speculation, and iterate based on real runtime evidence.
+This skill is designed to avoid speculative fixes and ensure each bug hypothesis is validated through reproducible test evidence.
 
 ## Problems this skill solves
 
 Use this skill when:
 
-- The issue is reproducible but root cause is unclear
-- Failures happen across module boundaries and are hard to reason about by inspection alone
-- You need iterative collaboration with users (reproduce -> share logs -> fix)
-- You want to avoid large speculative changes that increase regression risk
+- An issue is reported but root cause is not obvious
+- Multiple code paths may explain the same failure
+- You need evidence-backed fixes with reproducible tests
+- You want to reduce regressions from guess-based changes
+
+## Invocation rule
+
+This skill should be invoked by default for any program-problem request, such as:
+
+- bug reports, regressions, or "feature not working"
+- runtime errors, exceptions, crashes, or HTTP 4xx/5xx failures
+- failing or flaky tests
+- intermittent or hard-to-reproduce incorrect behavior
 
 ## Core method
 
-This skill follows a fixed iteration loop:
+This skill follows a fixed workflow:
 
-1. **Infer the most likely cause**: read code and available signals to form a testable hypothesis.
-2. **Add minimal required logs**: instrument only critical paths with diagnostic context.
-3. **Provide reproduction steps**: guide users to reproduce and return logs.
-4. **Fix from log evidence**: implement evidence-based fixes and re-validate.
-5. **Remove temporary logs**: clean up all added logs after resolution.
+1. **Understand and inspect**: interpret the user report, inspect relevant code, and list all plausible causes.
+2. **Reproduce with tests**: create or extend tests to reproduce each plausible cause.
+3. **Fix and validate**: apply focused fixes and iterate until all reproduction tests pass.
 
 ## Design principles
 
-- **Evidence first**: no guesswork-driven large changes.
-- **Minimal change**: keep each iteration tightly scoped.
-- **Reversible instrumentation**: every temporary log should be trackable and removable.
-- **Clear communication**: each iteration should state what changed and why.
+- **Evidence first**: every cause should be validated by tests.
+- **Comprehensive hypotheses**: do not stop at the first guess.
+- **Minimal change**: keep fixes targeted to confirmed failures.
+- **Clear traceability**: map fixes to specific failing-then-passing tests.
 
 ## Typical deliverables
 
-For each debugging iteration, provide:
+For each debugging task, provide:
 
-- Added log locations and purpose
-- Reproduction steps for the user
-- Fix summary derived from logs
-- Confirmation that temporary logs were removed
+- Plausible root-cause list and related code paths
+- Reproduction tests for each plausible cause
+- Fix summary tied to test outcomes
+- Final confirmation that all related tests pass
 
 ## Example: one full debugging cycle
 
 ### User issue
 
-> "Intermittent 500 after login, but I cannot reproduce it reliably."
+> "Checkout occasionally fails with a 500 error when applying coupons."
 
 ### Agent execution (condensed)
 
-1. Identify suspicion: `auth callback` enters an error branch after token exchange.
-2. Add minimal logs: record request id, token-provider status, and error code.
-3. Provide reproduction steps:
-   - Sign in with a test account 10 times
-   - Return the request id and full error log for the failed run
-4. Fix from logs: provider timeout was incorrectly treated as invalid token.
-5. Remove logs after validation: delete all temporary instrumentation after fix confirmation.
+1. Identify plausible causes in coupon validation, pricing calculation, and external discount service handling.
+2. Add tests to reproduce each cause under matching edge conditions.
+3. Implement fixes for failing cases and rerun tests.
+4. Confirm all previously failing reproduction tests now pass.
 
 ### Expected output
 
-- This-round log additions with purpose
-- User reproduction steps
-- Log-backed fix summary
-- Confirmation that temporary logs are removed
+- Root-cause hypothesis list with code references
+- Reproduction tests and initial failing results
+- Fix summary and passing test results
+- Final validation statement
 
 ## Repository layout
 
-- `SKILL.md`: skill definition and full workflow rules
+- `SKILL.md`: skill definition and workflow rules
 
 ## License
 
