@@ -9,6 +9,13 @@ description: Resolve issues from remote GitHub repositories via GitHub CLI (`gh`
 
 Use this skill to run an end-to-end issue-fixing loop with `gh`: discover open issues, select a target, implement and test the fix, and delegate PR creation to `open-source-pr-workflow` (or `open-pr-workflow` alias).
 
+## Core Dependencies
+
+Always coordinate these skills in order:
+
+1. `systematic-debug` for root-cause analysis, reproduction tests, and validated fixes.
+2. `open-source-pr-workflow` (or `open-pr-workflow`) for branch push and PR submission.
+
 ## Prerequisites
 
 - `gh` is installed and authenticated (`gh auth status`).
@@ -43,19 +50,25 @@ python3 scripts/list_issues.py --limit 50 --state open
 - Identify expected behavior, edge cases, and acceptance signals from issue text/comments.
 - Do not guess missing requirements; ask the user when critical details are ambiguous.
 
-### 4) Implement the fix
+### 4) Open worktree by default after issue selection
 
-- Create or update a compliant branch for the change (`codex/{change_type}/{changes}`).
+- Immediately create and enter an isolated worktree once the issue number is selected and confirmed.
+- Use a compliant branch name (`codex/{change_type}/{changes}`) and keep all edits in that worktree.
+- If the user explicitly asks to stay in the current tree, follow that request; otherwise worktree is the default path.
+
+### 5) Implement the fix with `systematic-debug`
+
+- Execute the `systematic-debug` workflow: inspect, reproduce with tests, diagnose, then apply minimal fix.
 - Keep scope limited to the selected issue.
 - Reuse existing code patterns and avoid unrelated refactors.
 
-### 5) Validate the fix
+### 6) Validate the fix
 
 - Run focused tests/lint/build relevant to the touched area.
 - Capture exact commands and outcomes; these will be reused in the PR body.
 - Ensure the change can be linked back to the issue number.
 
-### 6) Open PR via dependency skill
+### 7) Open PR via dependency skill
 
 - After code is ready, invoke `open-source-pr-workflow` (or `open-pr-workflow` if that alias exists in the environment).
 - Provide required PR context:
