@@ -10,6 +10,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - edge-case-test-fixer
 - enhance-existing-features
 - feature-propose
+- github-issue-fix-pr-workflow
 - learn-skill-from-conversations
 - novel-to-short-video
 - open-source-pr-workflow
