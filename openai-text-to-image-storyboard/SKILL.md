@@ -8,7 +8,7 @@ description: Generate storyboard images by using agent-decided prompts and calli
 ## Overview
 
 Let the agent decide which images are needed from the text, then call only `/images/generations` to render them.
-Always save outputs in `pictures/<content_name>/` (example: `pictures/1_小說章節名稱/`).
+Always save outputs in `pictures/<content_name>/` (example: `pictures/1_chapter_title/`).
 
 ## Workflow
 
@@ -55,7 +55,7 @@ Use JSON prompt file:
 python /Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/scripts/generate_storyboard_images.py \
   --project-dir /path/to/project \
   --env-file /Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/.env \
-  --content-name "1_小說章節名稱" \
+  --content-name "1_chapter_title" \
   --prompts-file /path/to/prompts.json
 ```
 
@@ -64,11 +64,11 @@ python /Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/scripts/ge
 ```json
 [
   {
-    "title": "雨夜追逐",
+    "title": "Rain Chase",
     "prompt": "cinematic rain-soaked alley, tense running pose, blue neon reflections, dramatic rim light"
   },
   {
-    "title": "地下書庫",
+    "title": "Underground Archive",
     "prompt": "ancient underground library, floating dust in warm volumetric light, mysterious atmosphere"
   }
 ]
@@ -86,8 +86,8 @@ Notes:
 
 Generated files:
 
-- `pictures/1_小說章節名稱/01_雨夜追逐.png`
-- `pictures/1_小說章節名稱/02_地下書庫.png`
-- `pictures/1_小說章節名稱/storyboard.json`
+- `pictures/1_chapter_title/01_rain_chase.png`
+- `pictures/1_chapter_title/02_underground_archive.png`
+- `pictures/1_chapter_title/storyboard.json`
 
 If a filename already exists, the script appends `_2`, `_3`, etc. to avoid overwriting.

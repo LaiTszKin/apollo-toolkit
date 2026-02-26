@@ -1,29 +1,33 @@
 ---
 name: systematic-debug
-description: 系統化除錯流程：根據使用者描述推定最可能的錯誤原因，對相關程式碼加入額外日誌，提供使用者重現步驟並請其回報日誌，依日誌修復並反覆確認直到問題解決，最後移除所有額外日誌。用於需要迭代式除錯與使用者回報日誌的情境。
+description: Systematic debugging workflow: infer the most likely root cause from the user report, add minimal targeted logs, provide reproduction steps for user validation, iterate fixes based on returned logs, and remove all temporary logs after resolution. Use when iterative debugging with user-provided logs is required.
 ---
 
 # Systematic Debug
 
-## 核心原則
-- 先掌握事實再行動，避免臆測。
-- 每次只加最小且必要的日誌，方便定位並易於移除。
-- 以「加日誌 → 使用者重現 → 依日誌修復」為循環，直到問題解決。
+## Core Principles
 
-## 工作流程（必遵循）
-1. **判斷最可能原因**：根據使用者描述，閱讀相關程式碼與現有紀錄，推定最可能造成錯誤的原因。
-2. **加入額外日誌**：在關鍵路徑與可疑分支加入最小化日誌，確保能輸出判斷所需的上下文。
-3. **提供重現步驟**：整理清楚的操作步驟，請使用者重現問題並回報日誌輸出。
-4. **依日誌修復並回圈**：根據日誌定位原因並修復，請使用者確認是否已解決；若未解決，回到第 1 步持續迭代。
-5. **移除日誌**：問題確認解決後，移除所有額外加入的日誌，保持程式碼乾淨。
+- Establish facts before acting; avoid speculation.
+- Add only the minimum logs needed for diagnosis, and keep them easy to remove.
+- Iterate in a loop: add logs -> user reproduces -> fix from evidence, until resolved.
 
-## 實作準則
-- 日誌內容要包含判斷所需的關鍵資料（輸入、狀態、分支、外部回應），但避免過度噪音。
-- 修改範圍保持最小，避免混入無關重構。
-- 每次迭代清楚記錄新增日誌位置與目的，方便回收。
+## Required Workflow
 
-## 交付內容
-- 本輪新增的日誌位置與目的
-- 提供給使用者的重現步驟
-- 依日誌做出的修復說明
-- 清理日誌的確認
+1. **Infer likely cause**: Read related code and existing signals from the user report to identify the most likely failure point.
+2. **Add targeted logs**: Insert minimal logs on critical paths and suspicious branches with enough context to validate the hypothesis.
+3. **Provide reproduction steps**: Give clear steps for the user to reproduce and return the resulting logs.
+4. **Fix from log evidence and iterate**: Implement fixes based on observed logs, ask for user confirmation, and repeat from step 1 if unresolved.
+5. **Remove temporary logs**: After confirmed resolution, remove all debugging logs added during the process.
+
+## Implementation Guidelines
+
+- Log fields should include decisive context (inputs, state, branches, external responses) without excessive noise.
+- Keep code changes minimal and avoid unrelated refactors.
+- In each iteration, record where logs were added and why, so cleanup is straightforward.
+
+## Deliverables
+
+- Added log locations and purpose for this iteration
+- Reproduction steps sent to the user
+- Fix summary based on returned logs
+- Confirmation that temporary logs were removed

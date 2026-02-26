@@ -70,8 +70,10 @@ python scripts/publish_log_issue.py \
 
 Issue body sections must always include these three parts:
 
-- Chinese mode: `問題描述`, `推測原因`, `重現條件（如有）`
-- English mode: `Problem Description`, `Suspected Cause`, `Reproduction Conditions (if available)`
+- Chinese-language repositories: use localized equivalents of
+  `Problem Description`, `Suspected Cause`, and `Reproduction Conditions (if available)`.
+- Non-Chinese repositories: use
+  `Problem Description`, `Suspected Cause`, and `Reproduction Conditions (if available)`.
 
 If reproduction is unknown, explicitly state it is not yet reliably reproducible and more runtime evidence is required.
 

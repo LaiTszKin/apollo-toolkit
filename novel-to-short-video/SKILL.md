@@ -84,7 +84,7 @@ If critical inputs are missing, ask concise follow-up questions.
 - Write narration so:
   - first sentence is the hook,
   - final sentence closes the loop by reusing or tightly paraphrasing the first sentence,
-  - ending still leaves one unresolved high-stakes question so viewers feel "意猶未盡".
+  - ending still leaves one unresolved high-stakes question so viewers feel lingering curiosity.
 - Ensure the final visual beat can cut/fade back to the opening frame naturally.
 - Use the plan markdown as the source of truth and keep beat order aligned with it.
 

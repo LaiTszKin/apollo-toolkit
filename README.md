@@ -5,6 +5,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 ## Included skills
 
 - app-log-issue-analysis
+- commit-and-push
 - develop-new-features
 - docs-to-voice
 - edge-case-test-fixer
@@ -16,9 +17,9 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
 - security-expert-hardening
-- submit-changes
 - systematic-debug
 - text-to-short-video
+- version-release
 - video-production
 
 ## One-click installer

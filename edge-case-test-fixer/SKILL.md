@@ -15,61 +15,61 @@ Scope rule:
 
 ## Workflow
 
-### 0) 判斷掃描範圍（必做）
-- 先執行 `git diff --name-only`。
-- 若有 diff：只掃描變更檔案與最短必要呼叫鏈，依序執行步驟 1–5。
-- 若無 diff：掃描整個專案，優先看核心 domain、外部 API 邊界、狀態/併發敏感模組，再依序執行步驟 1–6。
-- 若無 diff 且找不到可行動的邊緣案例：明確回報「未發現可修復邊緣案例」，停止，不建立 worktree。
+### 0) Determine scan scope (required)
+- Run `git diff --name-only` first.
+- If diff exists: scan only changed files and the minimum required call chain, then run steps 1-5.
+- If no diff exists: scan the full project, prioritizing core domain logic, external API boundaries, and state/concurrency-sensitive modules, then run steps 1-6.
+- If no diff exists and no actionable edge case is found: report `No actionable edge-case fix identified`, stop, and do not create a worktree.
 
-### 1) 建立事實基礎（依掃描範圍）
-- 有 diff 時：讀取變更區塊與其直接相依（同檔或同模組內）段落。
-- 無 diff 時：讀取候選高風險模組與其直接相依段落，避免無界展開。
-- 視需要執行相關測試或最小重現；記錄目前行為與預期落差。
-- 釐清輸入/輸出契約：型別、允許範圍、空值、錯誤處理方式。
+### 1) Build a factual baseline (within selected scope)
+- With diff: read changed blocks and directly dependent sections (same file or same module).
+- Without diff: read candidate high-risk modules and direct dependencies only; avoid unbounded expansion.
+- Run relevant tests or a minimal reproduction when needed; record actual vs expected behavior.
+- Clarify input/output contracts: types, valid ranges, null handling, and error behavior.
 
-### 2) 盤點邊緣案例（只選與掃描範圍直接相關者）
-優先從以下類型挑選 2–5 個最有風險的案例：
-- 空集合/空字串/None/null
-- 邊界值：0、1、-1、最大/最小、溢位
-- 重複/順序/排序假設
-- 例外路徑：外部依賴失敗、超時、重試、部分資料缺失
-- 格式錯誤：無效日期/時間區、無效字串格式、非預期型別
-- 併發/重入：多次呼叫、狀態污染
-- **架構層邊緣案例**：優先檢視併發/背壓/資源/超時傳播等跨模組風險
-- **錯誤處理回滾**：跨模組/跨步驟中斷時，回滾點與回滾策略
+### 2) Enumerate edge cases (only directly related to scope)
+Prioritize 2-5 high-risk cases from the list below:
+- Empty collections / empty strings / None / null
+- Boundary values: 0, 1, -1, max/min limits, overflow
+- Duplicate/order/sorting assumptions
+- Exception paths: external dependency failure, timeout, retry, partial data missing
+- Invalid formats: invalid date/timezone, malformed strings, unexpected types
+- Concurrency/reentrancy: repeated calls, state contamination
+- **Architecture-level edge cases**: cross-module risks such as concurrency, backpressure, resource exhaustion, timeout propagation
+- **Rollback behavior**: interruption across modules/steps and rollback strategy correctness
 
-需要更完整清單時，視變更類型讀：
+For a broader checklist, load references based on change type:
 - `references/architecture-edge-cases.md`
 - `references/code-edge-cases.md`
 
-#### 外部 API 特別要求
-若變更涉及外部 API 呼叫，必須補上/驗證以下邊緣案例（視變更範圍最小化覆蓋）：
-- **心跳/健康檢查**：有可用性驗證或可觀測的存活檢查路徑（或明確不需要的理由）。
-- **錯誤降級**：至少涵蓋 429（限流）與 500（服務端錯誤）的處理與退避/降級策略。
-- **錯誤日誌**：記錄關鍵欄位（狀態碼、請求識別、重試次數、延遲等），避免吞錯。
+#### External API requirements
+If changes involve external API calls, add/validate these edge cases with minimal scope:
+- **Heartbeat/health checks**: include an observable availability path (or state clearly why not needed).
+- **Error degradation**: cover at least HTTP 429 (rate limit) and 500 (server error), with backoff/degradation behavior.
+- **Error logging**: log key fields (status code, request identifier, retry count, latency) to avoid silent failures.
 
-### 3) 寫測試（先寫失敗再修）
-- 優先沿用現有測試風格與 fixtures；需要 mock 時使用既有工具。
-- 每個邊緣案例一個測試，命名清楚描述行為。
-- 只關注可觀測結果（回傳值、資料庫寫入、日誌、例外型別）。
-- 外部 API 相關測試需涵蓋：429/500、重試/降級路徑、心跳/健康檢查行為（若有）。
+### 3) Write tests (fail first, then fix)
+- Reuse existing test style and fixtures first; use existing mocking tools when needed.
+- Add one clearly named test per edge case.
+- Assert only observable outcomes (return value, DB writes, logs, exception types).
+- For external API changes, include tests for 429/500, retry/degradation paths, and heartbeat/health behavior when applicable.
 
-### 4) 修復實作（最小改動）
-- 以最小範圍修復：在問題來源處處理，不在上層做過度包裝。
-- 保持既有 API 兼容；若需改契約，更新測試並明確記錄。
-- 不做無關重構；避免新增未被測試覆蓋的行為。
+### 4) Implement minimal fixes
+- Fix at the source of failure with the smallest viable change.
+- Preserve existing API compatibility; if contracts change, update tests and document it clearly.
+- Avoid unrelated refactors and avoid adding behavior not covered by tests.
 
-### 5) 驗證與清理
-- 重新跑相關測試；若新增暫存檔案或測試資料，完成後移除。
-- 簡要說明新增的邊緣案例、測試與修復點。
+### 5) Validate and clean up
+- Re-run relevant tests; remove temporary files/test artifacts created during debugging.
+- Summarize added edge cases, tests, and fixes.
 
-### 6) 無 diff 且有修復時：建立 worktree、提交並開 PR
-- 只在「無 diff 且找到可修復問題」時執行此步驟。
-- 建立獨立分支與 worktree（分支名需用 `codex/` 前綴），在 worktree 內完成修改與測試。
-- 修復完成後，直接使用 git 完成 commit 與 push。
-- push 後建立 PR（例如使用 `gh pr create`），在 PR 內說明：邊緣案例清單、對應測試、修復摘要與風險。
+### 6) If no diff and fixes were made: create worktree, commit, and open PR
+- Run this step only when there was no initial diff and you found a fixable issue.
+- Create an isolated branch/worktree (branch must start with `codex/`) and complete changes/tests there.
+- Commit and push directly with git from the worktree.
+- Open a PR after push (for example `gh pr create`) and include edge-case list, mapped tests, fix summary, and risk notes.
 
 ## Test Design Hints
-- 優先測「目前可錯」的地方，而不是理論上的所有可能。
-- 如果失敗需要大量 setup，考慮縮小輸入或抽出 helper fixture。
-- 對外部 I/O 使用 mock 或假物件，保持測試快且穩定。
+- Prioritize where failures are likely now, not every theoretical possibility.
+- If setup cost is high, shrink inputs or extract helper fixtures.
+- Use mocks/fakes for external I/O to keep tests fast and stable.

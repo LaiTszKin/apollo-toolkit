@@ -26,7 +26,7 @@ Use this skill to run evidence-first security audits for software systems. Alway
 ### Mode selection rules
 
 - If mode is not specified or is ambiguous, use `interaction`.
-- Only switch to `auto` on explicit requests (for example: "auto mode", "directly fix and open PR", "自動修復並開 PR").
+- Only switch to `auto` on explicit requests (for example: "auto mode", "directly fix and open PR", "fix automatically and open PR").
 
 ## Modules
 

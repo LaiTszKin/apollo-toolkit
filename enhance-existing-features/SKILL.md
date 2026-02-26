@@ -1,6 +1,6 @@
 ---
 name: enhance-existing-features
-description: Build and extend brownfield features in an existing codebase. Use specs (`spec.md`/`tasks.md`/`checklist.md`) with explicit user approval before coding when scope is 高複雜度變更, 關鍵模塊變更, or 跨模組變更. Even when specs are not required, still add and run related tests for unit/property-based/對用戶關鍵邏輯鏈路整合/E2E coverage. If users answer clarification questions during specs, update related checkboxes, review/adjust specs, and get approval again before coding.
+description: Build and extend brownfield features in an existing codebase. Use specs (`spec.md`/`tasks.md`/`checklist.md`) with explicit user approval before coding when scope is high complexity, critical module, or cross-module changes. Even when specs are not required, still add and run related tests for unit/property-based/user-critical integration chain/E2E coverage. If users answer clarification questions during specs, update related checkboxes, review/adjust specs, and get approval again before coding.
 ---
 
 # Enhance Existing Features
@@ -29,12 +29,12 @@ Safely extend brownfield systems by mapping dependencies first, verifying author
 ### 3) Decide whether specs are required
 
 Trigger specs when **any** of the following is true:
-- 高複雜度變更 (high complexity)
-- 關鍵模塊變更 (critical module)
-- 跨模組變更 (cross-module)
+- high complexity changes
+- critical module changes
+- cross-module changes
 
 If triggered:
-- Generate specs with `python3 scripts/create-specs "<功能名稱>" --change-name <kebab-case>`.
+- Generate specs with `python3 scripts/create-specs "<feature_name>" --change-name <kebab-case>`.
 - Templates must come from:
   - `references/templates/spec.md`
   - `references/templates/tasks.md`
