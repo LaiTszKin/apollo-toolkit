@@ -16,7 +16,11 @@ description: Spec-first feature development workflow that generates spec/tasks/c
    - Read only what is required for this feature.
    - Record references for later inclusion in `spec.md`.
 2. Generate planning templates.
-   - Prefer `python3 scripts/create-specs "<feature_name>" --change-name <kebab-case>`.
+   - Resolve paths from this skill directory, not the target project directory.
+   - Use:
+     - `SKILL_ROOT=<path_to_develop-new-features_skill>`
+     - `WORKSPACE_ROOT=<target_project_root>`
+     - `python3 "$SKILL_ROOT/scripts/create-specs" "<feature_name>" --change-name <kebab-case> --template-dir "$SKILL_ROOT/references/templates" --output-dir "$WORKSPACE_ROOT/docs/plans"`
    - Always use:
      - `references/templates/spec.md`
      - `references/templates/tasks.md`
@@ -61,6 +65,7 @@ description: Spec-first feature development workflow that generates spec/tasks/c
 - Keep requirement IDs, task IDs, and test case IDs traceable.
 - These documents are living artifacts: update `tasks.md` and `checklist.md` after execution.
 - Prefer realism over rigid templates: add/remove items and adjust test levels when needed.
+- Path rule: `scripts/...` and `references/...` in this file always mean paths under the current skill folder, not the target project root.
 
 ## References
 

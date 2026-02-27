@@ -34,7 +34,11 @@ Trigger specs when **any** of the following is true:
 - cross-module changes
 
 If triggered:
-- Generate specs with `python3 scripts/create-specs "<feature_name>" --change-name <kebab-case>`.
+- Resolve paths from this skill directory, not the target project directory.
+- Use:
+  - `SKILL_ROOT=<path_to_enhance-existing-features_skill>`
+  - `WORKSPACE_ROOT=<target_project_root>`
+  - `python3 "$SKILL_ROOT/scripts/create-specs" "<feature_name>" --change-name <kebab-case> --template-dir "$SKILL_ROOT/references/templates" --output-dir "$WORKSPACE_ROOT/docs/plans"`
 - Templates must come from:
   - `references/templates/spec.md`
   - `references/templates/tasks.md`
@@ -80,6 +84,7 @@ Rules:
 - Keep the solution minimal and executable.
 - Maintain traceability between requirements, tasks, and tests.
 - Treat checklists as living artifacts: adjust items to match real change scope.
+- Path rule: `scripts/...` and `references/...` in this file always mean paths under the current skill folder, not the target project root.
 
 ## References
 

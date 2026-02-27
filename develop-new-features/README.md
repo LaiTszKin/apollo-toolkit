@@ -46,7 +46,12 @@ Use this skill for new features, product behavior changes, or greenfield feature
 ### 1) Generate planning files
 
 ```bash
-python3 scripts/create-specs "Membership upgrade flow optimization" --change-name membership-upgrade-flow
+SKILL_ROOT=/path/to/develop-new-features-skill
+WORKSPACE_ROOT=/path/to/target-project
+python3 "$SKILL_ROOT/scripts/create-specs" "Membership upgrade flow optimization" \
+  --change-name membership-upgrade-flow \
+  --template-dir "$SKILL_ROOT/references/templates" \
+  --output-dir "$WORKSPACE_ROOT/docs/plans"
 ```
 
 Default output:
@@ -63,11 +68,15 @@ docs/plans/<today>_membership-upgrade-flow/
 ### 2) Other common parameters
 
 ```bash
-python3 scripts/create-specs "Feature name" \
-  --output-dir docs/plans \
-  --template-dir references/templates \
+SKILL_ROOT=/path/to/develop-new-features-skill
+WORKSPACE_ROOT=/path/to/target-project
+python3 "$SKILL_ROOT/scripts/create-specs" "Feature name" \
+  --output-dir "$WORKSPACE_ROOT/docs/plans" \
+  --template-dir "$SKILL_ROOT/references/templates" \
   --force
 ```
+
+> `scripts/...` and `references/...` are skill-folder paths, not target-project paths.
 
 - `--output-dir`: output directory (default `docs/plans`)
 - `--template-dir`: template directory (default `references/templates`)

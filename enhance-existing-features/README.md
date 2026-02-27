@@ -51,8 +51,15 @@ user-critical logic chain/e2e (or record clear N/A reasons).
 ## Create specs (when required)
 
 ```bash
-python3 scripts/create-specs "Feature Name" --change-name your-change-name
+SKILL_ROOT=/path/to/enhance-existing-features-skill
+WORKSPACE_ROOT=/path/to/target-project
+python3 "$SKILL_ROOT/scripts/create-specs" "Feature Name" \
+  --change-name your-change-name \
+  --template-dir "$SKILL_ROOT/references/templates" \
+  --output-dir "$WORKSPACE_ROOT/docs/plans"
 ```
+
+> `scripts/...` and `references/...` are skill-folder paths, not target-project paths.
 
 Default output:
 
