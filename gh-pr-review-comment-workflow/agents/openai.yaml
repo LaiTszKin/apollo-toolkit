@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Review Resolver"
+  short_description: "Adopt PR feedback and resolve comments fast"
+  default_prompt: "Use $gh-pr-review-comment-workflow to process GitHub PR review comments, apply accepted feedback, and resolve addressed threads."

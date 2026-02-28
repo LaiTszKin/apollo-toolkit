@@ -5,6 +5,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 ## Included skills
 
 - app-log-issue-analysis
+- answering-questions-with-research
 - commit-and-push
 - develop-new-features
 - docs-to-voice
