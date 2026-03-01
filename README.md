@@ -26,26 +26,62 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 
 ## One-click installer
 
-Use `install_skills.sh` to install all skills as symlinks.
+Installers now live in `scripts/`:
+
+- macOS/Linux: `scripts/install_skills.sh`
+- Windows (PowerShell): `scripts/install_skills.ps1`
+
+### Local usage
 
 ```bash
 # Select install options interactively (supports multiple choices)
-./install_skills.sh
+./scripts/install_skills.sh
 
 # Install into ~/.codex/skills
-./install_skills.sh codex
+./scripts/install_skills.sh codex
 
 # Install into ~/.openclaw/workspace*/skills
-./install_skills.sh openclaw
+./scripts/install_skills.sh openclaw
 
 # Install into ~/.trae/skills
-./install_skills.sh trae
+./scripts/install_skills.sh trae
 
 # Install all targets
-./install_skills.sh all
+./scripts/install_skills.sh all
 ```
 
-The installer replaces existing files/directories at target paths and keeps only symlinks.
+```powershell
+# Select install options interactively (supports multiple choices)
+./scripts/install_skills.ps1
+
+# Install into ~/.codex/skills
+./scripts/install_skills.ps1 codex
+
+# Install all targets
+./scripts/install_skills.ps1 all
+```
+
+### Curl / iwr one-liner usage
+
+```bash
+# macOS/Linux interactive install (stdin is piped, prompt still works)
+curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash
+
+# macOS/Linux non-interactive install
+curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash -s -- codex
+```
+
+```powershell
+# Windows PowerShell interactive install
+irm https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.ps1 | iex
+
+# Windows PowerShell non-interactive install
+$script = Join-Path $env:TEMP "install_skills.ps1"
+iwr https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.ps1 -OutFile $script
+& $script codex
+```
+
+The installer replaces existing files/directories at target paths and keeps only symlinks (PowerShell falls back to junction links when symlinks are restricted).
 
 ## Notes
 

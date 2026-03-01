@@ -2,9 +2,9 @@
 set -euo pipefail
 
 usage() {
-  cat <<'EOF'
+  cat <<"USAGE"
 Usage:
-  ./install_skills.sh [codex|openclaw|trae|all]...
+  ./scripts/install_skills.sh [codex|openclaw|trae|all]...
 
 Modes:
   codex     Install symlinks into ~/.codex/skills
@@ -16,11 +16,20 @@ Optional environment overrides:
   CODEX_SKILLS_DIR   Override codex skills destination path
   OPENCLAW_HOME      Override openclaw home path
   TRAE_SKILLS_DIR    Override trae skills destination path
-EOF
+USAGE
 }
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_SOURCE="${BASH_SOURCE[0]-}"
+if [[ -n "$SCRIPT_SOURCE" && -f "$SCRIPT_SOURCE" ]]; then
+  SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+  REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+  # curl/pipe mode: resolve the repository root from current working directory.
+  SCRIPT_DIR="$PWD/scripts"
+  REPO_ROOT="$PWD"
+fi
 SELECTED_MODES=()
+SKILL_PATHS=()
 
 collect_skills() {
   local dir
@@ -29,10 +38,10 @@ collect_skills() {
     if [[ -f "$dir/SKILL.md" ]]; then
       SKILL_PATHS+=("$dir")
     fi
-  done < <(find "$SCRIPT_DIR" -mindepth 1 -maxdepth 1 -type d | sort)
+  done < <(find "$REPO_ROOT" -mindepth 1 -maxdepth 1 -type d | sort)
 
   if [[ ${#SKILL_PATHS[@]} -eq 0 ]]; then
-    echo "No skill folders found in: $SCRIPT_DIR" >&2
+    echo "No skill folders found in: $REPO_ROOT" >&2
     exit 1
   fi
 }
@@ -132,6 +141,22 @@ parse_mode() {
   esac
 }
 
+read_choice_from_user() {
+  local prompt="$1"
+  local result
+
+  if [[ -t 0 ]]; then
+    read -r -p "$prompt" result
+  elif [[ -r /dev/tty ]]; then
+    read -r -p "$prompt" result < /dev/tty
+  else
+    echo "Interactive input unavailable. Pass mode arguments (e.g. codex/openclaw/trae/all)." >&2
+    exit 1
+  fi
+
+  printf '%s' "$result"
+}
+
 choose_modes_interactive() {
   local choice raw_choice
   local -a choices
@@ -141,7 +166,7 @@ choose_modes_interactive() {
   echo "2) openclaw (~/.openclaw/workspace*/skills)"
   echo "3) trae (~/.trae/skills)"
   echo "4) all"
-  read -r -p "Enter choice(s) [1-4]: " choice
+  choice="$(read_choice_from_user 'Enter choice(s) [1-4]: ')"
 
   IFS=',' read -r -a choices <<< "$choice"
   for raw_choice in "${choices[@]}"; do
