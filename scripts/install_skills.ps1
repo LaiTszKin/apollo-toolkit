@@ -21,11 +21,58 @@ Optional environment overrides:
   CODEX_SKILLS_DIR   Override codex skills destination path
   OPENCLAW_HOME      Override openclaw home path
   TRAE_SKILLS_DIR    Override trae skills destination path
+  APOLLO_TOOLKIT_REPO_DIR Override local clone path used when repo root is unavailable
+  APOLLO_TOOLKIT_REPO_URL Override git repository URL used when repo root is unavailable
 "@
 }
 
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$RepoRoot = Split-Path -Parent $ScriptDir
+$ToolkitRepoUrl = if ($env:APOLLO_TOOLKIT_REPO_URL) { $env:APOLLO_TOOLKIT_REPO_URL } else { "https://github.com/LaiTszKin/apollo-toolkit.git" }
+$ToolkitRepoDir = if ($env:APOLLO_TOOLKIT_REPO_DIR) { $env:APOLLO_TOOLKIT_REPO_DIR } else { Join-Path $HOME ".apollo-toolkit-repo" }
+
+function Test-RepoRoot {
+  param([string]$Path)
+
+  if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Container)) {
+    return $false
+  }
+
+  $dirs = Get-ChildItem -Path $Path -Directory -ErrorAction SilentlyContinue
+  foreach ($dir in $dirs) {
+    if (Test-Path -LiteralPath (Join-Path $dir.FullName "SKILL.md") -PathType Leaf) {
+      return $true
+    }
+  }
+
+  return $false
+}
+
+function Bootstrap-RepoIfNeeded {
+  if (Test-Path -LiteralPath (Join-Path $ToolkitRepoDir ".git") -PathType Container) {
+    git -C $ToolkitRepoDir pull --ff-only | Out-Null
+  }
+  else {
+    git clone --depth 1 $ToolkitRepoUrl $ToolkitRepoDir | Out-Null
+  }
+}
+
+$scriptPath = $MyInvocation.MyCommand.Path
+$candidateRepoRoot = $null
+
+if (-not [string]::IsNullOrWhiteSpace($scriptPath)) {
+  $scriptDir = Split-Path -Parent $scriptPath
+  $candidateRepoRoot = Split-Path -Parent $scriptDir
+}
+
+if (Test-RepoRoot -Path $candidateRepoRoot) {
+  $RepoRoot = $candidateRepoRoot
+}
+elseif (Test-RepoRoot -Path (Get-Location).Path) {
+  $RepoRoot = (Get-Location).Path
+}
+else {
+  Bootstrap-RepoIfNeeded
+  $RepoRoot = $ToolkitRepoDir
+}
 
 function Get-SkillPaths {
   $dirs = Get-ChildItem -Path $RepoRoot -Directory | Sort-Object Name

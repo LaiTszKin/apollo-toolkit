@@ -16,17 +16,35 @@ Optional environment overrides:
   CODEX_SKILLS_DIR   Override codex skills destination path
   OPENCLAW_HOME      Override openclaw home path
   TRAE_SKILLS_DIR    Override trae skills destination path
+  APOLLO_TOOLKIT_REPO_DIR Override local clone path used in curl/pipe mode
+  APOLLO_TOOLKIT_REPO_URL Override git repository URL used in curl/pipe mode
 USAGE
 }
 
 SCRIPT_SOURCE="${BASH_SOURCE[0]-}"
+TOOLKIT_REPO_URL="${APOLLO_TOOLKIT_REPO_URL:-https://github.com/LaiTszKin/apollo-toolkit.git}"
+TOOLKIT_REPO_DIR="${APOLLO_TOOLKIT_REPO_DIR:-$HOME/.apollo-toolkit-repo}"
+
+bootstrap_repo_if_needed() {
+  if [[ -d "$TOOLKIT_REPO_DIR/.git" ]]; then
+    git -C "$TOOLKIT_REPO_DIR" pull --ff-only >/dev/null
+  else
+    git clone --depth 1 "$TOOLKIT_REPO_URL" "$TOOLKIT_REPO_DIR" >/dev/null
+  fi
+}
+
 if [[ -n "$SCRIPT_SOURCE" && -f "$SCRIPT_SOURCE" ]]; then
   SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
   REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 else
-  # curl/pipe mode: resolve the repository root from current working directory.
-  SCRIPT_DIR="$PWD/scripts"
-  REPO_ROOT="$PWD"
+  # curl/pipe mode: use current directory only when it looks like this repo.
+  if find "$PWD" -mindepth 1 -maxdepth 1 -type d -exec test -f '{}/SKILL.md' ';' -print -quit | grep -q .; then
+    REPO_ROOT="$PWD"
+  else
+    bootstrap_repo_if_needed
+    REPO_ROOT="$TOOLKIT_REPO_DIR"
+  fi
+  SCRIPT_DIR="$REPO_ROOT/scripts"
 fi
 SELECTED_MODES=()
 SKILL_PATHS=()

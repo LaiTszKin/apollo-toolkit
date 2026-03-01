@@ -71,6 +71,8 @@ curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scrip
 curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash -s -- codex
 ```
 
+In curl/pipe mode (bash) and iwr/irm mode (PowerShell), the script auto-clones this repository into `~/.apollo-toolkit-repo` (override via `APOLLO_TOOLKIT_REPO_DIR`).
+
 ```powershell
 # Windows PowerShell interactive install
 irm https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.ps1 | iex
