@@ -13,6 +13,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - enhance-existing-features
 - feature-propose
 - github-issue-fix-pr-workflow
+- learning-error-book
 - learn-skill-from-conversations
 - novel-to-short-video
 - open-source-pr-workflow
