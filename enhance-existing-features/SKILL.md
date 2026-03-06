@@ -1,32 +1,28 @@
 ---
 name: enhance-existing-features
-description: Build and extend brownfield features in an existing codebase. Use specs (`spec.md`/`tasks.md`/`checklist.md`) with explicit user approval before coding when scope is high complexity, critical module, or cross-module changes. Even when specs are not required, still add and run related tests for unit/property-based/user-critical integration chain/E2E coverage. If users answer clarification questions during specs, update related checkboxes, review/adjust specs, and get approval again before coding.
+description: Build and extend brownfield features in an existing codebase. Always explore the codebase first, then decide from the user's requested change whether specs (`spec.md`/`tasks.md`/`checklist.md`) are required before coding. Use explicit user approval before implementation when specs are generated. Even when specs are not required, still add and run related tests for unit/property-based/user-critical integration chain/E2E coverage. If users answer clarification questions during specs, update related checkboxes, review/adjust specs, and get approval again before coding.
 ---
 
 # Enhance Existing Features
 
 ## Overview
 
-Safely extend brownfield systems by mapping dependencies first, verifying authoritative docs, classifying change risk, using specs for high-risk scope, implementing minimal changes, and always completing test coverage for the changed behavior.
+Safely extend brownfield systems by exploring the existing codebase first, using the user's requested change plus discovered impact to decide whether specs are needed, then following a consistent implementation and testing workflow with minimal, well-validated changes.
 
 ## Workflow
 
-### 1) Explore codebase and map dependencies
+### 1) Explore codebase first
 
+- Read the relevant existing code before deciding process or editing anything.
 - Locate entrypoints, configuration, and primary data flow.
 - Trace module relationships (imports, call graph, shared models, side effects).
 - Identify integration points (DB, RPC, external APIs, queues, filesystems).
 - Identify user-critical logic chains affected by the change.
-- Summarize findings before editing.
+- Summarize findings and the likely change surface before editing.
 
-### 2) Verify latest authoritative docs
+### 2) Decide whether specs are required from the requested change
 
-- Identify the tech stack, libraries, and external dependencies involved.
-- Use official documentation as source of truth.
-- Prefer Context7 for framework/library APIs; use web for latest official docs.
-- If required docs are private or missing, request access or user-provided references.
-
-### 3) Decide whether specs are required
+Use the user's requested change together with the codebase exploration results to decide whether to generate specs.
 
 Trigger specs when **any** of the following is true:
 - high complexity changes
@@ -51,8 +47,14 @@ If triggered:
 - Do not modify implementation code before approval.
 
 If not triggered:
-- You may implement directly after dependency/doc checks.
-- You must still complete the same testing coverage requirements in step 5.
+- Continue directly with the same downstream workflow below.
+
+### 3) Verify latest authoritative docs
+
+- Identify the tech stack, libraries, and external dependencies involved.
+- Use official documentation as source of truth.
+- Prefer Context7 for framework/library APIs; use web for latest official docs.
+- If required docs are private or missing, request access or user-provided references.
 
 ### 4) Implement the feature
 
@@ -61,7 +63,7 @@ If not triggered:
 - Follow project conventions (naming, linting, formatting, configuration).
 - Update environment examples only when new inputs are required.
 
-### 5) Testing coverage (required even without specs)
+### 5) Testing coverage (required with or without specs)
 
 For every non-trivial change, evaluate all categories and add test cases or record justified `N/A`:
 - Unit tests: changed logic, boundaries, and failure paths.
@@ -82,6 +84,7 @@ Rules:
 ## Working Rules
 
 - Keep the solution minimal and executable.
+- Always decide the need for specs only after exploring the existing codebase.
 - Maintain traceability between requirements, tasks, and tests.
 - Treat checklists as living artifacts: adjust items to match real change scope.
 - Path rule: `scripts/...` and `references/...` in this file always mean paths under the current skill folder, not the target project root.
