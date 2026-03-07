@@ -8,6 +8,7 @@
 - Use `- [ ]` for all items; mark completed items as `- [x]`.
 - If an item is not applicable, keep `N/A` with a concrete reason.
 - Suggested test result values: `PASS / FAIL / BLOCKED / NOT RUN / N/A`.
+- For business-logic changes, property-based coverage is required unless a concrete `N/A` reason is recorded.
 
 ## Clarification & Approval Gate (required when clarification replies exist)
 - [ ] User clarification responses are recorded (map to `spec.md`; if none, mark `N/A`).
@@ -20,6 +21,8 @@
   - Requirement mapping: [R1.x]
   - Actual test case IDs: [UT/PBT/IT/E2E-xx]
   - Test level: [Unit / Property-based / Integration / E2E]
+  - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
+  - External dependency strategy: [none / mocked service states / near-real dependency]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
 
@@ -27,6 +30,8 @@
   - Requirement mapping: [R?.?]
   - Actual test case IDs: [UT/PBT/IT/E2E-xx]
   - Test level: [Unit / Property-based / Integration / E2E]
+  - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
+  - External dependency strategy: [none / mocked service states / near-real dependency]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
 
@@ -34,8 +39,15 @@
   - Requirement mapping: [R?.?]
   - Actual test case IDs: [UT/PBT/IT/E2E-xx]
   - Test level: [Unit / Property-based / Integration / E2E]
+  - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
+  - External dependency strategy: [none / mocked service states / near-real dependency]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
+
+## Required Hardening Records
+- [ ] Property-based coverage is added/updated for changed business logic, or `N/A` is recorded with a concrete reason.
+- [ ] External services in the business logic chain are mocked/faked for scenario testing, or `N/A` is recorded with a concrete reason.
+- [ ] Adversarial/penetration-style cases are added/updated for abuse paths and edge combinations, or `N/A` is recorded with a concrete reason.
 
 ## E2E Decision Record (pick one or customize)
 - [ ] Build E2E (case: [E2E-xx]; reason: [importance/complexity/cross-layer risk]).
@@ -47,6 +59,8 @@
 - [ ] Property-based tests: `PASS / FAIL / NOT RUN / N/A`
 - [ ] Integration tests: `PASS / FAIL / NOT RUN / N/A`
 - [ ] E2E tests: `PASS / FAIL / NOT RUN / N/A`
+- [ ] External service mock scenarios: `PASS / FAIL / NOT RUN / N/A`
+- [ ] Adversarial/penetration-style cases: `PASS / FAIL / NOT RUN / N/A`
 
 ## Completion Rule
 - [ ] Agent has updated checkboxes, test outcomes, and necessary notes based on real execution (including added/removed items).

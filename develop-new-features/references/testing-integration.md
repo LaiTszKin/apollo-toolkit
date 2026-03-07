@@ -3,11 +3,13 @@
 ## Purpose
 - Verify collaboration across modules/layers and external dependencies.
 - Cover integration risks unit tests cannot capture (sequence, config, IO failure).
+- Validate user-critical business logic chains under realistic component interaction and controlled external-service scenarios.
 
 ## When to use
 - Interface interactions between modules (for example service ↔ repository).
 - Changes touching IO dependencies such as DB, RPC, files, cache, queues.
 - Behaviors that depend on configuration combinations or environment differences.
+- The correctness question is about the whole business logic chain rather than one isolated function.
 - As minimum safety replacement when E2E is not suitable.
 
 ## Not suitable when
@@ -21,13 +23,17 @@
 
 ## Design guidance
 - Focus on high-value integration points; each test should justify risk/value.
-- Limit dependency scope; use test doubles/local stubs when needed.
+- Keep dependencies inside the application boundary near-real where practical.
+- Mock/fake external services at the business-chain boundary unless the real service contract itself is what needs verification.
+- Build scenario matrices for external states such as success, timeout, retries exhausted, partial data, stale data, duplicate callbacks, inconsistent responses, and permission failures.
+- Add adversarial/penetration-style cases for abuse paths such as invalid transitions, replay, double-submit, forged identifiers, or out-of-order events when those risks exist.
 - Keep reproducible: controlled test data and recoverable environment.
-- Cover failure modes such as timeout, connection failure, inconsistent data.
 - Keep cost controlled; avoid broad redundant coverage (leave that to unit tests).
 
 ## Spec/checklist authoring hints
 - Dependency scope: list involved modules/external systems.
 - Scenario: describe cross-module flow or critical branch.
-- Purpose: explain integration/configuration/failure risk being covered.
+- Risk: explain what integration failure, misconfiguration, or business-chain break this test can reveal.
+- External dependency strategy: specify which services are mocked/faked versus near-real and why.
+- Scenario matrix: list the external states or adversarial paths covered.
 - Map behavior, test IDs, and test outcomes in `checklist.md`.

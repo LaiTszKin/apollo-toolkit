@@ -17,6 +17,7 @@
 - Isolate external dependencies with mock/stub/fake; avoid DB/RPC/file IO.
 - Keep tests small and focused: one test, one behavior/failure mode.
 - Cover both success and failure branches.
+- Where the input space is small and discrete, exhaustively enumerate business inputs and expected outputs.
 - Keep tests reproducible: avoid nondeterministic time/random/global state.
 - Map tests to requirements: each core requirement should have at least one unit test.
 

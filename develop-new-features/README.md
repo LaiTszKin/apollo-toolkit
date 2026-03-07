@@ -90,11 +90,12 @@ python3 "$SKILL_ROOT/scripts/create-specs" "Feature name" \
 4. Complete `spec.md`: BDD requirements, clarification questions, references.
 5. Complete `tasks.md`: task/subtask breakdown and implementation order.
 6. Complete `checklist.md`: behavior-to-test mapping + test outcomes.
-7. Decide E2E based on importance/complexity; if E2E is not suitable, add integration coverage.
-8. If users respond to clarification questions, mark related checkboxes and review `spec.md` / `tasks.md` / `checklist.md` updates.
-9. Obtain explicit "implementation can start" approval again after updates.
-10. Start code changes.
-11. Backfill actual checkbox status and results in `tasks.md` and `checklist.md`.
+7. Plan unit tests, mandatory property-based coverage for business-logic changes, external mock scenarios, and adversarial/penetration-style cases.
+8. Decide E2E based on importance/complexity; if E2E is not suitable, add integration coverage.
+9. If users respond to clarification questions, mark related checkboxes and review `spec.md` / `tasks.md` / `checklist.md` updates.
+10. Obtain explicit "implementation can start" approval again after updates.
+11. Start code changes.
+12. Backfill actual checkbox status and results in `tasks.md` and `checklist.md`.
 
 ## Document authoring rules
 

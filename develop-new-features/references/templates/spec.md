@@ -38,6 +38,8 @@
 ## Error and Edge Cases
 - [ ] [Authorization or role boundary]
 - [ ] [Data boundary condition]
+- [ ] [External dependency state or degraded response]
+- [ ] [Abuse/adversarial scenario or invalid state transition]
 - [ ] [Failure or exception handling]
 
 ## Clarification Questions

@@ -73,8 +73,11 @@ docs/plans/<today>_your-change-name/
 ## Test requirements (evaluate for every change)
 
 - Unit: changed logic, boundaries, failure paths
-- Property-based: invariants and broad input combinations
+- Property-based: mandatory for business-logic changes unless `N/A` with reason; use for invariants, generated business input spaces, and expected output validation
 - Integration: user-critical logic chain across layers/modules
 - E2E: affected key user-visible path
+
+- Adversarial/penetration-style cases: abuse paths, malformed inputs, invalid transitions, replay/duplication, and risky edge combinations
+- External services in the business logic chain should be mocked/faked for scenario testing unless the real contract is the target of verification
 
 If E2E is not feasible, replace with stronger integration tests and record the reason.

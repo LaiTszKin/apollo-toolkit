@@ -16,6 +16,7 @@
 ## Design guidance
 - Isolate external dependencies (mock/stub/fake).
 - Keep tests small and focused: one behavior per test.
+- Where the input space is small and discrete, exhaustively enumerate business inputs and expected outputs.
 - Keep tests reproducible and fast.
 
 ## Recording rules

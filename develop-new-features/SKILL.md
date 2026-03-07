@@ -1,6 +1,6 @@
 ---
 name: develop-new-features
-description: Spec-first feature development workflow that generates spec/tasks/checklist documents from templates, captures BDD requirements and executable test plans, then waits for user confirmation before implementation. Use when users ask to design or implement new features, change product behavior, request a planning-first process, or ask for a greenfield feature; for any greenfield project, this skill is mandatory and must complete specs writing before implementation. If users answer clarification questions, update related checkboxes, review/adjust specs, and get approval again before coding.
+description: Spec-first feature development workflow that generates spec/tasks/checklist documents from templates, captures BDD requirements and executable test plans, then waits for user confirmation before implementation. Use when users ask to design or implement new features, change product behavior, request a planning-first process, or ask for a greenfield feature; for any greenfield project, this skill is mandatory and must complete specs writing before implementation. For business-logic changes, require property-based testing unless explicitly `N/A` with reason, allow property-based tests to validate generated business input/output expectations beyond mathematical invariants, use mocks for external services in logic chains, and add adversarial/penetration-style cases for abuse and edge conditions. If users answer clarification questions, update related checkboxes, review/adjust specs, and get approval again before coding.
 ---
 
 # Develop New Features
@@ -31,7 +31,7 @@ description: Spec-first feature development workflow that generates spec/tasks/c
    - List references, risks, and likely files to modify.
 4. Fill `spec.md`.
    - Core requirements must use: `GIVEN`, `WHEN`, `THEN`, `AND`, and `Requirements`.
-   - Each requirement must be testable and cover authorization, boundaries, and error/exception paths.
+   - Each requirement must be testable and cover authorization, boundaries, external dependency states, adversarial/abuse scenarios, and error/exception paths.
    - If requirements are unclear, list 3-5 clarification questions; otherwise write `None`.
 5. Fill `tasks.md`.
    - Main task heading format must be `## **Task N: [Task Title]**`.
@@ -42,7 +42,11 @@ description: Spec-first feature development workflow that generates spec/tasks/c
    - Treat checklist items as a starting template and adapt based on real scope.
    - Align behavior with tests (UT/PBT/IT/E2E) and record results (PASS/FAIL/BLOCKED/NOT RUN/N/A).
 7. Plan test coverage.
-   - Plan unit and property-based tests based on requirement risk.
+   - Plan unit tests for changed rules, boundaries, validation, and failure paths.
+   - Property-based tests are mandatory for business-logic changes unless truly unsuitable; if skipped, record concrete `N/A` reason in `checklist.md`.
+   - Use property-based tests both for classic invariants and for generated/enumerated business input spaces that assert outputs remain within business expectations.
+   - For logic chains with external services, use mocks/fakes to simulate diverse external states and verify the chain still produces correct business outcomes.
+   - Add adversarial/penetration-style cases that probe abuse paths, malformed inputs, replay/duplication, invalid transitions, and edge combinations.
    - Decide E2E proactively based on feature importance, complexity, and cross-layer risk.
    - If E2E is unstable/costly, add integration coverage for critical paths and record reason in `checklist.md`.
 8. Process user clarifications (required when clarifications are provided).
@@ -55,7 +59,7 @@ description: Spec-first feature development workflow that generates spec/tasks/c
 10. Start implementation only after approval.
 11. After implementation and testing, backfill document status.
     - `tasks.md`: mark each task checkbox according to real completion.
-    - `checklist.md`: mark verification checkboxes and update test result fields.
+    - `checklist.md`: mark verification checkboxes, property-based/adversarial coverage, mock-scenario coverage, and update test result fields.
 
 ## Working Rules
 
