@@ -2,6 +2,14 @@
 
 All notable changes to this repository are documented in this file.
 
+## [Unreleased]
+
+### Added
+- Add `open-github-issue` skill for deterministic GitHub issue publishing with auth fallback and README-based language detection.
+
+### Changed
+- Split GitHub issue publication out of `app-log-issue-analysis` and make it depend on `open-github-issue`.
+
 ## [v0.6.0] - 2026-02-27
 
 ### Added

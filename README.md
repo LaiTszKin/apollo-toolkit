@@ -16,6 +16,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - learning-error-book
 - learn-skill-from-conversations
 - novel-to-short-video
+- open-github-issue
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
 - security-expert-hardening

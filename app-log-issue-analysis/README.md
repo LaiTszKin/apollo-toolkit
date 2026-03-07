@@ -10,8 +10,8 @@ This skill helps agents analyze logs end-to-end, correlate runtime signals with 
 - A strict evidence standard (log lines + code correlation + impact + confidence).
 - A checklist to avoid false conclusions.
 - A pattern catalog for common operational failures (timeouts, retry storms, auth errors, resource pressure, schema mismatch, race conditions, and dependency outages).
-- Optional GitHub issue publishing for confirmed findings, with auth fallback order: `gh` login -> `GITHUB_TOKEN`/`GH_TOKEN` -> draft only.
-- Issue language selection based on target repository remote README: Chinese README -> localized issue body, otherwise English issue body.
+- GitHub issue publication via the `open-github-issue` dependency skill.
+- Issue language selection delegated to `open-github-issue` based on the target repository README: Chinese README -> localized issue body, otherwise English issue body.
 
 ## Repository structure
 
@@ -19,7 +19,7 @@ This skill helps agents analyze logs end-to-end, correlate runtime signals with 
 - `agents/openai.yaml`: Agent interface metadata and default prompt.
 - `references/investigation-checklist.md`: Investigation validation checklist.
 - `references/log-signal-patterns.md`: Log signal pattern reference.
-- `scripts/publish_log_issue.py`: Deterministic issue publisher.
+- Dependency skill: `open-github-issue` for deterministic issue publishing.
 
 ## Installation
 
@@ -41,17 +41,17 @@ Use $app-log-issue-analysis to inspect these logs and identify root causes.
 
 Issue publication behavior for each confirmed finding:
 
-1. If `gh auth status` succeeds, publish with GitHub CLI.
-2. Otherwise, if `GITHUB_TOKEN` or `GH_TOKEN` exists, publish via GitHub REST API.
-3. Otherwise, return draft issue content without blocking the analysis.
+1. Prepare a structured issue handoff from the confirmed log finding.
+2. Delegate publication to `$open-github-issue`.
+3. Reuse the dependency result in the final publication status section.
 
-Each issue body always includes exactly three sections:
+Each delegated issue must still include exactly three sections:
 
 - `Problem Description`
 - `Suspected Cause`
 - `Reproduction Conditions (if available)`
 
-For localized repositories, use translated section titles with the same meaning.
+For localized repositories, `open-github-issue` uses translated section titles with the same meaning.
 
 Best results come from including:
 

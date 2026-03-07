@@ -22,7 +22,7 @@ DEFAULT_REPRO_EN = "Not yet reliably reproducible; more runtime evidence is requ
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Publish a log investigation finding as a GitHub issue. "
+            "Publish a structured finding as a GitHub issue. "
             "Auth order: gh CLI login -> GitHub token -> draft only."
         )
     )
@@ -108,7 +108,7 @@ def github_request(
 ) -> str:
     headers = {
         "Accept": accept,
-        "User-Agent": "app-log-issue-analysis-skill",
+        "User-Agent": "open-github-issue-skill",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     data = None

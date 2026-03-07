@@ -1,0 +1,4 @@
+interface:
+  display_name: "Open GitHub Issue"
+  short_description: "Publish structured findings as GitHub issues"
+  default_prompt: "Use $open-github-issue to publish a structured GitHub issue from prepared findings, resolve the target repo, detect README language for issue sections, and fall back deterministically from gh CLI to GitHub token to draft-only output."

@@ -9,6 +9,15 @@ description: Comprehensive application log investigation workflow that reads log
 
 Use this skill to analyze application logs systematically with the codebase and runtime context, then report confirmed issues with clear evidence, confidence, and next actions.
 
+## Dependency Contract (Required)
+
+When confirmed issues should be published, always delegate publication to `open-github-issue`.
+
+- Prepare the issue content inside this skill.
+- Pass one confirmed issue per dependency invocation.
+- Reuse the dependency return values for publication status reporting.
+- If `open-github-issue` is unavailable, do not invent an alternative publisher; return draft issue content in the response instead.
+
 ## Core principles
 
 - Prioritize evidence over assumptions; avoid speculative conclusions.
@@ -35,12 +44,10 @@ Use this skill to analyze application logs systematically with the codebase and 
    - Rank by severity and user/business impact.
    - Recommend the smallest safe fixes first.
    - Suggest additional instrumentation only when current logs cannot confirm root cause.
-6. Publish confirmed issues to GitHub
-   - Resolve target repository from `--repo owner/name` or current git `origin`.
-   - Detect issue language from the target repository remote README.
-   - If README is Chinese, use Chinese issue sections; otherwise use English sections.
-   - Auth order is strict: `gh auth status` success -> use `gh issue create`; otherwise use `GITHUB_TOKEN`/`GH_TOKEN` via GitHub REST API.
-   - If both auth paths are unavailable, keep draft issue content in the response and do not block analysis.
+6. Publish confirmed issues through dependency skill
+   - Invoke `open-github-issue` once per confirmed issue.
+   - Pass the prepared title, problem description, suspected cause, reproduction conditions, and target repo.
+   - Reuse the dependency output to report `gh-cli` / `github-token` / `draft-only` publication mode.
 
 ## Evidence requirements
 
@@ -53,20 +60,17 @@ For each reported issue, include:
 
 If evidence is insufficient, report as **hypothesis** and specify exactly what additional logs/metrics are needed.
 
-## GitHub issue publishing rules
+## GitHub issue handoff rules
 
-For each confirmed issue, publish exactly one GitHub issue.
+For each confirmed issue, delegate exactly one GitHub issue publication to `open-github-issue`.
 
-Use deterministic publishing script:
+Pass these fields to the dependency skill:
 
-```bash
-python scripts/publish_log_issue.py \
-  --title "[Log] <short symptom>" \
-  --problem-description "<symptom + impact + key log evidence>" \
-  --suspected-cause "<path:line + causal chain + confidence>" \
-  --reproduction "<steps/conditions or leave empty>" \
-  --repo <owner/repo>
-```
+- `title`: short symptom summary such as `[Log] payment timeout spike`
+- `problem-description`: symptom, impact, and key log evidence
+- `suspected-cause`: `path:line`, causal chain, and confidence
+- `reproduction`: steps/conditions if known; otherwise leave empty
+- `repo`: target repository in `owner/repo` format when known
 
 Issue body sections must always include these three parts:
 
@@ -75,7 +79,7 @@ Issue body sections must always include these three parts:
 - Non-Chinese repositories: use
   `Problem Description`, `Suspected Cause`, and `Reproduction Conditions (if available)`.
 
-If reproduction is unknown, explicitly state it is not yet reliably reproducible and more runtime evidence is required.
+If reproduction is unknown, let `open-github-issue` insert the default language-appropriate non-reproducible note.
 
 ## Output format
 
@@ -105,4 +109,4 @@ Use this structure in responses:
 
 - `references/investigation-checklist.md`: Step-by-step checklist for evidence-driven log investigations.
 - `references/log-signal-patterns.md`: Common log signatures, likely causes, validation hints, and false-positive guards.
-- `scripts/publish_log_issue.py`: Deterministic issue publishing helper with auth fallback and README language detection.
+- Dependency skill: `open-github-issue` for deterministic issue publishing with auth fallback and README language detection.
