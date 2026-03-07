@@ -9,6 +9,9 @@ All notable changes to this repository are documented in this file.
 
 ### Changed
 - Split GitHub issue publication out of `app-log-issue-analysis` and make it depend on `open-github-issue`.
+- Rename `project-doc-aligner` to `align-project-documents`.
+- Rename `agents-md-maintainer` to `maintain-project-contraints`.
+- Update `commit-and-push` to require the renamed documentation and constraint skills before commit.
 
 ## [v0.6.0] - 2026-02-27
 

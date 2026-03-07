@@ -11,14 +11,19 @@ Run a standardized commit-and-push workflow without release/version steps.
 
 ## Dependency Contract (Required)
 
-For code-affecting changes, run these skills before the final commit:
+Run these skills after scanning the change set and before the final commit:
+
+1. `align-project-documents`
+2. `maintain-project-contraints`
+
+For code-affecting changes, also run these skills before the final commit:
 
 1. `edge-case-test-fixer` (first)
 2. `code-simplifier` (second)
 
-If either dependency is unavailable, stop and report the missing dependency.
+If any required dependency is unavailable, stop and report the missing dependency.
 
-If the change set is docs-only and does not alter runtime behavior, tests, build scripts, or CI/config behavior, dependencies may be skipped.
+The documentation/constraint dependencies above are still required for docs-only changes because they verify repository docs and agent-facing constraints before commit.
 
 ## References
 
@@ -35,17 +40,20 @@ Load only when needed:
 2. Classify changes
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: content updates only (for example README, docs, comments).
-3. Run dependency skills (code-affecting only)
+3. Run code-affecting dependency skills (when applicable)
    - Execute `edge-case-test-fixer` first.
    - Execute `code-simplifier` second.
    - Re-run relevant tests when runtime logic changes.
-4. Keep docs synchronized when needed
-   - Update `README.md` only when behavior or usage changed.
-   - Update `AGENTS.md` only when agent workflow/rules changed.
-5. Commit
+4. Run pre-commit sync dependencies
+   - Execute `align-project-documents` after the scan is complete.
+   - Execute `maintain-project-contraints` immediately before the commit.
+5. Keep docs synchronized when needed
+   - Apply the output from `align-project-documents` when behavior or usage changed.
+   - Apply the output from `maintain-project-contraints` when agent workflow/rules changed.
+6. Commit
    - Preserve user staging intent where possible.
    - Write a concise Conventional Commit message using `references/commit-messages.md`.
-6. Push
+7. Push
    - Push commit(s) to the current branch.
 
 ## Notes

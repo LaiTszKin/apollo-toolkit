@@ -1,9 +1,9 @@
 ---
-name: project-doc-aligner
+name: align-project-documents
 description: Read and understand a software project, then generate or align project documentation with the current codebase. Use when a user asks for project docs (usage, technical architecture, debugging flow, setup, operations) or asks to verify and sync existing documentation with real implementation.
 ---
 
-# Project Doc Aligner
+# Align Project Documents
 
 ## Goal
 
