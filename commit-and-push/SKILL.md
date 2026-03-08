@@ -14,7 +14,7 @@ Run a standardized commit-and-push workflow without release/version steps.
 Run these skills after scanning the change set and before the final commit:
 
 1. `align-project-documents`
-2. `maintain-project-contraints`
+2. `maintain-project-constraints`
 
 For code-affecting changes, also run these skills before the final commit:
 

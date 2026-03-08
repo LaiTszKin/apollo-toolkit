@@ -1,9 +1,9 @@
 ---
-name: maintain-project-contraints
+name: maintain-project-constraints
 description: Automatically create and maintain AGENTS.md so it stays aligned with the current repository architecture, core business flow, project purpose, and coding conventions. Use when AGENTS.md is missing or may be outdated after code changes.
 ---
 
-# Maintain Project Contraints
+# Maintain Project Constraints
 
 ## Goal
 
