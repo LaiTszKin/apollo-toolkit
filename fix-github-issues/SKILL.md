@@ -1,9 +1,9 @@
 ---
-name: github-issue-fix-pr-workflow
+name: fix-github-issues
 description: Resolve issues from remote GitHub repositories via GitHub CLI (`gh`), implement and validate fixes locally, then open a pull request through `open-source-pr-workflow` (or `open-pr-workflow` in environments that use that alias). Use when users ask to list remote issues, pick one or more issues to fix, and submit a PR linked to those issues.
 ---
 
-# GitHub Issue Fix PR Workflow
+# Fix GitHub Issues
 
 ## Overview
 

@@ -34,27 +34,103 @@ class OpenGitHubIssueTests(unittest.TestCase):
 
     def test_build_issue_body_uses_default_reproduction_text(self) -> None:
         zh_body = MODULE.build_issue_body(
+            issue_type=MODULE.ISSUE_TYPE_PROBLEM,
             language="zh",
+            title="[Log] 問題",
             problem_description="問題",
             suspected_cause="原因",
             reproduction=None,
+            proposal=None,
+            reason=None,
+            suggested_architecture=None,
         )
         en_body = MODULE.build_issue_body(
+            issue_type=MODULE.ISSUE_TYPE_PROBLEM,
             language="en",
+            title="[Log] problem",
             problem_description="problem",
             suspected_cause="cause",
             reproduction=None,
+            proposal=None,
+            reason=None,
+            suggested_architecture=None,
         )
 
         self.assertIn(MODULE.DEFAULT_REPRO_ZH, zh_body)
         self.assertIn(MODULE.DEFAULT_REPRO_EN, en_body)
 
+    def test_build_issue_body_supports_feature_issue_sections(self) -> None:
+        zh_body = MODULE.build_issue_body(
+            issue_type=MODULE.ISSUE_TYPE_FEATURE,
+            language="zh",
+            title="[Feature] 匯出事故時間線",
+            problem_description=None,
+            suspected_cause=None,
+            reproduction=None,
+            proposal="新增事故時間線匯出功能",
+            reason="減少手動整理 postmortem 成本",
+            suggested_architecture="重用時間線查詢服務，新增共用匯出模組",
+        )
+        en_body = MODULE.build_issue_body(
+            issue_type=MODULE.ISSUE_TYPE_FEATURE,
+            language="en",
+            title="[Feature] Export incident timeline",
+            problem_description=None,
+            suspected_cause=None,
+            reproduction=None,
+            proposal="Allow exporting incident timelines",
+            reason="Support postmortem handoff",
+            suggested_architecture="Add shared exporters and UI action",
+        )
+
+        self.assertIn("### 功能提案", zh_body)
+        self.assertIn("### 建議架構", zh_body)
+        self.assertIn("### Feature Proposal", en_body)
+        self.assertIn("### Suggested Architecture", en_body)
+
+    def test_validate_issue_content_args_requires_feature_fields(self) -> None:
+        with self.assertRaises(SystemExit):
+            MODULE.validate_issue_content_args(
+                Namespace(
+                    issue_type=MODULE.ISSUE_TYPE_FEATURE,
+                    reason="",
+                    suggested_architecture="shared module",
+                    problem_description=None,
+                    suspected_cause=None,
+                )
+            )
+
+        with self.assertRaises(SystemExit):
+            MODULE.validate_issue_content_args(
+                Namespace(
+                    issue_type=MODULE.ISSUE_TYPE_FEATURE,
+                    reason="important now",
+                    suggested_architecture="",
+                    problem_description=None,
+                    suspected_cause=None,
+                )
+            )
+
+        MODULE.validate_issue_content_args(
+            Namespace(
+                issue_type=MODULE.ISSUE_TYPE_FEATURE,
+                reason="important now",
+                suggested_architecture="shared module",
+                problem_description=None,
+                suspected_cause=None,
+            )
+        )
+
     def test_main_dry_run_returns_structured_json_without_publish_attempt(self) -> None:
         args = Namespace(
             title="[Log] sample",
+            issue_type=MODULE.ISSUE_TYPE_PROBLEM,
             problem_description="problem",
             suspected_cause="handler.py:12",
             reproduction=None,
+            proposal=None,
+            reason=None,
+            suggested_architecture=None,
             repo="owner/repo",
             dry_run=True,
         )
@@ -74,6 +150,7 @@ class OpenGitHubIssueTests(unittest.TestCase):
 
         payload = json.loads(stdout.getvalue())
         self.assertEqual(payload["mode"], "dry-run")
+        self.assertEqual(payload["issue_type"], MODULE.ISSUE_TYPE_PROBLEM)
         self.assertEqual(payload["language"], "zh")
         self.assertIn("### 問題描述", payload["issue_body"])
 

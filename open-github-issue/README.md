@@ -1,15 +1,15 @@
 # Open GitHub Issue
 
-Structured GitHub issue publishing with deterministic authentication fallback and repository-language-aware issue bodies.
+Structured GitHub issue and feature-proposal publishing with deterministic authentication fallback and repository-language-aware issue bodies.
 
-This skill helps agents publish confirmed findings as GitHub issues without embedding repository resolution, auth handling, and language detection logic into every other workflow.
+This skill helps agents publish confirmed findings or accepted feature proposals as GitHub issues without embedding repository resolution, auth handling, and language detection logic into every other workflow.
 
 ## What this skill provides
 
 - Target repository resolution from `--repo` or current git `origin`.
 - Strict auth fallback order: `gh` login -> `GITHUB_TOKEN`/`GH_TOKEN` -> draft only.
 - Issue body language detection based on the target repository README.
-- Consistent three-section issue bodies for problem, suspected cause, and reproduction conditions.
+- Consistent structured issue bodies for both problem issues and feature proposal issues.
 - Machine-readable JSON output so parent skills can report publication status consistently.
 
 ## Repository structure
@@ -33,17 +33,28 @@ cp -R open-github-issue "$CODEX_HOME/skills/open-github-issue"
 Invoke the skill in your prompt:
 
 ```text
-Use $open-github-issue to publish this confirmed finding to GitHub.
+Use $open-github-issue to publish this confirmed finding or accepted feature proposal to GitHub.
 ```
 
 The bundled script can also be called directly:
 
 ```bash
 python scripts/open_github_issue.py \
+  --issue-type problem \
   --title "[Log] Payment timeout spike" \
   --problem-description "Repeated timeout warnings escalated into request failures during the incident window." \
   --suspected-cause "payment-api/handler.py:84 retries immediately against a slow upstream with no jitter; confidence high." \
   --reproduction "Not yet reliably reproducible; more runtime evidence is required." \
+  --repo owner/repo
+```
+
+```bash
+python scripts/open_github_issue.py \
+  --issue-type feature \
+  --title "[Feature] Add incident timeline export" \
+  --proposal "Allow users to export incident timelines as Markdown and CSV from the incident detail page." \
+  --reason "Support handoff to on-call engineers and postmortem writing without copy-paste." \
+  --suggested-architecture "Add an export action in the incident UI, reuse timeline query service, and centralize renderers in a shared export module." \
   --repo owner/repo
 ```
 
@@ -55,11 +66,19 @@ For each issue:
 2. Otherwise, if `GITHUB_TOKEN` or `GH_TOKEN` exists, publish via GitHub REST API.
 3. Otherwise, return draft issue content without blocking the caller.
 
-Each issue body always includes exactly three sections:
+Problem issues always include exactly three sections:
 
 - `Problem Description`
 - `Suspected Cause`
 - `Reproduction Conditions (if available)`
+
+For Chinese-language repositories, use translated section titles with the same meaning.
+
+Feature proposal issues always include:
+
+- `Feature Proposal`
+- `Why This Is Needed`
+- `Suggested Architecture`
 
 For Chinese-language repositories, use translated section titles with the same meaning.
 
@@ -68,6 +87,7 @@ For Chinese-language repositories, use translated section titles with the same m
 The script prints JSON including:
 
 - publication mode,
+- issue type,
 - created issue URL when available,
 - rendered issue body,
 - and publish error details when fallback occurs.

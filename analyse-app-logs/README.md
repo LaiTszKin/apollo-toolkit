@@ -1,4 +1,4 @@
-# App Log Issue Analysis
+# Analyse App Logs
 
 An agent skill for evidence-driven application log investigations.
 
@@ -28,7 +28,7 @@ This skill helps agents analyze logs end-to-end, correlate runtime signals with 
 
 ```bash
 mkdir -p "$CODEX_HOME/skills"
-cp -R app-log-issue-analysis "$CODEX_HOME/skills/app-log-issue-analysis"
+cp -R analyse-app-logs "$CODEX_HOME/skills/analyse-app-logs"
 ```
 
 ## Usage
@@ -36,7 +36,7 @@ cp -R app-log-issue-analysis "$CODEX_HOME/skills/app-log-issue-analysis"
 Invoke the skill in your prompt:
 
 ```text
-Use $app-log-issue-analysis to inspect these logs and identify root causes.
+Use $analyse-app-logs to inspect these logs and identify root causes.
 ```
 
 Issue publication behavior for each confirmed finding:
@@ -66,7 +66,7 @@ Best results come from including:
 ### Input prompt
 
 ```text
-Use $app-log-issue-analysis to investigate this production incident.
+Use $analyse-app-logs to investigate this production incident.
 
 Service: payment-api
 Environment: prod

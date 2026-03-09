@@ -5,16 +5,16 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 ## Included skills
 
 - align-project-documents
-- app-log-issue-analysis
+- analyse-app-logs
 - answering-questions-with-research
 - commit-and-push
 - develop-new-features
 - docs-to-voice
-- edge-case-test-fixer
+- fix-edge-cases
 - enhance-existing-features
 - feature-propose
-- gh-pr-review-comment-workflow
-- github-issue-fix-pr-workflow
+- fix-github-issues
+- resolve-review-comments
 - learning-error-book
 - learn-skill-from-conversations
 - maintain-project-contraints
@@ -22,7 +22,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - open-github-issue
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
-- security-expert-hardening
+- harden-app-security
 - systematic-debug
 - text-to-short-video
 - version-release

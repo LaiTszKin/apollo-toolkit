@@ -1,6 +1,6 @@
-# edge-case-test-fixer
+# fix-edge-cases
 
-`edge-case-test-fixer` is a Codex skill for hardening code changes with edge-case-driven tests.
+`fix-edge-cases` is a Codex skill for hardening code changes with edge-case-driven tests.
 
 ## Brief introduction
 

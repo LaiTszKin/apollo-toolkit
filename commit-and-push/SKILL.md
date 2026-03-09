@@ -18,7 +18,7 @@ Run these skills after scanning the change set and before the final commit:
 
 For code-affecting changes, also run these skills before the final commit:
 
-1. `edge-case-test-fixer` (first)
+1. `fix-edge-cases` (first)
 2. `code-simplifier` (second)
 
 If any required dependency is unavailable, stop and report the missing dependency.
@@ -41,7 +41,7 @@ Load only when needed:
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: content updates only (for example README, docs, comments).
 3. Run code-affecting dependency skills (when applicable)
-   - Execute `edge-case-test-fixer` first.
+   - Execute `fix-edge-cases` first.
    - Execute `code-simplifier` second.
    - Re-run relevant tests when runtime logic changes.
 4. Run pre-commit sync dependencies

@@ -14,7 +14,7 @@ A Codex skill focused on preparing and opening review-ready pull requests for op
 - Opens PRs directly by default; only shows drafts when the user explicitly asks to review first
 - Defaults forked repositories to open PRs against the upstream parent repository (unless user explicitly requests the fork)
 - Requires clear PR sections for motivation, engineering rationale, and test results
-- For code changes, requires running `edge-case-test-fixer` then `code-simplifier` before opening PR
+- For code changes, requires running `fix-edge-cases` then `code-simplifier` before opening PR
 - PR content should focus only on change motivation, decisions, and validation (no internal skill/tool process notes)
 - Encourages minimal, verifiable, review-ready contributions
 

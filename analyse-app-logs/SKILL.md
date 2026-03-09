@@ -1,9 +1,9 @@
 ---
-name: app-log-issue-analysis
+name: analyse-app-logs
 description: Comprehensive application log investigation workflow that reads logs end-to-end, correlates signals with code paths and runtime context, and identifies evidence-backed issues with impact and remediation steps. Use when users ask to analyze logs, investigate incidents, find root causes from log records, explain recurring warnings/errors, or check whether logs reveal hidden system problems.
 ---
 
-# App Log Issue Analysis
+# Analyse App Logs
 
 ## Overview
 

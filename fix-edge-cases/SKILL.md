@@ -1,5 +1,5 @@
 ---
-name: edge-case-test-fixer
+name: fix-edge-cases
 description: Read code to identify edge cases, write tests that cover those edge cases, and fix the implementation if tests expose failures. Use when a user asks to add edge-case tests, harden behavior, or validate that existing code handles unusual inputs or error paths (e.g., empty data, nulls, boundaries, invalid formats, timeouts, retries).
 ---
 

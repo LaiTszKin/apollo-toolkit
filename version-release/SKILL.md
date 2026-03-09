@@ -19,7 +19,7 @@ Run a standardized release workflow for versioned delivery:
 
 For code-affecting changes, run these skills before release metadata edits and final commit:
 
-1. `edge-case-test-fixer` (first)
+1. `fix-edge-cases` (first)
 2. `code-simplifier` (second)
 
 If either dependency is unavailable, stop and report the missing dependency.
@@ -47,7 +47,7 @@ Load only when needed:
 3. Classify changes and run dependencies when required
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: documentation/content updates only.
-   - Run `edge-case-test-fixer` then `code-simplifier` for code-affecting changes.
+   - Run `fix-edge-cases` then `code-simplifier` for code-affecting changes.
 4. Identify release range
    - Find latest version tag with `git describe --tags --abbrev=0` (fallback to `git tag --list`).
    - If no tags exist, use initial commit from `git rev-list --max-parents=0 HEAD`.

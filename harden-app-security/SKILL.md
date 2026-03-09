@@ -1,9 +1,9 @@
 ---
-name: security-expert-hardening
+name: harden-app-security
 description: "Modular security expert workflow for evidence-first red-team audits with two execution modes: default interaction mode and user-requested auto mode. Use when users ask to find exploitable vulnerabilities, prove exploitability with reproducible evidence, implement minimal safe fixes, and add failing-then-passing security regression tests. Includes modules for agent systems and financial programs."
 ---
 
-# Security Expert Hardening
+# Harden App Security
 
 ## Overview
 

@@ -17,29 +17,47 @@ README_ACCEPT = "application/vnd.github.raw+json"
 JSON_ACCEPT = "application/vnd.github+json"
 DEFAULT_REPRO_ZH = "尚未穩定重現；需補充更多執行期資料。"
 DEFAULT_REPRO_EN = "Not yet reliably reproducible; more runtime evidence is required."
+ISSUE_TYPE_PROBLEM = "problem"
+ISSUE_TYPE_FEATURE = "feature"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Publish a structured finding as a GitHub issue. "
+            "Publish a structured GitHub issue or feature proposal. "
             "Auth order: gh CLI login -> GitHub token -> draft only."
         )
     )
     parser.add_argument("--title", required=True, help="Issue title")
     parser.add_argument(
+        "--issue-type",
+        choices=[ISSUE_TYPE_PROBLEM, ISSUE_TYPE_FEATURE],
+        default=ISSUE_TYPE_PROBLEM,
+        help="Structured issue type to publish.",
+    )
+    parser.add_argument(
         "--problem-description",
-        required=True,
         help="Issue section content: problem description",
     )
     parser.add_argument(
         "--suspected-cause",
-        required=True,
         help="Issue section content: suspected cause",
     )
     parser.add_argument(
         "--reproduction",
         help="Issue section content: reproduction conditions (optional)",
+    )
+    parser.add_argument(
+        "--proposal",
+        help="Issue section content: feature proposal summary (optional; defaults to title)",
+    )
+    parser.add_argument(
+        "--reason",
+        help="Issue section content: why the feature is needed",
+    )
+    parser.add_argument(
+        "--suggested-architecture",
+        help="Issue section content: suggested architecture for the feature",
     )
     parser.add_argument(
         "--repo",
@@ -51,6 +69,20 @@ def parse_args() -> argparse.Namespace:
         help="Build and print payload only, without creating an issue.",
     )
     return parser.parse_args()
+
+
+def validate_issue_content_args(args: argparse.Namespace) -> None:
+    if args.issue_type == ISSUE_TYPE_FEATURE:
+        if not (args.reason or "").strip():
+            raise SystemExit("Feature issues require --reason.")
+        if not (args.suggested_architecture or "").strip():
+            raise SystemExit("Feature issues require --suggested-architecture.")
+        return
+
+    if not (args.problem_description or "").strip():
+        raise SystemExit("Problem issues require --problem-description.")
+    if not (args.suspected_cause or "").strip():
+        raise SystemExit("Problem issues require --suspected-cause.")
 
 
 def run_command(args: list[str]) -> subprocess.CompletedProcess[str]:
@@ -170,18 +202,47 @@ def detect_issue_language(readme_content: str) -> str:
 
 def build_issue_body(
     *,
+    issue_type: str,
     language: str,
-    problem_description: str,
-    suspected_cause: str,
+    title: str,
+    problem_description: str | None,
+    suspected_cause: str | None,
     reproduction: str | None,
+    proposal: str | None,
+    reason: str | None,
+    suggested_architecture: str | None,
 ) -> str:
+    if issue_type == ISSUE_TYPE_FEATURE:
+        proposal_text = (proposal or title).strip()
+        reason_text = (reason or "").strip()
+        architecture_text = (suggested_architecture or "").strip()
+
+        if language == "zh":
+            return (
+                "### 功能提案\n"
+                f"{proposal_text}\n\n"
+                "### 原因\n"
+                f"{reason_text}\n\n"
+                "### 建議架構\n"
+                f"{architecture_text}\n"
+            )
+
+        return (
+            "### Feature Proposal\n"
+            f"{proposal_text}\n\n"
+            "### Why This Is Needed\n"
+            f"{reason_text}\n\n"
+            "### Suggested Architecture\n"
+            f"{architecture_text}\n"
+        )
+
     if language == "zh":
         repro_text = (reproduction or DEFAULT_REPRO_ZH).strip()
         return (
             "### 問題描述\n"
-            f"{problem_description.strip()}\n\n"
+            f"{(problem_description or '').strip()}\n\n"
             "### 推測原因\n"
-            f"{suspected_cause.strip()}\n\n"
+            f"{(suspected_cause or '').strip()}\n\n"
             "### 重現條件（如有）\n"
             f"{repro_text}\n"
         )
@@ -189,9 +250,9 @@ def build_issue_body(
     repro_text = (reproduction or DEFAULT_REPRO_EN).strip()
     return (
         "### Problem Description\n"
-        f"{problem_description.strip()}\n\n"
+        f"{(problem_description or '').strip()}\n\n"
         "### Suspected Cause\n"
-        f"{suspected_cause.strip()}\n\n"
+        f"{(suspected_cause or '').strip()}\n\n"
         "### Reproduction Conditions (if available)\n"
         f"{repro_text}\n"
     )
@@ -244,6 +305,7 @@ def create_issue_with_token(repo: str, title: str, body: str, token: str) -> str
 
 def main() -> int:
     args = parse_args()
+    validate_issue_content_args(args)
 
     gh_authenticated = has_gh_auth()
     token = get_token()
@@ -253,10 +315,15 @@ def main() -> int:
     language = detect_issue_language(readme_content)
 
     issue_body = build_issue_body(
+        issue_type=args.issue_type,
         language=language,
+        title=args.title,
         problem_description=args.problem_description,
         suspected_cause=args.suspected_cause,
         reproduction=args.reproduction,
+        proposal=args.proposal,
+        reason=args.reason,
+        suggested_architecture=args.suggested_architecture,
     )
 
     mode = "draft-only"
@@ -287,6 +354,7 @@ def main() -> int:
 
     output = {
         "repo": repo,
+        "issue_type": args.issue_type,
         "language": "zh" if language == "zh" else "en",
         "mode": mode,
         "issue_url": issue_url,

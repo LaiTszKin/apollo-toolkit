@@ -1,9 +1,9 @@
 ---
-name: gh-pr-review-comment-workflow
+name: resolve-review-comments
 description: Read GitHub pull request review comments, analyze each thread, decide whether to adopt feedback, implement adopted changes, push updates to the same PR branch, and resolve addressed review threads. Use when users ask to process PR review feedback by PR number or current branch context.
 ---
 
-# GH PR Review Comment Workflow
+# Resolve Review Comments
 
 ## Overview
 

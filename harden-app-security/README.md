@@ -1,4 +1,4 @@
-# security-expert-hardening
+# harden-app-security
 
 Modular Codex skill for evidence-first security hardening across software systems.
 
@@ -36,7 +36,7 @@ Modular Codex skill for evidence-first security hardening across software system
 ## Example invocation
 
 ```text
-Use $security-expert-hardening to audit this system.
+Use $harden-app-security to audit this system.
 Module: combined.
 Focus on prompt injection that could trigger money-moving tools, replay/race conditions,
 and secret exfiltration. Provide evidence with file:line and failing tests first.

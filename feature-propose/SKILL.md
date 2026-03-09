@@ -1,13 +1,17 @@
 ---
 name: feature-propose
-description: Professional product-management workflow for proposing features from an existing codebase. Use when the user asks to understand an application, classify features from a user perspective into MVP/Important/Enhancement/Performance tiers, ask 3-5 clarifying questions when needed, propose numbered feature recommendations, record accepted items in AGENTS.md, and remove implemented items from AGENTS.md.
+description: Professional product-management workflow for proposing features from an existing codebase. Use when the user asks to understand an application, classify features from a user perspective into MVP/Important/Enhancement/Performance tiers, ask 3-5 clarifying questions when needed, propose numbered feature recommendations, publish accepted proposals through `open-github-issue`, record accepted items in AGENTS.md, and remove implemented items from AGENTS.md.
 ---
 
 # Feature Propose
 
 ## Overview
 
-Act as a professional PM: build a complete understanding of the current product from code, classify capabilities by user value, propose prioritized features, persist accepted proposals in `AGENTS.md`, and keep the list clean by removing implemented items.
+Act as a professional PM: build a complete understanding of the current product from code, classify capabilities by user value, propose prioritized features, publish accepted proposals through `open-github-issue`, persist accepted proposals in `AGENTS.md`, and keep the list clean by removing implemented items.
+
+## Core dependency
+
+- `open-github-issue`: publish each accepted proposal as a structured GitHub feature issue with explicit reason and suggested architecture.
 
 ## References
 
@@ -52,12 +56,13 @@ Load these references as needed during classification:
 - For each feature include:
   - User problem
   - Expected user value
-  - Minimal implementation direction
+  - Reason to prioritize now
+  - Suggested architecture
   - Affected modules/files
   - Acceptance criteria
 - Keep proposals focused and minimal; avoid over-engineering.
 
-### 5) Persist accepted features to AGENTS.md and clean up after implementation
+### 5) Persist accepted features to AGENTS.md, publish them, and clean up after implementation
 
 - Ask the user to accept/reject/edit features by number.
 - Once accepted, update repo-root `AGENTS.md` with a dedicated section:
@@ -68,6 +73,16 @@ Load these references as needed during classification:
   - Short feature statement
 - Preserve existing `AGENTS.md` content and style; do not rewrite unrelated sections.
 - If `AGENTS.md` does not exist, ask before creating it.
+- For each accepted feature, invoke `open-github-issue` exactly once with feature-proposal content.
+- Default to publishing accepted features unless the user explicitly says not to create GitHub issues.
+- Pass these fields to `open-github-issue`:
+  - `issue-type`: `feature`
+  - `title`: short feature statement
+  - `proposal`: feature summary
+  - `reason`: why this feature should exist now
+  - `suggested-architecture`: minimal architecture and module plan
+  - `repo`: target repository in `owner/repo` format when known
+- Reuse the returned `mode`, `issue_url`, and `publish_error` in the response.
 - After the related feature is implemented, remove that feature entry from `## Accepted Feature Proposals` in `AGENTS.md`.
 - Remove only implemented items; keep unimplemented accepted items untouched.
 
@@ -79,3 +94,4 @@ Use this structure when responding:
 2. `Function classification` (current functions mapped to 4 types)
 3. `Proposed features` (numbered)
 4. `Confirmation request` (ask user to accept/edit/reject by number)
+5. `Publication status` (only after accepted features are published through `open-github-issue`)
