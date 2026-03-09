@@ -17,7 +17,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - resolve-review-comments
 - learning-error-book
 - learn-skill-from-conversations
-- maintain-project-contraints
+- maintain-project-constraints
 - novel-to-short-video
 - open-github-issue
 - open-source-pr-workflow

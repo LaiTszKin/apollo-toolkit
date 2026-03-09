@@ -4,14 +4,27 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v1.0.0] - 2026-03-09
+
 ### Added
-- Add `open-github-issue` skill for deterministic GitHub issue publishing with auth fallback and README-based language detection.
+- Add `align-project-documents` for codebase-driven project documentation alignment.
+- Add `answering-questions-with-research` for evidence-based answers that combine repo discovery with web research.
+- Add `learning-error-book` for mistake summaries with Markdown-to-PDF error book generation.
+- Add `maintain-project-constraints` to keep `AGENTS.md` aligned with the repository.
+- Add `open-github-issue` for deterministic GitHub issue publishing with auth fallback and README-based language detection.
+- Add `resolve-review-comments` for PR review thread triage, adoption decisions, and resolution workflows.
+- Add cross-platform installers in `scripts/install_skills.sh` and `scripts/install_skills.ps1`.
 
 ### Changed
-- Split GitHub issue publication out of `app-log-issue-analysis` and make it depend on `open-github-issue`.
-- Rename `project-doc-aligner` to `align-project-documents`.
-- Rename `agents-md-maintainer` to `maintain-project-contraints`.
-- Update `commit-and-push` to require the renamed documentation and constraint skills before commit.
+- Rename multiple skills for clearer naming, including `project-doc-aligner` -> `align-project-documents`, `agents-md-maintainer` -> `maintain-project-constraints`, `edge-case-test-fixer` -> `fix-edge-cases`, `github-issue-fix-pr-workflow` -> `fix-github-issues`, `gh-pr-review-comment-workflow` -> `resolve-review-comments`, `security-expert-hardening` -> `harden-app-security`, and `app-log-issue-analysis` -> `analyse-app-logs`.
+- Split GitHub issue publication out of `analyse-app-logs` and make it depend on `open-github-issue`.
+- Expand `open-github-issue` with target repository resolution, README-based language selection, and deterministic draft fallback behavior.
+- Strengthen `develop-new-features`, `enhance-existing-features`, and related skills with clearer property-based testing requirements and refreshed templates.
+- Move installer entrypoints into `scripts/`, add Trae install support, and improve curl/pipe repo detection.
+- Refresh root and skill-level docs to reflect the renamed skills, installer flow, and dependency guidance.
+
+### Fixed
+- Correct current documentation references to `maintain-project-constraints`.
 
 ## [v0.6.0] - 2026-02-27
 

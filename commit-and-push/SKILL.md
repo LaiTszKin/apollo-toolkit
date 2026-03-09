@@ -46,10 +46,10 @@ Load only when needed:
    - Re-run relevant tests when runtime logic changes.
 4. Run pre-commit sync dependencies
    - Execute `align-project-documents` after the scan is complete.
-   - Execute `maintain-project-contraints` immediately before the commit.
+   - Execute `maintain-project-constraints` immediately before the commit.
 5. Keep docs synchronized when needed
    - Apply the output from `align-project-documents` when behavior or usage changed.
-   - Apply the output from `maintain-project-contraints` when agent workflow/rules changed.
+   - Apply the output from `maintain-project-constraints` when agent workflow/rules changed.
 6. Commit
    - Preserve user staging intent where possible.
    - Write a concise Conventional Commit message using `references/commit-messages.md`.

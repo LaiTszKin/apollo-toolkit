@@ -7,7 +7,7 @@ A Codex skill for commit-and-push workflows without release/version operations.
 `commit-and-push` helps agents safely submit local changes by:
 
 1. Inspecting git status and staged state.
-2. Running `align-project-documents` and `maintain-project-contraints` after scanning and before commit.
+2. Running `align-project-documents` and `maintain-project-constraints` after scanning and before commit.
 3. Running additional dependency skills for code-affecting diffs.
 4. Committing with a concise Conventional Commit message.
 5. Pushing to the current branch.
