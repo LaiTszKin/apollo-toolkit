@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Codebases"
+  short_description: "Review a whole repository and publish findings"
+  default_prompt: "Use $review-codebases to read the full repository, prioritize architecture findings before lower-level issues, and publish one GitHub issue per confirmed finding through $open-github-issue."
