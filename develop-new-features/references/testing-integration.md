@@ -27,6 +27,9 @@
 - Mock/fake external services at the business-chain boundary unless the real service contract itself is what needs verification.
 - Build scenario matrices for external states such as success, timeout, retries exhausted, partial data, stale data, duplicate callbacks, inconsistent responses, and permission failures.
 - Add adversarial/penetration-style cases for abuse paths such as invalid transitions, replay, double-submit, forged identifiers, or out-of-order events when those risks exist.
+- When workflows can partially commit, assert rollback/compensation/no-partial-write behavior instead of only final status codes.
+- Assert business outcomes across boundaries: persisted state, emitted events, deduplication, retry accounting, audit trail, or intentional absence of writes/notifications.
+- Add at least one regression-style integration test for the highest-risk chain whenever the change fixes a bug or touches a historically fragile path.
 - Keep reproducible: controlled test data and recoverable environment.
 - Keep cost controlled; avoid broad redundant coverage (leave that to unit tests).
 

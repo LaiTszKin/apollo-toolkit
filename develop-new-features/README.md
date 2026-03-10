@@ -16,6 +16,8 @@ Use this skill for new features, product behavior changes, or greenfield feature
 - `checklist.md` must use `- [ ]` format and can be adapted to real scope/test level.
 - If users answer clarification questions, the agent must mark clarification checkboxes, update specs, and get approval again before coding.
 - E2E is decided by the agent based on feature importance/complexity. If E2E is not suitable, integration tests are required.
+- Testing must not stop at happy-path validation: include adversarial/regression/authorization/idempotency/concurrency coverage where relevant.
+- Tests must verify meaningful business oracles (state, side effects, denied actions), not only smoke-level success.
 - After execution, the agent must backfill checkbox status in `tasks.md` and `checklist.md`.
 - **Do not start implementation before explicit user approval.**
 
@@ -90,8 +92,8 @@ python3 "$SKILL_ROOT/scripts/create-specs" "Feature name" \
 4. Complete `spec.md`: BDD requirements, clarification questions, references.
 5. Complete `tasks.md`: task/subtask breakdown and implementation order.
 6. Complete `checklist.md`: behavior-to-test mapping + test outcomes.
-7. Plan unit tests, mandatory property-based coverage for business-logic changes, external mock scenarios, and adversarial/penetration-style cases.
-8. Decide E2E based on importance/complexity; if E2E is not suitable, add integration coverage.
+7. Start from a risk inventory, then plan unit tests, regression coverage, mandatory property-based coverage for business-logic changes, external mock scenarios, and adversarial/penetration-style cases.
+8. Decide E2E based on importance/complexity; if E2E is not suitable, add integration coverage. Prefer one minimal critical success path plus one highest-value failure/denial path when the risk warrants it.
 9. If users respond to clarification questions, mark related checkboxes and review `spec.md` / `tasks.md` / `checklist.md` updates.
 10. Obtain explicit "implementation can start" approval again after updates.
 11. Start code changes.
@@ -101,7 +103,7 @@ python3 "$SKILL_ROOT/scripts/create-specs" "Feature name" \
 
 - `spec.md`: use BDD keywords `GIVEN / WHEN / THEN / AND / Requirements`.
 - `tasks.md`: each main task must use `## **Task N: [Task Title]**`; body describes purpose + requirement mapping; tasks use `- N. [ ]`, subtasks use `- N.x [ ]`.
-- `checklist.md`: must use `- [ ]` format and no tables; treat as a living template; include clarification/approval gate and update `PASS/FAIL/BLOCKED/NOT RUN/N/A` with real results.
+- `checklist.md`: must use `- [ ]` format and no tables; treat as a living template; include clarification/approval gate, risk class, oracle/assertion focus, and update `PASS/FAIL/BLOCKED/NOT RUN/N/A` with real results.
 
 ## Testing strategy references
 

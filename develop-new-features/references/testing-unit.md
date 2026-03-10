@@ -16,9 +16,14 @@
 ## Design guidance
 - Isolate external dependencies with mock/stub/fake; avoid DB/RPC/file IO.
 - Keep tests small and focused: one test, one behavior/failure mode.
+- Do not stop at happy-path assertions; verify exact errors, rejected states, and intentional lack of side effects when the unit should block an action.
 - Cover both success and failure branches.
 - Where the input space is small and discrete, exhaustively enumerate business inputs and expected outputs.
+- Prefer table-driven cases when many small business permutations share the same oracle.
+- Add regression tests for bug-prone or high-risk logic so previously broken behavior cannot silently return.
+- If the unit owns authorization, invalid transition, idempotency, or concurrency decisions, test those denials explicitly.
 - Keep tests reproducible: avoid nondeterministic time/random/global state.
+- Avoid assertion-light smoke tests and snapshot-only coverage unless the snapshot has a strict business oracle behind it.
 - Map tests to requirements: each core requirement should have at least one unit test.
 
 ## Spec/checklist authoring hints

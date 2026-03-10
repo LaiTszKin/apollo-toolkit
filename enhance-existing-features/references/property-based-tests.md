@@ -23,8 +23,10 @@
 - Properties must be machine-verifiable, whether they are invariants, allow-lists, rejection rules, or business-output predicates.
 - Generator strategy should include normal cases, boundaries, extremes, malformed inputs, and suspicious/adversarial combinations.
 - Prefer modeling the business rule directly: generate inputs, run the logic, then assert output/error/state transition matches the rule.
+- When the behavior is stateful, prefer state-machine or sequence-based properties over isolated single-call generators.
+- When exact outputs are hard to predict, use metamorphic properties (for example reordering, retrying, deduplicating, or replaying inputs should preserve an allowed relation).
 - For external-service-dependent logic, mock/fake the service and generate multiple service states (success, timeout, empty, partial, stale, inconsistent, duplicate, rejected).
-- Control execution cost while preserving reproducibility.
+- Control execution cost while preserving reproducibility, and preserve failing seeds/examples for regression coverage.
 
 ## Recording rules
 - If specs are used, record cases and outcomes in `checklist.md`.

@@ -17,6 +17,8 @@
 - Focus on minimal critical path coverage; avoid over-expansion.
 - Use stable test data and reproducible flows.
 - Prioritize business outcomes over brittle UI details.
+- Prefer one critical success path and one highest-value denial/failure path over many shallow happy-path journeys.
+- Assert business-visible outcomes, not just DOM presence: final state, permission denial, user-facing error, persisted result, or prevented duplicate action.
 
 ## Recording rules
 - Specs flow: record E2E or replacement strategy with outcomes in `checklist.md`.

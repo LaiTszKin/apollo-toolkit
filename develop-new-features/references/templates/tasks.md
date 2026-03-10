@@ -30,6 +30,6 @@
 ## Notes
 - Task order should reflect actual implementation sequence.
 - Every main task must map back to `spec.md` requirement IDs.
-- Include explicit tasks for required test coverage (unit, property-based, integration/E2E as applicable), mock scenario setup, and adversarial/edge-case hardening.
+- Include explicit tasks for required test coverage (unit, regression, property-based, integration/E2E as applicable), mock scenario setup, and adversarial/edge-case hardening.
 - After execution, the agent must update each checkbox (`[x]` for done, `[ ]` for not done).
 - Remove all placeholder guidance text in square brackets after filling.

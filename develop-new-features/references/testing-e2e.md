@@ -25,6 +25,8 @@
 - Cover only the most critical paths; avoid expanding into full UI test suites.
 - Keep test data controllable (fixed seeds or recyclable fixtures).
 - Prioritize stability; avoid brittle external dependencies, use controlled substitutes if needed.
+- Prefer one critical success path and one highest-value denial/failure path over many shallow happy-path journeys.
+- Assert business-visible outcomes, not just DOM presence: final state, permission denial, user-facing error, persisted result, or prevented duplicate action.
 - Keep cost decisions explicit: document why E2E is done or not done and what alternative strategy is used.
 
 ## Spec/checklist authoring hints
