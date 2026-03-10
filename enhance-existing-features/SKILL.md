@@ -1,6 +1,19 @@
 ---
 name: enhance-existing-features
-description: Build and extend brownfield features in an existing codebase. Always explore the codebase first, then decide from the user's requested change whether specs (`spec.md`/`tasks.md`/`checklist.md`) are required before coding. Use explicit user approval before implementation when specs are generated. Even when specs are not required, still add and run related tests for unit/property-based/user-critical integration chain/E2E coverage. Tests must not stop at happy-path validation: for business-logic changes require property-based testing unless explicitly `N/A` with reason, design adversarial/regression/authorization/idempotency/concurrency coverage where relevant, use mocks for external services in logic chains, and verify meaningful business outcomes rather than smoke-only success. If users answer clarification questions during specs, update related checkboxes, review/adjust specs, and get approval again before coding.
+description: >-
+  Build and extend brownfield features in an existing codebase. Always explore
+  the codebase first, then decide from the user's requested change whether
+  specs (`spec.md`/`tasks.md`/`checklist.md`) are required before coding. Use
+  explicit user approval before implementation when specs are generated. Even
+  when specs are not required, still add and run related tests for
+  unit/property-based/user-critical integration chain/E2E coverage. Tests must
+  not stop at happy-path validation: for business-logic changes require
+  property-based testing unless explicitly `N/A` with reason, design
+  adversarial/regression/authorization/idempotency/concurrency coverage where
+  relevant, use mocks for external services in logic chains, and verify
+  meaningful business outcomes rather than smoke-only success. If users answer
+  clarification questions during specs, update related checkboxes, review/adjust
+  specs, and get approval again before coding.
 ---
 
 # Enhance Existing Features

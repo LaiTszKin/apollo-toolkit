@@ -1,0 +1,4 @@
+interface:
+  display_name: "Align Project Documents"
+  short_description: "Generate or sync project docs against the real codebase"
+  default_prompt: "Use $align-project-documents to inspect the repository first, ground every claim in code/config/test evidence, then generate or align project documentation covering usage, architecture, configuration, debugging, testing, and runtime notes without guessing."

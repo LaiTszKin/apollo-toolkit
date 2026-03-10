@@ -1,6 +1,20 @@
 ---
 name: develop-new-features
-description: Spec-first feature development workflow that generates spec/tasks/checklist documents from templates, captures BDD requirements and executable test plans, then waits for user confirmation before implementation. Use when users ask to design or implement new features, change product behavior, request a planning-first process, or ask for a greenfield feature; for any greenfield project, this skill is mandatory and must complete specs writing before implementation. Tests must not stop at happy-path validation: for business-logic changes require property-based testing unless explicitly `N/A` with reason, design adversarial/regression/authorization/idempotency/concurrency coverage where relevant, use mocks for external services in logic chains, and verify meaningful business outcomes rather than smoke-only success. If users answer clarification questions, update related checkboxes, review/adjust specs, and get approval again before coding.
+description: >-
+  Spec-first feature development workflow that generates spec/tasks/checklist
+  documents from templates, captures BDD requirements and executable test
+  plans, then waits for user confirmation before implementation. Use when
+  users ask to design or implement new features, change product behavior,
+  request a planning-first process, or ask for a greenfield feature; for any
+  greenfield project, this skill is mandatory and must complete specs writing
+  before implementation. Tests must not stop at happy-path validation: for
+  business-logic changes require property-based testing unless explicitly
+  `N/A` with reason, design
+  adversarial/regression/authorization/idempotency/concurrency coverage where
+  relevant, use mocks for external services in logic chains, and verify
+  meaningful business outcomes rather than smoke-only success. If users answer
+  clarification questions, update related checkboxes, review/adjust specs, and
+  get approval again before coding.
 ---
 
 # Develop New Features

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix GitHub Issues"
+  short_description: "Resolve remote GitHub issues and open linked PRs"
+  default_prompt: "Use $fix-github-issues to verify the target GitHub repository with gh, list and inspect remote issues, create an isolated worktree and compliant branch after issue selection, use $systematic-debug to reproduce and fix the issue with tests, validate the result, then open a linked PR through $open-source-pr-workflow."

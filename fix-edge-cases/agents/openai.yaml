@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix Edge Cases"
+  short_description: "Find edge cases, write tests, and apply minimal fixes"
+  default_prompt: "Use $fix-edge-cases to scan the current diff first (or the full codebase when there is no diff), identify the highest-risk edge cases, write failing tests for those cases, implement the smallest fixes that make them pass, and summarize the added coverage and behavior changes."

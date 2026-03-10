@@ -1,0 +1,4 @@
+interface:
+  display_name: "Learning Error Book"
+  short_description: "Summarize mistakes into a Markdown-to-PDF error book"
+  default_prompt: "Use $learning-error-book to gather evidence about the user's mistakes, use $pdf whenever PDF extraction or OCR is needed, generate or update error_book/error-book.md from the skill template, and render the final deliverable to error_book/error-book.pdf."
