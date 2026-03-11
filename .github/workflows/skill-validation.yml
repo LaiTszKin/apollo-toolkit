@@ -1,0 +1,43 @@
+name: Skill Metadata Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate-skill-frontmatter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: python3 -m pip install --disable-pip-version-check pyyaml
+
+      - name: Validate SKILL.md frontmatter
+        run: python3 scripts/validate_skill_frontmatter.py
+
+  validate-openai-agent-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: python3 -m pip install --disable-pip-version-check pyyaml
+
+      - name: Validate agents/openai.yaml
+        run: python3 scripts/validate_openai_agent_config.py
