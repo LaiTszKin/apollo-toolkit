@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [v0.0.2] - 2026-03-11
+
+### Changed
+- Reworked the skill into a single discovery-only workflow and removed interaction/auto mode selection.
+- Removed proactive remediation behavior from the core workflow (no direct patching or PR delivery).
+- Expanded module scope from agent/finance only to include a new `software-system` domain for common software and web vulnerabilities.
+- Updated skill metadata and README to reflect adversarial finding/reporting-only behavior.
+
+### Added
+- Added `references/common-software-attack-catalog.md` covering SQL injection, XSS, CSRF, SSRF, path traversal, IDOR/BOLA, command injection, session/token risks, unsafe upload, and misconfiguration checks.
+
 ## [v0.0.1] - 2026-02-17
 
 ### Added

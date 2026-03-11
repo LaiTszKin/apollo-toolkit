@@ -1,16 +1,15 @@
 # harden-app-security
 
-Modular Codex skill for evidence-first security hardening across software systems.
+Modular Codex skill for evidence-first adversarial security auditing across software systems.
 
 ## What this skill provides
 
-- A reusable security workflow that can be applied across domains.
-- Two execution modes: default `interaction` mode and user-requested `auto` mode.
-- Two built-in modules: `agent-system` and `financial-program`.
+- A reusable adversarial workflow focused on vulnerability discovery only.
+- A single execution model (no interaction/auto mode split).
+- Three built-in modules: `agent-system`, `financial-program`, and `software-system`.
+- Expanded coverage for common software/web vulnerabilities (for example SQL injection, XSS, CSRF, SSRF, path traversal, IDOR/BOLA).
 - Evidence-first triage with reproducible exploit paths and `path:line` proof.
-- Failing-then-passing security regression testing guidance.
-- Minimal-fix remediation approach to block exploit paths without over-refactoring.
-- In `auto` mode, confirmed issues are fixed in an isolated worktree, pushed to a remote branch, and opened as PRs.
+- Reporting-first output: prioritized findings and hardening guidance without direct code remediation.
 
 ## Repository layout
 
@@ -18,28 +17,28 @@ Modular Codex skill for evidence-first security hardening across software system
 - `agents/openai.yaml`: Skill display metadata and default prompt.
 - `references/agent-attack-catalog.md`: Agent attack scenarios.
 - `references/security-test-patterns-agent.md`: Agent security test patterns.
-- `references/test-snippets.md`: Python/TypeScript security test snippets.
 - `references/red-team-extreme-scenarios.md`: Finance extreme attack scenarios.
 - `references/risk-checklist.md`: Finance risk checklist and evidence standard.
 - `references/security-test-patterns-finance.md`: Finance security test patterns.
+- `references/common-software-attack-catalog.md`: Common software/web attack scenarios.
+- `references/test-snippets.md`: Optional Python/TypeScript security test snippets.
 
 ## Typical workflow
 
-1. Select execution mode (`interaction` by default, `auto` only when explicitly requested).
-2. Select module scope (`agent-system`, `financial-program`, or `combined`).
-3. Map trust boundaries and protected invariants.
-4. Execute exploit scenarios and keep only reproducible findings.
-5. Write failing exploit-path tests first.
-6. Apply minimal safe fixes and re-run security tests.
-7. In `auto` mode with confirmed findings, create worktree, push branch, and open a PR using the repository's standard workflow (prefer `gh pr create`).
+1. Select module scope (`agent-system`, `financial-program`, `software-system`, or `combined`).
+2. Map trust boundaries and protected invariants.
+3. Execute exploit scenarios and keep only reproducible findings.
+4. Re-run each exploit path and nearby payload variants to verify determinism.
+5. Prioritize risks and produce a report with evidence, impact, and hardening guidance.
+6. Stop at reporting; do not apply patches or open PRs.
 
 ## Example invocation
 
 ```text
-Use $harden-app-security to audit this system.
-Module: combined.
-Focus on prompt injection that could trigger money-moving tools, replay/race conditions,
-and secret exfiltration. Provide evidence with file:line and failing tests first.
+Use $harden-app-security to audit this system in discovery-only mode.
+Module: combined (agent-system + software-system).
+Focus on prompt injection, SQL injection, IDOR, and secret exfiltration.
+Provide reproducible exploit evidence with file:line and severity prioritization.
 ```
 
 ## License
