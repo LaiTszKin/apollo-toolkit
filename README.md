@@ -25,6 +25,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - openai-text-to-image-storyboard
 - harden-app-security
 - systematic-debug
+- deep-research-topics
 - text-to-short-video
 - version-release
 - video-production
