@@ -8,10 +8,33 @@
 
 ## Core Business Flow
 
-- Add or update a skill inside a top-level folder.
-- Keep the skill workflow in `SKILL.md` as the source of truth, then align `README.md` and any agent metadata under `agents/`.
-- Put reusable automation in `scripts/` and longer supporting guidance in `references/` instead of overloading `SKILL.md`.
-- Validate that installation still works by preserving the top-level skill-folder structure expected by the install scripts.
+This repository enables users to install and run a curated set of reusable agent skills for software delivery, research, repository maintenance, and media-generation workflows.
+
+- Users can align project documentation with the current codebase.
+- Users can investigate application logs and produce evidence-backed root-cause findings.
+- Users can answer repository-backed questions with additional web research when needed.
+- Users can commit and push local changes without performing version or release work.
+- Users can research a topic deeply and produce evidence-based deliverables.
+- Users can design and implement new features through a spec-first workflow.
+- Users can convert text or documents into audio files with subtitle timelines.
+- Users can extend existing features in a brownfield codebase with required tests and approvals.
+- Users can propose product features from an existing codebase and publish accepted proposals.
+- Users can discover reproducible edge-case risks and report prioritized hardening gaps.
+- Users can fix remote GitHub issues locally and submit the resulting pull requests.
+- Users can run evidence-first application security audits focused on confirmed vulnerabilities.
+- Users can learn new or improved skills from recent Codex conversation history.
+- Users can summarize mistakes into a learning error book and render it to PDF.
+- Users can create or maintain `AGENTS.md` so project constraints stay aligned with the repository.
+- Users can turn novel content into a loopable short-form video with generated assets.
+- Users can publish structured GitHub issues or feature proposals with auth fallbacks.
+- Users can prepare and open open-source pull requests from existing changes.
+- Users can generate storyboard image sets from chapters, novels, articles, or scripts.
+- Users can process GitHub pull request review comments and resolve addressed threads.
+- Users can perform repository-wide code reviews and publish confirmed findings as GitHub issues.
+- Users can debug software systematically by reproducing causes, validating fixes, and testing outcomes.
+- Users can generate 30-60 second short videos directly from text prompts.
+- Users can prepare and publish versioned releases with changelog and tag workflows.
+- Users can generate long-form videos by orchestrating storyboard, voice, and Remotion-based production steps.
 
 ## Core Project Purpose
 
