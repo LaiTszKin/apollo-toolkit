@@ -1,4 +1,4 @@
 interface:
   display_name: "Version Release"
   short_description: "Prepare a versioned release with bump, changelog, tag, and push"
-  default_prompt: "Use $version-release only for explicit release/version/tag requests: inspect the release scope, run $fix-edge-cases then $code-simplifier for code-affecting changes when required, align user-facing docs with real behavior, update version files and CHANGELOG, create the release commit and tag, and push both commits and tags."
+  default_prompt: "Use $version-release only for explicit release/version/tag requests: inspect the release scope, run $fix-edge-cases, resolve any confirmed findings, then $code-simplifier for code-affecting changes when required, align user-facing docs with real behavior, update version files and CHANGELOG, create the release commit and tag, and push both commits and tags."

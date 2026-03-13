@@ -1,75 +1,108 @@
 ---
 name: fix-edge-cases
-description: Read code to identify edge cases, write tests that cover those edge cases, and fix the implementation if tests expose failures. Use when a user asks to add edge-case tests, harden behavior, or validate that existing code handles unusual inputs or error paths (e.g., empty data, nulls, boundaries, invalid formats, timeouts, retries).
+description: Discover reproducible edge-case risks in changed code or a selected codebase scope, prove them with concrete evidence, and report prioritized findings without modifying implementation. Use when users ask to find edge cases, assess hardening gaps, or validate that unusual inputs and error paths are covered.
 ---
 
-# Edge Case Test Fixer
+# Edge Case Discovery
 
 ## Overview
 
-Systematically harden code by identifying edge cases, writing tests that encode those behaviors, and applying minimal fixes until tests pass. Favor clarity and small, targeted changes.
+Use this skill to discover edge-case failures and coverage gaps with evidence-first analysis. The goal is to surface reproducible findings, not to remediate them.
 
-Scope rule:
-- If `git diff` is not empty, inspect only changed files and the minimum dependency chain.
-- If `git diff` is empty, run a full-codebase edge-case scan. If actionable issues are found, create a git worktree, fix them there, then commit/push and open a PR.
+## Non-negotiable Boundaries
+
+- This skill is discovery-only: do not edit code, do not add or modify tests, and do not open PRs.
+- Keep only reproducible findings with clear evidence.
+- Mark unverified ideas as hypotheses and separate them from confirmed findings.
+- If the task also requires remediation, finish this discovery pass first, then hand off confirmed findings to another implementation workflow.
 
 ## Workflow
 
-### 0) Determine scan scope (required)
+### 1) Determine scan scope (required)
+
 - Run `git diff --name-only` first.
-- If diff exists: scan only changed files and the minimum required call chain, then run steps 1-5.
-- If no diff exists: scan the full project, prioritizing core domain logic, external API boundaries, and state/concurrency-sensitive modules, then run steps 1-6.
-- If no diff exists and no actionable edge case is found: report `No actionable edge-case fix identified`, stop, and do not create a worktree.
+- If diff exists: inspect only changed files plus the minimum dependency chain required to validate suspected edge cases.
+- If no diff exists: scan the full project, prioritizing core domain logic, external API boundaries, stateful workflows, and concurrency-sensitive modules.
+- If no actionable issue is found, report `No actionable edge-case finding identified` and stop.
 
-### 1) Build a factual baseline (within selected scope)
-- With diff: read changed blocks and directly dependent sections (same file or same module).
-- Without diff: read candidate high-risk modules and direct dependencies only; avoid unbounded expansion.
-- Run relevant tests or a minimal reproduction when needed; record actual vs expected behavior.
-- Clarify input/output contracts: types, valid ranges, null handling, and error behavior.
+### 2) Build a factual baseline
 
-### 2) Enumerate edge cases (only directly related to scope)
-Prioritize 2-5 high-risk cases from the list below:
+- Read the relevant code paths end-to-end before judging behavior.
+- Clarify input/output contracts: types, valid ranges, null handling, ordering assumptions, retry/error behavior, and state transitions.
+- Run existing tests or a minimal reproduction when needed to confirm actual vs expected behavior.
+- Record exact evidence with file references (`path:line`) and observable symptoms.
+
+### 3) Execute focused edge-case probes
+
+Prioritize 2-5 high-risk cases directly tied to the selected scope:
+
 - Empty collections / empty strings / None / null
 - Boundary values: 0, 1, -1, max/min limits, overflow
-- Duplicate/order/sorting assumptions
-- Exception paths: external dependency failure, timeout, retry, partial data missing
-- Invalid formats: invalid date/timezone, malformed strings, unexpected types
-- Concurrency/reentrancy: repeated calls, state contamination
-- **Architecture-level edge cases**: cross-module risks such as concurrency, backpressure, resource exhaustion, timeout propagation
-- **Rollback behavior**: interruption across modules/steps and rollback strategy correctness
+- Duplicate, ordering, sorting, or deduplication assumptions
+- Exception paths: external dependency failure, timeout, retry, or partial data missing
+- Invalid formats: malformed strings, invalid date/timezone, or unexpected types
+- Concurrency/reentrancy: repeated calls, state contamination, or race windows
+- Architecture-level edge cases: backpressure, resource exhaustion, timeout propagation, or partial commit/rollback behavior
 
-For a broader checklist, load references based on change type:
+For broader coverage, load references as needed:
+
 - `references/architecture-edge-cases.md`
 - `references/code-edge-cases.md`
 
-#### External API requirements
-If changes involve external API calls, add/validate these edge cases with minimal scope:
-- **Heartbeat/health checks**: include an observable availability path (or state clearly why not needed).
-- **Error degradation**: cover at least HTTP 429 (rate limit) and 500 (server error), with backoff/degradation behavior.
-- **Error logging**: log key fields (status code, request identifier, retry count, latency) to avoid silent failures.
+#### External API checks
 
-### 3) Write tests (fail first, then fix)
-- Reuse existing test style and fixtures first; use existing mocking tools when needed.
-- Add one clearly named test per edge case.
-- Assert only observable outcomes (return value, DB writes, logs, exception types).
-- For external API changes, include tests for 429/500, retry/degradation paths, and heartbeat/health behavior when applicable.
+If the scope includes external API calls, validate:
 
-### 4) Implement minimal fixes
-- Fix at the source of failure with the smallest viable change.
-- Preserve existing API compatibility; if contracts change, update tests and document it clearly.
-- Avoid unrelated refactors and avoid adding behavior not covered by tests.
+- observable health/availability handling,
+- degradation behavior for at least HTTP 429 and 500,
+- actionable error logging (status code, request id, retry count, latency) to avoid silent failures.
 
-### 5) Validate and clean up
-- Re-run relevant tests; remove temporary files/test artifacts created during debugging.
-- Summarize added edge cases, tests, and fixes.
+### 4) Confirm reproducibility
 
-### 6) If no diff and fixes were made: create worktree, commit, and open PR
-- Run this step only when there was no initial diff and you found a fixable issue.
-- Create an isolated branch/worktree (branch must start with `codex/`) and complete changes/tests there.
-- Commit and push directly with git from the worktree.
-- Open a PR after push (for example `gh pr create`) and include edge-case list, mapped tests, fix summary, and risk notes.
+- Reproduce each confirmed issue at least twice through the same trigger path.
+- For high-risk findings, try nearby variants such as boundary neighbors, empty vs null, malformed vs well-typed invalid input, repeated calls, and stale ordering.
+- Capture the exact command, request, or input together with the observed failure or missing protection.
+- Keep unverified ideas as hypotheses only.
 
-## Test Design Hints
-- Prioritize where failures are likely now, not every theoretical possibility.
-- If setup cost is high, shrink inputs or extract helper fixtures.
-- Use mocks/fakes for external I/O to keep tests fast and stable.
+### 5) Prioritize confirmed findings
+
+- Rank findings by user impact, exploitability or frequency, and blast radius.
+- Call out data-integrity, state corruption, silent failure, retry storm, and cross-module propagation risks explicitly.
+- Prefer fewer, stronger findings over many speculative ones.
+
+### 6) Report findings only
+
+Deliver:
+
+1. Findings (highest risk first)
+   - Title and severity/priority
+   - Evidence (`path:line`)
+   - Reproduction steps or triggering input
+   - Broken expectation/invariant
+2. Edge-case evidence
+   - Preconditions
+   - Observed behavior
+   - Reproducibility notes and nearby variant results
+3. Risk assessment
+   - Impact, likelihood, and scope
+   - Why this matters in system context
+4. Hardening guidance (advice only)
+   - Recommended fix direction
+   - Suggested test coverage to add during remediation
+5. Residual risk
+   - Hypotheses, unknowns, and next validation ideas
+
+## Minimum Coverage
+
+Apply all relevant checks for the selected scope:
+
+- Input validation: empty/null/malformed/unexpected-type handling
+- Boundary behavior: zero/one/min/max/overflow/ordering edges
+- Failure behavior: timeout, retry, partial dependency failure, degraded mode
+- Stateful behavior: idempotency, replay, concurrency, rollback, duplicate processing
+- Observability: actionable errors and logging for failures that would otherwise be silent
+
+## Resources
+
+- `references/architecture-edge-cases.md`: cross-module/system-level edge-case checklist.
+- `references/code-edge-cases.md`: code-level input, boundary, and error-path checklist.

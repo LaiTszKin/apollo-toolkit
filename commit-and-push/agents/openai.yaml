@@ -1,4 +1,4 @@
 interface:
   display_name: "Commit and Push"
   short_description: "Submit local changes with commit and push only"
-  default_prompt: "Use $commit-and-push to inspect the current git state, classify the diff, run required dependency skills ($align-project-documents and $maintain-project-constraints, plus $fix-edge-cases then $code-simplifier for code-affecting changes), create a concise Conventional Commit, and push to the current branch without any versioning or release steps."
+  default_prompt: "Use $commit-and-push to inspect the current git state, classify the diff, run required dependency skills ($align-project-documents and $maintain-project-constraints, plus $fix-edge-cases, resolve any confirmed findings, then $code-simplifier for code-affecting changes), create a concise Conventional Commit, and push to the current branch without any versioning or release steps."

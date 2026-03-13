@@ -1,66 +1,64 @@
 # fix-edge-cases
 
-`fix-edge-cases` is a Codex skill for hardening code changes with edge-case-driven tests.
+`fix-edge-cases` is a Codex skill for discovering reproducible edge-case risks and coverage gaps.
 
 ## Brief introduction
 
-This skill normally focuses on the current change set. It identifies high-risk edge cases,
-writes failing tests first, and applies only minimal fixes required to make behavior reliable.
-If there is no `git diff`, it switches to a full-codebase edge-case scan.
+This skill is discovery-oriented. It scans the current diff by default, or the full codebase
+when there is no diff, then validates the highest-risk edge cases with concrete evidence.
+It does not write tests, patch code, or open PRs.
 
 It follows a strict workflow:
 1. Detect whether `git diff` exists.
-2. If diff exists, inspect changed code and minimal dependencies only.
-3. If no diff exists, scan the full codebase for actionable edge cases.
-4. Write failing tests first and apply the smallest fix.
-5. Re-run tests and clean temporary artifacts.
-6. For no-diff fixes, create a git worktree, commit/push directly with git, and create a PR.
+2. Inspect only changed files plus minimal dependencies, or perform a full-project scan when no diff exists.
+3. Probe the highest-risk edge cases and gather concrete evidence.
+4. Reproduce confirmed issues at least twice and check nearby variants.
+5. Prioritize confirmed findings and report hardening guidance only.
 
 ## When to use
 
 Use this skill when a task asks you to:
-- add edge-case tests,
+- find edge-case risks in a diff or codebase,
 - validate unusual inputs and error paths,
-- harden behavior around null/empty/boundary values,
-- verify retries, timeouts, and degradation paths.
+- assess hardening gaps around null/empty/boundary handling,
+- review retries, timeouts, degradation paths, or stateful failure modes.
 
 ## Core principles
 
-- Scope is `git diff` + minimal dependency chain by default.
-- If `git diff` is empty, run a full-codebase scan; only proceed when actionable edge cases are found.
-- Decisions must be evidence-based (no speculation).
-- Prefer small, targeted fixes over broad refactors.
-- Keep API behavior backward compatible unless explicitly changed.
+- Scope is `git diff` plus the minimal dependency chain by default.
+- If `git diff` is empty, run a full-codebase scan focused on high-risk modules.
+- Decisions must be evidence-based; speculative ideas stay marked as hypotheses.
+- Keep only reproducible findings with exact evidence.
+- Report recommended fixes and test ideas, but do not implement them in this skill.
 
 ## External API requirements
 
-When changes involve external API calls, this skill requires edge-case coverage for:
-- health/availability checks,
+When the selected scope involves external API calls, this skill requires checks for:
+- health/availability handling,
 - graceful handling of `429` and `500` responses,
-- actionable error logging (status code, request id, retry count, delay).
+- actionable error logging (status code, request id, retry count, latency).
 
 ## Example
 
 Prompt example:
 
 ```text
-Please review only this PR diff and find the 3 highest-risk edge cases.
-Write failing tests first for null input, boundary timestamp, and API 429 retry.
-Then apply the smallest fix and re-run tests.
+Please review this PR diff and find the 3 highest-risk edge cases.
+Validate null input, boundary timestamp, and API 429 retry behavior.
+Only report confirmed findings with reproduction evidence and suggested test coverage.
 ```
 
 Expected behavior:
 - only changed files and minimal dependency chain are investigated,
-- each edge case gets its own test,
-- implementation changes stay minimal and targeted,
-- temporary test artifacts are cleaned up.
+- each finding includes reproducible evidence,
+- speculative ideas are separated from confirmed issues,
+- the output stays discovery-only with no code edits.
 
 No-diff prompt example:
 
 ```text
 There is no git diff in this repo. Scan the whole codebase for high-risk edge cases.
-If you find any actionable issue, create a worktree branch, fix with tests first,
-then commit/push with git and open a PR.
+If you find any actionable issues, reproduce them with evidence and report the highest-priority findings only.
 ```
 
 ## References

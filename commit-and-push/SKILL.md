@@ -41,7 +41,8 @@ Load only when needed:
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: content updates only (for example README, docs, comments).
 3. Run code-affecting dependency skills (when applicable)
-   - Execute `fix-edge-cases` first.
+   - Execute `fix-edge-cases` first to surface unresolved edge-case risks.
+   - Resolve any confirmed findings.
    - Execute `code-simplifier` second.
    - Re-run relevant tests when runtime logic changes.
 4. Run pre-commit sync dependencies

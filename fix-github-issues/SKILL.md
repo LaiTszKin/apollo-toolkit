@@ -77,6 +77,11 @@ python3 scripts/list_issues.py --limit 50 --state open
   - executed test commands and results
 - Include issue-closing reference (for example, `Closes #<issue-number>`).
 
+### 8) Clean up the temporary worktree after PR creation
+
+- Once the PR is opened and no more work is needed in that isolated tree, remove the worktree you created for the fix.
+- Also clean up the matching local branch reference if it is no longer needed locally.
+
 ## Included Script
 
 ### `scripts/list_issues.py`
