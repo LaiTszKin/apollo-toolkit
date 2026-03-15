@@ -13,6 +13,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - fix-edge-cases
 - enhance-existing-features
 - feature-propose
+- financial-research
 - fix-github-issues
 - resolve-review-comments
 - review-codebases
@@ -23,7 +24,9 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - open-github-issue
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
+- record-spending
 - harden-app-security
+- improve-observability
 - systematic-debug
 - deep-research-topics
 - text-to-short-video

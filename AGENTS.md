@@ -15,6 +15,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can answer repository-backed questions with additional web research when needed.
 - Users can commit and push local changes without performing version or release work.
 - Users can research a topic deeply and produce evidence-based deliverables.
+- Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can design and implement new features through a spec-first workflow.
 - Users can convert text or documents into audio files with subtitle timelines.
 - Users can extend existing features in a brownfield codebase with required tests and approvals.
@@ -29,8 +30,10 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can publish structured GitHub issues or feature proposals with auth fallbacks.
 - Users can prepare and open open-source pull requests from existing changes.
 - Users can generate storyboard image sets from chapters, novels, articles, or scripts.
+- Users can record multi-account spending and balance changes in monthly Excel ledgers with summary analytics and charts.
 - Users can process GitHub pull request review comments and resolve addressed threads.
 - Users can perform repository-wide code reviews and publish confirmed findings as GitHub issues.
+- Users can add focused observability to opaque workflows through targeted logs, metrics, traces, and tests.
 - Users can debug software systematically by reproducing causes, validating fixes, and testing outcomes.
 - Users can generate 30-60 second short videos directly from text prompts.
 - Users can prepare and publish versioned releases with changelog and tag workflows.
