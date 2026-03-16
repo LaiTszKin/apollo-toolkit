@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.0.2] - 2026-03-17
+
+### Changed
+- Update the npm Trusted Publishing workflow to use newer GitHub Actions and Node 24, and simplify publish invocation to `npm publish --access public`.
+
 ## [v2.0.1] - 2026-03-17
 
 ### Fixed
