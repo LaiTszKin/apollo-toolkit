@@ -1,6 +1,6 @@
 ---
 name: version-release
-description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, and push). Use only when users explicitly request version/tag/release work."
+description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, and push). Use only when users explicitly request version/tag/release work. If the release scope includes new completed spec files, run `specs-to-project-docs` before finalizing the release so project docs are standardized and the old specs are removed or archived."
 ---
 
 # Version Release
@@ -8,15 +8,15 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 ## Dependencies
 
 - Required: none.
-- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting releases before metadata edits and the final commit.
+- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting releases before metadata edits and the final commit; `specs-to-project-docs` when the release scope includes new completed spec files.
 - Optional: none.
-- Fallback: If a required release dependency is unavailable for a code-affecting scope, stop and report the missing dependency.
+- Fallback: If a required release dependency is unavailable for a code-affecting scope, or if `specs-to-project-docs` is required for spec conversion but unavailable, stop and report the missing dependency.
 
 ## Standards
 
 - Evidence: Inspect the active change set and the release range before touching version files, tags, or changelog entries.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates, then update versions, docs, commit, tag, and push.
-- Quality: Never guess versions, align user-facing docs with actual code, and keep development planning docs out of release metadata updates.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates, standardize project docs when new specs are present, then update versions, docs, commit, tag, and push.
+- Quality: Never guess versions, align user-facing docs with actual code, and convert completed planning docs into standardized project docs before the release is published.
 - Output: Produce a versioned release commit and tag with synchronized changelog and relevant repository documentation.
 
 ## Overview
@@ -24,7 +24,7 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 Run a standardized release workflow for versioned delivery:
 
 - resolve release scope
-- align project code and project documentation (excluding development planning docs)
+- align project code and standardized project documentation
 - bump version files
 - update changelog and relevant docs
 - commit, tag, and push
@@ -50,6 +50,7 @@ Load only when needed:
 3. Classify changes and run dependencies when required
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: documentation/content updates only.
+   - `new-specs-present`: the current change set or release range adds or updates completed planning files such as `spec.md`, `tasks.md`, `checklist.md`, or their containing plan directories.
    - For code-affecting changes, run `review-change-set` to challenge architecture and simplification assumptions in the active change set.
    - For code-affecting changes, run `discover-edge-cases` and resolve any confirmed findings.
    - For code-affecting changes, ensure `harden-app-security` has been executed for the same scope as an adversarial quality gate.
@@ -57,28 +58,32 @@ Load only when needed:
    - Find latest version tag with `git describe --tags --abbrev=0` (fallback to `git tag --list`).
    - If no tags exist, use initial commit from `git rev-list --max-parents=0 HEAD`.
    - Review `git log --oneline <range>` and `git diff --stat <range>`.
-5. Align code and project docs
+5. Standardize project docs when new specs are in scope
+   - Execute `specs-to-project-docs` when `new-specs-present` is true and the related implementation scope is complete enough for documentation consolidation.
+   - Let `specs-to-project-docs` convert the relevant specs into standardized project docs, normalize any existing project docs to the same structure, and remove or archive superseded source spec files.
+   - If the specs still represent active unfinished work, do not convert them yet; report that the spec files remain active and should not be deleted.
+6. Align code and project docs
    - Compare release range changes with user-facing docs and operational docs to ensure they match actual code behavior.
    - Required alignment targets include project docs such as `README.md`, usage/setup docs, API docs, deployment/runbook docs, and release notes sources when present.
-   - Explicitly exclude development planning docs generated during implementation (for example `spec.md`, `tasks.md`, `checklist.md`, draft design notes, or temporary planning files).
-   - If mismatches are found, update the relevant project docs before version bump/tagging.
-6. Decide version and tag format
+   - After `specs-to-project-docs` runs, treat the standardized outputs as the canonical project-doc structure.
+   - If mismatches are found, update the relevant project docs before version bumping/tagging.
+7. Decide version and tag format
    - Read existing version files (for example `project.toml`, `package.json`, or repo-specific version files).
    - Infer existing tag format (`vX.Y.Z` or `X.Y.Z`) from repository tags.
-   - If user provides target version, use it directly.
-   - If missing, ask user for target version or semver bump type.
+   - If the user provides the target version, use it directly.
+   - If it is missing, ask the user for the target version or semver bump type.
    - Provide recommendations only when explicitly requested.
-7. Update version files
+8. Update version files
    - Update every detected version file consistently.
    - Preserve file formatting; change only version values.
-8. Update release docs
+9. Update release docs
    - Update `CHANGELOG.md` with a new version entry using the selected release range.
-   - Update `README.md` only when behavior/usage changed.
+   - Update `README.md` only when behavior or usage changed.
    - Update `AGENTS.md` only when agent workflow/rules changed.
-9. Commit and tag
+10. Commit and tag
    - Create a release-oriented commit message (for example `chore(release): bump version and update changelog`) when applicable.
    - Create the version tag locally after commit.
-10. Push
+11. Push
    - Push commit(s) and the release tag to the current branch.
 
 ## Notes

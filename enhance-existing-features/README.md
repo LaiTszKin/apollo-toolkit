@@ -1,88 +1,54 @@
 # enhance-existing-features
 
-A feature-extension skill for brownfield systems: map dependencies first, verify docs second, implement third.
+A brownfield feature-extension skill: map dependencies first, decide whether shared specs are required, then implement the approved change with risk-driven hardening tests.
 
 ## Core capabilities
 
-- Maps dependencies and data flow first to reduce change risk.
-- Spec-trigger conditions: specs are required only for these scopes, with explicit user approval before coding:
-  - High-complexity changes
-  - Critical module changes
-  - Cross-module changes
-- Required spec artifacts: `spec.md`, `tasks.md`, `checklist.md`.
-- Spec output path: `docs/plans/{YYYY-MM-DD}_{change_name}/`.
-- If users answer clarification questions during spec phase, agent must mark clarification checkboxes, update specs, and get approval again before implementation.
-- Even when specs are not required, related tests (or explicit `N/A` reasons) are still required:
-  - Unit tests
-  - Regression tests for bug-prone or high-risk behavior
-  - Property-based tests
-  - Integration tests for user-critical logic chains
-  - End-to-end (E2E) tests
-- Testing must not stop at happy-path validation: include adversarial/authorization/idempotency/concurrency coverage where relevant.
-- Tests must verify meaningful business oracles (state, side effects, denied actions), not only smoke-level success.
+- Explores dependencies and data flow before deciding how to change the system.
+- Uses `generate-spec` whenever the change is high-complexity, touches a critical module, or crosses module boundaries.
+- Requires explicit approval before coding when specs are generated.
+- Still requires meaningful tests even when specs are skipped.
+- Keeps brownfield changes focused and traceable.
 
 ## Repository layout
 
 ```text
 .
 ├── SKILL.md
+├── README.md
+├── LICENSE
 ├── agents/
 │   └── openai.yaml
-├── references/
-│   ├── templates/
-│   │   ├── spec.md
-│   │   ├── tasks.md
-│   │   └── checklist.md
-│   ├── unit-tests.md
-│   ├── property-based-tests.md
-│   ├── integration-tests.md
-│   └── e2e-tests.md
-└── scripts/
-    └── create-specs
+└── references/
+    ├── unit-tests.md
+    ├── property-based-tests.md
+    ├── integration-tests.md
+    └── e2e-tests.md
 ```
 
-## Usage
+## Workflow summary
 
-```text
-Use $enhance-existing-features to extend this brownfield feature.
-If scope is high complexity / critical module / cross-module, create specs first,
-wait for explicit approval. If user clarifies requirements, update checklist/specs and get approval again before implementation.
-Even without specs, still add tests for unit/regression/property-based/integration of
-user-critical logic chain/e2e plus adversarial hardening (or record clear N/A reasons).
-```
+1. Explore the existing codebase and affected logic chain first.
+2. Trigger `generate-spec` only when the change is high complexity, hits a critical module, or crosses module boundaries.
+3. Wait for explicit approval if planning docs were generated.
+4. Implement the smallest safe brownfield change.
+5. Run risk-driven tests and backfill planning docs when they exist.
 
-## Create specs (when required)
+## Test requirements
 
-```bash
-SKILL_ROOT=/path/to/enhance-existing-features-skill
-WORKSPACE_ROOT=/path/to/target-project
-python3 "$SKILL_ROOT/scripts/create-specs" "Feature Name" \
-  --change-name your-change-name \
-  --template-dir "$SKILL_ROOT/references/templates" \
-  --output-dir "$WORKSPACE_ROOT/docs/plans"
-```
+- Unit: changed logic, boundaries, failure paths.
+- Regression: bug-prone or high-risk behavior that must not silently return.
+- Property-based: mandatory for business logic unless concrete `N/A` is recorded.
+- Integration: user-critical logic chain across layers/modules.
+- E2E: affected key user-visible path when the risk justifies it.
+- Adversarial: abuse paths, malformed inputs, privilege issues, replay, concurrency, and edge combinations when relevant.
 
-> `scripts/...` and `references/...` are skill-folder paths, not target-project paths.
+If E2E is not feasible, replace it with stronger integration coverage and record the reason.
 
-Default output:
+## References
 
-```text
-docs/plans/<today>_your-change-name/
-├── spec.md
-├── tasks.md
-└── checklist.md
-```
-
-## Test requirements (evaluate for every change)
-
-- Unit: changed logic, boundaries, failure paths
-- Regression: bug-prone or high-risk behaviors that must not silently return
-- Property-based: mandatory for business-logic changes unless `N/A` with reason; use for invariants, generated business input spaces, and expected output validation
-- Integration: user-critical logic chain across layers/modules
-- E2E: affected key user-visible path; prefer one minimal critical success path plus one highest-value denial/failure path when the risk warrants it
-
-- Adversarial/penetration-style cases: abuse paths, malformed inputs, forged identities/privileges, invalid transitions, replay/duplication, stale/out-of-order events, and risky edge combinations
-- External services in the business logic chain should be mocked/faked for scenario testing unless the real contract is the target of verification
-- Assertions should verify business outputs, persisted state, emitted side effects, or intentional lack of side effects
-
-If E2E is not feasible, replace with stronger integration tests and record the reason.
+- Shared planning workflow: `generate-spec`
+- Unit testing guide: `references/unit-tests.md`
+- Property-based testing guide: `references/property-based-tests.md`
+- Integration testing guide: `references/integration-tests.md`
+- E2E testing guide: `references/e2e-tests.md`

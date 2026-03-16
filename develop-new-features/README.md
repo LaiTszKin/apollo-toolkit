@@ -1,117 +1,52 @@
 # develop-new-features
 
-A spec-first feature development skill: generate and confirm `spec.md`, `tasks.md`, and `checklist.md` before implementation.
-
-This skill is designed for Codex/Claude-style agents. It helps teams turn requirements, tasks, and test tracking into verifiable documents before coding.
-
-Use this skill for new features, product behavior changes, or greenfield feature design. The goal is to keep requirements, tasks, tests, and implementation aligned and reduce rework from coding too early.
+A spec-first feature development skill for new behavior and greenfield work. It delegates shared planning-doc generation to `generate-spec`, then implements the approved feature with risk-driven testing.
 
 ## Key capabilities
 
-- Uses `references/templates/spec.md`, `references/templates/tasks.md`, and `references/templates/checklist.md` as source templates.
-- Prefers `scripts/create-specs` to generate all three planning files in one step.
-- Writes outputs to `docs/plans/{YYYY-MM-DD}_{change_name}/`.
-- `spec.md` captures official references, intended file changes, clarification questions, and BDD behaviors.
-- `tasks.md` uses `## **Task N: ...**` plus `- N. [ ]` / `- N.x [ ]` format.
-- `checklist.md` must use `- [ ]` format and can be adapted to real scope/test level.
-- If users answer clarification questions, the agent must mark clarification checkboxes, update specs, and get approval again before coding.
-- E2E is decided by the agent based on feature importance/complexity. If E2E is not suitable, integration tests are required.
-- Testing must not stop at happy-path validation: include adversarial/regression/authorization/idempotency/concurrency coverage where relevant.
-- Tests must verify meaningful business oracles (state, side effects, denied actions), not only smoke-level success.
-- After execution, the agent must backfill checkbox status in `tasks.md` and `checklist.md`.
-- **Do not start implementation before explicit user approval.**
+- Requires `generate-spec` before any implementation starts.
+- Treats `spec.md`, `tasks.md`, and `checklist.md` as approval-gated artifacts, not optional notes.
+- Covers unit, regression, property-based, integration, E2E, and adversarial testing based on actual risk.
+- Reuses existing architecture and avoids speculative expansion.
+- Backfills planning docs after implementation and testing complete.
 
 ## Repository layout
 
 ```text
 .
 ├── SKILL.md
-├── references/
-│   ├── templates/
-│   │   ├── spec.md
-│   │   ├── tasks.md
-│   │   └── checklist.md
-│   ├── testing-unit.md
-│   ├── testing-property-based.md
-│   ├── testing-integration.md
-│   └── testing-e2e.md
-└── scripts/
-    └── create-specs
+├── README.md
+├── LICENSE
+├── agents/
+│   └── openai.yaml
+└── references/
+    ├── testing-unit.md
+    ├── testing-property-based.md
+    ├── testing-integration.md
+    └── testing-e2e.md
 ```
 
-## Requirements
+## Workflow summary
 
-- Python 3.9+
+1. Review only the official docs and code paths needed for the feature.
+2. Run `generate-spec` to create and maintain `docs/plans/{YYYY-MM-DD}_{change_name}/`.
+3. Wait for explicit approval on the spec set.
+4. Implement the approved behavior with minimal changes.
+5. Run risk-driven tests and backfill `tasks.md` and `checklist.md`.
 
-## Quick start
+## Testing expectations
 
-### 1) Generate planning files
+- Unit: changed logic, boundaries, failure paths.
+- Regression: pin down bug-prone or high-risk behavior.
+- Property-based: required for business logic unless concrete `N/A` is recorded.
+- Integration: cover the user-critical logic chain.
+- E2E: cover the most important success and denial/failure paths when justified.
+- Adversarial: include abuse, malformed input, privilege, replay, concurrency, and edge-combination cases when relevant.
 
-```bash
-SKILL_ROOT=/path/to/develop-new-features-skill
-WORKSPACE_ROOT=/path/to/target-project
-python3 "$SKILL_ROOT/scripts/create-specs" "Membership upgrade flow optimization" \
-  --change-name membership-upgrade-flow \
-  --template-dir "$SKILL_ROOT/references/templates" \
-  --output-dir "$WORKSPACE_ROOT/docs/plans"
-```
+## References
 
-Default output:
-
-```text
-docs/plans/<today>_membership-upgrade-flow/
-├── spec.md
-├── tasks.md
-└── checklist.md
-```
-
-> If `--change-name` is omitted, the feature name is converted to kebab-case.
-
-### 2) Other common parameters
-
-```bash
-SKILL_ROOT=/path/to/develop-new-features-skill
-WORKSPACE_ROOT=/path/to/target-project
-python3 "$SKILL_ROOT/scripts/create-specs" "Feature name" \
-  --output-dir "$WORKSPACE_ROOT/docs/plans" \
-  --template-dir "$SKILL_ROOT/references/templates" \
-  --force
-```
-
-> `scripts/...` and `references/...` are skill-folder paths, not target-project paths.
-
-- `--output-dir`: output directory (default `docs/plans`)
-- `--template-dir`: template directory (default `references/templates`)
-- `--force`: overwrite existing files under the same target directory
-
-## Recommended workflow
-
-1. Review official documentation needed for this feature (only what is required).
-2. Generate `spec.md` / `tasks.md` / `checklist.md` with the script.
-3. Explore existing code and module dependencies.
-4. Complete `spec.md`: BDD requirements, clarification questions, references.
-5. Complete `tasks.md`: task/subtask breakdown and implementation order.
-6. Complete `checklist.md`: behavior-to-test mapping + test outcomes.
-7. Start from a risk inventory, then plan unit tests, regression coverage, mandatory property-based coverage for business-logic changes, external mock scenarios, and adversarial/penetration-style cases.
-8. Decide E2E based on importance/complexity; if E2E is not suitable, add integration coverage. Prefer one minimal critical success path plus one highest-value failure/denial path when the risk warrants it.
-9. If users respond to clarification questions, mark related checkboxes and review `spec.md` / `tasks.md` / `checklist.md` updates.
-10. Obtain explicit "implementation can start" approval again after updates.
-11. Start code changes.
-12. Backfill actual checkbox status and results in `tasks.md` and `checklist.md`.
-
-## Document authoring rules
-
-- `spec.md`: use BDD keywords `GIVEN / WHEN / THEN / AND / Requirements`.
-- `tasks.md`: each main task must use `## **Task N: [Task Title]**`; body describes purpose + requirement mapping; tasks use `- N. [ ]`, subtasks use `- N.x [ ]`.
-- `checklist.md`: must use `- [ ]` format and no tables; treat as a living template; include clarification/approval gate, risk class, oracle/assertion focus, and update `PASS/FAIL/BLOCKED/NOT RUN/N/A` with real results.
-
-## Testing strategy references
-
-- Unit tests: `references/testing-unit.md`
-- Property-based tests: `references/testing-property-based.md`
-- Integration tests: `references/testing-integration.md`
-- E2E test decision guide: `references/testing-e2e.md`
-
-## License
-
-MIT License. See `LICENSE`.
+- Shared planning workflow: `generate-spec`
+- Unit testing guide: `references/testing-unit.md`
+- Property-based testing guide: `references/testing-property-based.md`
+- Integration testing guide: `references/testing-integration.md`
+- E2E testing guide: `references/testing-e2e.md`

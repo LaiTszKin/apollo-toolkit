@@ -7,6 +7,7 @@ from datetime import date
 from pathlib import Path
 
 TEMPLATE_FILENAMES = ("spec.md", "tasks.md", "checklist.md")
+PLACEHOLDERS = ("[Feature Name]", "[功能名稱]")
 
 
 def _slugify(text: str) -> str:
@@ -22,7 +23,8 @@ def _default_template_dir() -> Path:
 
 def _render(content: str, today: str, feature_name: str, change_name: str) -> str:
     rendered = content.replace("[YYYY-MM-DD]", today)
-    rendered = rendered.replace("[功能名稱]", feature_name)
+    for placeholder in PLACEHOLDERS:
+        rendered = rendered.replace(placeholder, feature_name)
     rendered = rendered.replace("[change_name]", change_name)
     return rendered
 

@@ -1,21 +1,21 @@
 ---
 name: record-spending
-description: Maintain monthly multi-account bookkeeping ledgers in Excel. Use when the user asks to record income, expenses, transfers, deposits, withdrawals, balance changes, account additions, account renames, or monthly asset/liability reviews. Always read ACCOUNT.md first, use the xlsx skill to keep one worksheet per account plus a monthly summary sheet, and keep ACCOUNT.md and CHART.md synchronized.
+description: Maintain monthly multi-account bookkeeping ledgers in Excel. Use when the user asks to record income, expenses, transfers, deposits, withdrawals, balance changes, account additions, account renames, or monthly asset/liability reviews. Always read ACCOUNT.md first, use the spreadsheet skill to keep one worksheet per account plus a monthly summary sheet, and keep ACCOUNT.md and CHART.md synchronized.
 ---
 
 # Record Spending
 
 ## Dependencies
 
-- Required: `xlsx` for every workbook creation, edit, recalculation, formatting change, and chart update.
+- Required: `spreadsheet` for every workbook creation, edit, recalculation, formatting change, and chart update.
 - Conditional: none.
 - Optional: none.
-- Fallback: No alternate workbook-editing path is defined; stay within the `xlsx` workflow for ledger changes.
+- Fallback: No alternate workbook-editing path is defined; stay within the `spreadsheet` workflow for ledger changes.
 
 ## Standards
 
 - Evidence: Treat `ACCOUNT.md` as the source of truth for account identity and `CHART.md` as the source of truth for recurring chart rules.
-- Execution: Resolve ledger scope, handle account maintenance first, then update the monthly workbook and summary sheet through `xlsx`.
+- Execution: Resolve ledger scope, handle account maintenance first, then update the monthly workbook and summary sheet through `spreadsheet`.
 - Quality: Preserve existing naming, formulas, and reconciliation behavior, and record new chart rules or account metadata changes immediately.
 - Output: Report the updated workbook path, changed worksheets, account-registry changes, and chart-rule changes.
 
@@ -57,7 +57,7 @@ Load these only when needed:
 
 ### 4) Maintain one worksheet per account in the monthly workbook
 
-- Create or update the target monthly workbook through the `xlsx` skill.
+- Create or update the target monthly workbook through the `spreadsheet` skill.
 - Ensure every tracked account has its own worksheet for that month.
 - Record every balance-changing event on the matching worksheet.
 - Use a consistent transaction table with at least these columns:
@@ -102,7 +102,7 @@ Load these only when needed:
 - Confirm the correct account worksheet was updated, created, or renamed.
 - Confirm `ACCOUNT.md` reflects all account additions, renames, aliases, and status changes.
 - Confirm `CHART.md` reflects any new chart or quantified-analysis rule.
-- Recalculate workbook formulas and check for Excel errors through the `xlsx` workflow.
+- Recalculate workbook formulas and check for Excel errors through the `spreadsheet` workflow.
 - Report the workbook path, changed worksheets, account-registry updates, and chart-rule updates.
 
 ## Guardrails

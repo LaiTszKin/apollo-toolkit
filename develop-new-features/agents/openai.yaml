@@ -1,4 +1,4 @@
 interface:
   display_name: "Develop New Features"
-  short_description: "Spec-first feature development with approval before coding"
-  default_prompt: "Use $develop-new-features to design new behavior through a spec-first workflow: review required external docs, generate docs/plans/<date>_<change_name>/{spec.md,tasks.md,checklist.md} from the skill templates, capture BDD requirements plus risk-driven test plans, ask 3-5 clarification questions when needed, wait for explicit approval before implementation, and backfill checklist/task status after coding."
+  short_description: "Spec-first feature development that depends on generate-spec"
+  default_prompt: "Use $develop-new-features to design new behavior through a spec-first workflow: review the required external docs, run $generate-spec to create and maintain docs/plans/<date>_<change_name>/{spec.md,tasks.md,checklist.md}, wait for explicit approval, then implement the approved feature with risk-driven tests and backfill the planning docs after execution."

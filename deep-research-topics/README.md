@@ -8,13 +8,13 @@ It helps an agent:
 2. Break the topic into concrete research questions.
 3. Perform deep research with authoritative sources.
 4. Read workspace files to match the existing writing style.
-5. Produce a final file in PDF by default, or DOCX/PPTX when requested.
+5. Produce a final file in PDF by default, or Word/slides output when requested.
 
 ## Dependency skills
 
 - `pdf`: default output format
-- `docx`: optional Word output when requested
-- `pptx`: optional slide output when requested
+- `doc`: optional Word output when requested
+- `slides`: optional slide output when requested
 
 ## Language behavior
 

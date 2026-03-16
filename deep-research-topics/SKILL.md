@@ -8,7 +8,7 @@ description: "Research specific topics deeply and turn them into evidence-based 
 ## Dependencies
 
 - Required: none.
-- Conditional: `pdf` by default, `docx` when Word output is requested, and `pptx` when slides are requested.
+- Conditional: `pdf` by default, `doc` when Word output is requested, and `slides` when slides are requested.
 - Optional: none.
 - Fallback: If the required output skill is unavailable, stop and report the missing dependency instead of inventing another export path.
 
@@ -54,7 +54,7 @@ Use this skill when a user needs topic research that goes beyond a quick answer 
    - State limitations, unresolved questions, and conflicts in the evidence when they exist.
 7. Hand off to the selected output skill
    - Use `pdf` by default.
-   - Switch to `docx` or `pptx` only when requested or clearly required by the workspace convention.
+   - Switch to `doc` or `slides` only when requested or clearly required by the workspace convention.
    - Preserve headings, tables, citations, and appendix material during the handoff.
    - If the selected output skill is `pdf`, require PDF visual QA before completion:
      - open the rendered PDF locally

@@ -9,6 +9,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - answering-questions-with-research
 - commit-and-push
 - develop-new-features
+- generate-spec
 - docs-to-voice
 - discover-edge-cases
 - enhance-existing-features
@@ -20,6 +21,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - review-codebases
 - learning-error-book
 - learn-skill-from-conversations
+- maintain-skill-catalog
 - maintain-project-constraints
 - novel-to-short-video
 - open-github-issue
@@ -30,10 +32,33 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - improve-observability
 - weekly-financial-event-report
 - systematic-debug
+- specs-to-project-docs
 - deep-research-topics
 - text-to-short-video
 - version-release
 - video-production
+
+## External dependency skills
+
+I scanned the standardized `## Dependencies` section across the tracked Apollo Toolkit skills and listed the dependencies that are not vendored in this repository. I also confirmed the local Codex skill names from `~/.codex/skills`; the correct names are `doc`, `spreadsheet`, and `slides` (note: `spreadsheet` is singular).
+
+The install commands below were checked with the Skills CLI unless otherwise noted.
+
+| Skill name | Used by | Author / producer | Install command / note |
+| --- | --- | --- | --- |
+| `pdf` | `deep-research-topics`, `financial-research`, `learning-error-book`, `weekly-financial-event-report` | OpenAI (`openai/skills`) | `npx skills add openai/skills@pdf -g -y` |
+| `doc` | `deep-research-topics` (optional Word output) | OpenAI (`openai/skills`) | `npx skills add openai/skills@doc -g -y` |
+| `slides` | `deep-research-topics` (optional slide output) | OpenAI (`openai/skills`) | `npx skills add openai/skills@slides -g -y` |
+| `spreadsheet` | `record-spending` | OpenAI (`openai/skills`) | `npx skills add openai/skills@spreadsheet -g -y` |
+| `skill-creator` | `learn-skill-from-conversations` | OpenAI (`openai/skills`) | `npx skills add openai/skills@skill-creator -g -y` |
+| `remotion-best-practices` | `novel-to-short-video`, `video-production` | Remotion (`remotion-dev/skills`) | `npx skills add remotion-dev/skills@remotion-best-practices -g -y` |
+| `code-simplifier` | `open-source-pr-workflow` | Sentry (`getsentry/skills`) | `npx skills add getsentry/skills@code-simplifier -g -y` |
+
+Compatibility note:
+
+- `generate-spec` is a new local skill used by `develop-new-features` and `enhance-existing-features`; it is intentionally not listed as an external dependency.
+- `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the install table instead of guessing a package name.
+- `fix-github-issues` accepts `open-source-pr-workflow` or an environment alias named `open-pr-workflow`. Apollo Toolkit already vendors `open-source-pr-workflow`, so `open-pr-workflow` is not a required external dependency here.
 
 ## One-click installer
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "maintain-skill-catalog"
+  short_description: "Audit and keep a skill repository consistent"
+  default_prompt: "Use $maintain-skill-catalog to audit top-level skills, classify internal versus external dependencies, sync catalog docs, extract repeated workflows into shared skills when justified, and run repository validators before finishing."

@@ -11,6 +11,7 @@
 This repository enables users to install and run a curated set of reusable agent skills for software delivery, research, repository maintenance, and media-generation workflows.
 
 - Users can align project documentation with the current codebase.
+- Users can consolidate accumulated project specs into standardized README and project handbook documentation.
 - Users can investigate application logs and produce evidence-backed root-cause findings.
 - Users can answer repository-backed questions with additional web research when needed.
 - Users can commit and push local changes without performing version or release work.
@@ -18,6 +19,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.
 - Users can design and implement new features through a spec-first workflow.
+- Users can generate shared feature spec, task, and checklist planning artifacts for approval-gated workflows.
 - Users can convert text or documents into audio files with subtitle timelines.
 - Users can extend existing features in a brownfield codebase with required tests and approvals.
 - Users can propose product features from an existing codebase and publish accepted proposals.
@@ -25,6 +27,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can fix remote GitHub issues locally and submit the resulting pull requests.
 - Users can run evidence-first application security audits focused on confirmed vulnerabilities.
 - Users can learn new or improved skills from recent Codex conversation history.
+- Users can audit and maintain the skill catalog itself, including dependency classification and shared-skill extraction decisions.
 - Users can summarize mistakes into a learning error book and render it to PDF.
 - Users can create or maintain `AGENTS.md` so project constraints stay aligned with the repository.
 - Users can turn novel content into a loopable short-form video with generated assets.
