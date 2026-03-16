@@ -16,6 +16,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can commit and push local changes without performing version or release work.
 - Users can research a topic deeply and produce evidence-based deliverables.
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
+- Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.
 - Users can design and implement new features through a spec-first workflow.
 - Users can convert text or documents into audio files with subtitle timelines.
 - Users can extend existing features in a brownfield codebase with required tests and approvals.
@@ -51,5 +52,6 @@ This repository enables users to install and run a curated set of reusable agent
 - Follow existing skill naming: kebab-case folder names and matching `name` values in `SKILL.md` frontmatter.
 - Keep documentation concise, operational, and evidence-based; avoid speculative guidance.
 - Reuse existing patterns from neighboring skills before introducing new structures.
-- For skill dependencies, document the dependency contract explicitly in `SKILL.md` rather than duplicating the same workflow in multiple skills.
+- Use a standardized `## Dependencies` section in every `SKILL.md` with `Required`, `Conditional`, `Optional`, and `Fallback` bullets whenever skill-to-skill orchestration matters.
+- Use a standardized `## Standards` section in every `SKILL.md` with `Evidence`, `Execution`, `Quality`, and `Output` bullets to summarize skill-specific constraints.
 - Keep helper scripts small and deterministic, and update repository docs when adding or moving a top-level skill.

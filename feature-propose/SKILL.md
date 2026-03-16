@@ -5,13 +5,23 @@ description: Professional product-management workflow for proposing features fro
 
 # Feature Propose
 
+## Dependencies
+
+- Required: none.
+- Conditional: `open-github-issue` for accepted features that should be published as GitHub issues.
+- Optional: none.
+- Fallback: If issue publication is skipped or unavailable, keep accepted proposals synchronized in `AGENTS.md` and report the publication state explicitly.
+
+## Standards
+
+- Evidence: Understand the existing product from code, tests, and repo docs before proposing features.
+- Execution: Classify current functions first, ask questions only when necessary, then propose numbered features across the four priority tiers.
+- Quality: Keep proposals minimal, user-value driven, and tied to concrete modules, acceptance criteria, and prioritization reasons.
+- Output: Return current understanding, function classification, proposed features, confirmation request, and publication status when applicable.
+
 ## Overview
 
 Act as a professional PM: build a complete understanding of the current product from code, classify capabilities by user value, propose prioritized features, publish accepted proposals through `open-github-issue`, persist accepted proposals in `AGENTS.md`, and keep the list clean by removing implemented items.
-
-## Core dependency
-
-- `open-github-issue`: publish each accepted proposal as a structured GitHub feature issue with explicit reason and suggested architecture.
 
 ## References
 

@@ -5,6 +5,20 @@ description: Publish structured GitHub issues and feature proposals with determi
 
 # Open GitHub Issue
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: If authenticated publishing is unavailable, fall back to draft-only output without blocking the caller.
+
+## Standards
+
+- Evidence: Require structured issue inputs and detect repository language from the target README instead of guessing.
+- Execution: Resolve the repo, normalize the issue body, publish with strict auth order, then return the publication result.
+- Quality: Preserve upstream evidence, localize only the structural parts, and keep publication deterministic and reproducible.
+- Output: Return publication mode, issue URL when created, rendered body, and any publish error in the standardized JSON contract.
+
 ## Overview
 
 Use this skill to publish a structured GitHub issue or feature proposal deterministically.

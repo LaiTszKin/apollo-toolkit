@@ -7,6 +7,7 @@ This skill helps agents analyze logs end-to-end, correlate runtime signals with 
 ## What this skill provides
 
 - A structured workflow for incident investigation from scoping to remediation.
+- A bias toward bounded, recent log windows so stale history does not contaminate conclusions.
 - A strict evidence standard (log lines + code correlation + impact + confidence).
 - A checklist to avoid false conclusions.
 - A pattern catalog for common operational failures (timeouts, retry storms, auth errors, resource pressure, schema mismatch, race conditions, and dependency outages).
@@ -58,8 +59,11 @@ Best results come from including:
 - Service/component name
 - Environment (prod/staging/dev)
 - Incident time window (with timezone)
+- If the window is unknown, a concrete runtime boundary such as the last container restart, latest deploy, worker boot, or first observed failure after a healthy period
 - Correlation IDs (trace/request/job/user/tx)
 - Relevant log excerpts and recent deploy/config context
+
+When the time window is not explicitly provided, the skill should first derive a bounded analysis window from a recent concrete event, such as the last container restart, and inspect only that slice before widening the search.
 
 ## Example
 

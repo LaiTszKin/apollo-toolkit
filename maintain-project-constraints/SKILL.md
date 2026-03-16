@@ -5,6 +5,20 @@ description: Automatically create and maintain AGENTS.md so it stays aligned wit
 
 # Maintain Project Constraints
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Infer repository architecture, business flow, and conventions from current code and docs rather than assumptions.
+- Execution: Create or align `AGENTS.md` only after building a concrete inventory of implemented capabilities.
+- Quality: Keep every statement traceable, remove stale guidance, and ensure `Core business flow` stays exhaustive and concrete.
+- Output: Maintain a concise root-level `AGENTS.md` with the required sections and repository-specific wording.
+
 ## Goal
 
 Keep `AGENTS.md` accurate, actionable, and synchronized with the latest state of the repository.
@@ -36,6 +50,7 @@ For the `Core business flow` section, always use this format:
 Example:
 
 ```markdown
+
 ## Core Business Flow
 
 This project enables users to manage and run reusable automation workflows.

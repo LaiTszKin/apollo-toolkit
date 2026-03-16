@@ -5,11 +5,21 @@ description: A learning-focused error-book workflow. When the user asks to summa
 
 # Learning Error Book Skill
 
-Goal: when the user asks to "summarize mistakes / summarize errors / compile an error book", **summarize mistakes with evidence** and **generate or update** an error book (Markdown -> PDF).
+## Dependencies
 
-Dependencies:
-- **Must use the `pdf` skill** when PDFs are involved (read/extract/OCR/split as needed).
-- This skill expects a renderer script at `learning-error-book/scripts/render_markdown_to_pdf.py` to convert error-book Markdown to a PDF using a CJK-compatible font.
+- Required: `pdf` whenever question sources or the final deliverable involve PDF handling.
+- Conditional: none.
+- Optional: none.
+- Fallback: If PDF extraction fails, escalate to OCR through `pdf`; if OCR still cannot recover the content, ask the user for the minimum needed text or screenshots.
+
+## Standards
+
+- Evidence: Summarize mistakes only from traceable question sources, user attempts, and correct-answer evidence.
+- Execution: Build an evidence table first, update `error_book/error-book.md`, then render `error_book/error-book.pdf` with Chinese-safe fonts.
+- Quality: Explain mistake types, concept misunderstandings, and per-question solutions in a way that is specific, complete, and non-speculative.
+- Output: Deliver the standardized error-book structure in Markdown and PDF with consistent section coverage.
+
+Goal: when the user asks to "summarize mistakes / summarize errors / compile an error book", **summarize mistakes with evidence** and **generate or update** an error book (Markdown -> PDF).
 
 ## Behavior Contract (GIVEN/THEN)
 
@@ -62,7 +72,7 @@ Formats:
 
 ## Recommended File Layout (Keep It Consistent)
 
-```
+```text
 error_book/
   error-book.md
   error-book.pdf

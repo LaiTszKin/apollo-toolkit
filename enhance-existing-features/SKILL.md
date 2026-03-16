@@ -18,6 +18,20 @@ description: >-
 
 # Enhance Existing Features
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Explore the existing codebase first and verify the latest authoritative docs for the involved stack or integrations.
+- Execution: Decide whether specs are required from the actual change surface, obtain approval when specs are generated, then implement minimally.
+- Quality: Add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
+- Output: Keep implementation and any planning artifacts traceable, updated, and aligned with actual completion results.
+
 ## Overview
 
 Safely extend brownfield systems by exploring the existing codebase first, using the user's requested change plus discovered impact to decide whether specs are needed, then following a consistent implementation and testing workflow with minimal, well-validated changes.

@@ -5,6 +5,8 @@ Use this checklist before finalizing conclusions.
 ## 1) Scope and data quality
 
 - [ ] Confirm the exact incident window (start/end time and timezone).
+- [ ] Prefer a fixed, recent window anchored to a concrete runtime boundary (last container restart, pod recreation, deploy, worker boot, or first post-recovery failure).
+- [ ] If no explicit window is given, derive one before reading broad log history and record why it was chosen.
 - [ ] Confirm logs come from the correct service, environment, and version.
 - [ ] Confirm log completeness (no ingestion gaps, rotated files missing, or sampling blind spots).
 

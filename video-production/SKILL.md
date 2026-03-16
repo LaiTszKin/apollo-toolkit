@@ -5,6 +5,20 @@ description: Generate long-form videos (more than 10 minutes) by following user 
 
 # Video Production
 
+## Dependencies
+
+- Required: `remotion-best-practices` for final composition and rendering.
+- Conditional: `openai-text-to-image-storyboard` when visuals must be generated and `docs-to-voice` when narration or subtitles must be generated.
+- Optional: none.
+- Fallback: If a required generation or rendering dependency is unavailable for the chosen path, stop and report the blocked dependency.
+
+## Standards
+
+- Evidence: Follow user instructions first, collect only the inputs needed for the selected path, and clarify preference-sensitive details before generation.
+- Execution: Create a long-video plan, wait for explicit approval, then run image generation, narration, and Remotion rendering in order.
+- Quality: Keep output longer than 10 minutes by default, enforce `16:9`, reuse role identities correctly, and never reuse previously generated storyboard images.
+- Output: Return absolute artifact paths, runtime and chapter summaries, animation verification, role reuse notes, and generated-image policy confirmation.
+
 ## Core Rules
 
 1. Follow user instructions first. Use the required execution sequence below unless the user explicitly overrides it.

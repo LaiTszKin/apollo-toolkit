@@ -5,15 +5,19 @@ description: Convert novel text into a loopable short-form video by extracting t
 
 # Novel to Short Video
 
-## Core Dependencies
+## Dependencies
 
-Always coordinate these skills in order:
+- Required: `openai-text-to-image-storyboard`, `docs-to-voice`, and `remotion-best-practices` in that order.
+- Conditional: none.
+- Optional: none.
+- Fallback: If any required video-production dependency is unavailable, stop and report the missing dependency instead of substituting another pipeline.
 
-1. `openai-text-to-image-storyboard` for storyboard image generation.
-2. `docs-to-voice` for narration audio, sentence timeline, and SRT.
-3. `remotion-best-practices` for composition and rendering in Remotion.
+## Standards
 
-If a user uses approximate names (for example "openai-text-to-images" or "remotionbest-practises"), normalize to the exact skill names above.
+- Evidence: Choose exactly one self-contained highlight segment from the novel using explicit tension and standalone-story criteria.
+- Execution: Create the plan file, obtain explicit approval, maintain `roles.json`, then generate images, narration, and the final render in sequence.
+- Quality: Keep duration at 50-60 seconds, narration pacing at 3-4 CJK chars per second, and preserve loop closure plus role consistency.
+- Output: Return the approved plan path, role and prompt files, pacing proof, retained Remotion workspace, and final rendered video path.
 
 ## Required Inputs
 

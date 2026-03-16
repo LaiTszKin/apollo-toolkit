@@ -5,21 +5,23 @@ description: "Research specific topics deeply and turn them into evidence-based 
 
 # Deep Research Topics
 
+## Dependencies
+
+- Required: none.
+- Conditional: `pdf` by default, `docx` when Word output is requested, and `pptx` when slides are requested.
+- Optional: none.
+- Fallback: If the required output skill is unavailable, stop and report the missing dependency instead of inventing another export path.
+
+## Standards
+
+- Evidence: Prioritize authoritative sources, verify time-sensitive claims, and keep traceable notes for important facts.
+- Execution: Define research questions, inspect workspace style, draft the content, then hand off to exactly one output skill unless multiple formats are explicitly requested.
+- Quality: Distinguish verified facts from analysis or inference and call out limitations, conflicts, or stale data explicitly.
+- Output: Deliver a polished research file with clear sections, citations, dates, and source links.
+
 ## Overview
 
 Use this skill when a user needs topic research that goes beyond a quick answer and should end as a polished file deliverable.
-
-## Dependency Contract (Required)
-
-This skill depends on these output skills:
-
-1. `pdf` for the default final deliverable
-2. `docx` when the user explicitly asks for a Word document
-3. `pptx` when the user explicitly asks for slides or a presentation
-
-Always complete the research workflow in this skill first, then hand off the final structured content to exactly one output dependency unless the user explicitly asks for multiple formats.
-
-If the required output dependency is unavailable, stop and report the missing dependency instead of inventing a replacement workflow.
 
 ## Required Workflow
 
@@ -54,6 +56,12 @@ If the required output dependency is unavailable, stop and report the missing de
    - Use `pdf` by default.
    - Switch to `docx` or `pptx` only when requested or clearly required by the workspace convention.
    - Preserve headings, tables, citations, and appendix material during the handoff.
+   - If the selected output skill is `pdf`, require PDF visual QA before completion:
+     - open the rendered PDF locally
+     - capture temporary screenshots from representative pages
+     - inspect layout, spacing, glyph rendering, tables, and dense text blocks
+     - regenerate if the visual result is wrong or unattractive
+     - delete all temporary QA screenshots after the final PDF passes inspection unless the user explicitly asks to keep them
 
 ## Source Quality Rules
 

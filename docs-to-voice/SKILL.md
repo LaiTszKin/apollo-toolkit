@@ -5,6 +5,20 @@ description: Convert text and document content into audio files and sentence-lev
 
 # Docs to Voice
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Confirm `project_dir`, input source, mode, and environment-backed settings before generation.
+- Execution: Use `scripts/docs_to_voice.py` to write audio plus matching timeline and subtitle files under `project_dir/audio/{project_name}/`.
+- Quality: Respect mode-specific options, sentence splitting rules, and post-process requirements such as `ffmpeg` for speed changes.
+- Output: Return the absolute output audio path together with the generated `.timeline.json` and `.srt` companions.
+
 ## Overview
 
 Use `scripts/docs_to_voice.py` to convert raw text or text files into audio and always save under:

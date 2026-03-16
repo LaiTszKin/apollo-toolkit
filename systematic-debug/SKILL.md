@@ -5,6 +5,20 @@ description: "Systematic debugging workflow for program issues: understand obser
 
 # Systematic Debug
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Gather expected versus observed behavior from code and runtime facts before deciding on a cause.
+- Execution: Inspect the relevant paths, reproduce every plausible cause with tests, diagnose the real cause, then apply the minimal fix.
+- Quality: Keep scope focused on the bug, prefer existing test patterns, and explicitly rule out hypotheses that could not be reproduced.
+- Output: Deliver the plausible-cause list, reproduction tests, validated fix summary, and passing-test confirmation.
+
 ## Core Principles
 
 - Gather facts from user reports and code behavior before changing implementation.

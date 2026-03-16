@@ -5,6 +5,20 @@ description: Add focused observability to an existing system so opaque workflows
 
 # Improve Observability
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Read the real execution path and current telemetry before deciding where visibility actually disappears.
+- Execution: Add the smallest useful instrumentation around decision points, scope contracts, outcomes, and failure reasons.
+- Quality: Keep changes behavior-neutral, use structured high-signal telemetry, avoid secrets, and lock the signals with tests.
+- Output: Report which stages are now observable, which fields or metrics to inspect, and which tests validate the instrumentation.
+
 ## Overview
 
 Use this skill to make a hard-to-debug path observable with minimal, evidence-driven changes. Prefer small, high-signal instrumentation around decision points, inputs, outcomes, and failure reasons rather than broad logging spam.

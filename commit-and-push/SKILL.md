@@ -5,28 +5,23 @@ description: "Guide the agent to submit local changes with commit and push only 
 
 # Commit and Push
 
+## Dependencies
+
+- Required: `align-project-documents` and `maintain-project-constraints` before the final commit.
+- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting changes.
+- Optional: none.
+- Fallback: If any required dependency is unavailable, stop and report the missing dependency.
+
+## Standards
+
+- Evidence: Inspect git state and classify the change set before deciding which quality gates apply.
+- Execution: Run the dependency skills in order, preserve staging intent, then commit and push without release steps.
+- Quality: Re-run relevant validation for runtime changes and keep project docs plus agent constraints synchronized before committing.
+- Output: Produce a concise Conventional Commit and push it to the current branch only.
+
 ## Overview
 
 Run a standardized commit-and-push workflow without release/version steps.
-
-## Dependency Contract (Required)
-
-Run these skills after scanning the change set and before the final commit:
-
-1. `align-project-documents`
-2. `maintain-project-constraints`
-
-For code-affecting changes, also run these skills before the final commit:
-
-1. `review-change-set`
-2. `discover-edge-cases`
-3. `harden-app-security`
-
-Note: `discover-edge-cases` also requires `harden-app-security` for code-affecting scopes. Avoid double-running the same security scan; treat one successful run as satisfying the quality gate.
-
-If any required dependency is unavailable, stop and report the missing dependency.
-
-The documentation/constraint dependencies above are still required for docs-only changes because they verify repository docs and agent-facing constraints before commit.
 
 ## References
 

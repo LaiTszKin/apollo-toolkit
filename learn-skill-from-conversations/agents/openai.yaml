@@ -1,4 +1,4 @@
 interface:
   display_name: "Learn Skill from Conversations"
   short_description: "Learn and evolve skills from recent chats"
-  default_prompt: "Use $learn-skill-from-conversations to review the latest hour of sessions and evolve skills."
+  default_prompt: "Use $learn-skill-from-conversations to review the last 24 hours of sessions, including archived sessions, and evolve skills."

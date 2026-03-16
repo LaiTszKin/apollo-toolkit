@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract recent Codex conversation history from ~/.codex/sessions."""
+"""Extract recent Codex conversation history from Codex session stores."""
 
 from __future__ import annotations
 
@@ -10,11 +10,15 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable, List, Optional, Sequence, Tuple
 
+DEFAULT_LOOKBACK_MINUTES = 24 * 60
+DEFAULT_RETENTION_DAYS = 7
+
 
 @dataclass
 class SessionRecord:
     path: Path
     timestamp_utc: datetime
+    messages: Optional[List[Tuple[str, str]]] = None
 
 
 def parse_iso_timestamp(raw: Optional[str]) -> Optional[datetime]:
@@ -59,20 +63,33 @@ def read_session_timestamp(path: Path) -> Optional[datetime]:
     return parse_iso_timestamp(payload.get("timestamp")) or parse_iso_timestamp(first_entry.get("timestamp"))
 
 
+def iter_session_paths(root: Path) -> Iterable[Path]:
+    if not root.exists() or not root.is_dir():
+        return
+    yield from root.rglob("*.jsonl")
+
+
 def find_recent_sessions(
-    sessions_dir: Path,
+    session_roots: Sequence[Path],
     cutoff_utc: datetime,
     limit: Optional[int],
 ) -> List[SessionRecord]:
     candidates: List[SessionRecord] = []
+    seen_paths = set()
 
-    for path in sessions_dir.rglob("*.jsonl"):
-        timestamp_utc = read_session_timestamp(path)
-        if timestamp_utc is None:
-            continue
-        if timestamp_utc < cutoff_utc:
-            continue
-        candidates.append(SessionRecord(path=path, timestamp_utc=timestamp_utc))
+    for root in session_roots:
+        for path in iter_session_paths(root):
+            resolved_path = path.resolve()
+            if resolved_path in seen_paths:
+                continue
+            seen_paths.add(resolved_path)
+
+            timestamp_utc = read_session_timestamp(path)
+            if timestamp_utc is None:
+                continue
+            if timestamp_utc < cutoff_utc:
+                continue
+            candidates.append(SessionRecord(path=path, timestamp_utc=timestamp_utc))
 
     candidates.sort(key=lambda record: record.timestamp_utc, reverse=True)
     if limit is None:
@@ -180,13 +197,68 @@ def extract_session_messages(path: Path, max_chars: int) -> List[Tuple[str, str]
     return extract_messages_from_response_items(entries, max_chars)
 
 
-def render_text_output(records: Sequence[SessionRecord], lookback_minutes: int, max_chars: int) -> str:
+def delete_matching_files(root: Path, predicate) -> int:
+    if not root.exists() or not root.is_dir():
+        return 0
+
+    deleted_count = 0
+    for path in root.rglob("*.jsonl"):
+        if not predicate(path):
+            continue
+        try:
+            path.unlink()
+        except OSError:
+            continue
+        deleted_count += 1
+    return deleted_count
+
+
+def path_is_same_or_nested(path: Path, root: Optional[Path]) -> bool:
+    if root is None:
+        return False
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def cleanup_session_history(
+    sessions_dir: Path,
+    archived_sessions_dir: Path,
+    retention_cutoff_utc: datetime,
+) -> Tuple[int, int]:
+    sessions_root = sessions_dir.resolve() if sessions_dir.exists() else None
+    removed_old_sessions = delete_matching_files(
+        sessions_dir,
+        lambda path: (
+            (timestamp := read_session_timestamp(path)) is not None
+            and timestamp < retention_cutoff_utc
+        ),
+    )
+    removed_archived_sessions = delete_matching_files(
+        archived_sessions_dir,
+        lambda path: not path_is_same_or_nested(path, sessions_root),
+    )
+    return removed_old_sessions, removed_archived_sessions
+
+
+def render_text_output(
+    records: Sequence[SessionRecord],
+    lookback_minutes: int,
+    max_message_chars: int,
+    removed_old_sessions: int,
+    removed_archived_sessions: int,
+) -> str:
     if not records:
         return "NO_RECENT_CONVERSATIONS"
 
     lines: List[str] = [
         f"RECENT_CONVERSATIONS_FOUND={len(records)}",
         f"LOOKBACK_MINUTES={lookback_minutes}",
+        "ARCHIVED_SESSIONS_INCLUDED=true",
+        f"CLEANUP_REMOVED_OLD_SESSIONS={removed_old_sessions}",
+        f"CLEANUP_REMOVED_ARCHIVED_SESSIONS={removed_archived_sessions}",
     ]
 
     for index, record in enumerate(records, start=1):
@@ -194,7 +266,9 @@ def render_text_output(records: Sequence[SessionRecord], lookback_minutes: int, 
         lines.append(f"TIMESTAMP_UTC={record.timestamp_utc.isoformat()}")
         lines.append(f"FILE={record.path}")
 
-        messages = extract_session_messages(record.path, max_chars)
+        messages = record.messages
+        if messages is None:
+            messages = extract_session_messages(record.path, max_message_chars)
         if not messages:
             lines.append("MESSAGES=NONE")
             continue
@@ -210,7 +284,7 @@ def render_text_output(records: Sequence[SessionRecord], lookback_minutes: int, 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Extract the latest conversation history from ~/.codex/sessions",
+        description="Extract the latest conversation history from Codex session stores",
     )
     parser.add_argument(
         "--sessions-dir",
@@ -218,10 +292,15 @@ def parse_args() -> argparse.Namespace:
         help="Path to the Codex sessions directory (default: ~/.codex/sessions)",
     )
     parser.add_argument(
+        "--archived-sessions-dir",
+        default="~/.codex/archived_sessions",
+        help="Path to archived Codex sessions (default: ~/.codex/archived_sessions)",
+    )
+    parser.add_argument(
         "--lookback-minutes",
         type=int,
-        default=60,
-        help="How far back to look for sessions (default: 60)",
+        default=DEFAULT_LOOKBACK_MINUTES,
+        help=f"How far back to look for sessions (default: {DEFAULT_LOOKBACK_MINUTES})",
     )
     parser.add_argument(
         "--limit",
@@ -235,6 +314,12 @@ def parse_args() -> argparse.Namespace:
         default=1600,
         help="Maximum characters per extracted message (default: 1600)",
     )
+    parser.add_argument(
+        "--retention-days",
+        type=int,
+        default=DEFAULT_RETENTION_DAYS,
+        help=f"Delete sessions older than this many days after reading (default: {DEFAULT_RETENTION_DAYS})",
+    )
     return parser.parse_args()
 
 
@@ -242,18 +327,41 @@ def main() -> int:
     args = parse_args()
 
     sessions_dir = Path(args.sessions_dir).expanduser().resolve()
+    archived_sessions_dir = Path(args.archived_sessions_dir).expanduser().resolve()
     lookback_minutes = max(args.lookback_minutes, 1)
     limit = args.limit if args.limit is not None and args.limit > 0 else None
     max_message_chars = max(args.max_message_chars, 100)
+    retention_days = max(args.retention_days, 1)
+    now_utc = datetime.now(timezone.utc)
 
-    if not sessions_dir.exists() or not sessions_dir.is_dir():
+    if (
+        (not sessions_dir.exists() or not sessions_dir.is_dir())
+        and (not archived_sessions_dir.exists() or not archived_sessions_dir.is_dir())
+    ):
         print("NO_RECENT_CONVERSATIONS")
         return 0
 
-    cutoff_utc = datetime.now(timezone.utc) - timedelta(minutes=lookback_minutes)
-    recent_records = find_recent_sessions(sessions_dir, cutoff_utc, limit)
+    cutoff_utc = now_utc - timedelta(minutes=lookback_minutes)
+    recent_records = find_recent_sessions((sessions_dir, archived_sessions_dir), cutoff_utc, limit)
+    for record in recent_records:
+        record.messages = extract_session_messages(record.path, max_message_chars)
 
-    print(render_text_output(recent_records, lookback_minutes, max_message_chars))
+    retention_cutoff_utc = now_utc - timedelta(days=retention_days)
+    removed_old_sessions, removed_archived_sessions = cleanup_session_history(
+        sessions_dir,
+        archived_sessions_dir,
+        retention_cutoff_utc,
+    )
+
+    print(
+        render_text_output(
+            recent_records,
+            lookback_minutes,
+            max_message_chars,
+            removed_old_sessions,
+            removed_archived_sessions,
+        )
+    )
     return 0
 
 

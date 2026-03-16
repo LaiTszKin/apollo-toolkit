@@ -5,6 +5,20 @@ description: Read GitHub pull request review comments, analyze each thread, deci
 
 # Resolve Review Comments
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Read unresolved review threads first and decide adopt versus reject from the actual review content and code context.
+- Execution: Implement only adopted feedback, validate it, push to the same PR branch, and resolve only the threads that were truly addressed.
+- Quality: Keep changes minimal, leave rejected or unclear threads unresolved, and reply with concise technical reasons when feedback is not adopted.
+- Output: Complete the PR feedback loop with updated code, pushed commits, and correctly resolved review threads.
+
 ## Overview
 
 Use this skill to run an end-to-end GitHub PR review loop: collect review threads, decide adopt/reject per comment, apply accepted feedback, push commits to the same PR branch, and resolve only addressed threads.

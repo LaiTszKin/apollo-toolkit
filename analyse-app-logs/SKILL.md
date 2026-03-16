@@ -5,22 +5,28 @@ description: Comprehensive application log investigation workflow that reads log
 
 # Analyse App Logs
 
+## Dependencies
+
+- Required: none.
+- Conditional: `open-github-issue` when confirmed issues should be published.
+- Optional: none.
+- Fallback: If publication is needed and `open-github-issue` is unavailable, return draft issue content instead of inventing another publisher.
+
+## Standards
+
+- Evidence: Use a bounded investigation window and correlate log lines with code, runtime context, and concrete identifiers.
+- Execution: Scope the incident, build a timeline, validate candidate issues, then prioritize and optionally publish them.
+- Quality: Separate confirmed issues from hypotheses and include time-window, log, code, impact, and confidence evidence for each report.
+- Output: Return incident summary, confirmed issues, hypotheses, monitoring improvements, and publication status.
+
 ## Overview
 
 Use this skill to analyze application logs systematically with the codebase and runtime context, then report confirmed issues with clear evidence, confidence, and next actions.
 
-## Dependency Contract (Required)
-
-When confirmed issues should be published, always delegate publication to `open-github-issue`.
-
-- Prepare the issue content inside this skill.
-- Pass one confirmed issue per dependency invocation.
-- Reuse the dependency return values for publication status reporting.
-- If `open-github-issue` is unavailable, do not invent an alternative publisher; return draft issue content in the response instead.
-
 ## Core principles
 
 - Prioritize evidence over assumptions; avoid speculative conclusions.
+- Prefer a bounded, recent investigation window over unbounded history; anchor analysis on a concrete time boundary such as the last container restart, pod recreation, deploy, or first failure.
 - Correlate log symptoms with code paths, configuration, and external dependencies.
 - Distinguish clearly between confirmed issues and hypotheses.
 - Keep findings actionable: impact, urgency, and fix direction.
@@ -29,9 +35,11 @@ When confirmed issues should be published, always delegate publication to `open-
 
 1. Define investigation scope
    - Confirm service/component, environment, and incident time window.
+   - If the user does not provide a trustworthy window, derive one from a concrete runtime boundary first, such as the last container restart, pod recreation, deploy start, worker boot, or first failure after a known healthy state.
+   - Prefer analyzing logs only inside that bounded window first (for example, from the last restart until now) to avoid stale logs polluting the diagnosis; widen the window only when the bounded slice cannot explain the symptom.
    - Identify relevant identifiers (trace ID, request ID, user ID, job ID, tx hash).
 2. Build a timeline from logs
-   - Extract key events in chronological order: deploys, config changes, warnings, errors, retries, and recoveries.
+   - Extract key events in chronological order within the chosen window: deploys, config changes, warnings, errors, retries, and recoveries.
    - Group repeated symptoms by signature (error type, message prefix, stack frame, endpoint).
 3. Correlate across context
    - Link related log lines using identifiers and timestamps.
@@ -53,6 +61,7 @@ When confirmed issues should be published, always delegate publication to `open-
 
 For each reported issue, include:
 
+- Time-window evidence: selected start/end boundaries, timezone, and why this window was chosen.
 - Log evidence: concrete lines, timestamps, IDs, and frequency.
 - Code evidence: `path:line` mapping to the probable failing logic.
 - Impact statement: affected functionality, users, or data integrity risk.

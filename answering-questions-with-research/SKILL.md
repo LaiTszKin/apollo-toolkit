@@ -5,6 +5,20 @@ description: This skill should be used when the user asks a question that needs 
 
 # Answering Questions With Research
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Verify repository facts from local files first and confirm time-sensitive claims with current external sources.
+- Execution: Perform repository discovery before web research, then combine both into one evidence-based answer.
+- Quality: Prefer official or primary sources, state what was and was not verified, and do not guess.
+- Output: Respond concisely, separate confirmed facts from uncertainty, and include external source links when used.
+
 ## Trigger Conditions
 
 Use this skill whenever the user asks a question and expects a complete, factual answer.

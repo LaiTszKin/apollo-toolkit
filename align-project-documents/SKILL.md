@@ -5,6 +5,20 @@ description: Read and understand a software project, then generate or align proj
 
 # Align Project Documents
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Treat source code, configuration, scripts, and tests as the source of truth.
+- Execution: Discover project facts before choosing generate mode or align mode.
+- Quality: Keep every non-trivial claim traceable and remove stale documentation instead of appending around it.
+- Output: Write concise, operator-friendly docs with runnable commands and clear section structure.
+
 ## Goal
 
 Produce accurate, code-grounded project documentation. Prefer evidence from source code, configs, scripts, and tests over assumptions.

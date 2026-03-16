@@ -5,17 +5,23 @@ description: Discover reproducible edge-case risks in changed code or a selected
 
 # Discover Edge Cases
 
+## Dependencies
+
+- Required: none.
+- Conditional: `harden-app-security` for code-affecting scopes before finalizing the report.
+- Optional: none.
+- Fallback: If the required security cross-check is unavailable for a code-affecting scope, stop and report the missing dependency.
+
+## Standards
+
+- Evidence: Keep only reproducible findings backed by code, tests, runtime output, or direct reproduction steps.
+- Execution: Determine scope first, run focused probes, confirm reproducibility, then report findings without remediation.
+- Quality: Separate confirmed findings from hypotheses and cover boundary, failure, stateful, and observability edge cases that matter to the scope.
+- Output: Return prioritized findings, edge-case evidence, risk assessment, hardening guidance, and residual risk only.
+
 ## Overview
 
 Use this skill to discover edge-case failures and coverage gaps with evidence-first analysis. The goal is to surface reproducible findings, not to remediate them.
-
-## Dependency Contract (Required)
-
-For code-affecting scopes, run `harden-app-security` after identifying the review scope and before finalizing the report.
-
-- Treat the dependency as an adversarial cross-check against your own assumptions.
-- Reuse confirmed security findings instead of downgrading them into generic edge-case observations.
-- If the dependency is unavailable, stop and report the missing dependency.
 
 ## Non-negotiable Boundaries
 

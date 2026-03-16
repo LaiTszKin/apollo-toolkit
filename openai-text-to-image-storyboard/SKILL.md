@@ -5,6 +5,20 @@ description: Generate storyboard images by using agent-decided prompts and calli
 
 # OpenAI Text to Image Storyboard
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Generate prompts from the supplied content and require only the minimal mandatory inputs such as project path and content name.
+- Execution: Convert scenes into valid JSON prompts, load the skill-local `.env`, and call the storyboard generator in the same turn whenever possible.
+- Quality: Keep prompts and outputs in narrative order, use only `/images/generations`, and leave role-schema management to the video orchestration skills.
+- Output: Write images plus `storyboard.json` under `pictures/<content_name>/` without overwriting existing filenames.
+
 ## Overview
 
 Let the agent decide which images are needed from the text, then call only `/images/generations` to render them.

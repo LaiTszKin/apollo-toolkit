@@ -5,16 +5,23 @@ description: Resolve issues from remote GitHub repositories via GitHub CLI (`gh`
 
 # Fix GitHub Issues
 
+## Dependencies
+
+- Required: `systematic-debug` for diagnosis and validated fixes, plus `open-source-pr-workflow` (or `open-pr-workflow`) for PR submission.
+- Conditional: none.
+- Optional: none.
+- Fallback: If a required workflow dependency is unavailable, stop and report the blocked handoff instead of improvising a different flow.
+
+## Standards
+
+- Evidence: Verify repository context, fetch remote issue details, and derive expected behavior from issue text before coding.
+- Execution: Select the issue, open an isolated worktree by default, fix it through `systematic-debug`, validate locally, then hand off to the PR workflow.
+- Quality: Keep scope limited to the selected issue, capture exact validation commands, and preserve issue linkage in the final PR.
+- Output: Open the PR against the correct repository and clean up the temporary worktree when the work is complete.
+
 ## Overview
 
 Use this skill to run an end-to-end issue-fixing loop with `gh`: discover open issues, select a target, implement and test the fix, and delegate PR creation to `open-source-pr-workflow` (or `open-pr-workflow` alias).
-
-## Core Dependencies
-
-Always coordinate these skills in order:
-
-1. `systematic-debug` for root-cause analysis, reproduction tests, and validated fixes.
-2. `open-source-pr-workflow` (or `open-pr-workflow`) for branch push and PR submission.
 
 ## Prerequisites
 

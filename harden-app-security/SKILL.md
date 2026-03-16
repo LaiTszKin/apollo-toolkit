@@ -5,6 +5,20 @@ description: "Evidence-first adversarial security audit workflow focused on vuln
 
 # Harden App Security
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Keep only reproducible vulnerabilities with exploit payloads, exact commands or requests, and concrete code evidence.
+- Execution: Stay discovery-only, choose the relevant module catalog, execute deterministic attack scenarios, and validate each exploit at least twice.
+- Quality: Prioritize findings by impact, exploitability, and reach, and keep hypotheses clearly separated from confirmed risks.
+- Output: Return prioritized findings, attack evidence, risk prioritization, hardening guidance, and residual risk without changing code.
+
 ## Overview
 
 Use this skill to run adversarial security audits focused only on finding and proving vulnerabilities.

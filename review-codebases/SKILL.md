@@ -5,6 +5,20 @@ description: Repository-wide code review workflow that requires reading the full
 
 # Review Codebases
 
+## Dependencies
+
+- Required: none.
+- Conditional: `open-github-issue` when confirmed findings should be tracked as GitHub issues.
+- Optional: none.
+- Fallback: If publication is needed and `open-github-issue` is unavailable, return draft issue bodies instead of inventing another publisher.
+
+## Standards
+
+- Evidence: Read the full human-authored repository before judging and cite concrete files for every finding.
+- Execution: Review architecture first, code quality second, and edge cases last, stopping when a higher-priority tier has confirmed findings.
+- Quality: Prefer root-cause findings over scattered symptoms, merge duplicates, and keep hypotheses out of published results.
+- Output: Return coverage, review tier reached, confirmed findings, publication status, and deferred lower-tier follow-up.
+
 ## Overview
 
 Use this skill to review an entire repository before making judgments.
@@ -16,15 +30,6 @@ The review order is strict:
 3. Edge cases and robustness gaps
 
 Only continue to the next level when the current level has no confirmed findings.
-
-## Dependency Contract (Required)
-
-When a confirmed finding should be tracked, always delegate publication to `open-github-issue`.
-
-- Publish exactly one GitHub issue per confirmed finding.
-- Prepare the issue title and evidence inside this skill; do not ask the dependency to infer the problem.
-- Reuse the dependency return values in the final report.
-- If `open-github-issue` is unavailable, do not invent another publisher; return draft issue bodies instead.
 
 ## Core rules
 

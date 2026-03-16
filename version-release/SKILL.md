@@ -5,6 +5,20 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 
 # Version Release
 
+## Dependencies
+
+- Required: none.
+- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting releases before metadata edits and the final commit.
+- Optional: none.
+- Fallback: If a required release dependency is unavailable for a code-affecting scope, stop and report the missing dependency.
+
+## Standards
+
+- Evidence: Inspect the active change set and the release range before touching version files, tags, or changelog entries.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates, then update versions, docs, commit, tag, and push.
+- Quality: Never guess versions, align user-facing docs with actual code, and keep development planning docs out of release metadata updates.
+- Output: Produce a versioned release commit and tag with synchronized changelog and relevant repository documentation.
+
 ## Overview
 
 Run a standardized release workflow for versioned delivery:
@@ -14,20 +28,6 @@ Run a standardized release workflow for versioned delivery:
 - bump version files
 - update changelog and relevant docs
 - commit, tag, and push
-
-## Dependency Contract (Required)
-
-For code-affecting changes, run these skills before release metadata edits and final commit:
-
-1. `review-change-set`
-2. `discover-edge-cases`
-3. `harden-app-security`
-
-Note: `discover-edge-cases` also requires `harden-app-security` for code-affecting scopes. Avoid double-running the same security scan; treat one successful run as satisfying the quality gate.
-
-If any required dependency is unavailable, stop and report the missing dependency.
-
-If the change set is documentation-only and does not alter runtime behavior, tests, build scripts, or CI/config behavior, dependencies may be skipped.
 
 ## References
 

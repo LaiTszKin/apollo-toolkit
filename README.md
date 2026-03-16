@@ -28,6 +28,7 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - record-spending
 - harden-app-security
 - improve-observability
+- weekly-financial-event-report
 - systematic-debug
 - deep-research-topics
 - text-to-short-video

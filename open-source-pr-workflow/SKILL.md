@@ -5,6 +5,20 @@ description: PR-focused workflow for open-source repositories. Use when the user
 
 # Open Source PR Workflow
 
+## Dependencies
+
+- Required: none.
+- Conditional: `discover-edge-cases` and `code-simplifier` for code-affecting PRs before opening the PR.
+- Optional: none.
+- Fallback: If a required code-affecting dependency is unavailable, stop and report the missing dependency instead of bypassing the quality gate.
+
+## Standards
+
+- Evidence: Assume implementation is already prepared, then verify PR scope, repository constraints, and validation commands from the actual change set.
+- Execution: Create a compliant `codex/{change_type}/{changes}` branch, run the required quality gates for code changes, then draft and open the PR.
+- Quality: Target the upstream parent repository by default for forks, keep PR content in English unless requested otherwise, and exclude internal workflow details.
+- Output: Produce a review-ready PR body with motivation, engineering rationale, test commands, and any required issue linkage.
+
 ## Overview
 
 Use this workflow to prepare open-source contributions and open review-ready pull requests with consistent branch naming and PR content quality.
@@ -75,6 +89,7 @@ git checkout -b codex/fix/add-rate-limit-retry
 Use this structure (or equivalent headings) every time:
 
 ```markdown
+
 ## Related Issues / Motivation
 - Related: #<issue-id> (or link)
 - Why this change is needed

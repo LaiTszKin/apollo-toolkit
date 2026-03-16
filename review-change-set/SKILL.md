@@ -5,17 +5,23 @@ description: Review the current git change set from an unbiased reviewer perspec
 
 # Review Change Set
 
+## Dependencies
+
+- Required: none.
+- Conditional: `harden-app-security` for code-affecting changes before finalizing review conclusions.
+- Optional: none.
+- Fallback: If the required security cross-check is unavailable for a code-affecting scope, stop and report the missing dependency.
+
+## Standards
+
+- Evidence: Read the full active diff plus the minimum dependency chain needed to understand the changed behavior.
+- Execution: Review architecture first, then simplification opportunities, then integrate confirmed security findings.
+- Quality: Judge the change set as an outsider, keep only actionable findings, and avoid inventing concerns the security pass did not confirm.
+- Output: Return review scope, architecture findings, simplification findings, security cross-check results, and residual uncertainty.
+
 ## Overview
 
 Use this skill to review the active git change set as an outsider, not as the original author. The goal is to find actionable abstraction and simplification opportunities with evidence, not to defend the current implementation.
-
-## Dependency Contract (Required)
-
-For code-affecting changes, run `harden-app-security` after reading the diff and before finalizing conclusions.
-
-- Use the dependency to challenge your own assumptions with an adversarial lens.
-- Reuse confirmed security findings directly instead of paraphrasing them into vague maintainability comments.
-- If the dependency is unavailable, stop and report the missing dependency.
 
 ## Non-negotiable Review Rules
 

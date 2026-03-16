@@ -5,14 +5,23 @@ description: Research the most important tradeable instruments to watch for the 
 
 # Financial Research
 
+## Dependencies
+
+- Required: `pdf` for the final deliverable.
+- Conditional: none.
+- Optional: none.
+- Fallback: If `pdf` is unavailable, stop and report the missing dependency instead of inventing another export workflow.
+
+## Standards
+
+- Evidence: Resolve the current local date and timezone first, then research the most recent completed 7-day local window with authoritative current sources.
+- Execution: Collect weekly market evidence, distill the macro picture, select 3-8 watchlist instruments, and hand the final report to `pdf`.
+- Quality: Use Chinese-compatible rendering requirements, verify exact dates and values, and complete screenshot-based PDF QA before finishing.
+- Output: Save only the final PDF under the month folder using the standardized market-research naming scheme.
+
 ## Overview
 
 Create an evidence-based weekly market report for the next trading week. Start from the current local date and time, review the most recent completed local week of financial and economic news, distill the key market signals, and deliver a standardized PDF report in Chinese by default.
-
-## Dependency Contract
-
-- Must use the `pdf` skill for the final deliverable.
-- If the `pdf` skill is unavailable, stop and report the missing dependency instead of inventing another export workflow.
 
 ## Behavior Contract
 
@@ -142,8 +151,8 @@ Do not guess missing facts that materially change the report scope.
   - the first page
   - one section with a table
   - one section with dense paragraph text
-- Take a screenshot of the rendered PDF page as a final QA check.
-- Verify the screenshot for:
+- Capture temporary screenshots of the rendered PDF pages as a final QA check before considering the report complete.
+- Verify the temporary screenshots for:
   - correct Chinese glyph rendering
   - no missing characters or tofu boxes
   - reasonable line wrapping
@@ -160,7 +169,7 @@ Do not guess missing facts that materially change the report scope.
 - If the user does not give a base output directory, use the current working directory as the base.
 - Keep only the final PDF report as the persistent output. Do not leave Markdown, DOCX, or temporary export files behind after rendering.
 - Remove temporary working files before finishing.
-- The QA screenshot is temporary and should be deleted after the visual check unless the user explicitly asks to keep it.
+- The QA screenshots are temporary and must be deleted after the visual check unless the user explicitly asks to keep them.
 
 ## Report Naming Rules
 

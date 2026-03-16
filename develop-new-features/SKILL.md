@@ -19,6 +19,20 @@ description: >-
 
 # Develop New Features
 
+## Dependencies
+
+- Required: none.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
+## Standards
+
+- Evidence: Review authoritative docs and the existing codebase before drafting requirements or planning implementation.
+- Execution: Generate `spec.md`, `tasks.md`, and `checklist.md`, process clarifications, obtain approval, then implement.
+- Quality: Plan comprehensive testing that covers property-based, adversarial, authorization, idempotency, concurrency, and rollback risks when relevant.
+- Output: Keep planning artifacts traceable, user-language aligned, and updated after implementation and testing.
+
 ## Goal
 
 - Produce `spec.md`, `tasks.md`, and `checklist.md` before implementation starts.

@@ -1,9 +1,23 @@
 ---
 name: learn-skill-from-conversations
-description: Learn and evolve the local skill library from recent Codex conversation logs. Use when users ask to learn from past chats, mine ~/.codex/sessions, or automatically create/update skills from recurring lessons. The workflow always reads all sessions from the last hour, exits immediately if none exist, and applies skill changes through skill-creator with a default bias toward creating new skills.
+description: Learn and evolve the local skill library from recent Codex conversation logs. Use when users ask to learn from past chats, mine ~/.codex/sessions or ~/.codex/archived_sessions, or automatically create/update skills from recurring lessons. The workflow reads all sessions from the last 24 hours, exits immediately if none exist, cleans up stale session files after reading, and applies skill changes through skill-creator with a default bias toward creating new skills.
 ---
 
 # Learn Skill from Conversations
+
+## Dependencies
+
+- Required: `skill-creator` for all skill creation or update work.
+- Conditional: none.
+- Optional: none.
+- Fallback: If skill changes cannot be delegated through `skill-creator`, stop and report the blocked dependency.
+
+## Standards
+
+- Evidence: Extract recent Codex session history first and derive reusable lessons only from actual conversation patterns.
+- Execution: Prefer creating a new skill unless the overlap with an existing skill is clearly strong, then apply the change through `skill-creator`.
+- Quality: Take no action when there are no recent sessions, avoid unrelated broad refactors, and validate every changed skill.
+- Output: Report the analyzed sessions, extracted lessons, created or updated skills, and the reasoning behind each decision.
 
 ## Overview
 
@@ -21,11 +35,13 @@ Extract recent conversations, identify reusable lessons, and convert those lesso
 - Run:
 
 ```bash
-python3 ~/.codex/skills/learn-skill-from-conversations/scripts/extract_recent_conversations.py --lookback-minutes 60
+python3 ~/.codex/skills/learn-skill-from-conversations/scripts/extract_recent_conversations.py --lookback-minutes 1440
 ```
 
 - If output is exactly `NO_RECENT_CONVERSATIONS`, stop immediately and report that no action is required.
 - Otherwise, review all `[USER]` and `[ASSISTANT]` blocks from each returned session.
+- The extractor reads both `~/.codex/sessions` and `~/.codex/archived_sessions`.
+- After extraction completes, it deletes `~/.codex/sessions` records older than 7 days and deletes all files under `~/.codex/archived_sessions`.
 
 ### 2) Derive reusable lessons
 
@@ -64,6 +80,6 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py <skill-p
 
 ## Guardrails
 
-- Take no action when there are no sessions in the last hour.
+- Take no action when there are no sessions in the last 24 hours.
 - Avoid broad refactors across unrelated skills.
 - Avoid duplicate skills when an existing skill is strongly related.
