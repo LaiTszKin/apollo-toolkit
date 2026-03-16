@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.0.0] - 2026-03-17
+
+### Added
+- Add the `@laitszkin/apollo-toolkit` npm package with an `apollo-toolkit` CLI entrypoint.
+- Add an interactive terminal installer with Apollo Toolkit branding, multi-target selection, and managed installs under `~/.apollo-toolkit`.
+- Add Node-based installer tests and a release-triggered npm Trusted Publishing workflow.
+
+### Changed
+- Change managed installer defaults from `~/.apollo-toolkit-repo` to `~/.apollo-toolkit` for curl / iwr installs.
+- Refresh installer documentation around npm, npx, and global CLI usage.
+
 ## [v1.1.0] - 2026-03-13
 
 ### Added

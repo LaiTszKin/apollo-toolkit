@@ -1,0 +1,36 @@
+{
+  "name": "@laitszkin/apollo-toolkit",
+  "version": "2.0.0",
+  "description": "Apollo Toolkit npm installer for managed skill linking across Codex, OpenClaw, and Trae.",
+  "license": "MIT",
+  "author": "LaiTszKin",
+  "homepage": "https://github.com/LaiTszKin/apollo-toolkit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LaiTszKin/apollo-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LaiTszKin/apollo-toolkit/issues"
+  },
+  "type": "commonjs",
+  "bin": {
+    "apollo-toolkit": "bin/apollo-toolkit.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "keywords": [
+    "apollo-toolkit",
+    "codex",
+    "skills",
+    "openclaw",
+    "trae"
+  ]
+}

@@ -16,20 +16,30 @@ Optional environment overrides:
   CODEX_SKILLS_DIR   Override codex skills destination path
   OPENCLAW_HOME      Override openclaw home path
   TRAE_SKILLS_DIR    Override trae skills destination path
-  APOLLO_TOOLKIT_REPO_DIR Override local clone path used in curl/pipe mode
+  APOLLO_TOOLKIT_HOME Override local install path used in curl/pipe mode
   APOLLO_TOOLKIT_REPO_URL Override git repository URL used in curl/pipe mode
 USAGE
 }
 
 SCRIPT_SOURCE="${BASH_SOURCE[0]-}"
 TOOLKIT_REPO_URL="${APOLLO_TOOLKIT_REPO_URL:-https://github.com/LaiTszKin/apollo-toolkit.git}"
-TOOLKIT_REPO_DIR="${APOLLO_TOOLKIT_REPO_DIR:-$HOME/.apollo-toolkit-repo}"
+TOOLKIT_HOME="${APOLLO_TOOLKIT_HOME:-$HOME/.apollo-toolkit}"
+
+show_banner() {
+  cat <<'BANNER'
++------------------------------------------+
+|              Apollo Toolkit              |
+|      npm installer and skill linker      |
++------------------------------------------+
+BANNER
+}
 
 bootstrap_repo_if_needed() {
-  if [[ -d "$TOOLKIT_REPO_DIR/.git" ]]; then
-    git -C "$TOOLKIT_REPO_DIR" pull --ff-only >/dev/null
+  if [[ -d "$TOOLKIT_HOME/.git" ]]; then
+    git -C "$TOOLKIT_HOME" pull --ff-only >/dev/null
   else
-    git clone --depth 1 "$TOOLKIT_REPO_URL" "$TOOLKIT_REPO_DIR" >/dev/null
+    rm -rf "$TOOLKIT_HOME"
+    git clone --depth 1 "$TOOLKIT_REPO_URL" "$TOOLKIT_HOME" >/dev/null
   fi
 }
 
@@ -42,7 +52,7 @@ else
     REPO_ROOT="$PWD"
   else
     bootstrap_repo_if_needed
-    REPO_ROOT="$TOOLKIT_REPO_DIR"
+    REPO_ROOT="$TOOLKIT_HOME"
   fi
   SCRIPT_DIR="$REPO_ROOT/scripts"
 fi
@@ -179,6 +189,8 @@ choose_modes_interactive() {
   local choice raw_choice
   local -a choices
 
+  show_banner
+  echo
   echo "Select install options (comma-separated):"
   echo "1) codex (~/.codex/skills)"
   echo "2) openclaw (~/.openclaw/workspace*/skills)"

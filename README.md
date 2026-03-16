@@ -1,6 +1,6 @@
 # Apollo Toolkit Skills
 
-A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
+A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer that keeps the toolkit in `~/.apollo-toolkit` and links each skill into the targets you choose.
 
 ## Included skills
 
@@ -8,39 +8,111 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - analyse-app-logs
 - answering-questions-with-research
 - commit-and-push
+- deep-research-topics
 - develop-new-features
-- generate-spec
-- docs-to-voice
 - discover-edge-cases
+- docs-to-voice
 - enhance-existing-features
 - feature-propose
 - financial-research
 - fix-github-issues
-- review-change-set
-- resolve-review-comments
-- review-codebases
-- learning-error-book
+- generate-spec
+- harden-app-security
+- improve-observability
 - learn-skill-from-conversations
-- maintain-skill-catalog
+- learning-error-book
 - maintain-project-constraints
+- maintain-skill-catalog
 - novel-to-short-video
 - open-github-issue
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
 - record-spending
-- harden-app-security
-- improve-observability
-- weekly-financial-event-report
-- systematic-debug
+- resolve-review-comments
+- review-change-set
+- review-codebases
 - specs-to-project-docs
-- deep-research-topics
+- systematic-debug
 - text-to-short-video
 - version-release
 - video-production
+- weekly-financial-event-report
+
+## Install with npm or npx
+
+### Recommended
+
+```bash
+npx @laitszkin/apollo-toolkit
+```
+
+The interactive installer:
+- shows an `Apollo Toolkit` terminal screen
+- installs a managed copy into `~/.apollo-toolkit`
+- lets you multi-select `codex`, `openclaw`, `trae`, or `all`
+- creates symlinks from `~/.apollo-toolkit/<skill>` into each selected target
+
+### Global install
+
+```bash
+npm i -g @laitszkin/apollo-toolkit
+apollo-toolkit
+```
+
+### Non-interactive install
+
+```bash
+npx @laitszkin/apollo-toolkit codex
+npx @laitszkin/apollo-toolkit codex openclaw
+npx @laitszkin/apollo-toolkit all
+```
+
+### Optional overrides
+
+```bash
+APOLLO_TOOLKIT_HOME=~/custom-toolkit npx @laitszkin/apollo-toolkit codex
+CODEX_SKILLS_DIR=~/custom-codex-skills npx @laitszkin/apollo-toolkit codex
+OPENCLAW_HOME=~/.openclaw npx @laitszkin/apollo-toolkit openclaw
+TRAE_SKILLS_DIR=~/.trae/skills npx @laitszkin/apollo-toolkit trae
+```
+
+## Local installer scripts
+
+Installers still live in `scripts/` for local repository usage and curl / iwr installation:
+
+- macOS/Linux: `scripts/install_skills.sh`
+- Windows (PowerShell): `scripts/install_skills.ps1`
+
+### Local usage
+
+```bash
+./scripts/install_skills.sh
+./scripts/install_skills.sh codex
+./scripts/install_skills.sh openclaw
+./scripts/install_skills.sh trae
+./scripts/install_skills.sh all
+```
+
+```powershell
+./scripts/install_skills.ps1
+./scripts/install_skills.ps1 codex
+./scripts/install_skills.ps1 all
+```
+
+### Curl / iwr one-liners
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash
+curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash -s -- codex
+```
+
+```powershell
+irm https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.ps1 | iex
+```
+
+In curl / iwr mode, the scripts clone or update the managed toolkit copy under `~/.apollo-toolkit` by default. Override with `APOLLO_TOOLKIT_HOME` if you need a different location.
 
 ## External dependency skills
-
-I scanned the standardized `## Dependencies` section across the tracked Apollo Toolkit skills and listed the dependencies that are not vendored in this repository. I also confirmed the local Codex skill names from `~/.codex/skills`; the correct names are `doc`, `spreadsheet`, and `slides` (note: `spreadsheet` is singular).
 
 The install commands below were checked with the Skills CLI unless otherwise noted.
 
@@ -56,72 +128,17 @@ The install commands below were checked with the Skills CLI unless otherwise not
 
 Compatibility note:
 
-- `generate-spec` is a new local skill used by `develop-new-features` and `enhance-existing-features`; it is intentionally not listed as an external dependency.
-- `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the install table instead of guessing a package name.
+- `generate-spec` is a local skill used by `develop-new-features` and `enhance-existing-features`.
+- `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the table.
 - `fix-github-issues` accepts `open-source-pr-workflow` or an environment alias named `open-pr-workflow`. Apollo Toolkit already vendors `open-source-pr-workflow`, so `open-pr-workflow` is not a required external dependency here.
 
-## One-click installer
+## Release publishing
 
-Installers now live in `scripts/`:
+GitHub Releases can publish the npm package automatically through npm Trusted Publishing.
 
-- macOS/Linux: `scripts/install_skills.sh`
-- Windows (PowerShell): `scripts/install_skills.ps1`
-
-### Local usage
-
-```bash
-# Select install options interactively (supports multiple choices)
-./scripts/install_skills.sh
-
-# Install into ~/.codex/skills
-./scripts/install_skills.sh codex
-
-# Install into ~/.openclaw/workspace*/skills
-./scripts/install_skills.sh openclaw
-
-# Install into ~/.trae/skills
-./scripts/install_skills.sh trae
-
-# Install all targets
-./scripts/install_skills.sh all
-```
-
-```powershell
-# Select install options interactively (supports multiple choices)
-./scripts/install_skills.ps1
-
-# Install into ~/.codex/skills
-./scripts/install_skills.ps1 codex
-
-# Install all targets
-./scripts/install_skills.ps1 all
-```
-
-### Curl / iwr one-liner usage
-
-```bash
-# macOS/Linux interactive install (stdin is piped, prompt still works)
-curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash
-
-# macOS/Linux non-interactive install
-curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash -s -- codex
-```
-
-In curl/pipe mode (bash) and iwr/irm mode (PowerShell), the script auto-clones this repository into `~/.apollo-toolkit-repo` (override via `APOLLO_TOOLKIT_REPO_DIR`).
-
-```powershell
-# Windows PowerShell interactive install
-irm https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.ps1 | iex
-
-# Windows PowerShell non-interactive install
-$script = Join-Path $env:TEMP "install_skills.ps1"
-iwr https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.ps1 -OutFile $script
-& $script codex
-```
-
-The installer replaces existing files/directories at target paths and keeps only symlinks (PowerShell falls back to junction links when symlinks are restricted).
+Before the workflow can succeed, configure the npm package to trust this GitHub repository and the publish workflow. After that, creating a GitHub Release will trigger `.github/workflows/publish-npm.yml` and run `npm publish --provenance --access public`.
 
 ## Notes
 
 - This repository is intended for personal toolkit curation and experimentation.
-- Skill folders were copied as regular files (not git submodules).
+- Skill folders are stored as regular files, not git submodules.

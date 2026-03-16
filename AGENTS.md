@@ -4,7 +4,8 @@
 
 - This repository is a skill catalog: each top-level skill lives in its own directory and is installable when that directory contains `SKILL.md`.
 - Typical skill layout is lightweight and consistent: `SKILL.md`, `README.md`, `LICENSE`, plus optional `agents/`, `references/`, and `scripts/`.
-- `scripts/install_skills.sh` and `scripts/install_skills.ps1` discover top-level skill directories dynamically and install them by linking each folder into the target skills directory.
+- The npm package exposes an `apollo-toolkit` CLI that stages a managed copy under `~/.apollo-toolkit` and links each skill folder into selected target directories.
+- `scripts/install_skills.sh` and `scripts/install_skills.ps1` remain available for local/curl installs and mirror the managed-home linking behavior.
 
 ## Core Business Flow
 
@@ -18,6 +19,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can research a topic deeply and produce evidence-based deliverables.
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.
+- Users can install Apollo Toolkit through npm or npx and interactively choose one or more target skill directories to link.
 - Users can design and implement new features through a spec-first workflow.
 - Users can generate shared feature spec, task, and checklist planning artifacts for approval-gated workflows.
 - Users can convert text or documents into audio files with subtitle timelines.

@@ -21,13 +21,22 @@ Optional environment overrides:
   CODEX_SKILLS_DIR   Override codex skills destination path
   OPENCLAW_HOME      Override openclaw home path
   TRAE_SKILLS_DIR    Override trae skills destination path
-  APOLLO_TOOLKIT_REPO_DIR Override local clone path used when repo root is unavailable
+  APOLLO_TOOLKIT_HOME Override local install path used when repo root is unavailable
   APOLLO_TOOLKIT_REPO_URL Override git repository URL used when repo root is unavailable
 "@
 }
 
 $ToolkitRepoUrl = if ($env:APOLLO_TOOLKIT_REPO_URL) { $env:APOLLO_TOOLKIT_REPO_URL } else { "https://github.com/LaiTszKin/apollo-toolkit.git" }
-$ToolkitRepoDir = if ($env:APOLLO_TOOLKIT_REPO_DIR) { $env:APOLLO_TOOLKIT_REPO_DIR } else { Join-Path $HOME ".apollo-toolkit-repo" }
+$ToolkitHome = if ($env:APOLLO_TOOLKIT_HOME) { $env:APOLLO_TOOLKIT_HOME } else { Join-Path $HOME ".apollo-toolkit" }
+
+function Show-Banner {
+  @"
++------------------------------------------+
+|              Apollo Toolkit              |
+|      npm installer and skill linker      |
++------------------------------------------+
+"@
+}
 
 function Test-RepoRoot {
   param([string]$Path)
@@ -47,11 +56,14 @@ function Test-RepoRoot {
 }
 
 function Bootstrap-RepoIfNeeded {
-  if (Test-Path -LiteralPath (Join-Path $ToolkitRepoDir ".git") -PathType Container) {
-    git -C $ToolkitRepoDir pull --ff-only | Out-Null
+  if (Test-Path -LiteralPath (Join-Path $ToolkitHome ".git") -PathType Container) {
+    git -C $ToolkitHome pull --ff-only | Out-Null
   }
   else {
-    git clone --depth 1 $ToolkitRepoUrl $ToolkitRepoDir | Out-Null
+    if (Test-Path -LiteralPath $ToolkitHome) {
+      Remove-Item -LiteralPath $ToolkitHome -Force -Recurse
+    }
+    git clone --depth 1 $ToolkitRepoUrl $ToolkitHome | Out-Null
   }
 }
 
@@ -71,7 +83,7 @@ elseif (Test-RepoRoot -Path (Get-Location).Path) {
 }
 else {
   Bootstrap-RepoIfNeeded
-  $RepoRoot = $ToolkitRepoDir
+  $RepoRoot = $ToolkitHome
 }
 
 function Get-SkillPaths {
@@ -108,6 +120,8 @@ function Resolve-Modes {
   $selected = [System.Collections.Generic.List[string]]::new()
 
   if ($Requested.Count -eq 0) {
+    Show-Banner
+    Write-Host ""
     Write-Host "Select install options (comma-separated):"
     Write-Host "1) codex (~/.codex/skills)"
     Write-Host "2) openclaw (~/.openclaw/workspace*/skills)"
