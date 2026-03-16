@@ -1,13 +1,13 @@
 # specs-to-project-docs
 
-A documentation skill that consolidates scattered spec files into standardized project docs. It produces a concise `README.md` and a fuller handbook grounded in real repository evidence.
+A documentation skill that consolidates scattered spec files into standardized project docs. It produces a concise `README.md` plus a categorized document set grounded in real repository evidence.
 
 ## Core capabilities
 
 - Scans `spec.md`, `tasks.md`, and `checklist.md` collections as documentation input.
 - Reconciles spec claims against code, config, scripts, and deployment files.
-- Standardizes both new and existing project docs around installation, deployment, configuration, external services, architecture, features, and developer onboarding context.
-- Provides dedicated reference templates for both `README.md` and the full project handbook.
+- Standardizes both new and existing project docs into topic-based files for setup, configuration, architecture, features, and developer onboarding.
+- Provides dedicated reference templates for the top-level README, the documentation index/reference list, and each category document.
 - Deletes superseded spec source files after a successful conversion, unless they still need to stay active or be archived explicitly.
 - Keeps unknown or unverifiable details explicit instead of guessing.
 
@@ -23,13 +23,23 @@ A documentation skill that consolidates scattered spec files into standardized p
 └── references/
     └── templates/
         ├── readme.md
-        └── project-handbook.md
+        ├── docs-index.md
+        ├── getting-started.md
+        ├── configuration.md
+        ├── architecture.md
+        ├── features.md
+        └── developer-guide.md
 ```
 
 ## Default outputs
 
 - `README.md`
-- `docs/project/project-handbook.md`
+- `docs/project/README.md`
+- `docs/project/getting-started.md`
+- `docs/project/configuration.md`
+- `docs/project/architecture.md`
+- `docs/project/features.md`
+- `docs/project/developer-guide.md`
 
 ## Required doc coverage
 
@@ -43,5 +53,5 @@ A documentation skill that consolidates scattered spec files into standardized p
 ## Notes
 
 - Prefer code, config, and deployment files over stale spec text when they disagree.
-- If the repository already has docs, rewrite them into the same standardized structure instead of leaving mixed documentation formats.
-- Keep `README.md` short and treat the handbook as the detailed operational/developer reference.
+- If the repository already has docs, rewrite them into the same categorized structure instead of leaving mixed documentation formats.
+- Keep `README.md` short and let `docs/project/README.md` act as the reference list for deeper topic docs.

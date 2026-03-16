@@ -11,7 +11,7 @@
 This repository enables users to install and run a curated set of reusable agent skills for software delivery, research, repository maintenance, and media-generation workflows.
 
 - Users can align project documentation with the current codebase.
-- Users can consolidate accumulated project specs into standardized README and project handbook documentation.
+- Users can consolidate accumulated project specs into a standardized README and categorized project documentation set.
 - Users can investigate application logs and produce evidence-backed root-cause findings.
 - Users can answer repository-backed questions with additional web research when needed.
 - Users can commit and push local changes without performing version or release work.

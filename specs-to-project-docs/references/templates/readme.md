@@ -27,6 +27,15 @@
 [Local run command or deployment command]
 ```
 
+## Documentation
+
+- Project docs index: `docs/project/README.md`
+- Setup and deployment: `docs/project/getting-started.md`
+- Configuration: `docs/project/configuration.md`
+- Architecture: `docs/project/architecture.md`
+- Features: `docs/project/features.md`
+- Developer guide: `docs/project/developer-guide.md`
+
 ## Main Features
 
 ### [Feature Area 1]
@@ -34,11 +43,6 @@
 
 ### [Feature Area 2]
 [Short explanation of the user-facing value and the main flow.]
-
-## Documentation
-
-- Full project handbook: `docs/project/project-handbook.md`
-- [Other important internal document or entrypoint]
 
 ## Notes
 

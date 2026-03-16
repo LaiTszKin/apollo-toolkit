@@ -21,6 +21,6 @@ Use this skill when the user asks to commit/push/submit changes and does **not**
 - tagging
 - release changelog workflows
 
-If the current diff includes new completed specs, convert them into standardized project docs first and let `specs-to-project-docs` remove or archive the superseded spec files.
+If the current diff includes new completed specs, convert them into categorized project docs first and let `specs-to-project-docs` remove or archive the superseded spec files.
 
 For release workflows, use `version-release`.

@@ -1,6 +1,6 @@
 ---
 name: version-release
-description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, and push). Use only when users explicitly request version/tag/release work. If the release scope includes new completed spec files, run `specs-to-project-docs` before finalizing the release so project docs are standardized and the old specs are removed or archived."
+description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, and push). Use only when users explicitly request version/tag/release work. If the release scope includes new completed spec files, run `specs-to-project-docs` before finalizing the release so project docs are standardized into categorized files and the old specs are removed or archived."
 ---
 
 # Version Release
@@ -15,8 +15,8 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 ## Standards
 
 - Evidence: Inspect the active change set and the release range before touching version files, tags, or changelog entries.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates, standardize project docs when new specs are present, then update versions, docs, commit, tag, and push.
-- Quality: Never guess versions, align user-facing docs with actual code, and convert completed planning docs into standardized project docs before the release is published.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates, standardize project docs into categorized files when new specs are present, then update versions, docs, commit, tag, and push.
+- Quality: Never guess versions, align user-facing docs with actual code, and convert completed planning docs into standardized categorized project docs before the release is published.
 - Output: Produce a versioned release commit and tag with synchronized changelog and relevant repository documentation.
 
 ## Overview
@@ -24,7 +24,7 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 Run a standardized release workflow for versioned delivery:
 
 - resolve release scope
-- align project code and standardized project documentation
+- align project code and standardized categorized project documentation
 - bump version files
 - update changelog and relevant docs
 - commit, tag, and push
@@ -60,12 +60,13 @@ Load only when needed:
    - Review `git log --oneline <range>` and `git diff --stat <range>`.
 5. Standardize project docs when new specs are in scope
    - Execute `specs-to-project-docs` when `new-specs-present` is true and the related implementation scope is complete enough for documentation consolidation.
-   - Let `specs-to-project-docs` convert the relevant specs into standardized project docs, normalize any existing project docs to the same structure, and remove or archive superseded source spec files.
+   - Let `specs-to-project-docs` convert the relevant specs into categorized project docs such as `docs/project/README.md`, `getting-started.md`, `configuration.md`, `architecture.md`, `features.md`, and `developer-guide.md`.
+   - Let the skill normalize any existing project docs to the same structure and remove or archive superseded source spec files.
    - If the specs still represent active unfinished work, do not convert them yet; report that the spec files remain active and should not be deleted.
 6. Align code and project docs
    - Compare release range changes with user-facing docs and operational docs to ensure they match actual code behavior.
    - Required alignment targets include project docs such as `README.md`, usage/setup docs, API docs, deployment/runbook docs, and release notes sources when present.
-   - After `specs-to-project-docs` runs, treat the standardized outputs as the canonical project-doc structure.
+   - After `specs-to-project-docs` runs, treat the categorized outputs as the canonical project-doc structure.
    - If mismatches are found, update the relevant project docs before version bumping/tagging.
 7. Decide version and tag format
    - Read existing version files (for example `project.toml`, `package.json`, or repo-specific version files).

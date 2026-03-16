@@ -1,4 +1,4 @@
 interface:
   display_name: "specs-to-project-docs"
-  short_description: "Convert project specs into standardized README and handbook docs"
-  default_prompt: "Use $specs-to-project-docs to inventory the project's spec.md/tasks.md/checklist.md files, reconcile them with the current repository, rewrite existing project docs into the standardized structure when needed, generate or update a concise README plus a full project handbook covering install/deploy, configuration, external services and API key setup, architecture, features, and pre-development context, then remove or archive superseded source specs after successful conversion."
+  short_description: "Convert project specs into standardized categorized project docs"
+  default_prompt: "Use $specs-to-project-docs to inventory the project's spec.md/tasks.md/checklist.md files, reconcile them with the current repository, rewrite existing project docs into a standardized categorized structure when needed, generate or update a concise README plus split project docs for getting started, configuration, architecture, features, and developer guidance, maintain a docs/project/README.md reference list, then remove or archive superseded source specs after successful conversion."

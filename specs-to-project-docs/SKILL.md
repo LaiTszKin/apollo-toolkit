@@ -17,11 +17,11 @@ description: Turn a project's accumulated spec files into standardized project d
 - Evidence: Treat code, config, deployment files, and current spec files as evidence sources; never guess when a detail is missing.
 - Execution: Inventory all relevant specs first, reconcile them with the current repository, then generate or update standardized docs from the provided templates.
 - Quality: Prefer source-of-truth behavior over stale plan text, align existing docs to the same standard structure, and call out unknowns explicitly instead of inventing missing setup details.
-- Output: Produce a concise `README.md` plus a fuller project handbook, then remove superseded spec files after the conversion is complete.
+- Output: Produce a concise `README.md` plus a categorized project-doc set, then remove superseded spec files after the conversion is complete.
 
 ## Goal
 
-Convert scattered planning artifacts into stable, standardized project documentation that helps operators and developers understand, run, configure, and extend the project.
+Convert scattered planning artifacts into stable, standardized project documentation that helps operators and developers quickly open the exact document they need for setup, configuration, architecture, feature understanding, or development onboarding.
 
 ## Workflow
 
@@ -41,19 +41,25 @@ Convert scattered planning artifacts into stable, standardized project documenta
 - When specs disagree with the codebase, keep the codebase truth and note the mismatch while updating docs.
 - Merge repeated or overlapping feature descriptions into one stable capability summary.
 
-### 3) Standardize existing project docs
+### 3) Standardize existing project docs into categorized outputs
 
-- If the project already has `README.md`, handbooks, setup guides, architecture docs, or runbooks, rewrite or reorganize them so they follow this skill's standardized structure instead of leaving mixed formats in place.
+- If the project already has `README.md`, handbooks, setup guides, architecture docs, or runbooks, rewrite or reorganize them so they follow this skill's standardized split-document structure instead of leaving mixed formats in place.
 - Use `references/templates/readme.md` for the concise project introduction.
-- Use `references/templates/project-handbook.md` for the fuller project documentation.
+- Use `references/templates/docs-index.md` for the project documentation index and reference list.
+- Use the category templates to split content by topic so readers can open only what they need.
 - Default target outputs:
   - `README.md`
-  - `docs/project/project-handbook.md`
-- If the repository already uses different doc paths, preserve the established locations only when the resulting documents still match the standard sections and remain easy to maintain.
+  - `docs/project/README.md`
+  - `docs/project/getting-started.md`
+  - `docs/project/configuration.md`
+  - `docs/project/architecture.md`
+  - `docs/project/features.md`
+  - `docs/project/developer-guide.md`
+- If the repository already uses different doc paths, preserve the established locations only when the resulting documents still match the same categorized sections and remain easy to maintain.
 
 ### 4) Fill the required documentation sections
 
-Ensure the full project docs cover all of the following:
+Ensure the split project docs cover all of the following:
 - how to install and deploy the project
 - how to configure the project
 - external services, required credentials, and API key acquisition tutorials when applicable
@@ -72,10 +78,11 @@ Ensure the full project docs cover all of the following:
   - any safe-development notes such as sandbox/test-mode usage
 - If the repository does not show how to obtain a credential, say so explicitly and point to the service's official setup page rather than guessing steps.
 
-### 6) Keep README scoped and the handbook comprehensive
+### 6) Keep README short and the doc set navigable
 
-- `README.md` should stay short: project intro, quick install/deploy, major features, and key entry links.
-- The project handbook should carry the deeper operational and developer details.
+- `README.md` should stay short: project intro, quick install/deploy, major features, and key doc links.
+- `docs/project/README.md` should act as the reference list for the categorized docs.
+- Each category doc should stay focused on one topic instead of acting like another monolithic handbook.
 - Remove template placeholders and stale planning language before finishing.
 
 ### 7) Remove superseded spec files after successful conversion
@@ -96,4 +103,9 @@ Ensure the full project docs cover all of the following:
 ## References
 
 - `references/templates/readme.md`: concise project overview template.
-- `references/templates/project-handbook.md`: full standardized project documentation template.
+- `references/templates/docs-index.md`: categorized project-doc index and reference list template.
+- `references/templates/getting-started.md`: installation and deployment template.
+- `references/templates/configuration.md`: configuration and external-service template.
+- `references/templates/architecture.md`: architecture template.
+- `references/templates/features.md`: feature guide template.
+- `references/templates/developer-guide.md`: development onboarding template.

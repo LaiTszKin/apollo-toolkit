@@ -1,6 +1,6 @@
 ---
 name: commit-and-push
-description: "Guide the agent to submit local changes with commit and push only (no versioning). Use when users ask to commit, submit, or push changes without requesting tag/version/release operations. If the current change set includes new completed spec files, run `specs-to-project-docs` before the final commit so project docs are standardized and the old specs are removed or archived."
+description: "Guide the agent to submit local changes with commit and push only (no versioning). Use when users ask to commit, submit, or push changes without requesting tag/version/release operations. If the current change set includes new completed spec files, run `specs-to-project-docs` before the final commit so project docs are standardized into categorized files and the old specs are removed or archived."
 ---
 
 # Commit and Push
@@ -15,7 +15,7 @@ description: "Guide the agent to submit local changes with commit and push only 
 ## Standards
 
 - Evidence: Inspect git state and classify the change set before deciding which quality gates apply.
-- Execution: Run the dependency skills in order, standardize project docs when new specs are present, preserve staging intent, then commit and push without release steps.
+- Execution: Run the dependency skills in order, standardize project docs into categorized outputs when new specs are present, preserve staging intent, then commit and push without release steps.
 - Quality: Re-run relevant validation for runtime changes and keep project docs plus agent constraints synchronized before committing.
 - Output: Produce a concise Conventional Commit and push it to the current branch only.
 
@@ -47,13 +47,14 @@ Load only when needed:
    - Re-run relevant tests when runtime logic changes.
 4. Standardize project docs when new specs are present
    - Execute `specs-to-project-docs` when `new-specs-present` is true and the related implementation scope is already complete enough for documentation consolidation.
-   - Let `specs-to-project-docs` convert the relevant specs into standardized project docs, normalize any existing project docs to the same structure, and remove or archive superseded source spec files.
+   - Let `specs-to-project-docs` convert the relevant specs into categorized project docs such as `docs/project/README.md`, `getting-started.md`, `configuration.md`, `architecture.md`, `features.md`, and `developer-guide.md`.
+   - Let the skill normalize any existing project docs to the same structure and remove or archive superseded source spec files.
    - If the specs still represent active unfinished work, do not convert them yet; report that the spec files remain active and should not be deleted.
 5. Run pre-commit sync dependencies
    - Execute `align-project-documents` after spec conversion and code/doc scans are complete.
    - Execute `maintain-project-constraints` immediately before the commit.
 6. Keep docs synchronized when needed
-   - Apply the output from `specs-to-project-docs` when new specs were converted into project docs.
+   - Apply the output from `specs-to-project-docs` when new specs were converted into categorized project docs.
    - Apply the output from `align-project-documents` when behavior or usage changed.
    - Apply the output from `maintain-project-constraints` when agent workflow/rules changed.
 7. Commit
