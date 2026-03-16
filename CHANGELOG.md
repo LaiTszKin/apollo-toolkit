@@ -15,7 +15,7 @@ All notable changes to this repository are documented in this file.
 
 ### Changed
 - Expand `harden-app-security` into a discovery-only adversarial audit workflow with broader common software attack coverage.
-- Strengthen `develop-new-features`, `enhance-existing-features`, `fix-edge-cases`, and related references with clearer testing and evidence requirements.
+- Strengthen `develop-new-features`, `enhance-existing-features`, `discover-edge-cases`, and related references with clearer testing and evidence requirements.
 - Refresh root and skill-level documentation to reflect the new skills, metadata requirements, and review workflow guidance.
 
 ### Fixed

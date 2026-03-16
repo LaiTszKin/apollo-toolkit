@@ -1,13 +1,21 @@
 ---
-name: fix-edge-cases
+name: discover-edge-cases
 description: Discover reproducible edge-case risks in changed code or a selected codebase scope, prove them with concrete evidence, and report prioritized findings without modifying implementation. Use when users ask to find edge cases, assess hardening gaps, or validate that unusual inputs and error paths are covered.
 ---
 
-# Edge Case Discovery
+# Discover Edge Cases
 
 ## Overview
 
 Use this skill to discover edge-case failures and coverage gaps with evidence-first analysis. The goal is to surface reproducible findings, not to remediate them.
+
+## Dependency Contract (Required)
+
+For code-affecting scopes, run `harden-app-security` after identifying the review scope and before finalizing the report.
+
+- Treat the dependency as an adversarial cross-check against your own assumptions.
+- Reuse confirmed security findings instead of downgrading them into generic edge-case observations.
+- If the dependency is unavailable, stop and report the missing dependency.
 
 ## Non-negotiable Boundaries
 
@@ -15,6 +23,7 @@ Use this skill to discover edge-case failures and coverage gaps with evidence-fi
 - Keep only reproducible findings with clear evidence.
 - Mark unverified ideas as hypotheses and separate them from confirmed findings.
 - If the task also requires remediation, finish this discovery pass first, then hand off confirmed findings to another implementation workflow.
+- Discard authorship bias completely: treat code written earlier in the conversation or by this agent as untrusted until evidence proves otherwise.
 
 ## Workflow
 
@@ -28,6 +37,7 @@ Use this skill to discover edge-case failures and coverage gaps with evidence-fi
 ### 2) Build a factual baseline
 
 - Read the relevant code paths end-to-end before judging behavior.
+- Re-derive behavior from code, tests, runtime output, and reproduced inputs only; ignore prior intent, authorship, or confidence from earlier turns.
 - Clarify input/output contracts: types, valid ranges, null handling, ordering assumptions, retry/error behavior, and state transitions.
 - Run existing tests or a minimal reproduction when needed to confirm actual vs expected behavior.
 - Record exact evidence with file references (`path:line`) and observable symptoms.

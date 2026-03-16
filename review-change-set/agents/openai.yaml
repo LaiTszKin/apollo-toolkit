@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Change Set"
+  short_description: "Review the active git diff for abstraction and simplification opportunities"
+  default_prompt: "Use $review-change-set to read the active git change set end-to-end, discard any bias toward code written earlier in the conversation, review it like an independent reviewer for architecture-level abstraction and simplification opportunities, and run $harden-app-security as an adversarial cross-check for code-affecting changes."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Discover Edge Cases"
+  short_description: "Discover reproducible edge-case risks and coverage gaps"
+  default_prompt: "Use $discover-edge-cases to scan the current diff first (or the full codebase when there is no diff), discard any bias toward code written earlier in the conversation, run $harden-app-security as an adversarial cross-check for code-affecting scope, identify the highest-risk reproducible edge-case findings, validate them with concrete evidence, prioritize the confirmed risks, and report hardening and test recommendations without modifying code."

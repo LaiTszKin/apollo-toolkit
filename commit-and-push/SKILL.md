@@ -18,8 +18,11 @@ Run these skills after scanning the change set and before the final commit:
 
 For code-affecting changes, also run these skills before the final commit:
 
-1. `fix-edge-cases` (first)
-2. `code-simplifier` (second)
+1. `review-change-set`
+2. `discover-edge-cases`
+3. `harden-app-security`
+
+Note: `discover-edge-cases` also requires `harden-app-security` for code-affecting scopes. Avoid double-running the same security scan; treat one successful run as satisfying the quality gate.
 
 If any required dependency is unavailable, stop and report the missing dependency.
 
@@ -41,9 +44,10 @@ Load only when needed:
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: content updates only (for example README, docs, comments).
 3. Run code-affecting dependency skills (when applicable)
-   - Execute `fix-edge-cases` first to surface unresolved edge-case risks.
+   - Execute `review-change-set` first to challenge architecture and simplification assumptions.
+   - Execute `discover-edge-cases` next to surface unresolved edge-case risks.
    - Resolve any confirmed findings.
-   - Execute `code-simplifier` second.
+   - Ensure `harden-app-security` has been executed for the same code-affecting scope as an adversarial quality gate.
    - Re-run relevant tests when runtime logic changes.
 4. Run pre-commit sync dependencies
    - Execute `align-project-documents` after the scan is complete.

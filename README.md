@@ -10,11 +10,12 @@ A curated copy of selected OpenClaw/Codex skill folders from `~/.codex/skills`.
 - commit-and-push
 - develop-new-features
 - docs-to-voice
-- fix-edge-cases
+- discover-edge-cases
 - enhance-existing-features
 - feature-propose
 - financial-research
 - fix-github-issues
+- review-change-set
 - resolve-review-comments
 - review-codebases
 - learning-error-book

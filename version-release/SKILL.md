@@ -19,10 +19,13 @@ Run a standardized release workflow for versioned delivery:
 
 For code-affecting changes, run these skills before release metadata edits and final commit:
 
-1. `fix-edge-cases` (first)
-2. `code-simplifier` (second)
+1. `review-change-set`
+2. `discover-edge-cases`
+3. `harden-app-security`
 
-If either dependency is unavailable, stop and report the missing dependency.
+Note: `discover-edge-cases` also requires `harden-app-security` for code-affecting scopes. Avoid double-running the same security scan; treat one successful run as satisfying the quality gate.
+
+If any required dependency is unavailable, stop and report the missing dependency.
 
 If the change set is documentation-only and does not alter runtime behavior, tests, build scripts, or CI/config behavior, dependencies may be skipped.
 
@@ -47,7 +50,9 @@ Load only when needed:
 3. Classify changes and run dependencies when required
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: documentation/content updates only.
-   - Run `fix-edge-cases`, resolve any confirmed findings, then run `code-simplifier` for code-affecting changes.
+   - For code-affecting changes, run `review-change-set` to challenge architecture and simplification assumptions in the active change set.
+   - For code-affecting changes, run `discover-edge-cases` and resolve any confirmed findings.
+   - For code-affecting changes, ensure `harden-app-security` has been executed for the same scope as an adversarial quality gate.
 4. Identify release range
    - Find latest version tag with `git describe --tags --abbrev=0` (fallback to `git tag --list`).
    - If no tags exist, use initial commit from `git rev-list --max-parents=0 HEAD`.
