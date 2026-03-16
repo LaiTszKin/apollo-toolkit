@@ -49,12 +49,12 @@ Convert scattered planning artifacts into stable, standardized project documenta
 - Use the category templates to split content by topic so readers can open only what they need.
 - Default target outputs:
   - `README.md`
-  - `docs/project/README.md`
-  - `docs/project/getting-started.md`
-  - `docs/project/configuration.md`
-  - `docs/project/architecture.md`
-  - `docs/project/features.md`
-  - `docs/project/developer-guide.md`
+  - `docs/README.md`
+  - `docs/getting-started.md`
+  - `docs/configuration.md`
+  - `docs/architecture.md`
+  - `docs/features.md`
+  - `docs/developer-guide.md`
 - If the repository already uses different doc paths, preserve the established locations only when the resulting documents still match the same categorized sections and remain easy to maintain.
 
 ### 4) Fill the required documentation sections
@@ -81,7 +81,7 @@ Ensure the split project docs cover all of the following:
 ### 6) Keep README short and the doc set navigable
 
 - `README.md` should stay short: project intro, quick install/deploy, major features, and key doc links.
-- `docs/project/README.md` should act as the reference list for the categorized docs.
+- `docs/README.md` should act as the reference list for the categorized docs.
 - Each category doc should stay focused on one topic instead of acting like another monolithic handbook.
 - Remove template placeholders and stale planning language before finishing.
 

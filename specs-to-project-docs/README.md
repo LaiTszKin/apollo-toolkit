@@ -34,12 +34,12 @@ A documentation skill that consolidates scattered spec files into standardized p
 ## Default outputs
 
 - `README.md`
-- `docs/project/README.md`
-- `docs/project/getting-started.md`
-- `docs/project/configuration.md`
-- `docs/project/architecture.md`
-- `docs/project/features.md`
-- `docs/project/developer-guide.md`
+- `docs/README.md`
+- `docs/getting-started.md`
+- `docs/configuration.md`
+- `docs/architecture.md`
+- `docs/features.md`
+- `docs/developer-guide.md`
 
 ## Required doc coverage
 
@@ -54,4 +54,4 @@ A documentation skill that consolidates scattered spec files into standardized p
 
 - Prefer code, config, and deployment files over stale spec text when they disagree.
 - If the repository already has docs, rewrite them into the same categorized structure instead of leaving mixed documentation formats.
-- Keep `README.md` short and let `docs/project/README.md` act as the reference list for deeper topic docs.
+- Keep `README.md` short and let `docs/README.md` act as the reference list for deeper topic docs.

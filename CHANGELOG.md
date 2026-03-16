@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.0.1] - 2026-03-17
+
+### Fixed
+- Align `specs-to-project-docs`, `commit-and-push`, and `version-release` references with the current `docs/*` documentation layout.
+
 ## [v2.0.0] - 2026-03-17
 
 ### Added

@@ -29,12 +29,12 @@
 
 ## Documentation
 
-- Project docs index: `docs/project/README.md`
-- Setup and deployment: `docs/project/getting-started.md`
-- Configuration: `docs/project/configuration.md`
-- Architecture: `docs/project/architecture.md`
-- Features: `docs/project/features.md`
-- Developer guide: `docs/project/developer-guide.md`
+- Project docs index: `docs/README.md`
+- Setup and deployment: `docs/getting-started.md`
+- Configuration: `docs/configuration.md`
+- Architecture: `docs/architecture.md`
+- Features: `docs/features.md`
+- Developer guide: `docs/developer-guide.md`
 
 ## Main Features
 

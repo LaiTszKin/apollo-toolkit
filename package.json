@@ -1,6 +1,6 @@
 {
   "name": "@laitszkin/apollo-toolkit",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Apollo Toolkit npm installer for managed skill linking across Codex, OpenClaw, and Trae.",
   "license": "MIT",
   "author": "LaiTszKin",

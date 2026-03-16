@@ -47,7 +47,7 @@ Load only when needed:
    - Re-run relevant tests when runtime logic changes.
 4. Standardize project docs when new specs are present
    - Execute `specs-to-project-docs` when `new-specs-present` is true and the related implementation scope is already complete enough for documentation consolidation.
-   - Let `specs-to-project-docs` convert the relevant specs into categorized project docs such as `docs/project/README.md`, `getting-started.md`, `configuration.md`, `architecture.md`, `features.md`, and `developer-guide.md`.
+   - Let `specs-to-project-docs` convert the relevant specs into categorized project docs such as `docs/README.md`, `docs/getting-started.md`, `docs/configuration.md`, `docs/architecture.md`, `docs/features.md`, and `docs/developer-guide.md`.
    - Let the skill normalize any existing project docs to the same structure and remove or archive superseded source spec files.
    - If the specs still represent active unfinished work, do not convert them yet; report that the spec files remain active and should not be deleted.
 5. Run pre-commit sync dependencies

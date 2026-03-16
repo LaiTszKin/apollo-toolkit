@@ -3,11 +3,11 @@
 ## Start Here
 
 - Project overview: `README.md`
-- Setup and deployment: `docs/project/getting-started.md`
-- Configuration and external services: `docs/project/configuration.md`
-- Architecture: `docs/project/architecture.md`
-- Features and workflows: `docs/project/features.md`
-- Developer guide: `docs/project/developer-guide.md`
+- Setup and deployment: `docs/getting-started.md`
+- Configuration and external services: `docs/configuration.md`
+- Architecture: `docs/architecture.md`
+- Features and workflows: `docs/features.md`
+- Developer guide: `docs/developer-guide.md`
 
 ## Document Guide
 
