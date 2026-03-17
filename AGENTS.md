@@ -40,6 +40,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can review the current git change set from an unbiased reviewer perspective to find abstraction opportunities and simplification candidates.
 - Users can process GitHub pull request review comments and resolve addressed threads.
 - Users can perform repository-wide code reviews and publish confirmed findings as GitHub issues.
+- Users can schedule a bounded project runtime window, stop it automatically, and analyze module health from captured logs.
 - Users can add focused observability to opaque workflows through targeted logs, metrics, traces, and tests.
 - Users can debug software systematically by reproducing causes, validating fixes, and testing outcomes.
 - Users can generate 30-60 second short videos directly from text prompts.

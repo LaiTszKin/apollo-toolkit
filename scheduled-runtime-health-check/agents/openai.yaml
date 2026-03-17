@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scheduled Runtime Health Check"
+  short_description: "Schedule a bounded project run, then assess module health from captured logs."
+  default_prompt: "Use $scheduled-runtime-health-check to schedule a bounded project run, capture logs from startup through shutdown, classify module health across the requested subsystems, and delegate evidence-based post-run diagnosis to $analyse-app-logs."

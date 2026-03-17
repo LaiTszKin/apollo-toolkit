@@ -31,6 +31,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - resolve-review-comments
 - review-change-set
 - review-codebases
+- scheduled-runtime-health-check
 - specs-to-project-docs
 - systematic-debug
 - text-to-short-video
