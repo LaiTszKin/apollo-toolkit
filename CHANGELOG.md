@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.1.1] - 2026-03-18
+
+### Added
+- Allow `fix-github-issues` to hand off validated issue fixes either to `open-source-pr-workflow` for PR submission or to `commit-and-push` for explicit direct-push delivery.
+
+### Changed
+- Align `fix-github-issues` metadata and agent prompt wording with the new direct-push delivery path.
+- Strengthen `weekly-financial-event-report` PDF handoff requirements for long-text table layout, reusable renderers, and visual QA checks.
+
 ## [v2.1.0] - 2026-03-18
 
 ### Added
