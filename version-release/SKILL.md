@@ -1,6 +1,6 @@
 ---
 name: version-release
-description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, and push). Use only when users explicitly request version/tag/release work. If the repository contains active planning artifacts or existing project docs do not match the `specs-to-project-docs` structure, run `specs-to-project-docs` before finalizing the release so project docs are standardized into categorized files and the old specs are removed or archived when appropriate."
+description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, GitHub release, and push). Use only when users explicitly request version/tag/release work. If the repository contains active planning artifacts or existing project docs do not match the `specs-to-project-docs` structure, run `specs-to-project-docs` before finalizing the release so project docs are standardized into categorized files and the old specs are removed or archived when appropriate."
 ---
 
 # Version Release
@@ -15,9 +15,9 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 ## Standards
 
 - Evidence: Inspect the active change set and the release range before touching version files, tags, or changelog entries.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates through independent parallel review subagents when applicable, standardize project docs into categorized files whenever specs or doc-structure mismatches are present, then update versions, docs, commit, tag, and push.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates through independent parallel review subagents when applicable, standardize project docs into categorized files whenever specs or doc-structure mismatches are present, then update versions, docs, commit, tag, push, and publish the GitHub release.
 - Quality: Never guess versions, align user-facing docs with actual code, convert completed planning docs into standardized categorized project docs before the release is published, and treat the `specs-to-project-docs` structure as the release-ready documentation format.
-- Output: Produce a versioned release commit and tag with synchronized changelog and relevant repository documentation.
+- Output: Produce a versioned release commit and tag, publish a matching GitHub release, and keep changelog plus relevant repository documentation synchronized.
 
 ## Overview
 
@@ -27,7 +27,7 @@ Run a standardized release workflow for versioned delivery:
 - align project code and standardized categorized project documentation
 - bump version files
 - update changelog and relevant docs
-- commit, tag, and push
+- commit, tag, push, and publish the GitHub release
 
 ## References
 
@@ -89,7 +89,13 @@ Load only when needed:
    - Create a release-oriented commit message (for example `chore(release): bump version and update changelog`) when applicable.
    - Create the version tag locally after commit.
 11. Push
-   - Push commit(s) and the release tag to the current branch.
+   - Push commit(s) and the release tag to the current branch before publishing the GitHub release when the hosting platform requires the tag to exist remotely.
+12. Publish the GitHub release
+   - Create a non-draft GitHub release that matches the pushed version tag.
+   - Use the release notes from the new `CHANGELOG.md` entry unless the repository has a stronger established release-note source.
+   - If the repository has publish automation triggered by `release.published`, ensure the GitHub release is actually published rather than left as a draft.
+   - Prefer `gh release create <tag>` or the repository's existing release tool when available.
+   - Confirm the GitHub release URL and any triggered publish workflow status in the final report.
 
 ## Notes
 

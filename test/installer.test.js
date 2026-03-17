@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const { normalizeModes, syncToolkitHome } = require('../lib/installer');
-const { buildBanner, run } = require('../lib/cli');
+const { buildBanner, buildWelcomeScreen, run } = require('../lib/cli');
 
 async function createFixtureSource(rootDir) {
   await fs.mkdir(path.join(rootDir, 'alpha-skill'), { recursive: true });
@@ -48,6 +48,13 @@ test('normalizeModes expands all and removes duplicates', () => {
 
 test('buildBanner shows Apollo Toolkit branding', () => {
   assert.match(buildBanner({ version: '2.0.0', colorEnabled: false }), /Apollo Toolkit/);
+});
+
+test('buildWelcomeScreen shows branded setup overview', () => {
+  const output = buildWelcomeScreen({ version: '2.0.0', colorEnabled: false, stage: 4 });
+  assert.match(output, /This setup will configure:/);
+  assert.match(output, /Quick start after setup:/);
+  assert.match(output, /Launching target selector/);
 });
 
 test('syncToolkitHome copies managed toolkit contents only', async () => {

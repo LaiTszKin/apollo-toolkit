@@ -48,7 +48,7 @@ npx @laitszkin/apollo-toolkit
 ```
 
 The interactive installer:
-- shows an `Apollo Toolkit` terminal screen
+- shows a branded `Apollo Toolkit` terminal welcome screen with a short staged reveal
 - installs a managed copy into `~/.apollo-toolkit`
 - lets you multi-select `codex`, `openclaw`, `trae`, or `all`
 - creates symlinks from `~/.apollo-toolkit/<skill>` into each selected target

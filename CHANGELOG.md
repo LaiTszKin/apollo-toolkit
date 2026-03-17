@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.2.0] - 2026-03-18
+
+### Added
+- Add a branded Apollo Toolkit installer welcome screen with staged terminal reveal content before target selection.
+
+### Changed
+- Update the interactive installer banner and selection screen to present clearer Apollo Toolkit branding and setup guidance.
+- Require `version-release` to create and publish a matching GitHub release after pushing the release tag, and document release-triggered publish workflow verification.
+
 ## [v2.1.1] - 2026-03-18
 
 ### Added
