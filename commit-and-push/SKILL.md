@@ -1,6 +1,6 @@
 ---
 name: commit-and-push
-description: "Guide the agent to submit local changes with commit and push only (no versioning). Use when users ask to commit, submit, or push changes without requesting tag/version/release operations. If the repository contains spec files or existing project docs do not match the `specs-to-project-docs` structure, run `specs-to-project-docs` before the final commit so project docs are standardized into categorized files and the old specs are removed or archived when appropriate."
+description: "Guide the agent to submit local changes with commit and push only (no versioning). Use when users ask to commit, submit, or push changes without requesting tag/version/release operations. If the repository contains active planning artifacts or existing project docs do not match the `specs-to-project-docs` structure, run `specs-to-project-docs` before the final commit so project docs are standardized into categorized files and the old specs are removed or archived when appropriate."
 ---
 
 # Commit and Push
@@ -8,7 +8,7 @@ description: "Guide the agent to submit local changes with commit and push only 
 ## Dependencies
 
 - Required: `align-project-documents` and `maintain-project-constraints` before the final commit.
-- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting changes; `specs-to-project-docs` when the repository contains spec files or existing project docs need normalization into the standard categorized structure.
+- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting changes; `specs-to-project-docs` when the repository contains active planning artifacts or existing project docs need normalization into the standard categorized structure.
 - Optional: none.
 - Fallback: If any required dependency is unavailable, or if `specs-to-project-docs` is required for spec conversion but unavailable, stop and report the missing dependency.
 
@@ -39,7 +39,7 @@ Load only when needed:
 2. Classify changes
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: content updates only (for example README, docs, comments).
-   - `repo-specs-present`: the repository contains planning files such as `spec.md`, `tasks.md`, `checklist.md`, or their containing plan directories, even if they are not part of the current diff.
+   - `repo-specs-present`: the repository contains active project planning artifacts such as `spec.md`, `tasks.md`, `checklist.md`, or plan directories that represent unfinished or recently completed work; exclude reference examples, templates, and archived samples that are not live project plans.
    - `project-doc-structure-mismatch`: existing `README.md` and project docs do not match the categorized structure required by `specs-to-project-docs`.
 3. Run code-affecting dependency skills (when applicable)
    - Launch `review-change-set`, `discover-edge-cases`, and `harden-app-security` as parallel review subagents for the same code-affecting scope when delegation is available.

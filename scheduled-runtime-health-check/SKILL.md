@@ -10,7 +10,7 @@ description: Coordinate a scheduled, bounded project run that starts automatical
 - Required: `analyse-app-logs` for bounded post-run log analysis.
 - Conditional: `improve-observability` when current logs cannot prove module health or root cause.
 - Optional: `open-github-issue` indirectly through `analyse-app-logs` when confirmed issues should be published.
-- Fallback: If no scheduler or automation capability is available, run the bounded observation immediately with explicit start/end timestamps and report that scheduling was skipped.
+- Fallback: If no scheduler or automation capability is available for the requested future start time, stop and report that scheduling could not be created; only run immediately when the user explicitly allows an immediate bounded observation instead of a timed start.
 
 ## Standards
 
@@ -50,6 +50,7 @@ This skill is an orchestration layer. It owns the schedule, bounded runtime, log
    - Prefer the host's native automation or scheduled-task system when available.
    - Prefer a single scheduled execution that performs start -> observe -> stop -> analyze so the log window is exact.
    - If the platform cannot hold a long-running scheduled task, use paired start/stop jobs and record both task identifiers.
+   - If the user requested a future start time and no reliable scheduler is available, fail closed and report the scheduling limitation instead of starting early.
 3. Prepare bounded log capture
    - Create a dedicated run folder for the window and record absolute start time, intended end time, timezone, cwd, command, and PID or job identifier.
    - Capture stdout and stderr for the started process, plus any existing app log files that matter for diagnosis.
@@ -82,6 +83,7 @@ This skill is an orchestration layer. It owns the schedule, bounded runtime, log
 - Prefer recurring schedules only when the user explicitly wants repeated health checks; otherwise create a one-off bounded run.
 - If the host provides agent automations, use them before inventing project-local scheduling files.
 - If native automation is unavailable, prefer the smallest reliable OS-level scheduling method already present on the machine.
+- If the request depends on a future start time and no reliable scheduling method exists, do not silently convert the request into an immediate run.
 
 ## Health classification rubric
 

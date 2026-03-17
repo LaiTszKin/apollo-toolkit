@@ -48,6 +48,7 @@ Best results come from including:
 - modules or subsystems to assess
 
 If no trustworthy start command is documented, the agent should derive it from the repository or ask only for that missing command.
+If the user requests a future start time and no reliable scheduler is available, the agent should report that limitation instead of starting the run early.
 
 ## Example
 

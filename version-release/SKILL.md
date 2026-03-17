@@ -1,6 +1,6 @@
 ---
 name: version-release
-description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, and push). Use only when users explicitly request version/tag/release work. If the repository contains spec files or existing project docs do not match the `specs-to-project-docs` structure, run `specs-to-project-docs` before finalizing the release so project docs are standardized into categorized files and the old specs are removed or archived when appropriate."
+description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, and push). Use only when users explicitly request version/tag/release work. If the repository contains active planning artifacts or existing project docs do not match the `specs-to-project-docs` structure, run `specs-to-project-docs` before finalizing the release so project docs are standardized into categorized files and the old specs are removed or archived when appropriate."
 ---
 
 # Version Release
@@ -8,7 +8,7 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 ## Dependencies
 
 - Required: none.
-- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting releases before metadata edits and the final commit; `specs-to-project-docs` when the repository contains spec files or existing project docs need normalization into the standard categorized structure.
+- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting releases before metadata edits and the final commit; `specs-to-project-docs` when the repository contains active planning artifacts or existing project docs need normalization into the standard categorized structure.
 - Optional: none.
 - Fallback: If a required release dependency is unavailable for a code-affecting scope, or if `specs-to-project-docs` is required for spec conversion but unavailable, stop and report the missing dependency.
 
@@ -51,7 +51,7 @@ Load only when needed:
 3. Classify changes and run dependencies when required
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: documentation/content updates only.
-   - `repo-specs-present`: the repository contains planning files such as `spec.md`, `tasks.md`, `checklist.md`, or their containing plan directories, even if they are outside the active release diff.
+   - `repo-specs-present`: the repository contains active project planning artifacts such as `spec.md`, `tasks.md`, `checklist.md`, or plan directories that represent unfinished or recently completed work; exclude reference examples, templates, and archived samples that are not live project plans.
    - `project-doc-structure-mismatch`: existing `README.md` and project docs do not match the categorized structure required by `specs-to-project-docs`.
    - For code-affecting changes, launch `review-change-set`, `discover-edge-cases`, and `harden-app-security` as parallel review subagents for the same release scope when delegation is available.
    - Keep each review subagent in an isolated context window; do not reuse the implementation thread as the reviewer context.

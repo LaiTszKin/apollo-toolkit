@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.1.0] - 2026-03-18
+
+### Added
+- Add `scheduled-runtime-health-check` for bounded project runtime scheduling, automatic shutdown, and delegated log-based module health analysis.
+
+### Changed
+- Align `commit-and-push` and `version-release` workflow guidance, prompts, and supporting docs with the current review and documentation-sync requirements.
+- Tighten release and commit planning-artifact detection to exclude template/reference specs, and require `scheduled-runtime-health-check` to fail closed when future scheduling is unavailable.
+
 ## [v2.0.2] - 2026-03-17
 
 ### Changed
