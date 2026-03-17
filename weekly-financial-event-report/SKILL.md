@@ -15,8 +15,8 @@ description: Read a user-specified PDF that marks the week's key financial event
 ## Standards
 
 - Evidence: Research only events explicitly marked in the source PDF plus clearly material breaking developments, and verify claims with current authoritative sources.
-- Execution: Read the PDF first, lock the research window, research each marked event, then hand the final briefing to `pdf` for rendering and QA.
-- Quality: Keep the report concise, Chinese-compatible, and explicit about source-versus-breaking events, conflicts, uncertainty, and PDF font safety.
+- Execution: Read the PDF first, lock the research window, research each marked event, then hand the final briefing to `pdf` for rendering and QA with deterministic table-safe layout rules when needed.
+- Quality: Keep the report concise, Chinese-compatible, explicit about source-versus-breaking events, conflicts, uncertainty, PDF font safety, and long-text table legibility.
 - Output: Save only the final standardized PDF under the month folder using the financial-event-report naming scheme.
 
 ## Overview
@@ -135,10 +135,16 @@ Do not guess any input that materially changes the research window or report sco
 - Do not assume `PingFang` is available on every macOS host.
 - If the active `pdf` workflow already has a verified Chinese-safe default on the current machine, reuse that verified default instead of overriding it.
 - Avoid emoji and uncommon glyphs that often break during rendering.
+- When the report includes tables, timelines, or matrix-style summaries with long phrases:
+  - require wrapped paragraph cells rather than single-line text rendering
+  - require width-constrained columns and row heights that expand with content
+  - require padding and font sizes that keep dense Chinese text readable
+  - prefer a deterministic renderer script when the default markdown-to-PDF path cannot guarantee those layout rules
 
 ### 7) Delegate rendering and PDF QA to the `pdf` skill
 
 - Hand the completed report content and font requirements to the `pdf` skill for rendering.
+- If custom table or timeline layout is needed, require the `pdf` skill to keep that renderer as a reusable local script instead of relying on one-off inline code.
 - Require the `pdf` skill to open the rendered PDF locally before finishing.
 - Require the `pdf` skill to capture temporary screenshots from the rendered PDF before considering the report complete.
 - Require the `pdf` skill to inspect at least:
@@ -151,6 +157,8 @@ Do not guess any input that materially changes the research window or report sco
   - headings and body text are visually balanced
   - line wrapping is readable
   - tables remain legible
+  - long table cells do not overlap adjacent text
+  - row heights and timeline blocks expand enough to fit wrapped content
 - Treat those screenshots as temporary QA artifacts only.
 - If the output fails visual QA, revise the content or PDF requirements and call the `pdf` skill again.
 - After the final PDF passes QA, require the `pdf` skill to delete all temporary screenshots before finishing.

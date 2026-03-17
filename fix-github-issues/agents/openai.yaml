@@ -1,4 +1,4 @@
 interface:
   display_name: "Fix GitHub Issues"
-  short_description: "Resolve remote GitHub issues and open linked PRs"
-  default_prompt: "Use $fix-github-issues to verify the target GitHub repository with gh, list and inspect remote issues, create an isolated worktree and compliant branch after issue selection, use $systematic-debug to reproduce and fix the issue with tests, validate the result, open a linked PR through $open-source-pr-workflow, then delete the temporary worktree when PR setup is complete."
+  short_description: "Resolve remote GitHub issues, then open a PR or push directly"
+  default_prompt: "Use $fix-github-issues to verify the target GitHub repository with gh, list and inspect remote issues, create an isolated worktree and compliant branch after issue selection, use $systematic-debug to reproduce and fix the issue with tests, validate the result, then either hand off to $open-source-pr-workflow for a linked PR or to $commit-and-push when the user explicitly wants a direct push, and finally delete the temporary worktree."
