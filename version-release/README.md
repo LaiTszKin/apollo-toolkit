@@ -7,8 +7,8 @@ A Codex skill for explicit release workflows: code/documentation alignment, vers
 `version-release` helps agents perform release work in a repeatable flow:
 
 1. Inspect the release scope from git history.
-2. Run quality gates for code-affecting changes.
-3. Run `specs-to-project-docs` when the release scope contains new completed spec files.
+2. Run quality gates for code-affecting changes through isolated parallel review subagents when available.
+3. Run `specs-to-project-docs` when the repository contains spec files or existing project docs need normalization.
 4. Align project code and categorized project docs.
 5. Resolve version and tag details.
 6. Update version files and changelog.
@@ -23,6 +23,6 @@ Use this skill only when the user explicitly asks for:
 - version bumping
 - tag creation/publishing
 
-If the release includes new completed specs, convert them into categorized project docs first and let `specs-to-project-docs` remove or archive the superseded spec files.
+If the repository contains spec files, or if existing project docs still use a mixed or non-standard layout, normalize them into the categorized `specs-to-project-docs` structure first and let that skill remove or archive superseded spec files when appropriate.
 
 If the user only wants commit + push, use `commit-and-push`.
