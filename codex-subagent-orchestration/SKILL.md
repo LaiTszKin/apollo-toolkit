@@ -15,8 +15,8 @@ description: Use for almost every non-trivial Codex task. Inspect existing custo
 ## Standards
 
 - Evidence: Inspect the current task shape and the existing custom-agent catalog before creating or updating any agent.
-- Execution: Use this skill for nearly every non-trivial task; explicitly tell Codex to spawn one or more subagents unless the task is trivial or delegation is disallowed; delegate read-heavy exploration, review, verification, and unrelated module edits; keep shared planning, conflict resolution, and final synthesis in the main agent.
-- Quality: Keep each custom agent narrow, opinionated, and non-overlapping; prefer read-only sandboxes for explorers and reviewers; avoid parallel write conflicts.
+- Execution: Use this skill for nearly every non-trivial task. When current tool rules allow delegation, the agent must actually launch one or more subagents instead of only describing delegation in prose. Treat a parallel subagents workflow as the default whenever two or more independent workstreams can run safely in parallel, use a single helper agent only when there is exactly one bounded sidecar job, and keep shared planning, conflict resolution, and final synthesis in the main agent.
+- Quality: Keep each custom agent narrow, opinionated, and non-overlapping; prefer read-only sandboxes for explorers and reviewers; keep review contexts isolated from the implementation thread; avoid parallel write conflicts.
 - Output: State which agents were reused or created, what each owned, whether they waited in parallel or were staged, and what remained with the main agent.
 
 ## Overview
@@ -54,7 +54,7 @@ Prefer `gpt-5.3-codex` first for agentic coding roles. Escalate to `gpt-5.4` whe
 
 ## When To Use
 
-Use this skill by default unless the task is genuinely trivial, such as:
+Use this skill by default unless the task is genuinely trivial or current tool rules disallow delegation, such as:
 
 - a one-shot factual answer with no decomposition value
 - a single obvious command or one-line edit
@@ -68,16 +68,20 @@ Subagents are most valuable for:
 - browser reproduction and debugging
 - parallel edits across unrelated files or modules
 
-Keep the main agent in charge when the work is highly continuous, tightly coupled, or depends on a single evolving mental model. In those cases, let subagents provide bounded context, not final ownership.
+Keep the main agent in charge when the work is highly continuous, tightly coupled, or depends on a single evolving mental model. In those cases, let subagents provide bounded context, not final ownership, and do not force parallel writers.
+
+This skill is not satisfied by merely writing that Codex should delegate later. When parallelizable sidecar work exists and delegation is allowed, the default compliant shape is a parallel subagents workflow.
 
 ## Workflow
 
 ### 1) Triage the task first
 
 - Decide whether the task is trivial, serial-but-complex, or parallelizable.
+- If the task is non-trivial and delegation is allowed, you must delegate at least one bounded subtask to a subagent.
+- If the task has two or more independent read/review/exploration tracks, you must use a parallel subagents workflow rather than a single helper agent or a staged suggestion-only plan.
 - Use subagents for most non-trivial tasks, but do not force them into tiny or tightly coupled work.
 - Prefer one writer plus supporting read-only agents when ownership would otherwise overlap.
-- For any non-trivial task, explicitly instruct Codex to spawn the chosen subagents unless delegation is blocked.
+- If tool rules require explicit user intent before delegation, confirm that gate first; once satisfied, launch the chosen subagents and do not stay in suggestion-only mode.
 
 ### 2) Inspect the current agent catalog
 
@@ -147,6 +151,7 @@ Whenever you prompt a subagent, include:
 - the expected summary or output format
 - the file or module ownership boundary
 - the stop condition if the agent hits uncertainty or overlap
+- the instruction to stay within current tool-rule limits for delegation, sandbox, and write scope
 
 ### 6) Decompose ownership before spawning
 
@@ -163,9 +168,11 @@ Avoid combining exploration, review, and editing into one reusable agent when th
 
 ### 7) Orchestrate the run
 
-- Explicitly tell Codex to spawn the selected subagents and state exactly how to split the work.
+- Use actual subagent tool calls when delegation is allowed; do not stop at writing that Codex should spawn agents later.
+- State exactly how to split the work before each launch.
 - Say whether to wait for all agents before continuing or to stage them in sequence.
 - Ask for concise returned summaries, not raw logs.
+- Treat single-subagent delegation as the exception path, not the default orchestration pattern.
 
 Preferred patterns:
 
@@ -176,6 +183,7 @@ Preferred patterns:
 Practical default:
 
 - spawn 2-4 agents for a complex task
+- spawn at least 2 agents when the task clearly contains parallelizable investigation or review tracks
 - keep within the current `agents.max_threads`
 - keep nesting shallow; many Codex setups leave `agents.max_depth` at 1 unless configured otherwise
 

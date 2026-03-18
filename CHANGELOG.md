@@ -4,6 +4,13 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.4.1] - 2026-03-19
+
+### Changed
+- Tighten `codex-subagent-orchestration` so non-trivial tasks must use actual subagent tool calls when delegation is allowed, instead of stopping at prose-only delegation guidance.
+- Require `codex-subagent-orchestration` to default to a parallel subagents workflow whenever two or more independent workstreams can run safely in parallel.
+- Clarify runtime handoff and orchestration boundaries for delegated agents, including tool-rule, sandbox, write-scope, and isolated-review expectations.
+
 ## [v2.4.0] - 2026-03-19
 
 ### Added
