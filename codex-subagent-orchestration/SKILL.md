@@ -104,11 +104,19 @@ Reuse an existing custom agent when all of the following are true:
 - its tools, sandbox, and model profile are suitable
 - using it will not create role overlap with another active agent
 
-Create a new custom agent only when:
+Create a new custom agent whenever the current task exposes a stable reusable role and:
 
 - no existing agent owns the job cleanly
-- the job is likely to recur on similar tasks
 - the responsibility can be described independently from the current one-off prompt
+- the role can be named, bounded, and reused on future tasks even if this is its first appearance
+
+Do not require repeated historical use before creating a reusable custom agent. Treat "reusable" as a property of role clarity and stable boundaries, not as proof that the exact same task has already repeated many times.
+
+When a delegated job is task-specific in content but role-stable in shape, abstract it to the most general reusable agent that still preserves clear ownership boundaries.
+
+Prefer extracting a general role such as `code_reviewer` or `docs_researcher` before creating a narrowly phrased task agent such as `review_rust_pr_123`.
+
+If domain knowledge materially changes the workflow, create a specialized reusable agent such as `rust_reviewer`; otherwise keep the agent generic and reusable across languages or repositories.
 
 Do not create near-duplicates. Tighten or extend an existing agent when the gap is small and the responsibility remains coherent.
 
@@ -119,6 +127,7 @@ Do not create near-duplicates. Tighten or extend an existing agent when the gap 
 - Match the filename to the `name` field unless there is a strong reason not to.
 - Keep `description` human-facing and routing-oriented: it should explain when Codex should use the agent.
 - Keep `developer_instructions` stable and role-specific; do not leak current task noise into reusable instructions.
+- Persist a custom agent as soon as its responsibility, inputs, workflow, and boundaries can be described independently from the current task details; do not wait for multiple repeats before persisting it.
 - Set `model` to either `gpt-5.3-codex` or `gpt-5.4`.
 - Set `model_reasoning_effort` from actual task complexity, not from agent prestige or habit.
 
@@ -126,7 +135,7 @@ Naming rule for this skill:
 
 - choose a short English noun phrase
 - normalize it to snake_case
-- examples: `code_mapper`, `docs_researcher`, `browser_debugger`, `payments_reviewer`
+- examples: `code_mapper`, `code_reviewer`, `docs_researcher`, `rust_reviewer`, `browser_debugger`
 
 ### 5) Use the fixed instruction format
 
@@ -202,6 +211,7 @@ If the task turns into one tightly coupled stream of work, stop delegating new e
 ### 9) Maintain the agent catalog after the task
 
 - Persist any new reusable custom agent to `~/.codex/agents/`.
+- If the current task revealed a cleaner reusable abstraction than the one you first considered, persist the more general role unless domain-specific workflow differences are materially important.
 - If a newly created agent proved too broad, narrow its description and instructions before finishing.
 - If two agents overlap heavily, keep one and tighten the other instead of letting both drift.
 - Do not persist throwaway agents that are really just one-off prompts.

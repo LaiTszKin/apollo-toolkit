@@ -4,6 +4,13 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.4.2] - 2026-03-19
+
+### Changed
+- Relax `codex-subagent-orchestration` so reusable custom agents no longer require repeated historical use before creation or persistence.
+- Require agents to abstract task-specific delegation into the most general reusable role that still preserves clear ownership boundaries, such as `code_reviewer` before narrower one-off task agents.
+- Clarify when domain-specific specialization such as `rust_reviewer` is warranted and when a generic reusable reviewer should be preferred.
+
 ## [v2.4.1] - 2026-03-19
 
 ### Changed
