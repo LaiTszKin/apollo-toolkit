@@ -4,6 +4,16 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.3.0] - 2026-03-18
+
+### Added
+- Add `codex-subagent-orchestration` for default subagent routing on most non-trivial Codex tasks, including reusable custom-agent catalog inspection, creation, and persistence guidance.
+- Add OpenAI-backed subagent references, a reusable custom-agent TOML template, and a routing rubric for splitting exploration, review, verification, and isolated implementation work.
+
+### Changed
+- Restrict `codex-subagent-orchestration` starter model guidance to `gpt-5.4` and `gpt-5.3-codex`.
+- Require reusable subagents to set `model_reasoning_effort` by delegated task complexity instead of using a single fixed effort.
+
 ## [v2.2.0] - 2026-03-18
 
 ### Added

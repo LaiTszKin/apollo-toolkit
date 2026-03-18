@@ -8,6 +8,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - analyse-app-logs
 - answering-questions-with-research
 - commit-and-push
+- codex-subagent-orchestration
 - deep-research-topics
 - develop-new-features
 - discover-edge-cases

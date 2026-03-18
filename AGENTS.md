@@ -16,6 +16,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can investigate application logs and produce evidence-backed root-cause findings.
 - Users can answer repository-backed questions with additional web research when needed.
 - Users can commit and push local changes without performing version or release work.
+- Users can orchestrate Codex subagents for most non-trivial tasks by reusing or creating focused custom agents under `~/.codex/agents`, then delegating exploration, review, verification, and unrelated module work while keeping tightly coupled execution in the main agent.
 - Users can research a topic deeply and produce evidence-based deliverables.
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.
