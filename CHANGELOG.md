@@ -4,6 +4,18 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.4.0] - 2026-03-19
+
+### Added
+- Add `codex-memory-manager` for reviewing the last 24 hours of Codex chats, storing durable preference memory, and syncing a managed memory index into `~/.codex/AGENTS.md`.
+- Add extractor and index-sync helper scripts plus focused tests for the new Codex memory workflow.
+
+### Changed
+- Update `codex-subagent-orchestration` guidance, prompts, and routing notes to require explicit subagent spawning language for non-trivial tasks.
+
+### Removed
+- Remove the standalone OpenAI Codex subagent summary reference from `codex-subagent-orchestration` now that the skill documentation carries the needed guidance directly.
+
 ## [v2.3.0] - 2026-03-18
 
 ### Added
