@@ -1,6 +1,6 @@
 interface:
   display_name: "Codex Subagent Orchestration"
   short_description: "Reuse or create focused Codex custom agents for most non-trivial tasks"
-  default_prompt: "Use $codex-subagent-orchestration for almost every non-trivial task: inspect existing custom agents under `~/.codex/agents` and `.codex/agents`, reuse a focused agent when one already fits, otherwise create a new reusable custom agent in the official Codex TOML format with a narrow role, noun-phrase snake_case name, explicit task applicability lists, and fixed developer-instructions sections, then coordinate subagents for exploration, review, verification, or unrelated module edits while keeping tightly coupled serial work and final synthesis in the main agent. Persist any new reusable agents to `~/.codex/agents`."
+  default_prompt: "Use $codex-subagent-orchestration for almost every non-trivial task: explicitly instruct Codex to spawn the needed subagents, inspect existing custom agents under `~/.codex/agents` and `.codex/agents`, reuse a focused agent when one already fits, otherwise create a new reusable custom agent in TOML format with a narrow role, noun-phrase snake_case name, explicit task applicability lists, and fixed developer-instructions sections, then coordinate those spawned subagents for exploration, review, verification, or unrelated module edits while keeping tightly coupled serial work and final synthesis in the main agent. Persist any new reusable agents to `~/.codex/agents`."
 policy:
   allow_implicit_invocation: true

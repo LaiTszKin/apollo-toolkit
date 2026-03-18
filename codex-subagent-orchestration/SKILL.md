@@ -8,14 +8,14 @@ description: Use for almost every non-trivial Codex task. Inspect existing custo
 ## Dependencies
 
 - Required: none.
-- Conditional: task-specific skills only when the delegated agent's job clearly benefits from them; `openai-docs` when the delegated work needs current OpenAI/Codex documentation or when Codex subagent schema and orchestration rules must be re-verified.
+- Conditional: task-specific skills only when the delegated agent's job clearly benefits from them.
 - Optional: none.
 - Fallback: If subagent delegation is unavailable, continue in a single thread and report that orchestration was skipped. If `~/.codex/agents` does not exist, create it before persisting personal custom agents.
 
 ## Standards
 
-- Evidence: Inspect the current task shape and the existing custom-agent catalog before creating or updating any agent, and check the latest official Codex docs before changing schema-level conventions.
-- Execution: Use this skill for nearly every non-trivial task; delegate read-heavy exploration, review, verification, and unrelated module edits; keep shared planning, conflict resolution, and final synthesis in the main agent.
+- Evidence: Inspect the current task shape and the existing custom-agent catalog before creating or updating any agent.
+- Execution: Use this skill for nearly every non-trivial task; explicitly tell Codex to spawn one or more subagents unless the task is trivial or delegation is disallowed; delegate read-heavy exploration, review, verification, and unrelated module edits; keep shared planning, conflict resolution, and final synthesis in the main agent.
 - Quality: Keep each custom agent narrow, opinionated, and non-overlapping; prefer read-only sandboxes for explorers and reviewers; avoid parallel write conflicts.
 - Output: State which agents were reused or created, what each owned, whether they waited in parallel or were staged, and what remained with the main agent.
 
@@ -23,23 +23,18 @@ description: Use for almost every non-trivial Codex task. Inspect existing custo
 
 This skill adds a repeatable orchestration layer on top of Codex subagents.
 
-The official OpenAI basis for this skill is summarized in `references/openai-codex-subagents.md`.
-
-Follow the current OpenAI Codex custom-agent format:
+Use this custom-agent format:
 
 - personal custom agents live in `~/.codex/agents/`
 - project-scoped custom agents live in `.codex/agents/`
 - each custom agent is one standalone TOML file
 - required fields are `name`, `description`, and `developer_instructions`
 
-This skill adds two house rules on top of the official schema:
+This skill adds these house rules:
 
 - use short English noun phrases normalized to snake_case for `name`
 - use the fixed `developer_instructions` structure from `references/custom-agent-template.toml`
 - restrict reusable subagent model choices in this repository to `gpt-5.4` and `gpt-5.3-codex`
-
-OpenAI documents the TOML schema and examples, but it does not explicitly require noun-phrase naming. Treat noun-phrase naming as this skill's convention for clearer routing and reuse.
-OpenAI also documents that Codex only spawns subagents when explicitly asked. Treat invoking this skill as the explicit orchestration step for non-trivial work, while still respecting any stricter environment rule that forbids delegation.
 
 ## Model policy
 
@@ -56,8 +51,6 @@ Set `model_reasoning_effort` by task complexity:
 - `xhigh`: only for the hardest investigations or synthesis-heavy subagents where latency is justified
 
 Prefer `gpt-5.3-codex` first for agentic coding roles. Escalate to `gpt-5.4` when the delegated job is less mechanical and more judgment-heavy.
-
-Codex does not spontaneously delegate just because custom agents exist. Calling this skill is the explicit instruction that makes the main agent inspect the catalog, decide whether delegation is worthwhile, and then reuse or create the right subagents.
 
 ## When To Use
 
@@ -84,7 +77,7 @@ Keep the main agent in charge when the work is highly continuous, tightly couple
 - Decide whether the task is trivial, serial-but-complex, or parallelizable.
 - Use subagents for most non-trivial tasks, but do not force them into tiny or tightly coupled work.
 - Prefer one writer plus supporting read-only agents when ownership would otherwise overlap.
-- Remember that Codex does not spawn subagents automatically; the orchestration decision must be explicit.
+- For any non-trivial task, explicitly instruct Codex to spawn the chosen subagents unless delegation is blocked.
 
 ### 2) Inspect the current agent catalog
 
@@ -170,7 +163,7 @@ Avoid combining exploration, review, and editing into one reusable agent when th
 
 ### 7) Orchestrate the run
 
-- Tell Codex exactly how to split the work.
+- Explicitly tell Codex to spawn the selected subagents and state exactly how to split the work.
 - Say whether to wait for all agents before continuing or to stage them in sequence.
 - Ask for concise returned summaries, not raw logs.
 
@@ -210,5 +203,4 @@ If the task turns into one tightly coupled stream of work, stop delegating new e
 Load only when needed:
 
 - `references/custom-agent-template.toml`
-- `references/openai-codex-subagents.md`
 - `references/routing-rubric.md`

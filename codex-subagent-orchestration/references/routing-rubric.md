@@ -18,8 +18,6 @@ Keep the task in the main agent when it is:
 - likely to create overlapping edits across the same files
 - blocked by an environment rule that disallows live delegation
 
-OpenAI's current Codex docs also state that subagents are explicit: Codex only spawns them when asked to do so.
-
 ## 2. Reuse before creating
 
 Reuse an existing custom agent when:
@@ -80,7 +78,7 @@ Every subagent handoff should include:
 - `Expected output shape`
 - `Blocking or non-blocking status`
 
-This follows OpenAI's documented guidance that a good subagent prompt should explain the work split, whether Codex should wait, and what summary or output to return.
+Use direct spawning language, for example: "spawn 2 subagents", "spawn a code-mapping subagent and a review subagent", or "do not spawn subagents because this task is trivial".
 
 ## 7. Pick model and reasoning by complexity
 

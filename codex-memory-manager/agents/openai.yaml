@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Memory Manager"
+  short_description: "Persist user preferences from recent Codex chats"
+  default_prompt: "Use $codex-memory-manager to review the last 24 hours of Codex sessions, update ~/.codex/memory/*.md, and refresh the memory index at the end of ~/.codex/AGENTS.md."
