@@ -1,6 +1,6 @@
 ---
 name: codex-subagent-orchestration
-description: Use for almost every non-trivial Codex task. Inspect existing custom agents under `~/.codex/agents`, reuse them when they already fit, create a new focused custom agent in the official Codex TOML format when needed, and coordinate parallel subagents for exploration, review, verification, or unrelated module work while keeping tightly coupled serial work in the main agent.
+description: Use for almost every non-trivial Codex task. Conduct muti-agents workflow to better finish your jobs. Use this skill for better muti-agents orchestration. Inspect existing custom agents under `~/.codex/agents`, reuse them when they already fit, create a new focused custom agent in the official Codex TOML format when needed, and coordinate parallel subagents for exploration, review, verification, or unrelated module work while keeping tightly coupled serial work in the main agent.
 ---
 
 # Codex Subagent Orchestration
