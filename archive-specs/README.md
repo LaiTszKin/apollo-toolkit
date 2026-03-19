@@ -1,6 +1,6 @@
-# specs-to-project-docs
+# archive-specs
 
-A documentation skill that consolidates scattered spec files into standardized project docs. It produces a concise `README.md` plus a categorized document set grounded in real repository evidence.
+A documentation skill that converts completed spec files into standardized project docs and archives the consumed planning files. It produces a concise `README.md` plus a categorized document set grounded in real repository evidence.
 
 ## Core capabilities
 
@@ -8,7 +8,7 @@ A documentation skill that consolidates scattered spec files into standardized p
 - Reconciles spec claims against code, config, scripts, and deployment files.
 - Standardizes both new and existing project docs into topic-based files for setup, configuration, architecture, features, and developer onboarding.
 - Provides dedicated reference templates for the top-level README, the documentation index/reference list, and each category document.
-- Deletes superseded spec source files after a successful conversion, unless they still need to stay active or be archived explicitly.
+- Archives superseded spec source files after a successful conversion, and deletes them only when the repository clearly does not need historical retention.
 - Keeps unknown or unverifiable details explicit instead of guessing.
 
 ## Repository layout

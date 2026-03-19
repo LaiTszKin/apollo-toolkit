@@ -17,7 +17,7 @@ description: >-
 
 ## Dependencies
 
-- Required: `generate-spec` for `spec.md`, `tasks.md`, `checklist.md`, clarification handling, approval gating, and status backfill.
+- Required: `generate-spec` for `spec.md`, `tasks.md`, `checklist.md`, clarification handling, approval gating, and completion-status backfill.
 - Conditional: none.
 - Optional: none.
 - Fallback: If `generate-spec` is unavailable, stop and report the missing dependency.
@@ -50,7 +50,7 @@ Use a shared spec-generation workflow for all new feature work, then implement t
   - filling BDD requirements and risk-driven test plans
   - handling clarification responses
   - obtaining explicit approval before coding
-  - backfilling document status after implementation and testing
+  - backfilling document status after implementation and testing, including requirement completion in `spec.md`
 - Do not modify product code before the approved spec set exists.
 
 ### 3) Explore architecture and reuse opportunities
@@ -86,7 +86,8 @@ Rules:
 
 ### 6) Completion updates
 
-- Backfill `tasks.md` and `checklist.md` through `$generate-spec` workflow after implementation and testing.
+- Backfill `spec.md`, `tasks.md`, and `checklist.md` through `$generate-spec` workflow after implementation and testing.
+- In `spec.md`, mark each approved requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
 - Report the implemented scope, test execution, and any concrete `N/A` reasons.
 
 ## Working Rules

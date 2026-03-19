@@ -6,10 +6,10 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 
 - align-project-documents
 - analyse-app-logs
+- archive-specs
 - answering-questions-with-research
 - commit-and-push
 - codex-memory-manager
-- codex-subagent-orchestration
 - deep-research-topics
 - develop-new-features
 - discover-edge-cases
@@ -34,7 +34,6 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - review-change-set
 - review-codebases
 - scheduled-runtime-health-check
-- specs-to-project-docs
 - systematic-debug
 - text-to-short-video
 - version-release
@@ -54,6 +53,7 @@ The interactive installer:
 - installs a managed copy into `~/.apollo-toolkit`
 - lets you multi-select `codex`, `openclaw`, `trae`, or `all`
 - creates symlinks from `~/.apollo-toolkit/<skill>` into each selected target
+- in the same npm/npx install flow, removes stale linked skills that existed in the previous installed version but no longer exist in the current package skill list
 
 ### Global install
 

@@ -1,9 +1,9 @@
 ---
-name: specs-to-project-docs
-description: Turn a project's accumulated spec files into standardized project documentation and README content. Use when users want to consolidate `spec.md`/`tasks.md`/`checklist.md` files into maintainable docs covering installation and deployment, configuration, external service setup, architecture, feature introductions, and developer onboarding context.
+name: archive-specs
+description: Convert completed project spec sets into maintainable project documentation and archive the consumed planning files. Use when users want to consolidate `spec.md`/`tasks.md`/`checklist.md` files into evidence-backed docs covering installation and deployment, configuration, external service setup, architecture, feature introductions, and developer onboarding context.
 ---
 
-# Specs To Project Docs
+# Archive Specs
 
 ## Dependencies
 
@@ -17,11 +17,11 @@ description: Turn a project's accumulated spec files into standardized project d
 - Evidence: Treat code, config, deployment files, and current spec files as evidence sources; never guess when a detail is missing.
 - Execution: Inventory all relevant specs first, reconcile them with the current repository, then generate or update standardized docs from the provided templates.
 - Quality: Prefer source-of-truth behavior over stale plan text, align existing docs to the same standard structure, and call out unknowns explicitly instead of inventing missing setup details.
-- Output: Produce a concise `README.md` plus a categorized project-doc set, then remove superseded spec files after the conversion is complete.
+- Output: Produce a concise `README.md` plus a categorized project-doc set, then archive or remove superseded spec files after the conversion is complete.
 
 ## Goal
 
-Convert scattered planning artifacts into stable, standardized project documentation that helps operators and developers quickly open the exact document they need for setup, configuration, architecture, feature understanding, or development onboarding.
+Convert completed planning artifacts into stable, standardized project documentation, then archive the consumed specs so active planning files stay separate from durable project docs.
 
 ## Workflow
 
@@ -85,12 +85,12 @@ Ensure the split project docs cover all of the following:
 - Each category doc should stay focused on one topic instead of acting like another monolithic handbook.
 - Remove template placeholders and stale planning language before finishing.
 
-### 7) Remove superseded spec files after successful conversion
+### 7) Archive superseded spec files after successful conversion
 
-- After the standardized project docs are complete and verified, delete the old source spec files that were converted.
-- Remove the full spec directory when it only exists to hold the consumed `spec.md`, `tasks.md`, and `checklist.md` files.
-- Do not delete any spec file that is still actively needed for unfinished implementation work or explicit archival requirements.
-- If a repository needs historical retention, move the source specs into a clearly marked archive path instead of leaving them mixed with active docs.
+- After the standardized project docs are complete and verified, archive the old source spec files that were converted.
+- Prefer moving the consumed `spec.md`, `tasks.md`, and `checklist.md` files, or their containing plan directory, into a clearly marked archive path instead of leaving them mixed with active docs.
+- Delete converted spec files only when the repository clearly does not need historical retention.
+- Do not archive or delete any spec file that is still actively needed for unfinished implementation work.
 
 ## Working Rules
 

@@ -12,12 +12,11 @@
 This repository enables users to install and run a curated set of reusable agent skills for software delivery, research, repository maintenance, and media-generation workflows.
 
 - Users can align project documentation with the current codebase.
-- Users can consolidate accumulated project specs into a standardized README and categorized project documentation set.
+- Users can consolidate completed project specs into a standardized README and categorized project documentation set, then archive the consumed planning files.
 - Users can investigate application logs and produce evidence-backed root-cause findings.
 - Users can answer repository-backed questions with additional web research when needed.
 - Users can commit and push local changes without performing version or release work.
 - Users can manage Codex user-preference memory by reviewing the last 24 hours of chats, storing categorized memory documents under `~/.codex/memory`, and syncing a memory index into `~/.codex/AGENTS.md`.
-- Users can orchestrate Codex subagents for most non-trivial tasks by reusing or creating focused custom agents under `~/.codex/agents`, then delegating exploration, review, verification, and unrelated module work while keeping tightly coupled execution in the main agent.
 - Users can research a topic deeply and produce evidence-based deliverables.
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.

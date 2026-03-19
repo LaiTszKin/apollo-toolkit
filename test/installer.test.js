@@ -4,7 +4,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 
-const { normalizeModes, syncToolkitHome } = require('../lib/installer');
+const { installLinks, normalizeModes, syncToolkitHome } = require('../lib/installer');
 const { buildBanner, buildWelcomeScreen, run } = require('../lib/cli');
 
 async function createFixtureSource(rootDir) {
@@ -108,3 +108,27 @@ test('run installs toolkit home and creates symlinks in selected targets', async
   assert.equal((await fs.lstat(openclawLink)).isSymbolicLink(), true);
   assert.equal(await fs.realpath(codexLink), expectedSource);
 }); 
+
+test('installLinks removes stale skills that disappeared from the new version', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-stale-'));
+  const toolkitHome = path.join(tempDir, '.apollo-toolkit');
+  const codexRoot = path.join(tempDir, 'codex-skills');
+
+  await fs.mkdir(path.join(toolkitHome, 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(path.join(codexRoot, 'old-skill'), { recursive: true });
+  await fs.writeFile(path.join(codexRoot, 'old-skill', 'stale.txt'), 'stale\n', 'utf8');
+
+  await installLinks({
+    toolkitHome,
+    modes: ['codex'],
+    previousSkillNames: ['alpha-skill', 'old-skill'],
+    env: {
+      HOME: tempDir,
+      CODEX_SKILLS_DIR: codexRoot,
+    },
+  });
+
+  await assert.rejects(fs.access(path.join(codexRoot, 'old-skill')));
+  assert.equal((await fs.lstat(path.join(codexRoot, 'alpha-skill'))).isSymbolicLink(), true);
+});

@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.5.0] - 2026-03-19
+
+### Changed
+- Rename `specs-to-project-docs` to `archive-specs` and refocus the skill on converting completed specs into project docs while archiving the consumed planning files.
+- Update `develop-new-features` and `enhance-existing-features` so completed work must backfill requirement completion status in `spec.md` alongside `tasks.md` and `checklist.md`.
+- Update `commit-and-push` and `version-release` to treat planning-file checkboxes semantically during conversion, and to invoke `archive-specs` when completed spec sets should become project documentation.
+- Update the npm installer to remove stale linked skills that no longer exist in the latest packaged skill list during managed installs.
+
+### Removed
+- Remove the `codex-subagent-orchestration` skill and clean related multi-agent guidance from affected skill documents.
+
 ## [v2.4.3] - 2026-03-19
 
 ### Changed

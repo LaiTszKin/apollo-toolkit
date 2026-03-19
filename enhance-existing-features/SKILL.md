@@ -59,6 +59,7 @@ If triggered:
 - Run `$generate-spec` and follow its workflow completely.
 - Use it to create or update `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, and `checklist.md`.
 - Ensure planned behaviors and edge cases cover external dependency states, abuse/adversarial paths, and any relevant authorization/idempotency/concurrency/data-integrity risks.
+- After implementation and testing, update the same plan set so `spec.md` reflects requirement completion status in addition to task and checklist progress.
 - If users answer clarification questions, update the planning docs and obtain explicit approval again before implementation.
 - Do not modify implementation code before approval.
 
@@ -100,7 +101,8 @@ Rules:
 
 ### 6) Completion updates
 
-- If specs were used, backfill `tasks.md` and `checklist.md` through `$generate-spec` workflow based on actual completion and test outcomes.
+- If specs were used, backfill `spec.md`, `tasks.md`, and `checklist.md` through `$generate-spec` workflow based on actual completion and test outcomes.
+- In `spec.md`, mark each relevant requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
 - If specs were not used, provide a concise execution summary including test IDs/results, regression coverage, mock scenario coverage, adversarial coverage, and any `N/A` reasons.
 
 ## Working Rules

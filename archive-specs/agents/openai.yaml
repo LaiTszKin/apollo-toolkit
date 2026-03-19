@@ -1,0 +1,4 @@
+interface:
+  display_name: "archive-specs"
+  short_description: "Convert completed specs into project docs and archive the consumed plans"
+  default_prompt: "Use $archive-specs to inventory the project's spec.md/tasks.md/checklist.md files, reconcile them with the current repository, rewrite existing project docs into a standardized categorized structure when needed, generate or update a concise README plus split project docs for getting started, configuration, architecture, features, and developer guidance, maintain a docs/README.md reference list, then archive the consumed source specs after successful conversion, deleting them only when the repository clearly does not need historical retention."
