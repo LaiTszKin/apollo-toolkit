@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.4.3] - 2026-03-19
+
+### Changed
+- Clarify `codex-subagent-orchestration` guidance so delegated custom-agent creation steps include the required context for agent-creation tooling.
+
 ## [v2.4.2] - 2026-03-19
 
 ### Changed
