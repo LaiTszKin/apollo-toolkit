@@ -15,7 +15,7 @@ description: Learn and evolve the local skill library from recent Codex conversa
 ## Standards
 
 - Evidence: Extract recent Codex session history first and derive reusable lessons only from actual conversation patterns.
-- Execution: Inventory the current skill catalog before editing, prioritize repeated requests, user corrections, and reported errors, then prefer a focused update to the strongest related skill or create a new skill only when the overlap is weak.
+- Execution: Inventory the current skill catalog before editing, prioritize repeated requests, user corrections, reported errors, and post-completion follow-up asks that reveal missing closure, then prefer a focused update to the strongest related skill or create a new skill only when the overlap is weak.
 - Quality: Take no action when there are no recent sessions, avoid unrelated broad refactors, and validate every changed skill.
 - Output: Report the analyzed sessions, extracted lessons, created or updated skills, and the reasoning behind each decision.
 
@@ -48,6 +48,8 @@ python3 ~/.codex/skills/learn-skill-from-conversations/scripts/extract_recent_co
 - Identify repeated user needs, recurring friction, and repeated manual workflows.
 - Give extra weight to moments where the user corrected the agent, rejected an earlier interpretation, or pointed out a missing preference or requirement.
 - Give extra weight to user-reported errors, regressions, or avoidable mistakes, then ask how a skill can prevent repeating that failure mode.
+- Treat a user follow-up that asks for cleanup or an omitted finalization step immediately after the assistant reported completion as evidence that the workflow's done criteria were incomplete.
+- When that kind of follow-up recurs, tighten the owning skill's completion checklist before considering any new-skill extraction.
 - Ignore one-off issues that do not provide reusable value.
 - Distinguish between:
   - repeated trigger intent that deserves a new skill

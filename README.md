@@ -31,6 +31,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - open-github-issue
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
+- openclaw-configuration
 - record-spending
 - resolve-review-comments
 - review-change-set

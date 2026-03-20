@@ -38,6 +38,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can publish structured GitHub issues or feature proposals with auth fallbacks.
 - Users can prepare and open open-source pull requests from existing changes.
 - Users can generate storyboard image sets from chapters, novels, articles, or scripts.
+- Users can configure OpenClaw from official documentation, including `~/.openclaw/openclaw.json`, skills loading, SecretRefs, CLI edits, and validation or repair workflows.
 - Users can record multi-account spending and balance changes in monthly Excel ledgers with summary analytics and charts.
 - Users can review the current git change set from an unbiased reviewer perspective to find abstraction opportunities and simplification candidates.
 - Users can process GitHub pull request review comments and resolve addressed threads.

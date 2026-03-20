@@ -16,8 +16,8 @@ description: Resolve issues from remote GitHub repositories via GitHub CLI (`gh`
 
 - Evidence: Verify repository context, fetch remote issue details, and derive expected behavior from issue text before coding.
 - Execution: Select the issue, open an isolated worktree by default, fix it through `systematic-debug`, validate locally, then hand off to the delivery workflow that matches the user's request.
-- Quality: Keep scope limited to the selected issue, capture exact validation commands, and preserve issue linkage in the final PR or commit message.
-- Output: Finish with either a linked PR or a direct pushed commit, then clean up the temporary worktree when the work is complete.
+- Quality: Keep scope limited to the selected issue, capture exact validation commands, preserve issue linkage in the final PR or commit message, and treat temporary worktree cleanup as part of completion rather than an optional follow-up.
+- Output: Finish with either a linked PR or a direct pushed commit, then clean up the temporary worktree plus any matching local branch before reporting completion.
 
 ## Overview
 
@@ -89,10 +89,12 @@ python3 scripts/list_issues.py --limit 50 --state open
   - executed test commands and results
 - Include issue-closing reference (for example, `Closes #<issue-number>`) whenever a PR is opened.
 
-### 8) Clean up the temporary worktree after PR creation
+### 8) Clean up the temporary worktree after PR creation or direct push
 
 - Once the PR is opened or the direct push is complete and no more work is needed in that isolated tree, remove the worktree you created for the fix.
 - Also clean up the matching local branch reference if it is no longer needed locally.
+- Verify the cleanup with `git worktree list` and confirm the temporary path no longer appears before finishing.
+- If the worktree cannot be removed because of uncommitted changes or a still-checked-out branch, resolve that state immediately instead of leaving cleanup for a later user request.
 
 ## Included Script
 

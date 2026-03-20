@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.7.0] - 2026-03-20
+
+### Added
+- Add `openclaw-configuration` for explaining, editing, validating, and troubleshooting OpenClaw configuration from the current official docs, including `~/.openclaw/openclaw.json`, skills config, secrets, and CLI workflows.
+- Add bundled OpenClaw configuration references covering the official doc map, config option guide, and operational best practices.
+
+### Changed
+- Update `fix-github-issues` to require temporary worktree and local branch cleanup as part of direct-push or PR completion, with explicit cleanup verification before finishing.
+- Update `learn-skill-from-conversations` to treat post-completion cleanup or finalization follow-ups as evidence that the owning workflow's done criteria need tightening.
+- Update the repository skill inventory and project capability docs to include OpenClaw configuration support.
+
 ## [v2.6.0] - 2026-03-20
 
 ### Added
