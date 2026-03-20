@@ -4,6 +4,18 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.6.0] - 2026-03-20
+
+### Added
+- Add `jupiter-development` for building Jupiter-based Solana integrations from current official docs, including swap, token, price, lend, trigger, recurring, and portfolio surfaces.
+- Add `marginfi-development` for building or reviewing marginfi integrations with official SDK, CLI, protocol, and The Arena references.
+- Add `solana-development` for native Solana Rust programs and Rust client workflows grounded in official Solana documentation.
+
+### Changed
+- Update `learn-skill-from-conversations` to prefer inventorying the current skill catalog, weighting user corrections and error-driven lessons more heavily, and tightening when to update an existing skill versus creating a new one.
+- Update `codex-memory-manager` so memory reports include already-stored relevant preferences when users ask what memory exists or why a known preference was omitted.
+- Refresh new protocol reference snapshots against current official Jupiter, marginfi, and Solana docs before release.
+
 ## [v2.5.0] - 2026-03-19
 
 ### Changed
