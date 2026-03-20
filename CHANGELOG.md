@@ -4,6 +4,13 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.8.0] - 2026-03-21
+
+### Changed
+- Change the npm installer and local install scripts to copy managed skill directories into selected targets instead of creating symlinks.
+- Replace legacy Apollo Toolkit symlink installs with real copied skill directories during reinstall, while still removing stale skills that no longer ship in the current version.
+- Normalize every repository `LICENSE` file to the MIT template owned by `LaiTszKin`.
+
 ## [v2.7.0] - 2026-03-20
 
 ### Added

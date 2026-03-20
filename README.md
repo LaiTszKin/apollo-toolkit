@@ -1,6 +1,6 @@
 # Apollo Toolkit Skills
 
-A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer that keeps the toolkit in `~/.apollo-toolkit` and links each skill into the targets you choose.
+A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer that keeps the toolkit in `~/.apollo-toolkit` and copies each skill into the targets you choose.
 
 ## Included skills
 
@@ -57,8 +57,9 @@ The interactive installer:
 - shows a branded `Apollo Toolkit` terminal welcome screen with a short staged reveal
 - installs a managed copy into `~/.apollo-toolkit`
 - lets you multi-select `codex`, `openclaw`, `trae`, or `all`
-- creates symlinks from `~/.apollo-toolkit/<skill>` into each selected target
-- in the same npm/npx install flow, removes stale linked skills that existed in the previous installed version but no longer exist in the current package skill list
+- copies `~/.apollo-toolkit/<skill>` into each selected target
+- removes stale previously installed skill directories that existed in the previous installed version but no longer exist in the current package skill list
+- replaces legacy symlink-based installs created by older Apollo Toolkit installers with real copied directories
 
 ### Global install
 

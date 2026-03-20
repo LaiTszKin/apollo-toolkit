@@ -74,7 +74,7 @@ test('syncToolkitHome copies managed toolkit contents only', async () => {
   assert.ok(!copied.includes('.github'));
 });
 
-test('run installs toolkit home and creates symlinks in selected targets', async () => {
+test('run installs toolkit home and copies skills into selected targets', async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-run-'));
   const sourceRoot = path.join(tempDir, 'source');
   const homeDir = path.join(tempDir, 'user-home');
@@ -100,14 +100,15 @@ test('run installs toolkit home and creates symlinks in selected targets', async
   assert.equal(exitCode, 0, stderr.toString());
   assert.match(stdout.toString(), /Installation complete/);
 
-  const codexLink = path.join(homeDir, '.codex', 'skills', 'alpha-skill');
-  const openclawLink = path.join(homeDir, '.openclaw', 'workspace1', 'skills', 'alpha-skill');
+  const codexSkill = path.join(homeDir, '.codex', 'skills', 'alpha-skill');
+  const openclawSkill = path.join(homeDir, '.openclaw', 'workspace1', 'skills', 'alpha-skill');
   const expectedSource = await fs.realpath(path.join(toolkitHome, 'alpha-skill'));
 
-  assert.equal((await fs.lstat(codexLink)).isSymbolicLink(), true);
-  assert.equal((await fs.lstat(openclawLink)).isSymbolicLink(), true);
-  assert.equal(await fs.realpath(codexLink), expectedSource);
-}); 
+  assert.equal((await fs.lstat(codexSkill)).isDirectory(), true);
+  assert.equal((await fs.lstat(openclawSkill)).isDirectory(), true);
+  assert.notEqual(await fs.realpath(codexSkill), expectedSource);
+  assert.equal(await fs.readFile(path.join(codexSkill, 'SKILL.md'), 'utf8'), '# alpha\n');
+});
 
 test('installLinks removes stale skills that disappeared from the new version', async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-stale-'));
@@ -130,5 +131,33 @@ test('installLinks removes stale skills that disappeared from the new version', 
   });
 
   await assert.rejects(fs.access(path.join(codexRoot, 'old-skill')));
-  assert.equal((await fs.lstat(path.join(codexRoot, 'alpha-skill'))).isSymbolicLink(), true);
+  assert.equal((await fs.lstat(path.join(codexRoot, 'alpha-skill'))).isDirectory(), true);
+});
+
+test('installLinks replaces previously installed symlinks with copied skill directories', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-legacy-link-'));
+  const toolkitHome = path.join(tempDir, '.apollo-toolkit');
+  const codexRoot = path.join(tempDir, 'codex-skills');
+  const sourceSkill = path.join(toolkitHome, 'alpha-skill');
+  const targetSkill = path.join(codexRoot, 'alpha-skill');
+
+  await fs.mkdir(sourceSkill, { recursive: true });
+  await fs.writeFile(path.join(sourceSkill, 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.writeFile(path.join(sourceSkill, 'notes.txt'), 'copied\n', 'utf8');
+  await fs.mkdir(codexRoot, { recursive: true });
+  await fs.symlink(sourceSkill, targetSkill, process.platform === 'win32' ? 'junction' : 'dir');
+
+  await installLinks({
+    toolkitHome,
+    modes: ['codex'],
+    previousSkillNames: ['alpha-skill'],
+    env: {
+      HOME: tempDir,
+      CODEX_SKILLS_DIR: codexRoot,
+    },
+  });
+
+  assert.equal((await fs.lstat(targetSkill)).isDirectory(), true);
+  assert.notEqual(await fs.realpath(targetSkill), await fs.realpath(sourceSkill));
+  assert.equal(await fs.readFile(path.join(targetSkill, 'notes.txt'), 'utf8'), 'copied\n');
 });

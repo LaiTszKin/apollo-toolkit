@@ -7,9 +7,9 @@ Usage:
   ./scripts/install_skills.sh [codex|openclaw|trae|all]...
 
 Modes:
-  codex     Install symlinks into ~/.codex/skills
-  openclaw  Install symlinks into ~/.openclaw/workspace*/skills
-  trae      Install symlinks into ~/.trae/skills
+  codex     Copy skills into ~/.codex/skills
+  openclaw  Copy skills into ~/.openclaw/workspace*/skills
+  trae      Copy skills into ~/.trae/skills
   all       Install all supported targets
 
 Optional environment overrides:
@@ -29,7 +29,7 @@ show_banner() {
   cat <<'BANNER'
 +------------------------------------------+
 |              Apollo Toolkit              |
-|      npm installer and skill linker      |
+|      npm installer and skill copier      |
 +------------------------------------------+
 BANNER
 }
@@ -74,7 +74,7 @@ collect_skills() {
   fi
 }
 
-replace_with_symlink() {
+replace_with_copy() {
   local src="$1"
   local target_root="$2"
   local name target
@@ -86,8 +86,8 @@ replace_with_symlink() {
   if [[ -e "$target" || -L "$target" ]]; then
     rm -rf "$target"
   fi
-  ln -s "$src" "$target"
-  echo "[linked] $target -> $src"
+  cp -R "$src" "$target"
+  echo "[copied] $src -> $target"
 }
 
 install_codex() {
@@ -96,7 +96,7 @@ install_codex() {
 
   echo "Installing to codex: $codex_skills_dir"
   for src in "${SKILL_PATHS[@]}"; do
-    replace_with_symlink "$src" "$codex_skills_dir"
+    replace_with_copy "$src" "$codex_skills_dir"
   done
 }
 
@@ -120,7 +120,7 @@ install_openclaw() {
     skills_dir="$workspace/skills"
     echo "Installing to openclaw workspace: $skills_dir"
     for src in "${SKILL_PATHS[@]}"; do
-      replace_with_symlink "$src" "$skills_dir"
+      replace_with_copy "$src" "$skills_dir"
     done
   done
 }
@@ -131,7 +131,7 @@ install_trae() {
 
   echo "Installing to trae: $trae_skills_dir"
   for src in "${SKILL_PATHS[@]}"; do
-    replace_with_symlink "$src" "$trae_skills_dir"
+    replace_with_copy "$src" "$trae_skills_dir"
   done
 }
 

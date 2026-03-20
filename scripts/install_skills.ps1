@@ -12,9 +12,9 @@ Usage:
   ./scripts/install_skills.ps1 [codex|openclaw|trae|all]...
 
 Modes:
-  codex     Install links into ~/.codex/skills
-  openclaw  Install links into ~/.openclaw/workspace*/skills
-  trae      Install links into ~/.trae/skills
+  codex     Copy skills into ~/.codex/skills
+  openclaw  Copy skills into ~/.openclaw/workspace*/skills
+  trae      Copy skills into ~/.trae/skills
   all       Install all supported targets
 
 Optional environment overrides:
@@ -33,7 +33,7 @@ function Show-Banner {
   @"
 +------------------------------------------+
 |              Apollo Toolkit              |
-|      npm installer and skill linker      |
+|      npm installer and skill copier      |
 +------------------------------------------+
 "@
 }
@@ -180,7 +180,7 @@ function Remove-PathForce {
   }
 }
 
-function Link-Skill {
+function Copy-Skill {
   param(
     [string]$Source,
     [string]$TargetRoot
@@ -192,15 +192,8 @@ function Link-Skill {
   New-Item -ItemType Directory -Path $TargetRoot -Force | Out-Null
   Remove-PathForce -Target $target
 
-  try {
-    New-Item -Path $target -ItemType SymbolicLink -Target $Source -Force | Out-Null
-    Write-Host "[linked] $target -> $Source"
-  }
-  catch {
-    # Fallback for environments where symlink permission is restricted.
-    New-Item -Path $target -ItemType Junction -Target $Source -Force | Out-Null
-    Write-Host "[linked-junction] $target -> $Source"
-  }
+  Copy-Item -LiteralPath $Source -Destination $target -Recurse -Force
+  Write-Host "[copied] $Source -> $target"
 }
 
 function Install-Codex {
@@ -215,7 +208,7 @@ function Install-Codex {
 
   Write-Host "Installing to codex: $target"
   foreach ($src in $SkillPaths) {
-    Link-Skill -Source $src -TargetRoot $target
+    Copy-Skill -Source $src -TargetRoot $target
   }
 }
 
@@ -242,7 +235,7 @@ function Install-OpenClaw {
     $skillsDir = Join-Path $workspace.FullName "skills"
     Write-Host "Installing to openclaw workspace: $skillsDir"
     foreach ($src in $SkillPaths) {
-      Link-Skill -Source $src -TargetRoot $skillsDir
+      Copy-Skill -Source $src -TargetRoot $skillsDir
     }
   }
 }
@@ -259,7 +252,7 @@ function Install-Trae {
 
   Write-Host "Installing to trae: $target"
   foreach ($src in $SkillPaths) {
-    Link-Skill -Source $src -TargetRoot $target
+    Copy-Skill -Source $src -TargetRoot $target
   }
 }
 
