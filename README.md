@@ -21,8 +21,10 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - generate-spec
 - harden-app-security
 - improve-observability
+- jupiter-development
 - learn-skill-from-conversations
 - learning-error-book
+- marginfi-development
 - maintain-project-constraints
 - maintain-skill-catalog
 - novel-to-short-video
@@ -34,6 +36,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - review-change-set
 - review-codebases
 - scheduled-runtime-health-check
+- solana-development
 - systematic-debug
 - text-to-short-video
 - version-release

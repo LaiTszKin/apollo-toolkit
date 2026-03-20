@@ -15,7 +15,7 @@ description: Learn and evolve the local skill library from recent Codex conversa
 ## Standards
 
 - Evidence: Extract recent Codex session history first and derive reusable lessons only from actual conversation patterns.
-- Execution: Prefer creating a new skill unless the overlap with an existing skill is clearly strong, then apply the change through `skill-creator`.
+- Execution: Inventory the current skill catalog before editing, prioritize repeated requests, user corrections, and reported errors, then prefer a focused update to the strongest related skill or create a new skill only when the overlap is weak.
 - Quality: Take no action when there are no recent sessions, avoid unrelated broad refactors, and validate every changed skill.
 - Output: Report the analyzed sessions, extracted lessons, created or updated skills, and the reasoning behind each decision.
 
@@ -46,16 +46,25 @@ python3 ~/.codex/skills/learn-skill-from-conversations/scripts/extract_recent_co
 ### 2) Derive reusable lessons
 
 - Identify repeated user needs, recurring friction, and repeated manual workflows.
+- Give extra weight to moments where the user corrected the agent, rejected an earlier interpretation, or pointed out a missing preference or requirement.
+- Give extra weight to user-reported errors, regressions, or avoidable mistakes, then ask how a skill can prevent repeating that failure mode.
 - Ignore one-off issues that do not provide reusable value.
+- Distinguish between:
+  - repeated trigger intent that deserves a new skill
+  - repeated workflow fragments across multiple skills that should be extracted into a shared skill
+  - skill gaps that are better handled by tightening an existing skill's guardrails
 
 ### 3) Decide new skill vs existing skill (default: new skill)
 
+- First read the relevant skills already present in the working repository so you do not create a duplicate under a different name.
 - Prefer creating a new skill.
 - Edit an existing skill only when the lesson is strongly related.
 - Treat relation as strong only when all three conditions hold:
   - Same primary trigger intent.
   - At least 70% workflow overlap.
   - The update does not dilute the existing skill's scope.
+- When the recurring lesson is mainly about preventing a known mistake, prefer updating the existing skill that should have prevented it instead of creating a parallel skill.
+- When several skills repeat the same narrow workflow fragment, prefer extracting that fragment into a dedicated shared skill instead of copying the same guidance again.
 - If uncertain, create a new skill instead of expanding an old one.
 
 ### 4) Apply changes through skill-creator
@@ -76,7 +85,7 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py <skill-p
 
 ### 6) Report result
 
-- Summarize analyzed sessions, extracted lessons, created/updated skills, and why each decision was made.
+- Summarize analyzed sessions, repeated needs, user corrections, error-driven lessons, created/updated skills, and why each decision was made.
 
 ## Guardrails
 

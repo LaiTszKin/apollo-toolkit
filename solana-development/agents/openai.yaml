@@ -1,0 +1,4 @@
+interface:
+  display_name: "Solana Development"
+  short_description: "Build Solana Rust programs and clients from official docs"
+  default_prompt: "Use $solana-development to inspect the repository, determine whether the task is on-chain Rust, off-chain Rust client work, or both, follow the official Solana model for accounts, instructions, PDAs, CPIs, testing, and deployment, and deliver concise Rust-focused implementation notes grounded in current Solana docs."

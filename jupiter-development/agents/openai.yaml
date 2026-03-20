@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jupiter Development"
+  short_description: "Build against Jupiter's official Solana APIs and SDKs."
+  default_prompt: "Use $jupiter-development to build or update this Jupiter integration by confirming the current official docs first, choosing the correct Jupiter API or SDK surface, and implementing with the right routing, auth, rate-limit, and transaction-construction guardrails."

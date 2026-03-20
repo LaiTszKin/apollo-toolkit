@@ -114,6 +114,8 @@ python3 ~/.codex/skills/codex-memory-manager/scripts/sync_memory_index.py \
   - which categories were created or updated
   - whether a new category was introduced
   - whether the AGENTS memory index changed
+- When the user asks what memory exists or asks why a known preference was not mentioned, include the already-stored preferences that are directly relevant to the question instead of summarizing only newly added entries.
+- When a stable preference already existed and was still reinforced by recent chats, say that it remains stored and point to the category where it lives.
 - If no durable preferences were found, say so explicitly and avoid creating placeholder memory files.
 
 ## Guardrails

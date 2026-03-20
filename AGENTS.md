@@ -32,6 +32,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can learn new or improved skills from recent Codex conversation history.
 - Users can audit and maintain the skill catalog itself, including dependency classification and shared-skill extraction decisions.
 - Users can summarize mistakes into a learning error book and render it to PDF.
+- Users can build or review marginfi protocol integrations using official SDK, CLI, protocol, and The Arena documentation.
 - Users can create or maintain `AGENTS.md` so project constraints stay aligned with the repository.
 - Users can turn novel content into a loopable short-form video with generated assets.
 - Users can publish structured GitHub issues or feature proposals with auth fallbacks.
@@ -42,7 +43,9 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can process GitHub pull request review comments and resolve addressed threads.
 - Users can perform repository-wide code reviews and publish confirmed findings as GitHub issues.
 - Users can schedule a bounded project runtime window, stop it automatically, and analyze module health from captured logs.
+- Users can build and maintain Solana programs and Rust clients using official Solana development workflows.
 - Users can add focused observability to opaque workflows through targeted logs, metrics, traces, and tests.
+- Users can build against Jupiter's official Solana swap, token, price, lending, trigger, recurring, and portfolio APIs with an evidence-based development guide.
 - Users can debug software systematically by reproducing causes, validating fixes, and testing outcomes.
 - Users can generate 30-60 second short videos directly from text prompts.
 - Users can prepare and publish versioned releases with changelog and tag workflows.
