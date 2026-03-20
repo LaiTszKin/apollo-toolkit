@@ -30,12 +30,27 @@ These rules are distilled from the official OpenClaw docs and adapted into a pra
 
 ## Skills rules
 
+- For OpenClaw workspace-local skills, prefer `~/.openclaw/workspace/skills` as the first extra skill root unless the machine already uses a different proven convention.
 - Put extra skill roots in `skills.load.extraDirs` instead of hard-coding ad hoc discovery logic elsewhere.
 - Use `skills.entries.<skillKey>.enabled` for explicit enable or disable state.
 - Use `skills.entries.<skillKey>.env` for skill-local environment variables.
 - Use `skills.entries.<skillKey>.apiKey` only when the skill expects a primary env-backed API key convenience field.
 - Leave `skills.load.watch` enabled while iterating on local skills unless file-watch churn becomes a confirmed problem.
 - If you set `skills.install.nodeManager`, remember the official docs still recommend Node as the runtime for the gateway itself.
+
+## Workspace customization rules
+
+- Do not force persona, memory, and workflow instructions into `openclaw.json` when the workspace already has dedicated files.
+- Use `AGENTS.md` for task-completion and memory-management instructions.
+- Use `TOOLS.md` for browser, Playwright, or wrapper command guidance.
+- Use `SOUL.md` for persona framing and `USER.md` for durable user profile facts.
+- When the user asks OpenClaw to remember valuable failures or corrections, store them in the workspace memory files that the current workspace already uses rather than inventing a second memory system.
+
+## Tool permission rules
+
+- Treat browser and sandbox enablement as a two-part check: config policy plus runtime verification.
+- After changing tool policy, verify the effective runtime state with the relevant OpenClaw command instead of trusting config shape alone.
+- If a tool still fails after config edits, inspect whether profile defaults or sandbox policy override the leaf setting.
 
 ## Troubleshooting rules
 

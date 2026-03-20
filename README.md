@@ -37,6 +37,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - review-change-set
 - review-codebases
 - scheduled-runtime-health-check
+- shadow-api-model-research
 - solana-development
 - systematic-debug
 - text-to-short-video

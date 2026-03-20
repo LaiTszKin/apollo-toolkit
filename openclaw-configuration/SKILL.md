@@ -9,6 +9,7 @@ description: Build, audit, and explain OpenClaw configuration from official docu
 
 - Required: none.
 - Conditional: `answering-questions-with-research` when a request depends on newer OpenClaw docs than the bundled references cover.
+- Conditional: `commit-and-push` when the user explicitly wants OpenClaw workspace changes committed and pushed after validation.
 - Optional: none.
 - Fallback: If the local CLI is unavailable, work from the bundled references and clearly mark any runtime behavior that was not verified on the machine.
 
@@ -33,6 +34,8 @@ Decide whether the user needs:
 - a new starter config
 - a targeted key update
 - skills loading or per-skill env setup
+- workspace persona or memory customization under `~/.openclaw/workspace`
+- browser, exec, or sandbox permission changes
 - secrets or provider wiring
 - validation or repair of a broken config
 
@@ -55,7 +58,9 @@ Assume the canonical config file is `~/.openclaw/openclaw.json` unless the envir
 
 - Prefer `openclaw config set` for one-path edits.
 - Prefer SecretRefs or env substitution over plaintext credentials.
-- For skill-specific setup, use `skills.load.extraDirs`, `skills.entries.<skillKey>`, and per-skill `env` or `apiKey`.
+- For skill-specific setup, prefer the workspace convention `~/.openclaw/workspace/skills`, then wire it through `skills.load.extraDirs`, `skills.entries.<skillKey>`, and per-skill `env` or `apiKey`.
+- When the user is customizing the assistant persona or standing instructions, inspect and edit the matching workspace files such as `AGENTS.md`, `TOOLS.md`, `SOUL.md`, `USER.md`, and `memory/*.md` instead of stuffing everything into `openclaw.json`.
+- When enabling automation or browser workflows, verify the actual permission path for `browser`, `exec`, and sandbox behavior rather than assuming the profile already grants them.
 - Do not invent unknown root keys; OpenClaw rejects schema-invalid config.
 
 ### 5. Validate before finishing
@@ -87,7 +92,30 @@ Summarize the relevant branch and point back to the matching official page rathe
 
 ### Configure skills
 
-Use `skills.load.extraDirs` for additional skill folders and `skills.entries.<skillKey>` for per-skill enablement, env vars, or `apiKey`.
+Use `skills.load.extraDirs` for additional skill folders and `skills.entries.<skillKey>` for per-skill enablement, env vars, or `apiKey`. When the user asks for OpenClaw workspace-local skills, default to `~/.openclaw/workspace/skills` unless the environment proves another convention.
+
+### Customize workspace instructions and persona
+
+When the request is about how the assistant should behave inside OpenClaw, inspect the workspace instruction files first and keep each edit in the narrowest home:
+
+- `AGENTS.md` for workflow rules, completion criteria, and memory discipline
+- `TOOLS.md` for tool usage instructions
+- `SOUL.md` for persona or relationship framing
+- `USER.md` for the user's profile and durable identity details
+- `memory/*.md` for durable corrections, failures, and learned preferences
+
+If the workspace is a git repo and the user explicitly asks to persist those changes remotely, validate first and then hand off to `commit-and-push`.
+
+### Verify tool permissions
+
+When the user says "make sure OpenClaw can use this tool," confirm the exact config path and runtime status for:
+
+- `tools.*` policy entries
+- sandbox mode and workspace access
+- `browser.enabled` and any browser profile settings
+- any profile-level defaults that may still block the tool
+
+Report both the config edit and the runtime verification command; do not assume that a schema-valid config means the tool is actually usable.
 
 ### Wire secrets
 

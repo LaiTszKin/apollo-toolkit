@@ -44,6 +44,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can process GitHub pull request review comments and resolve addressed threads.
 - Users can perform repository-wide code reviews and publish confirmed findings as GitHub issues.
 - Users can schedule a bounded project runtime window, stop it automatically, and analyze module health from captured logs.
+- Users can investigate gated or shadow LLM APIs by capturing real client request shapes, replaying verified traffic patterns, and attributing the likely underlying model through black-box fingerprinting.
 - Users can build and maintain Solana programs and Rust clients using official Solana development workflows.
 - Users can add focused observability to opaque workflows through targeted logs, metrics, traces, and tests.
 - Users can build against Jupiter's official Solana swap, token, price, lending, trigger, recurring, and portfolio APIs with an evidence-based development guide.

@@ -148,6 +148,28 @@ Notes confirmed by the docs:
 - `skills.entries` keys default to the skill name
 - if a skill defines `metadata.openclaw.skillKey`, use that key instead
 - watcher-driven skill changes are picked up on the next agent turn when watching is enabled
+- for workspace-scoped customization, `~/.openclaw/workspace/skills` is a practical local skill root to wire through `skills.load.extraDirs`
+
+## Workspace files often edited alongside config
+
+These are not all part of the OpenClaw JSON schema, but they are common neighboring files when users ask to customize behavior:
+
+- `~/.openclaw/workspace/AGENTS.md`
+- `~/.openclaw/workspace/TOOLS.md`
+- `~/.openclaw/workspace/SOUL.md`
+- `~/.openclaw/workspace/USER.md`
+- `~/.openclaw/workspace/memory/*.md`
+
+Use them for persona, tool instructions, durable user profile details, and memory-management rules instead of overloading `openclaw.json`.
+
+## Tool and sandbox checks worth remembering
+
+- A valid config does not prove the tool is usable at runtime.
+- When enabling browser automation or sandboxed command execution, verify the effective state after editing:
+  - tool policy
+  - sandbox mode and workspace access
+  - browser enablement and profile selection
+- Profile defaults can still block a tool even when a nearby leaf branch looks permissive, so check the effective runtime path, not only the edited key.
 
 ## Example snippets to adapt
 
