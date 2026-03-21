@@ -14,9 +14,9 @@ description: Publish structured GitHub issues and feature proposals with determi
 
 ## Standards
 
-- Evidence: Require structured issue inputs and detect repository language from the target README instead of guessing.
+- Evidence: Require structured issue inputs, detect repository language from the target README instead of guessing, and for `problem` issues capture BDD-style expected vs current behavior with an explicit delta.
 - Execution: Resolve the repo, normalize the issue body, publish with strict auth order, then return the publication result.
-- Quality: Preserve upstream evidence, localize only the structural parts, and keep publication deterministic and reproducible.
+- Quality: Preserve upstream evidence, localize only the structural parts, keep publication deterministic and reproducible, and make behavioral mismatches easy for maintainers to verify.
 - Output: Return publication mode, issue URL when created, rendered body, and any publish error in the standardized JSON contract.
 
 ## Overview
@@ -37,6 +37,7 @@ It is designed to be reusable by other skills that already know the issue title 
 - Detect repository issue language from the target remote README instead of guessing.
 - Preserve upstream evidence content; only localize section headers and default fallback text.
 - Make the issue type explicit: `problem` for defects/incidents, `feature` for proposals.
+- For `problem` issues, describe the expected behavior and current behavior with BDD-style `Given / When / Then`, then state the behavioral difference explicitly.
 
 ## Workflow
 
@@ -49,6 +50,11 @@ It is designed to be reusable by other skills that already know the issue title 
      - `problem-description`
      - `suspected-cause`
      - `reproduction` (optional)
+   - Within `problem-description`, require a precise behavior diff:
+     - `Expected Behavior (BDD)`: `Given / When / Then` for what the program should do.
+     - `Current Behavior (BDD)`: `Given / When / Then` for what the program does now.
+     - `Behavior Gap`: a short explicit comparison of the observable difference and impact.
+     - Include the symptom, impact, and key evidence alongside the behavior diff; do not leave the mismatch implicit.
    - For `feature` issues, require these structured sections:
      - `proposal` (optional; defaults to title when omitted)
      - `reason`
@@ -74,7 +80,7 @@ Problem issue:
 python scripts/open_github_issue.py \
   --issue-type problem \
   --title "[Log] <short symptom>" \
-  --problem-description "<symptom + impact + key evidence>" \
+  --problem-description $'Expected Behavior (BDD)\nGiven ...\nWhen ...\nThen ...\n\nCurrent Behavior (BDD)\nGiven ...\nWhen ...\nThen ...\n\nBehavior Gap\n- Expected: ...\n- Actual: ...\n- Difference/Impact: ...\n\nEvidence\n- symptom: ...\n- impact: ...\n- key evidence: ...' \
   --suspected-cause "<path:line + causal chain + confidence>" \
   --reproduction "<steps/conditions or leave empty>" \
   --repo <owner/repo>
@@ -111,6 +117,7 @@ When another skill depends on `open-github-issue`:
 
 - Pass exactly one confirmed problem or one accepted feature proposal per invocation.
 - Prepare evidence or proposal details before calling this skill; do not ask this skill to infer root cause or architecture.
+- For `problem` issues, pass a `problem-description` that contains `Expected Behavior (BDD)`, `Current Behavior (BDD)`, and `Behavior Gap`; the difference must be explicit, not implied.
 - Reuse the returned `mode`, `issue_url`, and `publish_error` in the parent skill response.
 - For accepted feature proposals, pass `--issue-type feature` plus `--proposal`, `--reason`, and `--suggested-architecture`.
 

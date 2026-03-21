@@ -19,6 +19,18 @@ DEFAULT_REPRO_ZH = "尚未穩定重現；需補充更多執行期資料。"
 DEFAULT_REPRO_EN = "Not yet reliably reproducible; more runtime evidence is required."
 ISSUE_TYPE_PROBLEM = "problem"
 ISSUE_TYPE_FEATURE = "feature"
+PROBLEM_BDD_MARKER_GROUPS = (
+    (
+        r"Expected Behavior\s*\(BDD\)",
+        r"Current Behavior\s*\(BDD\)",
+        r"Behavior Gap",
+    ),
+    (
+        r"預期行為\s*[（(]BDD[）)]",
+        r"(?:目前|當前)行為\s*[（(]BDD[）)]",
+        r"行為(?:落差|差異)",
+    ),
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -83,6 +95,19 @@ def validate_issue_content_args(args: argparse.Namespace) -> None:
         raise SystemExit("Problem issues require --problem-description.")
     if not (args.suspected_cause or "").strip():
         raise SystemExit("Problem issues require --suspected-cause.")
+    if not has_required_problem_bdd_sections(args.problem_description or ""):
+        raise SystemExit(
+            "Problem issues require --problem-description to include "
+            "Expected Behavior (BDD), Current Behavior (BDD), and Behavior Gap sections."
+        )
+
+
+def has_required_problem_bdd_sections(problem_description: str) -> bool:
+    normalized = problem_description.strip()
+    return any(
+        all(re.search(pattern, normalized, flags=re.IGNORECASE) for pattern in marker_group)
+        for marker_group in PROBLEM_BDD_MARKER_GROUPS
+    )
 
 
 def run_command(args: list[str]) -> subprocess.CompletedProcess[str]:

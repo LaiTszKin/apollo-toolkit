@@ -42,7 +42,7 @@ The bundled script can also be called directly:
 python scripts/open_github_issue.py \
   --issue-type problem \
   --title "[Log] Payment timeout spike" \
-  --problem-description "Repeated timeout warnings escalated into request failures during the incident window." \
+  --problem-description $'Expected Behavior (BDD)\nGiven the payment service sees transient upstream latency\nWhen the retry path runs\nThen requests should recover without user-visible failures\n\nCurrent Behavior (BDD)\nGiven the payment service sees transient upstream latency\nWhen the retry path runs\nThen repeated timeout warnings still escalate into request failures\n\nBehavior Gap\n- Expected: retries absorb transient upstream slowness.\n- Actual: retries still end in request failures.\n- Difference/Impact: customers receive failed payment attempts during the incident window.\n\nEvidence\n- symptom: repeated timeout warnings escalated into request failures.\n- impact: payment attempts failed for end users.\n- key evidence: logs from the incident window show retries without successful recovery.' \
   --suspected-cause "payment-api/handler.py:84 retries immediately against a slow upstream with no jitter; confidence high." \
   --reproduction "Not yet reliably reproducible; more runtime evidence is required." \
   --repo owner/repo
@@ -71,6 +71,12 @@ Problem issues always include exactly three sections:
 - `Problem Description`
 - `Suspected Cause`
 - `Reproduction Conditions (if available)`
+
+Within `Problem Description`, include:
+
+- `Expected Behavior (BDD)`
+- `Current Behavior (BDD)`
+- `Behavior Gap`
 
 For Chinese-language repositories, use translated section titles with the same meaning.
 

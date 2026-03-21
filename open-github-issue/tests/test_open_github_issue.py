@@ -121,11 +121,59 @@ class OpenGitHubIssueTests(unittest.TestCase):
             )
         )
 
+    def test_validate_issue_content_args_requires_problem_bdd_sections(self) -> None:
+        with self.assertRaises(SystemExit):
+            MODULE.validate_issue_content_args(
+                Namespace(
+                    issue_type=MODULE.ISSUE_TYPE_PROBLEM,
+                    reason=None,
+                    suggested_architecture=None,
+                    problem_description="Repeated timeout warnings escalated into request failures.",
+                    suspected_cause="handler.py:12",
+                )
+            )
+
+        MODULE.validate_issue_content_args(
+            Namespace(
+                issue_type=MODULE.ISSUE_TYPE_PROBLEM,
+                reason=None,
+                suggested_architecture=None,
+                problem_description=(
+                    "Expected Behavior (BDD)\n"
+                    "Given requests arrive during transient upstream latency\n"
+                    "When the retry path runs\n"
+                    "Then the request should recover without user-visible failure\n\n"
+                    "Current Behavior (BDD)\n"
+                    "Given requests arrive during transient upstream latency\n"
+                    "When the retry path runs\n"
+                    "Then the request still fails after immediate retries\n\n"
+                    "Behavior Gap\n"
+                    "- Expected: retries absorb transient slowness.\n"
+                    "- Actual: retries amplify failures.\n"
+                    "- Difference/Impact: users still receive errors.\n"
+                ),
+                suspected_cause="handler.py:12",
+            )
+        )
+
     def test_main_dry_run_returns_structured_json_without_publish_attempt(self) -> None:
         args = Namespace(
             title="[Log] sample",
             issue_type=MODULE.ISSUE_TYPE_PROBLEM,
-            problem_description="problem",
+            problem_description=(
+                "Expected Behavior (BDD)\n"
+                "Given the issue is confirmed\n"
+                "When the issue body is rendered\n"
+                "Then the expected path should be explicit\n\n"
+                "Current Behavior (BDD)\n"
+                "Given the issue is confirmed\n"
+                "When the issue body is rendered\n"
+                "Then the current path should be explicit\n\n"
+                "Behavior Gap\n"
+                "- Expected: clear behavior diff.\n"
+                "- Actual: sample payload for dry run.\n"
+                "- Difference/Impact: contract stays structured.\n"
+            ),
             suspected_cause="handler.py:12",
             reproduction=None,
             proposal=None,

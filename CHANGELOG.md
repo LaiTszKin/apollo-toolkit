@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.9.0] - 2026-03-21
+
+### Changed
+- Update `scheduled-runtime-health-check` to run requested commands in a background terminal immediately or within a requested time window, with optional pre-run safe updates and optional post-run log findings.
+- Update `open-github-issue` to require explicit BDD-style expected behavior, current behavior, and behavior-gap content for problem issues, and enforce that contract in the bundled publisher script and docs.
+
 ## [v2.8.0] - 2026-03-21
 
 ### Changed
