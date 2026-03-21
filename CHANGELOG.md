@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.10.0] - 2026-03-21
+
+### Added
+- Add `document-vision-reader` for screenshot-based inspection of rendered documents when visible layout matters more than raw extracted text.
+- Add `katex` for rendering and embedding math formulas with official KaTeX guidance and reusable render scripts.
+
+### Changed
+- Rework `learning-error-book` to generate separate multiple-choice and long-answer reference JSON files plus polished PDFs rendered directly from structured data.
+- Update the repository skill inventory and project capability docs to include the new document-vision and KaTeX workflows.
+
+
 ## [v2.9.0] - 2026-03-21
 
 ### Changed
