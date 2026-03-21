@@ -1,6 +1,6 @@
 ---
 name: learning-error-book
-description: A learning-focused error-book workflow. When the user asks to summarize mistakes, the agent summarizes mistakes made while solving questions and generates/updates an error book in Markdown, rendered to PDF (depends on the pdf skill).
+description: A learning-focused error-book workflow. When the user asks to summarize mistakes, the agent summarizes mistakes made while solving questions, writes structured reference data, and renders polished PDFs directly without Markdown as an intermediate.
 ---
 
 # Learning Error Book Skill
@@ -15,23 +15,27 @@ description: A learning-focused error-book workflow. When the user asks to summa
 ## Standards
 
 - Evidence: Summarize mistakes only from traceable question sources, user attempts, and correct-answer evidence.
-- Execution: Build an evidence table first, update `error_book/error-book.md`, then render `error_book/error-book.pdf` with Chinese-safe fonts.
+- Execution: Build an evidence table first, write structured reference data, then render polished PDFs directly with Chinese-safe fonts.
 - Quality: Explain mistake types, concept misunderstandings, and per-question solutions in a way that is specific, complete, and non-speculative.
-- Output: Deliver the standardized error-book structure in Markdown and PDF with consistent section coverage.
+- Output: Deliver separate MC and long-question error books, each backed by its own reference file and rendered PDF.
 
-Goal: when the user asks to "summarize mistakes / summarize errors / compile an error book", **summarize mistakes with evidence** and **generate or update** an error book (Markdown -> PDF).
+Goal: when the user asks to "summarize mistakes / summarize errors / compile an error book", summarize mistakes with evidence and generate or update structured error-book data plus polished PDFs directly from that data.
 
 ## Behavior Contract (GIVEN/THEN)
 
-GIVEN the user asks to **summarize mistakes/errors**  
-THEN the agent summarizes the user's mistakes made while solving questions  
-AND generates or updates an **error book** that includes:
+GIVEN the user asks to summarize mistakes/errors
+THEN the agent summarizes the user's mistakes made while solving questions
+AND generates or updates two error-book tracks when relevant:
+- one for multiple-choice questions
+- one for long-answer questions
+AND each track includes:
 - Coverage scope (which question files / sources are included)
 - Common mistake types overview
 - Conceptual mistake highlights (definition, user's common misjudgment, cautions)
 - Mistake-by-mistake analysis and solutions
-  - For MC questions: explain why **each option** is wrong/right, and why the correct option is correct
-AND the delivered error book must be a **PDF rendered from Markdown**, using fonts that properly render **Chinese text and Markdown symbols**.
+  - For MC questions: explain why each option is wrong/right, and why the correct option is correct
+  - For long-answer questions: compare the expected solution steps against the user's steps, show exactly where the divergence starts, and identify the key concepts involved
+AND the delivered error books must be polished PDFs rendered directly from structured data, without Markdown as an intermediate.
 
 ## Trigger Conditions
 
@@ -52,61 +56,72 @@ If the PDF is scanned/image-based and text extraction fails:
 
 ## Output Spec (Required Sections)
 
-The error book must contain:
-1) **Coverage Scope**: which question files/sources are included (with paths; include page/question ids when available)
-2) **Common Mistake Types Overview**: 3-8 categories (concept misunderstanding, misreading conditions, derivation/calculation error, option traps, etc.), with representative questions
-3) **Conceptual Mistake Highlights** (per concept):
+The error books must contain:
+1) Coverage Scope: which question files/sources are included (with paths; include page/question ids when available)
+2) Common Mistake Types Overview: 3-8 categories (concept misunderstanding, misreading conditions, derivation/calculation error, option traps, etc.), with representative questions
+3) Conceptual Mistake Highlights (per concept):
    - Definition (precise and actionable)
    - User's common misjudgment (mapped to concrete mistakes)
    - Cautions / checklists to avoid repeating the mistake
-4) **Per-Question Mistake & Solution**:
+4) Per-Question Mistake & Solution:
    - Traceable locator: file + page/question id
    - User answer vs correct answer
    - Why it's wrong (link back to mistake type + concept)
    - Correct solution (step-by-step)
-   - For **MC**: explain why **each option** is wrong/right, and why the correct option is correct
+   - For MC: explain why each option is wrong/right, and why the correct option is correct
+   - For Long Question: compare each expected step with the user's corresponding step, explain the gap at each step, state the first incorrect step clearly, and list the key concepts that question depends on
 
 Formats:
-- Editable source: `error_book/error-book.md` (Markdown)
-- Deliverable: `error_book/error-book.pdf` (PDF rendered from Markdown)
+- MC reference: `error_book/references/mc-question-reference.json`
+- Long-question reference: `error_book/references/long-question-reference.json`
+- MC deliverable: `error_book/mc-question-error-book.pdf`
+- Long-question deliverable: `error_book/long-question-error-book.pdf`
 
 ## Recommended File Layout (Keep It Consistent)
 
 ```text
 error_book/
-  error-book.md
-  error-book.pdf
+  mc-question-error-book.pdf
+  long-question-error-book.pdf
+  references/
+    mc-question-reference.json
+    long-question-reference.json
   sources/          # optional: shortcuts/copies/list of source PDFs
 ```
 
 ## Workflow (Required)
 
-1) **Determine coverage**
+1) Determine coverage
    - If the user provided files/question ids: add them to Coverage Scope
    - If not: search the workspace for relevant PDFs and confirm with the user
 
-2) **Extract question text + answers/explanations (extract when possible)**
+2) Extract question text + answers/explanations (extract when possible)
    - Use the `pdf` skill (pypdf/pdfplumber/OCR as available)
    - If extraction fails, request user-provided text/screenshots
 
-3) **Build an evidence table before writing**
+3) Build an evidence table before writing
    - For each question: locator, user answer, correct answer, mistake type, concept(s), explanation
-   - Then map it into the required four sections
+   - For long-answer questions, also collect expected steps, user steps, step-by-step gaps, first wrong step, and key concepts
+   - Then map it into the required sections for the relevant track
 
-4) **Generate/update `error_book/error-book.md`**
-   - If missing: start from `assets/error_book_template.md`
-   - If exists: preserve existing content; append new mistakes; update Overview + Concepts sections
+4) Generate/update structured reference files
+   - For MC questions: start from `assets/mc_question_reference_template.json`
+   - For long-answer questions: start from `assets/long_question_reference_template.json`
+   - If a reference file already exists: preserve existing entries, append new evidence, and refresh overview/concept sections
 
-5) **Render Markdown -> PDF (CJK font support)**
+5) Render structured data -> PDF (CJK font support)
    - Run:
-     - `python3 learning-error-book/scripts/render_markdown_to_pdf.py error_book/error-book.md error_book/error-book.pdf`
+     - `python3 learning-error-book/scripts/render_error_book_json_to_pdf.py error_book/references/mc-question-reference.json error_book/mc-question-error-book.pdf`
+     - `python3 learning-error-book/scripts/render_error_book_json_to_pdf.py error_book/references/long-question-reference.json error_book/long-question-error-book.pdf`
    - If paper size/font needs change: adjust script flags (`--help`)
 
 ## Built-in Template
 
-- `assets/error_book_template.md`: template for first-time creation
+- `assets/mc_question_reference_template.json`: MC error-book structured template
+- `assets/long_question_reference_template.json`: long-answer error-book structured template
 
 ## Rendering Notes (Avoid Pitfalls)
 
-- Supported Markdown subset: headings, lists, **bold**/**italic**, inline `code`, fenced code blocks
-- For complex tables/math: prefer bullet lists + step-by-step derivations, or paste original content into the question section
+- Avoid lossy Markdown conversion. Keep symbols, formulas, and option text in the structured reference payload.
+- For long-answer questions, preserve the original step granularity instead of merging multiple reasoning steps into one.
+- Keep key-concept labels stable across questions so the concept summary can aggregate them cleanly.

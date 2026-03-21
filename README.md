@@ -14,6 +14,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - develop-new-features
 - discover-edge-cases
 - docs-to-voice
+- document-vision-reader
 - enhance-existing-features
 - feature-propose
 - financial-research
@@ -22,6 +23,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - harden-app-security
 - improve-observability
 - jupiter-development
+- katex
 - learn-skill-from-conversations
 - learning-error-book
 - marginfi-development
