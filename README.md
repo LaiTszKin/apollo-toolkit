@@ -14,6 +14,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - develop-new-features
 - discover-edge-cases
 - docs-to-voice
+- exam-pdf-workflow
 - document-vision-reader
 - enhance-existing-features
 - feature-propose
@@ -129,7 +130,7 @@ The install commands below were checked with the Skills CLI unless otherwise not
 
 | Skill name | Used by | Author / producer | Install command / note |
 | --- | --- | --- | --- |
-| `pdf` | `deep-research-topics`, `financial-research`, `learning-error-book`, `weekly-financial-event-report` | OpenAI (`openai/skills`) | `npx skills add openai/skills@pdf -g -y` |
+| `pdf` | `deep-research-topics`, `exam-pdf-workflow`, `financial-research`, `learning-error-book`, `weekly-financial-event-report` | OpenAI (`openai/skills`) | `npx skills add openai/skills@pdf -g -y` |
 | `doc` | `deep-research-topics` (optional Word output) | OpenAI (`openai/skills`) | `npx skills add openai/skills@doc -g -y` |
 | `slides` | `deep-research-topics` (optional slide output) | OpenAI (`openai/skills`) | `npx skills add openai/skills@slides -g -y` |
 | `spreadsheet` | `record-spending` | OpenAI (`openai/skills`) | `npx skills add openai/skills@spreadsheet -g -y` |

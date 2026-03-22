@@ -24,6 +24,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can design and implement new features through a spec-first workflow.
 - Users can generate shared feature spec, task, and checklist planning artifacts for approval-gated workflows.
 - Users can convert text or documents into audio files with subtitle timelines.
+- Users can turn lecture slides, past papers, and answer books into mock exams, worked solutions, study notes, or graded PDFs with KaTeX-rendered math.
 - Users can extend existing features in a brownfield codebase with required tests and approvals.
 - Users can propose product features from an existing codebase and publish accepted proposals.
 - Users can discover reproducible edge-case risks and report prioritized hardening gaps.

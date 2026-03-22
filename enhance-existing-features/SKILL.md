@@ -5,7 +5,10 @@ description: >-
   the codebase first, then decide from the user's requested change whether
   specs (`spec.md`/`tasks.md`/`checklist.md`) are required before coding. When
   specs are required, depend on `generate-spec` for the shared planning,
-  clarification, approval, and backfill workflow. Even when specs are not
+  clarification, approval, and backfill workflow. If a spec set exists and is
+  approved, complete all planned tasks and applicable checklist items before
+  yielding unless the user changes scope or an external blocker prevents safe
+  completion. Even when specs are not
   required, still add and run related tests for
   unit/property-based/user-critical integration chain/E2E coverage. Tests must
   not stop at happy-path validation: for business-logic changes require
@@ -27,7 +30,7 @@ description: >-
 ## Standards
 
 - Evidence: Explore the existing codebase first and verify the latest authoritative docs for the involved stack or integrations.
-- Execution: Decide whether specs are required from the actual change surface, run `generate-spec` when needed, then implement minimally.
+- Execution: Decide whether specs are required from the actual change surface, run `generate-spec` when needed, then continue through implementation, testing, and backfill until the active scope is fully reconciled.
 - Quality: Add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
 - Output: Keep implementation and any planning artifacts traceable, updated, and aligned with actual completion results.
 
@@ -62,6 +65,7 @@ If triggered:
 - After implementation and testing, update the same plan set so `spec.md` reflects requirement completion status in addition to task and checklist progress.
 - If users answer clarification questions, update the planning docs and obtain explicit approval again before implementation.
 - Do not modify implementation code before approval.
+- Once approval is granted, do not stop with unchecked in-scope items remaining in `tasks.md` or applicable unchecked items in `checklist.md` unless the user explicitly defers them or an external blocker prevents safe completion.
 
 If not triggered:
 - Continue directly with the same downstream workflow below.
@@ -79,6 +83,13 @@ If not triggered:
 - Keep changes focused and minimal; preserve current behavior unless required.
 - Follow project conventions (naming, linting, formatting, configuration).
 - Update environment examples only when new inputs are required.
+- If specs exist, treat every unchecked in-scope task and applicable checklist item as part of the required deliverable for this run.
+- Do not stop after partial code changes, partial tests, or partial backfill when approved planned work remains.
+- Only pause before completion if:
+  - the user changes scope or explicitly asks to stop
+  - new clarification requires plan updates and renewed approval
+  - an external blocker (missing credentials, unavailable dependency, access restriction, broken upstream system) prevents safe completion
+- When blocked, record the exact unfinished items and blocker in the spec set before yielding.
 
 ### 5) Testing coverage (required with or without specs)
 
@@ -103,6 +114,7 @@ Rules:
 
 - If specs were used, backfill `spec.md`, `tasks.md`, and `checklist.md` through `$generate-spec` workflow based on actual completion and test outcomes.
 - In `spec.md`, mark each relevant requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
+- If specs were used, mark every completed task in `tasks.md`, resolve every applicable checklist item, and explicitly label any remaining item as deferred or blocked with the reason.
 - If specs were not used, provide a concise execution summary including test IDs/results, regression coverage, mock scenario coverage, adversarial coverage, and any `N/A` reasons.
 
 ## Working Rules
@@ -112,6 +124,7 @@ Rules:
 - Maintain traceability between requirements, tasks, and tests when specs are present.
 - Treat checklists as living artifacts: adjust items to match real change scope.
 - Every planned test should justify a distinct risk; remove shallow duplicates that only prove the code "still runs".
+- If a spec set exists and approval has been granted, do not yield with unfinished in-scope tasks or checklist items unless the user approves a deferment or an external blocker makes completion impossible.
 
 ## References
 

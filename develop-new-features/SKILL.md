@@ -6,6 +6,9 @@ description: >-
   coding, then implements the approved feature with risk-driven test coverage.
   Use when users ask to design or implement new features, change product
   behavior, request a planning-first process, or ask for a greenfield feature.
+  Once the approved spec set exists and implementation begins, complete all
+  planned tasks and applicable checklist items before yielding unless the user
+  changes scope or an external blocker prevents safe completion.
   Tests must not stop at happy-path validation: for business-logic changes
   require property-based testing unless explicitly `N/A` with reason, design
   adversarial/regression/authorization/idempotency/concurrency coverage where
@@ -25,7 +28,7 @@ description: >-
 ## Standards
 
 - Evidence: Review authoritative docs and the existing codebase before planning or implementation.
-- Execution: Run `generate-spec` for every new feature or product-behavior change, obtain approval, then implement minimally.
+- Execution: Run `generate-spec` for every new feature or product-behavior change, obtain approval, then continue through implementation, testing, and backfill until the approved plan is fully reconciled.
 - Quality: Add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
 - Output: Keep the approved planning artifacts and the final implementation aligned with actual completion results.
 
@@ -64,6 +67,13 @@ Use a shared spec-generation workflow for all new feature work, then implement t
 - Reuse existing patterns and abstractions when possible.
 - Keep changes focused and avoid speculative scope expansion.
 - Update environment examples only when new inputs are actually required.
+- Once approval is granted and implementation starts, treat every unchecked in-scope item in `tasks.md` and every applicable item in `checklist.md` as required work for this run.
+- Do not stop after a partial implementation, partial test pass, or partial doc backfill when work remains in the approved plan.
+- Only pause before completion if:
+  - the user changes scope or explicitly asks to stop
+  - a new clarification invalidates the approved plan and requires renewed approval
+  - an external blocker (missing credentials, unavailable dependency, access restriction, broken upstream system) prevents safe completion
+- When blocked, record the exact unfinished items and blocker in the plan artifacts before yielding.
 
 ### 5) Testing coverage (required)
 
@@ -88,6 +98,7 @@ Rules:
 
 - Backfill `spec.md`, `tasks.md`, and `checklist.md` through `$generate-spec` workflow after implementation and testing.
 - In `spec.md`, mark each approved requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
+- Mark every completed task in `tasks.md`, resolve every applicable checklist item, and explicitly label any remaining item as deferred or blocked with the reason.
 - Report the implemented scope, test execution, and any concrete `N/A` reasons.
 
 ## Working Rules
@@ -96,6 +107,7 @@ Rules:
 - Keep implementation traceable to approved requirement IDs and planned risks.
 - Prefer realism over rigid templates: add or remove test coverage only when the risk profile justifies it.
 - Every planned test should justify a distinct risk; remove shallow duplicates that only prove the code "still runs".
+- If a spec set exists and approval has been granted, do not yield with unfinished in-scope tasks or checklist items unless the user approves a deferment or an external blocker makes completion impossible.
 
 ## References
 

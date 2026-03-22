@@ -9,6 +9,7 @@ A brownfield feature-extension skill: map dependencies first, decide whether sha
 - Requires explicit approval before coding when specs are generated.
 - Still requires meaningful tests even when specs are skipped.
 - Keeps brownfield changes focused and traceable.
+- When specs exist and are approved, finishes all in-scope planned tasks and applicable checklist items before yielding unless the user defers work or an external blocker prevents safe completion.
 
 ## Repository layout
 

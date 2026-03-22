@@ -9,6 +9,7 @@ A spec-first feature development skill for new behavior and greenfield work. It 
 - Covers unit, regression, property-based, integration, E2E, and adversarial testing based on actual risk.
 - Reuses existing architecture and avoids speculative expansion.
 - Backfills `spec.md`, `tasks.md`, and `checklist.md` after implementation and testing complete.
+- Once approval is granted and implementation starts, finishes all in-scope planned tasks and applicable checklist items before yielding unless the user defers work or an external blocker prevents safe completion.
 
 ## Repository layout
 

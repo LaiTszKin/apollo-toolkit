@@ -42,6 +42,7 @@ Load only when needed:
    - `repo-specs-present`: the repository contains live project planning artifacts such as `spec.md`, `tasks.md`, `checklist.md`, or plan directories; exclude reference examples, templates, and archived samples.
    - `repo-specs-ready-for-conversion`: the relevant `spec.md`, `tasks.md`, and `checklist.md` have been updated to reflect the actual outcome of the work, and any unchecked task/decision checkbox that is clearly not selected, replaced, deferred, or `N/A` (for example, E2E intentionally not created) does not by itself mean the spec set is unfinished.
    - `project-doc-structure-mismatch`: existing `README.md` and project docs do not match the categorized structure required by `archive-specs`.
+   - Treat a spec set as still active when it documents remaining implementation gaps, follow-up integration work, undecided design work, or deferred tasks that still belong to the same in-flight change.
 3. Run code-affecting dependency skills (when applicable)
    - Run `review-change-set`, `discover-edge-cases`, and `harden-app-security` for the same code-affecting scope when their coverage is needed.
    - Consolidate and resolve all confirmed findings before continuing.
@@ -52,6 +53,7 @@ Load only when needed:
    - Let the skill normalize any existing project docs to the same structure and archive superseded source spec files.
    - Do not treat unchecked task or decision checkboxes alone as blocking unfinished work; read the surrounding notes and requirement status semantically.
    - If the docs still show unresolved implementation scope that is neither completed, intentionally deferred, nor explicitly `N/A`, do not convert them yet; report that the spec files remain active and should not be deleted.
+   - If the current change intentionally ships a partial phase while the same plan set still tracks remaining work, keep that plan set live and skip archival for that scope.
 5. Run pre-commit sync dependencies
    - Execute `align-project-documents` after spec conversion and code/doc scans are complete.
    - Execute `maintain-project-constraints` immediately before the commit.
@@ -70,3 +72,4 @@ Load only when needed:
 - Never run version bump, tag creation, or changelog release steps in this skill.
 - If release/version/tag work is requested, use `version-release` instead.
 - If a new branch is required, follow `references/branch-naming.md`.
+- A pushed implementation can still leave an active spec set behind; commit completion and spec archival are separate decisions.

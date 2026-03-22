@@ -30,6 +30,9 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Confirm the target workspace root, feature name, and a kebab-case `change_name`.
 - Review only the code, configuration, and external docs needed to understand the requested behavior.
 - Record the references that should appear in `spec.md`.
+- Inspect existing `docs/plans/` directories before deciding whether to edit an existing plan set.
+- Reuse an existing plan set only when it clearly matches the same requested issue/change scope.
+- If the requested work is adjacent to, but not actually covered by, an existing plan set, create a new directory instead of overwriting the neighboring one.
 
 ### 2) Generate the planning files
 
@@ -73,6 +76,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Review whether `spec.md`, `tasks.md`, and `checklist.md` must be updated.
 - After any clarification-driven update, obtain explicit approval on the updated spec set again.
 - Do not modify implementation code before approval.
+- When clarification reveals the work is a different issue or materially different scope than the current plan set, stop editing that plan set and generate a new one with a distinct `change_name`.
 
 ### 7) Backfill after implementation and testing
 
@@ -87,6 +91,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Prefer realistic coverage over boilerplate: add or remove checklist items based on actual risk.
 - Use kebab-case for `change_name`; avoid spaces and special characters.
 - Path rule: `scripts/...` and `references/...` in this file always mean paths under the current skill folder, not the target project root.
+- Never overwrite a nearby issue's plan set just because the technical area overlaps; shared modules are not sufficient evidence that the scope is the same.
 
 ## References
 
