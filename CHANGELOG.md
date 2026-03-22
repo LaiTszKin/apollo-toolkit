@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.11.0] - 2026-03-23
+
+### Added
+- Add `exam-pdf-workflow` for turning lecture slides, past papers, and answer books into mock exams, worked solutions, study notes, or graded PDFs with KaTeX-rendered math when needed.
+
+### Changed
+- Update `develop-new-features` and `enhance-existing-features` so approved spec-backed work must continue through all in-scope tasks, applicable checklist items, testing, and backfill before yielding unless scope changes or an external blocker prevents safe completion.
+- Update `generate-spec` to require creating a distinct plan directory when adjacent work is not actually covered by an existing plan set.
+- Update `archive-specs`, `commit-and-push`, and `version-release` to better distinguish completed planning scope from still-active follow-up work before archiving or conversion.
+- Refresh repository skill inventory and project capability docs to include `exam-pdf-workflow` and its `pdf` dependency.
+
 ## [v2.10.0] - 2026-03-21
 
 ### Added
