@@ -11,6 +11,7 @@ import yaml
 
 NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 REQUIRED_KEYS = {"name", "description"}
+MAX_DESCRIPTION_LENGTH = 1024
 
 
 def repo_root() -> Path:
@@ -81,6 +82,11 @@ def validate_skill(skill_dir: Path) -> list[str]:
     description = frontmatter.get("description")
     if not isinstance(description, str) or not description.strip():
         errors.append(f"{skill_md}: 'description' must be a non-empty string.")
+    elif len(description) > MAX_DESCRIPTION_LENGTH:
+        errors.append(
+            f"{skill_md}: invalid description: exceeds maximum length of "
+            f"{MAX_DESCRIPTION_LENGTH} characters"
+        )
 
     return errors
 

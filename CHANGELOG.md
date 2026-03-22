@@ -4,6 +4,13 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.11.1] - 2026-03-23
+
+### Changed
+- Add a dedicated GitHub Actions validation job for `SKILL.md` description length checks.
+- Enforce a maximum `description` length of 1024 characters in `scripts/validate_skill_frontmatter.py`.
+- Shorten `enhance-existing-features` metadata so its `description` stays within the loader limit without changing intent.
+
 ## [v2.11.0] - 2026-03-23
 
 ### Added
