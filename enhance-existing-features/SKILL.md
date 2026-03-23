@@ -48,9 +48,20 @@ Safely extend brownfield systems by exploring the existing codebase first, using
 Use the user's requested change together with the codebase exploration results to decide whether to generate specs.
 
 Trigger specs when any of the following is true:
-- high complexity changes
-- critical module changes
-- cross-module changes
+- the change introduces new user-visible behavior, not just a bug fix restoring intended behavior
+- requirements are ambiguous enough that approval on written scope, tradeoffs, or edge cases is useful
+- multiple modules, layers, services, or teams must stay aligned
+- the change touches critical flows, sensitive data, permissions, money movement, migrations, or irreversible operations
+- the risk profile is high enough that explicit requirement-to-test traceability will materially reduce mistakes
+
+Do not generate specs when the work is clearly small and localized, such as:
+- bug fixes or regressions that restore already-intended behavior without changing product scope
+- pure frontend polish: copy tweaks, styling, spacing, alignment, responsive touch-ups, visual cleanup, or simple template/view wiring
+- small configuration, constant, dependency, content, or feature-flag updates confined to one area
+- straightforward CRUD field additions, validation message tweaks, or one-path handler adjustments with limited blast radius
+- refactors, renames, dead-code cleanup, or observability-only changes that do not alter user-visible behavior
+
+When in doubt, prefer direct implementation for genuinely low-risk localized changes, and reserve specs for changes whose scope or risk would benefit from explicit approval artifacts.
 
 If triggered:
 - Run `$generate-spec` and follow its workflow completely.
@@ -108,7 +119,11 @@ Rules:
 
 - If specs were used, backfill `spec.md`, `tasks.md`, and `checklist.md` through `$generate-spec` workflow based on actual completion and test outcomes.
 - In `spec.md`, mark each relevant requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
-- If specs were used, mark every completed task in `tasks.md`, resolve every applicable checklist item, and explicitly label any remaining item as deferred or blocked with the reason.
+- If specs were used, mark every completed task in `tasks.md`.
+- If specs were used, update only the applicable checklist items that correspond to real scope, chosen test strategy, and actual execution.
+- Do not mark unused template examples, mutually exclusive alternatives, or non-applicable branches as completed.
+- Remove, rewrite, or leave `N/A` on starter-template items when they do not belong to the real change.
+- Explicitly label any still-applicable remaining item as deferred or blocked with the reason.
 - If specs were not used, provide a concise execution summary including test IDs/results, regression coverage, mock scenario coverage, adversarial coverage, and any `N/A` reasons.
 
 ## Working Rules
@@ -117,6 +132,7 @@ Rules:
 - Always decide the need for specs only after exploring the existing codebase.
 - Maintain traceability between requirements, tasks, and tests when specs are present.
 - Treat checklists as living artifacts: adjust items to match real change scope.
+- Treat mutually exclusive template choices as a decision to record, not multiple boxes to finish.
 - Every planned test should justify a distinct risk; remove shallow duplicates that only prove the code "still runs".
 - If a spec set exists and approval has been granted, do not yield with unfinished in-scope tasks or checklist items unless the user approves a deferment or an external blocker makes completion impossible.
 

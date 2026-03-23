@@ -6,7 +6,11 @@
 ## Usage Notes
 - This checklist is a starter template. Add, remove, or rewrite items based on actual scope.
 - Use `- [ ]` for all items; mark completed items as `- [x]`.
+- The final completion summary section may use structured placeholders instead of checkboxes.
 - If an item is not applicable, keep `N/A` with a concrete reason.
+- Do not mark placeholder examples or mutually exclusive alternatives as completed unless they were actually selected and executed.
+- Duplicate or remove decision-record blocks as needed; the final document should contain as many records as the real change requires.
+- Duplicate or remove completion-record blocks as needed; the final document should contain as many records as the real change requires.
 - Suggested test result values: `PASS / FAIL / BLOCKED / NOT RUN / N/A`.
 - For business-logic changes, property-based coverage is required unless a concrete `N/A` reason is recorded.
 - Each checklist item should map to a distinct risk; avoid repeating shallow happy-path cases.
@@ -60,10 +64,19 @@
 - [ ] Assertions verify business outcomes and side effects/no-side-effects, not only "returns 200" or "does not throw".
 - [ ] Test fixtures are reproducible (fixed seed/clock/fixtures) or `N/A` is recorded with a concrete reason.
 
-## E2E Decision Record (pick one or customize)
-- [ ] Build E2E (case: [E2E-xx]; reason: [importance/complexity/cross-layer risk]).
-- [ ] Do not build E2E; cover with integration tests instead (alternative case: [IT-xx]; reason: [stability/cost/environment limitation]).
-- [ ] No additional E2E/integration hardening required (reason: [existing coverage already addresses risk]).
+## E2E / Integration Decision Records
+
+### Decision Record 1: [Flow / Requirement / Risk Slice]
+- Requirement mapping: [R?.? / CL-xx]
+- Decision: [Build E2E / Cover with integration instead / Existing coverage already sufficient / N/A]
+- Linked case IDs: [E2E-xx / IT-xx / existing suite reference]
+- Reason: [importance, cross-layer risk, stability/cost tradeoff, or why no extra coverage is needed]
+
+### Decision Record 2: [Flow / Requirement / Risk Slice]
+- Requirement mapping: [R?.? / CL-xx]
+- Decision: [Build E2E / Cover with integration instead / Existing coverage already sufficient / N/A]
+- Linked case IDs: [E2E-xx / IT-xx / existing suite reference]
+- Reason: [importance, cross-layer risk, stability/cost tradeoff, or why no extra coverage is needed]
 
 ## Execution Summary (fill with actual results)
 - [ ] Unit tests: `PASS / FAIL / NOT RUN / N/A`
@@ -74,5 +87,16 @@
 - [ ] External service mock scenarios: `PASS / FAIL / NOT RUN / N/A`
 - [ ] Adversarial/penetration-style cases: `PASS / FAIL / NOT RUN / N/A`
 
-## Completion Rule
-- [ ] Agent has updated checkboxes, test outcomes, and necessary notes based on real execution (including added/removed items).
+## Completion Records
+
+### Completion Record 1: [Flow / Requirement Group / Workstream]
+- Requirement mapping: [R?.? / Task N / CL-xx]
+- Completion status: [completed / partially completed / blocked / deferred]
+- Remaining applicable items: [None / list remaining items]
+- Notes: [brief execution-backed summary]
+
+### Completion Record 2: [Flow / Requirement Group / Workstream]
+- Requirement mapping: [R?.? / Task N / CL-xx]
+- Completion status: [completed / partially completed / blocked / deferred]
+- Remaining applicable items: [None / list remaining items]
+- Notes: [brief execution-backed summary]

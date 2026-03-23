@@ -8,8 +8,12 @@
 [Describe the business goal and user value in one sentence.]
 
 ## Scope
-- In scope: [What is included in this change]
-- Out of scope: [What is explicitly excluded]
+
+### In Scope
+[What is included in this change]
+
+### Out of Scope
+[What is explicitly excluded]
 
 ## Functional Behaviors (BDD)
 
@@ -51,5 +55,6 @@
 ## References
 - Official docs:
   - [Link or document 1]
+  - [Link or document 2]
 - Related code files:
   - [File path 1]

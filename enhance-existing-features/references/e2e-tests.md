@@ -22,4 +22,5 @@
 
 ## Recording rules
 - Specs flow: record E2E or replacement strategy with outcomes in `checklist.md`.
+- When different flows need different strategies, create multiple decision records in `checklist.md` so each flow/risk slice keeps its own rationale and linked case IDs.
 - Non-specs flow: explain E2E execution or replacement testing with rationale in the response.

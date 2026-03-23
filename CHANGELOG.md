@@ -4,6 +4,13 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.11.2] - 2026-03-23
+
+### Changed
+- Update `develop-new-features` and `enhance-existing-features` so small localized work such as bug fixes, pure frontend polish, and simple adjustments can skip spec generation, while non-trivial feature work still uses approval-backed specs.
+- Strengthen `generate-spec` so spec creation must verify relevant official documentation for external dependencies before writing requirements or scope.
+- Refine spec templates so `spec.md` uses dedicated `In Scope` and `Out of Scope` sections, checklist completion uses structured completion records, and E2E versus integration decisions support multiple per-flow records without encouraging false checkbox completion.
+
 ## [v2.11.1] - 2026-03-23
 
 ### Changed

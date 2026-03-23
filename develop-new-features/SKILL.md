@@ -28,13 +28,13 @@ description: >-
 ## Standards
 
 - Evidence: Review authoritative docs and the existing codebase before planning or implementation.
-- Execution: Run `generate-spec` for every new feature or product-behavior change, obtain approval, then continue through implementation, testing, and backfill until the approved plan is fully reconciled.
+- Execution: Use specs only for feature work that is genuinely multi-step, cross-surface, or higher risk; skip specs for obviously small/localized work and route that work to direct implementation or the appropriate maintenance skill instead.
 - Quality: Add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
 - Output: Keep the approved planning artifacts and the final implementation aligned with actual completion results.
 
 ## Goal
 
-Use a shared spec-generation workflow for all new feature work, then implement the approved behavior with strong test coverage and minimal rework.
+Use a shared spec-generation workflow for non-trivial new feature work, then implement the approved behavior with strong test coverage and minimal rework.
 
 ## Workflow
 
@@ -47,7 +47,15 @@ Use a shared spec-generation workflow for all new feature work, then implement t
 
 ### 2) Run `$generate-spec`
 
-- Specs are mandatory for every new feature, product behavior change, and greenfield project.
+- First decide whether the request truly belongs in this skill.
+- Do not use this skill or generate specs when the request is actually one of these:
+  - bug fixes or regressions that restore intended behavior without introducing new product behavior
+  - copy-only, styling-only, spacing-only, layout-only, or other purely presentational UI tweaks with localized impact
+  - simple configuration, constant, feature-flag, dependency, or content updates confined to one small area
+  - small refactors, naming cleanups, or internal code-health work with no externally visible behavior change
+  - narrowly scoped adjustments that touch only a few files/modules and do not require cross-team alignment or approval artifacts
+- In those cases, do not create `spec.md` / `tasks.md` / `checklist.md`; instead use the appropriate direct implementation workflow (for example `enhance-existing-features` for small brownfield adjustments or `systematic-debug` for bug fixes).
+- Specs are required when the request is truly a non-trivial new feature, product behavior change, or greenfield project that needs shared planning.
 - Follow `$generate-spec` completely for:
   - generating `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, and `checklist.md`
   - filling BDD requirements and risk-driven test plans
@@ -98,7 +106,11 @@ Rules:
 
 - Backfill `spec.md`, `tasks.md`, and `checklist.md` through `$generate-spec` workflow after implementation and testing.
 - In `spec.md`, mark each approved requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
-- Mark every completed task in `tasks.md`, resolve every applicable checklist item, and explicitly label any remaining item as deferred or blocked with the reason.
+- Mark every completed task in `tasks.md`.
+- In `checklist.md`, update only the items that are actually applicable to the approved scope and executed validation.
+- Do not mark template alternatives, unused example rows, or non-applicable decision branches as completed just to make the file look fully checked.
+- Rewrite, remove, or leave `N/A` on template-only sections so the final checklist reflects the real work rather than the starter template.
+- Explicitly label any truly remaining applicable item as deferred or blocked with the reason.
 - Report the implemented scope, test execution, and any concrete `N/A` reasons.
 
 ## Working Rules
@@ -107,6 +119,7 @@ Rules:
 - Keep implementation traceable to approved requirement IDs and planned risks.
 - Prefer realism over rigid templates: add or remove test coverage only when the risk profile justifies it.
 - Every planned test should justify a distinct risk; remove shallow duplicates that only prove the code "still runs".
+- Treat starter template alternatives as mutually exclusive options, not as boxes that all need to be checked.
 - If a spec set exists and approval has been granted, do not yield with unfinished in-scope tasks or checklist items unless the user approves a deferment or an external blocker makes completion impossible.
 
 ## References

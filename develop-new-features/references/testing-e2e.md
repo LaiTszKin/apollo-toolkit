@@ -32,4 +32,5 @@
 ## Spec/checklist authoring hints
 - Mark high-risk key paths in `spec.md` requirement descriptions.
 - Record E2E decisions, mapped test cases, and results in `checklist.md`.
+- When different flows need different strategies, create multiple decision records instead of forcing one shared E2E decision for the whole feature.
 - If skipping E2E, specify replacement integration test cases (`IT-xx`) and rationale in `checklist.md`.
