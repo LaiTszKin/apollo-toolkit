@@ -11,6 +11,7 @@ This skill helps agents analyze logs end-to-end, correlate runtime signals with 
 - A strict evidence standard (log lines + code correlation + impact + confidence).
 - A checklist to avoid false conclusions.
 - A pattern catalog for common operational failures (timeouts, retry storms, auth errors, resource pressure, schema mismatch, race conditions, and dependency outages).
+- Bundled CLI helpers for filtering logs to a specific time window and searching by keyword or regex.
 - GitHub issue publication via the `open-github-issue` dependency skill.
 - Issue language selection delegated to `open-github-issue` based on the target repository README: Chinese README -> localized issue body, otherwise English issue body.
 
@@ -20,6 +21,9 @@ This skill helps agents analyze logs end-to-end, correlate runtime signals with 
 - `agents/openai.yaml`: Agent interface metadata and default prompt.
 - `references/investigation-checklist.md`: Investigation validation checklist.
 - `references/log-signal-patterns.md`: Log signal pattern reference.
+- `scripts/filter_logs_by_time.py`: Time-window log filtering helper.
+- `scripts/search_logs.py`: Keyword / regex search helper with optional context.
+- `scripts/log_cli_utils.py`: Shared timestamp parsing utilities.
 - Dependency skill: `open-github-issue` for deterministic issue publishing.
 
 ## Installation
@@ -64,6 +68,14 @@ Best results come from including:
 - Relevant log excerpts and recent deploy/config context
 
 When the time window is not explicitly provided, the skill should first derive a bounded analysis window from a recent concrete event, such as the last container restart, and inspect only that slice before widening the search.
+
+Useful bundled commands:
+
+```bash
+python3 scripts/filter_logs_by_time.py app.log --start "2026-03-24T10:00:00Z" --end "2026-03-24T10:30:00Z"
+python3 scripts/search_logs.py app.log --keyword timeout --keyword payment --mode all --after-context 3
+python3 scripts/search_logs.py app.log --regex "request_id=ab12.*ERROR" --start "2026-03-24T10:00:00Z" --end "2026-03-24T10:15:00Z"
+```
 
 ## Example
 

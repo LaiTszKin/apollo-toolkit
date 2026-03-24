@@ -81,12 +81,39 @@ class OpenGitHubIssueTests(unittest.TestCase):
             proposal="Allow exporting incident timelines",
             reason="Support postmortem handoff",
             suggested_architecture="Add shared exporters and UI action",
+            impact=None,
+            evidence=None,
+            suggested_action=None,
+            severity=None,
+            affected_scope=None,
         )
 
         self.assertIn("### 功能提案", zh_body)
         self.assertIn("### 建議架構", zh_body)
         self.assertIn("### Feature Proposal", en_body)
         self.assertIn("### Suggested Architecture", en_body)
+
+    def test_build_issue_body_supports_security_issue_sections(self) -> None:
+        en_body = MODULE.build_issue_body(
+            issue_type=MODULE.ISSUE_TYPE_SECURITY,
+            language="en",
+            title="[Security] Missing auth",
+            problem_description="Endpoint misses admin check",
+            suspected_cause=None,
+            reproduction=None,
+            proposal=None,
+            reason=None,
+            suggested_architecture=None,
+            impact="Sensitive export may leak",
+            evidence="Reproduced request and code path review",
+            suggested_action="Add authz and tests",
+            severity="high",
+            affected_scope="/admin/export",
+        )
+
+        self.assertIn("### Security Risk", en_body)
+        self.assertIn("### Severity", en_body)
+        self.assertIn("### Suggested Mitigation", en_body)
 
     def test_validate_issue_content_args_requires_feature_fields(self) -> None:
         with self.assertRaises(SystemExit):
@@ -118,6 +145,43 @@ class OpenGitHubIssueTests(unittest.TestCase):
                 suggested_architecture="shared module",
                 problem_description=None,
                 suspected_cause=None,
+                impact=None,
+                evidence=None,
+                suggested_action=None,
+                severity=None,
+                affected_scope=None,
+            )
+        )
+
+    def test_validate_issue_content_args_requires_security_fields(self) -> None:
+        with self.assertRaises(SystemExit):
+            MODULE.validate_issue_content_args(
+                Namespace(
+                    issue_type=MODULE.ISSUE_TYPE_SECURITY,
+                    problem_description="auth missing",
+                    affected_scope="",
+                    impact="sensitive export may leak",
+                    evidence="reproduced",
+                    suggested_action="add authz",
+                    severity="high",
+                    reason=None,
+                    suggested_architecture=None,
+                    suspected_cause=None,
+                )
+            )
+
+        MODULE.validate_issue_content_args(
+            Namespace(
+                issue_type=MODULE.ISSUE_TYPE_SECURITY,
+                problem_description="auth missing",
+                affected_scope="/admin/export",
+                impact="sensitive export may leak",
+                evidence="reproduced",
+                suggested_action="add authz",
+                severity="high",
+                reason=None,
+                suggested_architecture=None,
+                suspected_cause=None,
             )
         )
 
@@ -130,6 +194,11 @@ class OpenGitHubIssueTests(unittest.TestCase):
                     suggested_architecture=None,
                     problem_description="Repeated timeout warnings escalated into request failures.",
                     suspected_cause="handler.py:12",
+                    impact=None,
+                    evidence=None,
+                    suggested_action=None,
+                    severity=None,
+                    affected_scope=None,
                 )
             )
 
@@ -153,6 +222,11 @@ class OpenGitHubIssueTests(unittest.TestCase):
                     "- Difference/Impact: users still receive errors.\n"
                 ),
                 suspected_cause="handler.py:12",
+                impact=None,
+                evidence=None,
+                suggested_action=None,
+                severity=None,
+                affected_scope=None,
             )
         )
 
@@ -181,6 +255,11 @@ class OpenGitHubIssueTests(unittest.TestCase):
             suggested_architecture=None,
             repo="owner/repo",
             dry_run=True,
+            impact=None,
+            evidence=None,
+            suggested_action=None,
+            severity=None,
+            affected_scope=None,
         )
 
         with patch.object(MODULE, "parse_args", return_value=args), patch.object(

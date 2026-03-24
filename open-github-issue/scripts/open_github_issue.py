@@ -19,6 +19,18 @@ DEFAULT_REPRO_ZH = "尚未穩定重現；需補充更多執行期資料。"
 DEFAULT_REPRO_EN = "Not yet reliably reproducible; more runtime evidence is required."
 ISSUE_TYPE_PROBLEM = "problem"
 ISSUE_TYPE_FEATURE = "feature"
+ISSUE_TYPE_PERFORMANCE = "performance"
+ISSUE_TYPE_SECURITY = "security"
+ISSUE_TYPE_DOCS = "docs"
+ISSUE_TYPE_OBSERVABILITY = "observability"
+ISSUE_TYPES = [
+    ISSUE_TYPE_PROBLEM,
+    ISSUE_TYPE_FEATURE,
+    ISSUE_TYPE_PERFORMANCE,
+    ISSUE_TYPE_SECURITY,
+    ISSUE_TYPE_DOCS,
+    ISSUE_TYPE_OBSERVABILITY,
+]
 PROBLEM_BDD_MARKER_GROUPS = (
     (
         r"Expected Behavior\s*\(BDD\)",
@@ -43,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--title", required=True, help="Issue title")
     parser.add_argument(
         "--issue-type",
-        choices=[ISSUE_TYPE_PROBLEM, ISSUE_TYPE_FEATURE],
+        choices=ISSUE_TYPES,
         default=ISSUE_TYPE_PROBLEM,
         help="Structured issue type to publish.",
     )
@@ -72,6 +84,27 @@ def parse_args() -> argparse.Namespace:
         help="Issue section content: suggested architecture for the feature",
     )
     parser.add_argument(
+        "--impact",
+        help="Issue section content: concrete user, system, or business impact",
+    )
+    parser.add_argument(
+        "--evidence",
+        help="Issue section content: concrete evidence, metrics, logs, or repository facts",
+    )
+    parser.add_argument(
+        "--suggested-action",
+        help="Issue section content: suggested remediation, mitigation, or next action",
+    )
+    parser.add_argument(
+        "--severity",
+        choices=["critical", "high", "medium", "low"],
+        help="Issue section content: severity level for security-oriented issues",
+    )
+    parser.add_argument(
+        "--affected-scope",
+        help="Issue section content: affected endpoint, module, user cohort, or system surface",
+    )
+    parser.add_argument(
         "--repo",
         help="Target repository in owner/repo format. Defaults to origin remote.",
     )
@@ -91,6 +124,35 @@ def validate_issue_content_args(args: argparse.Namespace) -> None:
             raise SystemExit("Feature issues require --suggested-architecture.")
         return
 
+    if args.issue_type == ISSUE_TYPE_PERFORMANCE:
+        require_non_empty(args.problem_description, "Performance issues require --problem-description.")
+        require_non_empty(args.impact, "Performance issues require --impact.")
+        require_non_empty(args.evidence, "Performance issues require --evidence.")
+        require_non_empty(args.suggested_action, "Performance issues require --suggested-action.")
+        return
+
+    if args.issue_type == ISSUE_TYPE_SECURITY:
+        require_non_empty(args.problem_description, "Security issues require --problem-description.")
+        require_non_empty(args.affected_scope, "Security issues require --affected-scope.")
+        require_non_empty(args.impact, "Security issues require --impact.")
+        require_non_empty(args.evidence, "Security issues require --evidence.")
+        require_non_empty(args.suggested_action, "Security issues require --suggested-action.")
+        require_non_empty(args.severity, "Security issues require --severity.")
+        return
+
+    if args.issue_type == ISSUE_TYPE_DOCS:
+        require_non_empty(args.problem_description, "Docs issues require --problem-description.")
+        require_non_empty(args.evidence, "Docs issues require --evidence.")
+        require_non_empty(args.suggested_action, "Docs issues require --suggested-action.")
+        return
+
+    if args.issue_type == ISSUE_TYPE_OBSERVABILITY:
+        require_non_empty(args.problem_description, "Observability issues require --problem-description.")
+        require_non_empty(args.impact, "Observability issues require --impact.")
+        require_non_empty(args.evidence, "Observability issues require --evidence.")
+        require_non_empty(args.suggested_action, "Observability issues require --suggested-action.")
+        return
+
     if not (args.problem_description or "").strip():
         raise SystemExit("Problem issues require --problem-description.")
     if not (args.suspected_cause or "").strip():
@@ -100,6 +162,11 @@ def validate_issue_content_args(args: argparse.Namespace) -> None:
             "Problem issues require --problem-description to include "
             "Expected Behavior (BDD), Current Behavior (BDD), and Behavior Gap sections."
         )
+
+
+def require_non_empty(value: str | None, message: str) -> None:
+    if not (value or "").strip():
+        raise SystemExit(message)
 
 
 def has_required_problem_bdd_sections(problem_description: str) -> bool:
@@ -236,6 +303,11 @@ def build_issue_body(
     proposal: str | None,
     reason: str | None,
     suggested_architecture: str | None,
+    impact: str | None = None,
+    evidence: str | None = None,
+    suggested_action: str | None = None,
+    severity: str | None = None,
+    affected_scope: str | None = None,
 ) -> str:
     if issue_type == ISSUE_TYPE_FEATURE:
         proposal_text = (proposal or title).strip()
@@ -259,6 +331,102 @@ def build_issue_body(
             f"{reason_text}\n\n"
             "### Suggested Architecture\n"
             f"{architecture_text}\n"
+        )
+
+    if issue_type == ISSUE_TYPE_PERFORMANCE:
+        if language == "zh":
+            return (
+                "### 效能問題\n"
+                f"{(problem_description or '').strip()}\n\n"
+                "### 影響\n"
+                f"{(impact or '').strip()}\n\n"
+                "### 證據\n"
+                f"{(evidence or '').strip()}\n\n"
+                "### 建議行動\n"
+                f"{(suggested_action or '').strip()}\n"
+            )
+        return (
+            "### Performance Problem\n"
+            f"{(problem_description or '').strip()}\n\n"
+            "### Impact\n"
+            f"{(impact or '').strip()}\n\n"
+            "### Evidence\n"
+            f"{(evidence or '').strip()}\n\n"
+            "### Suggested Action\n"
+            f"{(suggested_action or '').strip()}\n"
+        )
+
+    if issue_type == ISSUE_TYPE_SECURITY:
+        if language == "zh":
+            return (
+                "### 安全風險\n"
+                f"{(problem_description or '').strip()}\n\n"
+                "### 嚴重程度\n"
+                f"{(severity or '').strip()}\n\n"
+                "### 受影響範圍\n"
+                f"{(affected_scope or '').strip()}\n\n"
+                "### 影響\n"
+                f"{(impact or '').strip()}\n\n"
+                "### 證據\n"
+                f"{(evidence or '').strip()}\n\n"
+                "### 建議緩解\n"
+                f"{(suggested_action or '').strip()}\n"
+            )
+        return (
+            "### Security Risk\n"
+            f"{(problem_description or '').strip()}\n\n"
+            "### Severity\n"
+            f"{(severity or '').strip()}\n\n"
+            "### Affected Scope\n"
+            f"{(affected_scope or '').strip()}\n\n"
+            "### Impact\n"
+            f"{(impact or '').strip()}\n\n"
+            "### Evidence\n"
+            f"{(evidence or '').strip()}\n\n"
+            "### Suggested Mitigation\n"
+            f"{(suggested_action or '').strip()}\n"
+        )
+
+    if issue_type == ISSUE_TYPE_DOCS:
+        if language == "zh":
+            return (
+                "### 文件缺口\n"
+                f"{(problem_description or '').strip()}\n\n"
+                "### 證據\n"
+                f"{(evidence or '').strip()}\n\n"
+                "### 建議更新\n"
+                f"{(suggested_action or '').strip()}\n"
+            )
+        return (
+            "### Documentation Gap\n"
+            f"{(problem_description or '').strip()}\n\n"
+            "### Evidence\n"
+            f"{(evidence or '').strip()}\n\n"
+            "### Suggested Update\n"
+            f"{(suggested_action or '').strip()}\n"
+        )
+
+    if issue_type == ISSUE_TYPE_OBSERVABILITY:
+        if language == "zh":
+            return (
+                "### 可觀測性缺口\n"
+                f"{(problem_description or '').strip()}\n\n"
+                "### 影響\n"
+                f"{(impact or '').strip()}\n\n"
+                "### 證據\n"
+                f"{(evidence or '').strip()}\n\n"
+                "### 建議儀表化\n"
+                f"{(suggested_action or '').strip()}\n"
+            )
+        return (
+            "### Observability Gap\n"
+            f"{(problem_description or '').strip()}\n\n"
+            "### Impact\n"
+            f"{(impact or '').strip()}\n\n"
+            "### Evidence\n"
+            f"{(evidence or '').strip()}\n\n"
+            "### Suggested Instrumentation\n"
+            f"{(suggested_action or '').strip()}\n"
         )
 
     if language == "zh":
@@ -349,6 +517,11 @@ def main() -> int:
         proposal=args.proposal,
         reason=args.reason,
         suggested_architecture=args.suggested_architecture,
+        impact=args.impact,
+        evidence=args.evidence,
+        suggested_action=args.suggested_action,
+        severity=args.severity,
+        affected_scope=args.affected_scope,
     )
 
     mode = "draft-only"

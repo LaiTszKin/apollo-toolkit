@@ -12,13 +12,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "list_issues.py"
-SPEC = importlib.util.spec_from_file_location("list_issues", SCRIPT_PATH)
+SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "find_issues.py"
+SPEC = importlib.util.spec_from_file_location("find_issues", SCRIPT_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
 
-class ListIssuesTests(unittest.TestCase):
+class FindIssuesTests(unittest.TestCase):
     def test_build_command_with_filters(self) -> None:
         args = Namespace(
             repo="owner/repo",

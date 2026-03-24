@@ -17,7 +17,7 @@ def positive_int(raw: str) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="List remote GitHub issues with gh CLI and display table or JSON output."
+        description="Find remote GitHub issues with gh CLI and display table or JSON output."
     )
     parser.add_argument("--repo", help="Target repository in owner/name format.")
     parser.add_argument("--state", default="open", choices=["open", "closed", "all"])

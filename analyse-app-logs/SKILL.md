@@ -15,7 +15,7 @@ description: Comprehensive application log investigation workflow that reads log
 ## Standards
 
 - Evidence: Use a bounded investigation window and correlate log lines with code, runtime context, and concrete identifiers.
-- Execution: Scope the incident, build a timeline, validate candidate issues, then prioritize and optionally publish them.
+- Execution: Scope the incident, use the bundled scripts to cut logs down by time window or search terms, build a timeline, validate candidate issues, then prioritize and optionally publish them.
 - Quality: Separate confirmed issues from hypotheses and include time-window, log, code, impact, and confidence evidence for each report.
 - Output: Return incident summary, confirmed issues, hypotheses, monitoring improvements, and publication status.
 
@@ -38,9 +38,11 @@ Use this skill to analyze application logs systematically with the codebase and 
    - If the user does not provide a trustworthy window, derive one from a concrete runtime boundary first, such as the last container restart, pod recreation, deploy start, worker boot, or first failure after a known healthy state.
    - Prefer analyzing logs only inside that bounded window first (for example, from the last restart until now) to avoid stale logs polluting the diagnosis; widen the window only when the bounded slice cannot explain the symptom.
    - Identify relevant identifiers (trace ID, request ID, user ID, job ID, tx hash).
+   - Use `scripts/filter_logs_by_time.py` first when the raw log set is large and the incident window can be bounded.
 2. Build a timeline from logs
    - Extract key events in chronological order within the chosen window: deploys, config changes, warnings, errors, retries, and recoveries.
    - Group repeated symptoms by signature (error type, message prefix, stack frame, endpoint).
+   - Use `scripts/search_logs.py` to narrow by error signature, IDs, endpoint names, or repeated keywords before summarizing the timeline.
 3. Correlate across context
    - Link related log lines using identifiers and timestamps.
    - Map stack traces and log messages to exact code locations.
@@ -118,4 +120,7 @@ Use this structure in responses:
 
 - `references/investigation-checklist.md`: Step-by-step checklist for evidence-driven log investigations.
 - `references/log-signal-patterns.md`: Common log signatures, likely causes, validation hints, and false-positive guards.
+- `scripts/filter_logs_by_time.py`: Filter raw logs to a bounded incident window from files or stdin.
+- `scripts/search_logs.py`: Search logs by keyword or regex with optional time-window filtering and context lines.
+- `scripts/log_cli_utils.py`: Shared timestamp parsing and stdin/file iteration utilities for the bundled log scripts.
 - Dependency skill: `open-github-issue` for deterministic issue publishing with auth fallback and README language detection.

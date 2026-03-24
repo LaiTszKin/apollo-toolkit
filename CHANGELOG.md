@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.11.3] - 2026-03-24
+
+### Added
+- Add bundled `analyse-app-logs` scripts for filtering logs by bounded time windows and searching by keyword or regex, with focused tests for both helpers.
+- Add `read-github-issue` as a dedicated GitHub issue discovery skill with bundled scripts for finding issue candidates and reading a specific issue with comments.
+
+### Changed
+- Expand `open-github-issue` to support structured `performance`, `security`, `docs`, and `observability` issue categories in addition to `problem` and `feature`.
+- Refocus the former `fix-github-issues` workflow into read-only GitHub issue discovery and inspection guidance instead of a hardcoded fixing workflow.
+- Update repository capability docs and agent prompts to reflect the new GitHub issue-reading and log-search workflows.
+
 ## [v2.11.2] - 2026-03-23
 
 ### Changed

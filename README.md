@@ -19,7 +19,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - enhance-existing-features
 - feature-propose
 - financial-research
-- fix-github-issues
+- read-github-issue
 - generate-spec
 - harden-app-security
 - improve-observability
@@ -142,7 +142,7 @@ Compatibility note:
 
 - `generate-spec` is a local skill used by `develop-new-features` and `enhance-existing-features`.
 - `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the table.
-- `fix-github-issues` accepts `open-source-pr-workflow` or an environment alias named `open-pr-workflow`. Apollo Toolkit already vendors `open-source-pr-workflow`, so `open-pr-workflow` is not a required external dependency here.
+- `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.
 
 ## Release publishing
 

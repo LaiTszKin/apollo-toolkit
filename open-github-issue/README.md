@@ -1,15 +1,15 @@
 # Open GitHub Issue
 
-Structured GitHub issue and feature-proposal publishing with deterministic authentication fallback and repository-language-aware issue bodies.
+Structured GitHub issue publishing across multiple issue categories with deterministic authentication fallback and repository-language-aware issue bodies.
 
-This skill helps agents publish confirmed findings or accepted feature proposals as GitHub issues without embedding repository resolution, auth handling, and language detection logic into every other workflow.
+This skill helps agents publish confirmed findings, accepted proposals, documentation gaps, security risks, observability gaps, and performance issues as GitHub issues without embedding repository resolution, auth handling, and language detection logic into every other workflow.
 
 ## What this skill provides
 
 - Target repository resolution from `--repo` or current git `origin`.
 - Strict auth fallback order: `gh` login -> `GITHUB_TOKEN`/`GH_TOKEN` -> draft only.
 - Issue body language detection based on the target repository README.
-- Consistent structured issue bodies for both problem issues and feature proposal issues.
+- Consistent structured issue bodies for `problem`, `feature`, `performance`, `security`, `docs`, and `observability` issues.
 - Machine-readable JSON output so parent skills can report publication status consistently.
 
 ## Repository structure
@@ -33,7 +33,7 @@ cp -R open-github-issue "$CODEX_HOME/skills/open-github-issue"
 Invoke the skill in your prompt:
 
 ```text
-Use $open-github-issue to publish this confirmed finding or accepted feature proposal to GitHub.
+Use $open-github-issue to publish this confirmed finding or accepted proposal to GitHub.
 ```
 
 The bundled script can also be called directly:
@@ -58,6 +58,19 @@ python scripts/open_github_issue.py \
   --repo owner/repo
 ```
 
+```bash
+python scripts/open_github_issue.py \
+  --issue-type security \
+  --title "[Security] Missing authorization check on admin export" \
+  --problem-description "The admin export endpoint can be reached without verifying the caller's admin role." \
+  --severity high \
+  --affected-scope "/admin/export endpoint and exported customer data" \
+  --impact "Unauthorized users may access privileged exports containing sensitive business data." \
+  --evidence "Code path review and reproduced requests show the handler validates session presence but not the admin permission gate." \
+  --suggested-action "Add explicit authorization enforcement, regression tests, and audit logging for denied access attempts." \
+  --repo owner/repo
+```
+
 ## Publication behavior
 
 For each issue:
@@ -66,7 +79,7 @@ For each issue:
 2. Otherwise, if `GITHUB_TOKEN` or `GH_TOKEN` exists, publish via GitHub REST API.
 3. Otherwise, return draft issue content without blocking the caller.
 
-Problem issues always include exactly three sections:
+`problem` issues always include exactly three sections:
 
 - `Problem Description`
 - `Suspected Cause`
@@ -80,13 +93,42 @@ Within `Problem Description`, include:
 
 For Chinese-language repositories, use translated section titles with the same meaning.
 
-Feature proposal issues always include:
+`feature` issues always include:
 
 - `Feature Proposal`
 - `Why This Is Needed`
 - `Suggested Architecture`
 
 For Chinese-language repositories, use translated section titles with the same meaning.
+
+`performance` issues include:
+
+- `Performance Problem`
+- `Impact`
+- `Evidence`
+- `Suggested Action`
+
+`security` issues include:
+
+- `Security Risk`
+- `Severity`
+- `Affected Scope`
+- `Impact`
+- `Evidence`
+- `Suggested Mitigation`
+
+`docs` issues include:
+
+- `Documentation Gap`
+- `Evidence`
+- `Suggested Update`
+
+`observability` issues include:
+
+- `Observability Gap`
+- `Impact`
+- `Evidence`
+- `Suggested Instrumentation`
 
 ## Output
 

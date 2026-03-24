@@ -13,7 +13,7 @@ This repository enables users to install and run a curated set of reusable agent
 
 - Users can align project documentation with the current codebase.
 - Users can consolidate completed project specs into a standardized README and categorized project documentation set, then archive the consumed planning files.
-- Users can investigate application logs and produce evidence-backed root-cause findings.
+- Users can investigate application logs, slice them to precise time windows, search by keyword or regex, and produce evidence-backed root-cause findings.
 - Users can answer repository-backed questions with additional web research when needed.
 - Users can commit and push local changes without performing version or release work.
 - Users can manage Codex user-preference memory by reviewing the last 24 hours of chats, storing categorized memory documents under `~/.codex/memory`, and syncing a memory index into `~/.codex/AGENTS.md`.
@@ -28,7 +28,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can extend existing features in a brownfield codebase with required tests and approvals.
 - Users can propose product features from an existing codebase and publish accepted proposals.
 - Users can discover reproducible edge-case risks and report prioritized hardening gaps.
-- Users can fix remote GitHub issues locally and submit the resulting pull requests.
+- Users can read, filter, and inspect remote GitHub issues before planning follow-up work.
 - Users can run evidence-first application security audits focused on confirmed vulnerabilities.
 - Users can learn new or improved skills from recent Codex conversation history.
 - Users can audit and maintain the skill catalog itself, including dependency classification and shared-skill extraction decisions.

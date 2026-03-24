@@ -16,7 +16,7 @@ description: Audit and maintain a repository of installable skills so the catalo
 
 - Evidence: Read the actual skill folders, validation scripts, repository docs, and local installed skill names before changing dependency classifications or catalog docs.
 - Execution: Audit first, classify findings, make focused catalog updates, then run the repo validators before finishing.
-- Quality: Avoid duplicate skills, avoid rewording behavior without checking the implementation, and distinguish aliases or local unpublished skills from true external dependencies.
+- Quality: Avoid duplicate skills, avoid rewording behavior without checking the implementation, distinguish aliases or local unpublished skills from true external dependencies, and enforce the repository's current metadata constraints such as `SKILL.md` frontmatter validity, description-length limits, and synchronized agent configs.
 - Output: Leave the catalog with synchronized skill metadata, dependency documentation, and validation status.
 
 ## Goal
@@ -35,6 +35,7 @@ Keep a skill repository coherent when many top-level skills evolve together.
 ### 2) Audit dependency declarations and shared conventions
 
 - Use the standardized `## Dependencies` section as the source of truth for skill-to-skill relationships.
+- Read the current validator scripts before changing frontmatter-heavy files so metadata limits come from implementation rather than memory.
 - Classify each dependency as:
   - vendored in this repository
   - local/private skill that should not be documented as external
@@ -49,6 +50,7 @@ Keep a skill repository coherent when many top-level skills evolve together.
 - Update `README.md` skill lists and external dependency sections when the catalog actually changes.
 - Update `AGENTS.md` when the repository gains or loses a user-visible capability or a standing convention changes.
 - When creating a new shared skill, align naming, frontmatter, `agents/openai.yaml`, and any lightweight README with neighboring skills.
+- When a failure comes from validator drift or a metadata constraint that was not caught early, tighten the validator or CI path in the same change instead of only fixing the offending skill text.
 - Do not treat unpublished local skills as external dependencies just because they are not yet installed elsewhere.
 
 ### 4) Validate the catalog after changes

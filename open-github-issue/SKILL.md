@@ -1,6 +1,6 @@
 ---
 name: open-github-issue
-description: Publish structured GitHub issues and feature proposals with deterministic auth fallback, target-repo resolution, README-based language detection, and draft-only fallback when authentication is unavailable. Use when users ask to open GitHub issues from confirmed findings, accepted feature proposals, or prepared issue content.
+description: Publish structured GitHub issues across multiple issue categories with deterministic auth fallback, target-repo resolution, README-based language detection, and draft-only fallback when authentication is unavailable. Use when users ask to open GitHub issues from confirmed findings, accepted proposals, documentation gaps, security risks, observability gaps, or prepared issue content.
 ---
 
 # Open GitHub Issue
@@ -14,14 +14,14 @@ description: Publish structured GitHub issues and feature proposals with determi
 
 ## Standards
 
-- Evidence: Require structured issue inputs, detect repository language from the target README instead of guessing, and for `problem` issues capture BDD-style expected vs current behavior with an explicit delta.
+- Evidence: Require structured issue inputs, detect repository language from the target README instead of guessing, and enforce category-specific required fields so each issue type matches the situation being reported.
 - Execution: Resolve the repo, normalize the issue body, publish with strict auth order, then return the publication result.
 - Quality: Preserve upstream evidence, localize only the structural parts, keep publication deterministic and reproducible, and make behavioral mismatches easy for maintainers to verify.
 - Output: Return publication mode, issue URL when created, rendered body, and any publish error in the standardized JSON contract.
 
 ## Overview
 
-Use this skill to publish a structured GitHub issue or feature proposal deterministically.
+Use this skill to publish structured GitHub issues deterministically across several common issue situations.
 
 It is designed to be reusable by other skills that already know the issue title and evidence, but need a consistent way to:
 
@@ -36,7 +36,7 @@ It is designed to be reusable by other skills that already know the issue title 
 - Prefer authenticated `gh` CLI first, then GitHub token, then draft-only fallback.
 - Detect repository issue language from the target remote README instead of guessing.
 - Preserve upstream evidence content; only localize section headers and default fallback text.
-- Make the issue type explicit: `problem` for defects/incidents, `feature` for proposals.
+- Make the issue type explicit: `problem`, `feature`, `performance`, `security`, `docs`, or `observability`.
 - For `problem` issues, describe the expected behavior and current behavior with BDD-style `Given / When / Then`, then state the behavioral difference explicitly.
 
 ## Workflow
@@ -59,6 +59,27 @@ It is designed to be reusable by other skills that already know the issue title 
      - `proposal` (optional; defaults to title when omitted)
      - `reason`
      - `suggested-architecture`
+   - For `performance` issues, require:
+     - `problem-description`
+     - `impact`
+     - `evidence`
+     - `suggested-action`
+   - For `security` issues, require:
+     - `problem-description`
+     - `severity`
+     - `affected-scope`
+     - `impact`
+     - `evidence`
+     - `suggested-action`
+   - For `docs` issues, require:
+     - `problem-description`
+     - `evidence`
+     - `suggested-action`
+   - For `observability` issues, require:
+     - `problem-description`
+     - `impact`
+     - `evidence`
+     - `suggested-action`
    - If reproduction is missing for a `problem` issue, insert the default non-reproducible note in the target issue language.
 3. Detect issue language
    - Read the target repository README from GitHub.
@@ -98,6 +119,59 @@ python scripts/open_github_issue.py \
   --repo <owner/repo>
 ```
 
+Performance issue:
+
+```bash
+python scripts/open_github_issue.py \
+  --issue-type performance \
+  --title "[Performance] Slow dashboard query under large tenants" \
+  --problem-description "Dashboard loading time degrades sharply once tenant data exceeds current pagination assumptions." \
+  --impact "Users wait 8-12 seconds before the page becomes interactive; this blocks support workflows." \
+  --evidence "Profiler output, slow-query logs, and production timings all point to repeated full-table scans in the summary query path." \
+  --suggested-action "Add bounded pagination, pre-aggregated summaries, and an index review for the offending query path." \
+  --repo <owner/repo>
+```
+
+Security issue:
+
+```bash
+python scripts/open_github_issue.py \
+  --issue-type security \
+  --title "[Security] Missing authorization check on admin export" \
+  --problem-description "The admin export endpoint can be reached without verifying the caller's admin role." \
+  --severity high \
+  --affected-scope "/admin/export endpoint and exported customer data" \
+  --impact "Unauthorized users may access privileged exports containing sensitive business data." \
+  --evidence "Code path review and reproduced requests show the handler validates session presence but not the admin permission gate." \
+  --suggested-action "Add explicit authorization enforcement, regression tests, and audit logging for denied access attempts." \
+  --repo <owner/repo>
+```
+
+Docs issue:
+
+```bash
+python scripts/open_github_issue.py \
+  --issue-type docs \
+  --title "[Docs] Deployment guide omits required Redis configuration" \
+  --problem-description "The deployment guide does not mention the required Redis URL and worker startup order." \
+  --evidence "README deploy steps differ from the actual compose file and runtime startup checks." \
+  --suggested-action "Update deployment docs with required env vars, startup order, and a minimal validation checklist." \
+  --repo <owner/repo>
+```
+
+Observability issue:
+
+```bash
+python scripts/open_github_issue.py \
+  --issue-type observability \
+  --title "[Observability] Missing request identifiers in payment retry logs" \
+  --problem-description "Retry logs do not include stable request or trace identifiers, so multi-line failures cannot be correlated quickly." \
+  --impact "On-call engineers cannot isolate a single failing payment flow without manual log stitching." \
+  --evidence "Current retry log lines include endpoint and error text only; incident review required manual timestamp matching." \
+  --suggested-action "Add request_id, trace_id, upstream target, and retry attempt fields to retry logs and dashboard facets." \
+  --repo <owner/repo>
+```
+
 ## Output contract
 
 The script prints JSON with these fields:
@@ -115,11 +189,12 @@ The script prints JSON with these fields:
 
 When another skill depends on `open-github-issue`:
 
-- Pass exactly one confirmed problem or one accepted feature proposal per invocation.
+- Pass exactly one confirmed issue or one accepted proposal per invocation.
 - Prepare evidence or proposal details before calling this skill; do not ask this skill to infer root cause or architecture.
 - For `problem` issues, pass a `problem-description` that contains `Expected Behavior (BDD)`, `Current Behavior (BDD)`, and `Behavior Gap`; the difference must be explicit, not implied.
 - Reuse the returned `mode`, `issue_url`, and `publish_error` in the parent skill response.
 - For accepted feature proposals, pass `--issue-type feature` plus `--proposal`, `--reason`, and `--suggested-architecture`.
+- For security, performance, docs, or observability findings, choose the matching `issue-type` instead of overloading `problem`.
 
 ## Resources
 
