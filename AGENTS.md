@@ -29,6 +29,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can propose product features from an existing codebase and publish accepted proposals.
 - Users can discover reproducible edge-case risks and report prioritized hardening gaps.
 - Users can read, filter, and inspect remote GitHub issues before planning follow-up work.
+- Users can resolve a GitHub issue end-to-end and push the fix directly to a requested branch without opening a PR.
 - Users can run evidence-first application security audits focused on confirmed vulnerabilities.
 - Users can learn new or improved skills from recent Codex conversation history.
 - Users can audit and maintain the skill catalog itself, including dependency classification and shared-skill extraction decisions.
@@ -40,6 +41,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can prepare and open open-source pull requests from existing changes.
 - Users can generate storyboard image sets from chapters, novels, articles, or scripts.
 - Users can configure OpenClaw from official documentation, including `~/.openclaw/openclaw.json`, skills loading, SecretRefs, CLI edits, and validation or repair workflows.
+- Users can investigate production or local simulation runs, calibrate reusable presets, and fix toolchain realism gaps between harness behavior and expected on-chain behavior.
 - Users can record multi-account spending and balance changes in monthly Excel ledgers with summary analytics and charts.
 - Users can review the current git change set from an unbiased reviewer perspective to find abstraction opportunities and simplification candidates.
 - Users can process GitHub pull request review comments and resolve addressed threads.

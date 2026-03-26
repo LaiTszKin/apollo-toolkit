@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.11.4] - 2026-03-27
+
+### Added
+- Add `production-sim-debug` for investigating production or local simulation runs, separating harness realism gaps from runtime bugs, and validating fixes by rerunning the same bounded scenario.
+- Add `ship-github-issue-fix` for taking a remote GitHub issue through implementation and direct push to a requested branch without opening a PR or performing release work.
+
+### Changed
+- Update `read-github-issue` to prefer bundled issue scripts while falling back to raw `gh issue list` and `gh issue view` commands when repository-specific helpers are missing or fail.
+- Strengthen `commit-and-push` and `version-release` so sequential git mutations must verify the remote branch tip and release tag before reporting success or publishing a release.
+- Refresh repository capability docs and skill inventory to include direct issue-shipping and production simulation debugging workflows.
+
 ## [v2.11.3] - 2026-03-24
 
 ### Added

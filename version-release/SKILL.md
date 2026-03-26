@@ -15,7 +15,7 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 ## Standards
 
 - Evidence: Inspect the active change set and the release range before touching version files, tags, or changelog entries.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, convert completed spec sets into categorized project docs before release finalization, normalize non-standard project docs when needed, then update versions, docs, commit, tag, push, and publish the GitHub release.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, convert completed spec sets into categorized project docs before release finalization, normalize non-standard project docs when needed, then update versions, docs, commit, tag, push, and publish the GitHub release; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
 - Quality: Never guess versions, align user-facing docs with actual code, convert completed planning docs into standardized categorized project docs before the release is published, and treat the `archive-specs` structure as the release-ready documentation format.
 - Output: Produce a versioned release commit and tag, publish a matching GitHub release, and keep changelog plus relevant repository documentation synchronized.
 
@@ -91,6 +91,9 @@ Load only when needed:
    - Create the version tag locally after commit.
 11. Push
    - Push commit(s) and the release tag to the current branch before publishing the GitHub release when the hosting platform requires the tag to exist remotely.
+   - Do not overlap `git commit`, `git tag`, `git push`, or release-publish steps; wait for each mutation to finish before starting the next one.
+   - After pushing, verify the remote branch tip matches local `HEAD`, and verify the release tag exists remotely via `git ls-remote --tags <remote> <tag>`.
+   - If any git step finishes ambiguously or the remote hashes do not match local state, rerun the missing step sequentially and re-check before publishing the GitHub release.
 12. Publish the GitHub release
    - Create a non-draft GitHub release that matches the pushed version tag.
    - Use the release notes from the new `CHANGELOG.md` entry unless the repository has a stronger established release-note source.

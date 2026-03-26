@@ -1,6 +1,6 @@
 ---
 name: read-github-issue
-description: Read and search remote GitHub issues via GitHub CLI (`gh`). Use when users ask to list issues, filter issue candidates, inspect a specific issue with comments, or gather issue context before planning follow-up work.
+description: Read and search remote GitHub issues via GitHub CLI (`gh`). Use when users ask to list issues, filter issue candidates, inspect a specific issue with comments, or gather issue context before planning follow-up work. Prefer the bundled scripts when they are present and working, but fall back to direct `gh issue list` / `gh issue view` commands when the scripts are missing or fail for repository-specific reasons.
 ---
 
 # Read GitHub Issue
@@ -10,12 +10,12 @@ description: Read and search remote GitHub issues via GitHub CLI (`gh`). Use whe
 - Required: none.
 - Conditional: none.
 - Optional: none.
-- Fallback: If `gh` is unavailable or unauthenticated, stop and report the exact blocked command instead of guessing repository state.
+- Fallback: If the bundled scripts are missing or fail but `gh` is available, continue with raw `gh issue list` / `gh issue view`; only stop when `gh` itself is unavailable or unauthenticated.
 
 ## Standards
 
 - Evidence: Verify repository context first, then read remote issue data directly from `gh issue list` / `gh issue view` instead of paraphrasing from memory.
-- Execution: Confirm the target repo, find candidate issues with the bundled script, then inspect the chosen issue with comments and structured fields.
+- Execution: Confirm the target repo, prefer the bundled scripts for deterministic output, then fall back to raw `gh` commands whenever the scripts are unavailable or broken in the target repository.
 - Quality: Keep the skill focused on issue discovery and retrieval only; do not embed any hardcoded fixing, branching, PR, or push workflow.
 - Output: Return candidate issues, selected issue details, comments summary, and any missing information needed before follow-up work.
 
@@ -47,6 +47,13 @@ python3 scripts/find_issues.py --limit 50 --state open
   - `--repo owner/name`
   - `--label bug`
   - `--search "panic in parser"`
+- Raw `gh` fallback when the script is missing or broken:
+
+```bash
+gh issue list --limit 50 --state open
+```
+
+- Add `--repo <owner>/<repo>`, `--label <label>`, or `--search "<text>"` as needed.
 - If the issue target is still unclear, present top candidates and ask which issue number or URL should be inspected next.
 
 ### 3) Read a specific issue in detail
@@ -61,6 +68,13 @@ python3 scripts/read_issue.py 123 --comments
   - `--repo owner/name`
   - `--json`
   - `--comments`
+- Raw `gh` fallback when the script is missing or broken:
+
+```bash
+gh issue view 123 --comments
+```
+
+- Use `--repo <owner>/<repo>` when targeting a different repository.
 - Use the returned title, body, labels, assignees, state, timestamps, and comments to summarize the issue precisely.
 
 ### 4) Summarize gaps before any follow-up action
@@ -75,9 +89,11 @@ python3 scripts/read_issue.py 123 --comments
 - Purpose: consistent remote issue listing via `gh issue list`.
 - Outputs a readable table by default, or JSON with `--output json`.
 - Uses only GitHub CLI so it reflects remote GitHub state.
+- Treat it as a convenience wrapper, not a hard dependency.
 
 ### `scripts/read_issue.py`
 
 - Purpose: deterministic issue detail retrieval via `gh issue view`.
 - Outputs either a human-readable summary or full JSON for downstream automation.
 - Can include issue comments so the agent can read the latest discussion before taking any other step.
+- Treat it as a convenience wrapper, not a hard dependency.
