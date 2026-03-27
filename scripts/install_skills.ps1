@@ -9,18 +9,20 @@ $ErrorActionPreference = "Stop"
 function Show-Usage {
   @"
 Usage:
-  ./scripts/install_skills.ps1 [codex|openclaw|trae|all]...
+  ./scripts/install_skills.ps1 [codex|openclaw|trae|agents|all]...
 
 Modes:
   codex     Copy skills into ~/.codex/skills
   openclaw  Copy skills into ~/.openclaw/workspace*/skills
   trae      Copy skills into ~/.trae/skills
+  agents    Copy skills into ~/.agents/skills (for agent-skill-compatible software)
   all       Install all supported targets
 
 Optional environment overrides:
   CODEX_SKILLS_DIR   Override codex skills destination path
   OPENCLAW_HOME      Override openclaw home path
   TRAE_SKILLS_DIR    Override trae skills destination path
+  AGENTS_SKILLS_DIR  Override agents skills destination path
   APOLLO_TOOLKIT_HOME Override local install path used when repo root is unavailable
   APOLLO_TOOLKIT_REPO_URL Override git repository URL used when repo root is unavailable
 "@
@@ -126,8 +128,9 @@ function Resolve-Modes {
     Write-Host "1) codex (~/.codex/skills)"
     Write-Host "2) openclaw (~/.openclaw/workspace*/skills)"
     Write-Host "3) trae (~/.trae/skills)"
-    Write-Host "4) all"
-    $inputValue = Read-Host "Enter choice(s) [1-4]"
+    Write-Host "4) agents (~/.agents/skills)"
+    Write-Host "5) all"
+    $inputValue = Read-Host "Enter choice(s) [1-5]"
 
     foreach ($rawChoice in ($inputValue -split ",")) {
       $choice = $rawChoice.Trim()
@@ -135,10 +138,12 @@ function Resolve-Modes {
         "1" { Add-ModeOnce -Selected $selected -Mode "codex" }
         "2" { Add-ModeOnce -Selected $selected -Mode "openclaw" }
         "3" { Add-ModeOnce -Selected $selected -Mode "trae" }
-        "4" {
+        "4" { Add-ModeOnce -Selected $selected -Mode "agents" }
+        "5" {
           Add-ModeOnce -Selected $selected -Mode "codex"
           Add-ModeOnce -Selected $selected -Mode "openclaw"
           Add-ModeOnce -Selected $selected -Mode "trae"
+          Add-ModeOnce -Selected $selected -Mode "agents"
         }
         default {
           throw "Invalid choice: $choice"
@@ -152,10 +157,12 @@ function Resolve-Modes {
         "codex" { Add-ModeOnce -Selected $selected -Mode "codex" }
         "openclaw" { Add-ModeOnce -Selected $selected -Mode "openclaw" }
         "trae" { Add-ModeOnce -Selected $selected -Mode "trae" }
+        "agents" { Add-ModeOnce -Selected $selected -Mode "agents" }
         "all" {
           Add-ModeOnce -Selected $selected -Mode "codex"
           Add-ModeOnce -Selected $selected -Mode "openclaw"
           Add-ModeOnce -Selected $selected -Mode "trae"
+          Add-ModeOnce -Selected $selected -Mode "agents"
         }
         default {
           Show-Usage
@@ -256,6 +263,22 @@ function Install-Trae {
   }
 }
 
+function Install-Agents {
+  param([string[]]$SkillPaths)
+
+  $target = if ($env:AGENTS_SKILLS_DIR) {
+    $env:AGENTS_SKILLS_DIR
+  }
+  else {
+    Join-Path $HOME ".agents/skills"
+  }
+
+  Write-Host "Installing to agents: $target"
+  foreach ($src in $SkillPaths) {
+    Copy-Skill -Source $src -TargetRoot $target
+  }
+}
+
 if ($Modes.Count -gt 0 -and ($Modes[0] -eq "-h" -or $Modes[0] -eq "--help")) {
   Show-Usage
   exit 0
@@ -269,6 +292,7 @@ foreach ($mode in $selectedModes) {
     "codex" { Install-Codex -SkillPaths $skillPaths }
     "openclaw" { Install-OpenClaw -SkillPaths $skillPaths }
     "trae" { Install-Trae -SkillPaths $skillPaths }
+    "agents" { Install-Agents -SkillPaths $skillPaths }
     default { throw "Unknown mode: $mode" }
   }
 }

@@ -4,18 +4,20 @@ set -euo pipefail
 usage() {
   cat <<"USAGE"
 Usage:
-  ./scripts/install_skills.sh [codex|openclaw|trae|all]...
+  ./scripts/install_skills.sh [codex|openclaw|trae|agents|all]...
 
 Modes:
   codex     Copy skills into ~/.codex/skills
   openclaw  Copy skills into ~/.openclaw/workspace*/skills
   trae      Copy skills into ~/.trae/skills
+  agents    Copy skills into ~/.agents/skills (for agent-skill-compatible software)
   all       Install all supported targets
 
 Optional environment overrides:
   CODEX_SKILLS_DIR   Override codex skills destination path
   OPENCLAW_HOME      Override openclaw home path
   TRAE_SKILLS_DIR    Override trae skills destination path
+  AGENTS_SKILLS_DIR  Override agents skills destination path
   APOLLO_TOOLKIT_HOME Override local install path used in curl/pipe mode
   APOLLO_TOOLKIT_REPO_URL Override git repository URL used in curl/pipe mode
 USAGE
@@ -135,6 +137,16 @@ install_trae() {
   done
 }
 
+install_agents() {
+  local agents_skills_dir
+  agents_skills_dir="${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
+
+  echo "Installing to agents: $agents_skills_dir"
+  for src in "${SKILL_PATHS[@]}"; do
+    replace_with_copy "$src" "$agents_skills_dir"
+  done
+}
+
 add_mode_once() {
   local mode="$1"
   local existing
@@ -153,13 +165,14 @@ parse_mode() {
   local mode="$1"
 
   case "$mode" in
-    codex|openclaw|trae)
+    codex|openclaw|trae|agents)
       add_mode_once "$mode"
       ;;
     all)
       add_mode_once "codex"
       add_mode_once "openclaw"
       add_mode_once "trae"
+      add_mode_once "agents"
       ;;
     *)
       echo "Invalid mode: $mode" >&2
@@ -195,8 +208,9 @@ choose_modes_interactive() {
   echo "1) codex (~/.codex/skills)"
   echo "2) openclaw (~/.openclaw/workspace*/skills)"
   echo "3) trae (~/.trae/skills)"
-  echo "4) all"
-  choice="$(read_choice_from_user 'Enter choice(s) [1-4]: ')"
+  echo "4) agents (~/.agents/skills)"
+  echo "5) all"
+  choice="$(read_choice_from_user 'Enter choice(s) [1-5]: ')"
 
   IFS=',' read -r -a choices <<< "$choice"
   for raw_choice in "${choices[@]}"; do
@@ -205,7 +219,8 @@ choose_modes_interactive() {
       1) add_mode_once "codex" ;;
       2) add_mode_once "openclaw" ;;
       3) add_mode_once "trae" ;;
-      4) add_mode_once "codex"; add_mode_once "openclaw"; add_mode_once "trae" ;;
+      4) add_mode_once "agents" ;;
+      5) add_mode_once "codex"; add_mode_once "openclaw"; add_mode_once "trae"; add_mode_once "agents" ;;
       *)
         echo "Invalid choice: $raw_choice" >&2
         exit 1
@@ -249,6 +264,7 @@ main() {
       codex) install_codex ;;
       openclaw) install_openclaw ;;
       trae) install_trae ;;
+      agents) install_agents ;;
       *)
         usage
         exit 1
