@@ -4,6 +4,14 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.12.0] - 2026-03-28
+
+### Added
+- Add `agents` mode to install scripts for copying skills into `~/.agents/skills` directory, supporting agent-skill-compatible software.
+
+### Changed
+- Strengthen `production-sim-debug` so simulation investigations must verify protocol-sensitive blame against official docs or upstream source, distinguish liquidation pipeline stages precisely, and explain quote-budget counts as attempts versus unique opportunities.
+
 ## [v2.11.4] - 2026-03-27
 
 ### Added

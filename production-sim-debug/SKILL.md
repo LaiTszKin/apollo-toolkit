@@ -8,7 +8,7 @@ description: Investigate production or local simulation runs for runtime-toolcha
 ## Dependencies
 
 - Required: `systematic-debug` for evidence-first root-cause analysis when a simulation shows failing or missing expected behavior.
-- Conditional: `scheduled-runtime-health-check` when the user wants a bounded production/local simulation run executed and observed; `read-github-issue` when the requested simulation work is driven by a remote issue; `open-github-issue` when confirmed toolchain gaps should be published.
+- Conditional: `scheduled-runtime-health-check` when the user wants a bounded production/local simulation run executed and observed; `read-github-issue` when the requested simulation work is driven by a remote issue; `marginfi-development` when liquidation, health, receivership, or instruction-order conclusions depend on official marginfi docs/source; `jupiter-development` when swap, quote, routing, or rate-limit conclusions depend on official Jupiter docs; `open-github-issue` when confirmed toolchain gaps should be published.
 - Optional: none.
 - Fallback: If the relevant simulation entrypoint, preset, logs, or run artifacts cannot be found, stop and report the missing evidence instead of inferring behavior from stale docs or memory.
 
@@ -63,6 +63,13 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 
 ### 4) Separate product failures from toolchain realism failures
 
+- When the suspected blocker touches protocol rules, instruction legality, quote semantics, or liquidation invariants, verify the claim against the relevant official docs or upstream source before assigning blame.
+- For every major blocker, explicitly classify the result as one of:
+  - production bot problem
+  - simulation environment problem
+  - both
+- Treat "both" as a first-class result when a bot bug and a local-harness realism gap are stacked in the same flow.
+
 - Classify each blocker into one of these buckets:
   - preset design mismatch
   - runtime scheduling or budget behavior
@@ -74,6 +81,31 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 - If the symptom is caused by the local harness, fix the harness instead of masking it in runtime logic.
 - If a local stub inflates or distorts profitability, preserve the runtime behavior and calibrate the stub.
 - If a scenario intentionally stresses one dimension, make sure the harness is not accidentally stressing unrelated dimensions.
+
+### 4.1) Map the observed failure to the real pipeline stage
+
+- Do not treat every `liquidation_event` row as evidence that the run reached verification or execution.
+- Reconstruct the stage explicitly, such as:
+  - candidate discovery
+  - local estimate
+  - solver candidate quote
+  - verification or pre-submit re-quote
+  - simulation
+  - execution
+- When logs or event rows expose `stage`, `bucket`, `reason`, or similar structured fields, use them to explain exactly where the attempt stopped.
+- When the user is confused by counts, distinguish:
+  - unique positions
+  - candidate attempts
+  - quote attempts
+  - verification attempts
+  - executed liquidations
+
+### 4.2) Audit quote-budget behavior before calling the strategy broken
+
+- Check whether a high quote count reflects many unique positions or repeated coarse/refinement exploration on the same few positions.
+- Trace how the runtime reserves verification capacity versus non-verification capacity, and explain which bucket was exhausted.
+- If the strategy relies on local oracle estimates before quoting, verify whether the admission threshold is merely "positive estimate" or something stricter before assuming those candidates were all strong.
+- When quote pressure appears unreasonable, tie the explanation back to the actual solver-step count, coarse/refinement selection logic, and the number of cross-mint candidates in the run.
 
 ### 5) Trace the full decision tree for missed liquidations or remediations
 
@@ -117,12 +149,17 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 - **Overloaded “unknown” failures**: logs contain structured reasons, but the first-pass analysis never decomposes them.
 - **Continuous-mode self-sabotage**: a stress regime intended to stale pull oracles instead makes the runtime’s own primary feeds unusable.
 - **Quote budget starvation**: local filtering improves behavior but still lets low-value cross-mint candidates consume scarce quote capacity before higher-value paths can finish.
+- **Blame assigned too early**: the first visible error gets labeled as either bot or tooling before official docs, upstream source, and run artifacts confirm that attribution.
+- **Phase confusion**: event counts are interpreted as verification or execution attempts even though the run stopped much earlier in candidate quote or pre-submit simulation.
+- **Quote-count misread**: a large total quote count is mistaken for many distinct opportunities when the runtime actually spent repeated exploration quotes on a smaller set of positions.
 
 ## Output checklist
 
 - Name the exact scenario, preset, duration, and run directory.
 - State whether the root cause was product logic, toolchain realism, or both.
+- For protocol-sensitive issues, name the official docs or upstream source used to justify that attribution.
 - Cite the artifact types used: preset, logs, SQLite tables, and code paths.
+- Explain the failing stage in the liquidation pipeline and whether the key counts represent positions, attempts, quotes, or executed outcomes.
 - Summarize the narrow fix and the regression test or rerun evidence.
 - If the final scenario should be reused, state where the preset or docs were added.
 
