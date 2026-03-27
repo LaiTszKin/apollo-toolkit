@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.12.1] - 2026-03-28
+
+### Changed
+- Update `commit-and-push` so it must keep root `CHANGELOG.md` `Unreleased` aligned with the actual pending change set, preserving unrelated bullets while removing stale conflicting entries.
+- Update `version-release` so releases publish directly from curated root `CHANGELOG.md` `Unreleased` content instead of reconstructing release notes from `git diff`.
+
 ## [v2.12.0] - 2026-03-28
 
 ### Added

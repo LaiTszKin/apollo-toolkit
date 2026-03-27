@@ -15,8 +15,8 @@ description: "Guide the agent to submit local changes with commit and push only 
 ## Standards
 
 - Evidence: Inspect git state and classify the change set before deciding which quality gates apply.
-- Execution: Run the required quality-gate skills when applicable, convert completed spec sets into categorized project docs during submission, normalize non-standard project docs when needed, preserve staging intent, honor any explicit user-specified target branch, then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
-- Quality: Re-run relevant validation for runtime changes, keep project docs plus agent constraints synchronized before committing, and preserve unrelated local work safely when branch switching or post-push local sync is required; treat `archive-specs` outputs as the canonical project-doc structure when normalization is required.
+- Execution: Run the required quality-gate skills when applicable, convert completed spec sets into categorized project docs during submission, normalize non-standard project docs when needed, keep `CHANGELOG.md` `Unreleased` aligned with the actual pending change set, preserve staging intent, honor any explicit user-specified target branch, then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
+- Quality: Re-run relevant validation for runtime changes, keep project docs plus agent constraints synchronized before committing, preserve unrelated local work safely when branch switching or post-push local sync is required, and remove stale or conflicting `Unreleased` bullets when the current change supersedes them; treat `archive-specs` outputs as the canonical project-doc structure when normalization is required.
 - Output: Produce a concise Conventional Commit, push it to the intended branch, and report any temporary stash/restore or local branch sync that was required.
 
 ## Overview
@@ -63,14 +63,20 @@ Load only when needed:
 6. Run pre-commit sync dependencies
    - Execute `align-project-documents` after spec conversion and code/doc scans are complete.
    - Execute `maintain-project-constraints` immediately before the commit.
-7. Keep docs synchronized when needed
+7. Keep changelog synchronized before commit
+   - Treat root `CHANGELOG.md` `Unreleased` as the canonical pending release-notes source.
+   - Add or update only the bullets that correspond to the actual current change set.
+   - Preserve unaffected `Unreleased` bullets from other pending work.
+   - If an older `Unreleased` bullet conflicts with, duplicates, or is superseded by the current implementation, rewrite or remove the stale entry instead of leaving both versions behind.
+   - Keep section grouping consistent with the repository changelog format.
+8. Keep docs synchronized when needed
    - Apply the output from `archive-specs` when repository specs were converted or existing project docs were normalized into categorized project docs.
    - Apply the output from `align-project-documents` when behavior or usage changed.
    - Apply the output from `maintain-project-constraints` when agent workflow/rules changed.
-8. Commit
+9. Commit
    - Preserve user staging intent where possible.
    - Write a concise Conventional Commit message using `references/commit-messages.md`.
-9. Push
+10. Push
    - Push commit(s) to the intended branch.
    - Do not overlap `git commit`, `git push`, branch switching, or post-push sync operations; wait for each mutation to finish before starting the next one.
    - After pushing, verify the remote branch tip matches the local `HEAD`, for example by comparing `git rev-parse HEAD` with the target branch hash from `git rev-parse @{u}` or `git ls-remote --heads <remote> <branch>`.

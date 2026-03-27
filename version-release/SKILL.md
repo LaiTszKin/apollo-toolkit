@@ -14,9 +14,9 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 
 ## Standards
 
-- Evidence: Inspect the active change set and the release range before touching version files, tags, or changelog entries.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, convert completed spec sets into categorized project docs before release finalization, normalize non-standard project docs when needed, then update versions, docs, commit, tag, push, and publish the GitHub release; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
-- Quality: Never guess versions, align user-facing docs with actual code, convert completed planning docs into standardized categorized project docs before the release is published, and treat the `archive-specs` structure as the release-ready documentation format.
+- Evidence: Inspect the active change set, current version files, and root `CHANGELOG.md` `Unreleased` content before touching version files, tags, or release metadata.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, convert completed spec sets into categorized project docs before release finalization, normalize non-standard project docs when needed, then cut the release directly from `CHANGELOG.md` `Unreleased`, update versions and docs, commit, tag, push, and publish the GitHub release; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
+- Quality: Never guess versions, align user-facing docs with actual code, convert completed planning docs into standardized categorized project docs before the release is published, treat the `archive-specs` structure as the release-ready documentation format, and do not reconstruct release notes from `git diff` when curated changelog content already exists.
 - Output: Produce a versioned release commit and tag, publish a matching GitHub release, and keep changelog plus relevant repository documentation synchronized.
 
 ## Overview
@@ -26,7 +26,7 @@ Run a standardized release workflow for versioned delivery:
 - resolve release scope
 - align project code and standardized categorized project documentation
 - bump version files
-- update changelog and relevant docs
+- cut the release from `CHANGELOG.md` `Unreleased` and update relevant docs
 - commit, tag, push, and publish the GitHub release
 
 ## References
@@ -57,44 +57,44 @@ Load only when needed:
    - For code-affecting changes, run `review-change-set`, `discover-edge-cases`, and `harden-app-security` for the same release scope when their coverage is needed.
    - Consolidate all confirmed findings before continuing.
    - Resolve all confirmed findings before changing version files, tags, or release metadata.
-4. Identify release range
-   - Find latest version tag with `git describe --tags --abbrev=0` (fallback to `git tag --list`).
-   - If no tags exist, use initial commit from `git rev-list --max-parents=0 HEAD`.
-   - Review `git log --oneline <range>` and `git diff --stat <range>`.
-5. Standardize project docs when specs or doc normalization is needed
+4. Standardize project docs when specs or doc normalization is needed
    - Before finalizing the release, execute `archive-specs` when `repo-specs-ready-for-conversion` is true or when `project-doc-structure-mismatch` is true.
    - Let `archive-specs` convert the relevant specs into categorized project docs such as `docs/README.md`, `docs/getting-started.md`, `docs/configuration.md`, `docs/architecture.md`, `docs/features.md`, and `docs/developer-guide.md`.
    - Let the skill normalize any existing project docs to the same structure and archive superseded source spec files.
    - Do not treat unchecked task or decision checkboxes alone as blocking unfinished work; read the surrounding notes and requirement status semantically.
    - If the docs still show unresolved implementation scope that is neither completed, intentionally deferred, nor explicitly `N/A`, do not convert them yet; report that the spec files remain active and should not be deleted.
-6. Align code and project docs
-   - Compare release range changes with user-facing docs and operational docs to ensure they match actual code behavior.
+5. Align code and project docs
+   - Compare the pending release intent plus current repository behavior with user-facing docs and operational docs to ensure they match actual code behavior.
    - Required alignment targets include project docs such as `README.md`, usage/setup docs, API docs, deployment/runbook docs, and release notes sources when present.
    - After `archive-specs` runs, treat the categorized outputs as the canonical project-doc structure.
    - If existing project docs are present but still use a mixed or non-standard layout, normalize them into the same categorized structure before version bumping or tagging.
    - If mismatches are found, update the relevant project docs before version bumping/tagging.
-7. Decide version and tag format
+6. Decide version and tag format
    - Read existing version files (for example `project.toml`, `package.json`, or repo-specific version files).
    - Infer existing tag format (`vX.Y.Z` or `X.Y.Z`) from repository tags.
    - If the user provides the target version, use it directly.
    - If it is missing, ask the user for the target version or semver bump type.
    - Provide recommendations only when explicitly requested.
-8. Update version files
+7. Update version files
    - Update every detected version file consistently.
    - Preserve file formatting; change only version values.
-9. Update release docs
-   - Update `CHANGELOG.md` with a new version entry using the selected release range.
+8. Update release docs
+   - Treat root `CHANGELOG.md` `Unreleased` as the canonical pending release content.
+   - If `Unreleased` is empty, stop and report that there are no curated release notes to publish yet.
+   - Create the new version entry by moving the current `Unreleased` sections under the selected version heading and release date.
+   - Reset `Unreleased` to an empty placeholder after the version entry is created.
+   - Remove duplicate section headers or bullets only when the move would otherwise create repeated content.
    - Update `README.md` only when behavior or usage changed.
    - Update `AGENTS.md` only when agent workflow/rules changed.
-10. Commit and tag
-   - Create a release-oriented commit message (for example `chore(release): bump version and update changelog`) when applicable.
+9. Commit and tag
+   - Create a release-oriented commit message (for example `chore(release): publish 2.12.1`) when applicable.
    - Create the version tag locally after commit.
-11. Push
+10. Push
    - Push commit(s) and the release tag to the current branch before publishing the GitHub release when the hosting platform requires the tag to exist remotely.
    - Do not overlap `git commit`, `git tag`, `git push`, or release-publish steps; wait for each mutation to finish before starting the next one.
    - After pushing, verify the remote branch tip matches local `HEAD`, and verify the release tag exists remotely via `git ls-remote --tags <remote> <tag>`.
    - If any git step finishes ambiguously or the remote hashes do not match local state, rerun the missing step sequentially and re-check before publishing the GitHub release.
-12. Publish the GitHub release
+11. Publish the GitHub release
    - Create a non-draft GitHub release that matches the pushed version tag.
    - Use the release notes from the new `CHANGELOG.md` entry unless the repository has a stronger established release-note source.
    - If the repository has publish automation triggered by `release.published`, ensure the GitHub release is actually published rather than left as a draft.
