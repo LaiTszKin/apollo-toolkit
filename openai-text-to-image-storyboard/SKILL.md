@@ -44,7 +44,7 @@ Always save outputs in `pictures/<content_name>/` (example: `pictures/1_chapter_
 
 Create `.env` in this skill folder (default path used by script):
 
-- `/Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/.env`
+- `~/.codex/skills/openai-text-to-image-storyboard/.env`
 
 You can still override via `--env-file` when needed.
 All CLI parameters take priority over environment variables.
@@ -59,16 +59,16 @@ All CLI parameters take priority over environment variables.
 - `OPENAI_IMAGE_STYLE` (optional)
 
 A template is provided at:
-- `/Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/.env.example`
+- `~/.codex/skills/openai-text-to-image-storyboard/.env.example`
 
 ## Command
 
 Use JSON prompt file:
 
 ```bash
-python /Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/scripts/generate_storyboard_images.py \
+python ~/.codex/skills/openai-text-to-image-storyboard/scripts/generate_storyboard_images.py \
   --project-dir /path/to/project \
-  --env-file /Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/.env \
+  --env-file ~/.codex/skills/openai-text-to-image-storyboard/.env \
   --content-name "1_chapter_title" \
   --prompts-file /path/to/prompts.json
 ```

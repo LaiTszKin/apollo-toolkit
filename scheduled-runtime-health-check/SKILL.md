@@ -15,7 +15,7 @@ description: Use a background terminal to run a user-specified command immediate
 ## Standards
 
 - Evidence: Anchor every conclusion to the requested command, execution window, startup/shutdown timestamps, captured logs, and concrete runtime signals.
-- Execution: Collect the run contract, use a background terminal, optionally update the code only when the user asks, execute the requested command immediately or in the requested window, capture logs, stop cleanly when bounded, then delegate log review to `analyse-app-logs` only when findings are requested or needed.
+- Execution: Collect the run contract, verify the real stop mechanism before launch, use a background terminal, optionally update the code only when the user asks, execute the requested command immediately or in the requested window, capture logs, stop cleanly when bounded, then delegate log review to `analyse-app-logs` only when findings are requested or needed.
 - Quality: Keep scheduling, execution, and shutdown deterministic; separate confirmed findings from hypotheses; and mark each assessed module healthy/degraded/failed/unknown with reasons.
 - Output: Return the run configuration, execution status, log locations, optional code-update result, optional module health by area, confirmed issues, potential issues, observability gaps, and scheduler status when applicable.
 
@@ -61,6 +61,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
    - Use a dedicated background terminal session for the whole workflow.
    - Create a dedicated run folder and record timezone, cwd, requested command, terminal session identifier, and any requested start/end boundaries.
    - Capture stdout and stderr from the beginning of the session so the full run stays auditable.
+   - Identify and record the exact bounded-stop mechanism before launch: signal path, wrapper script, env var names, CLI flags, PID capture, and any project-specific shutdown helper.
 3. Optionally update to the latest safe code state
    - Only do this step when the user explicitly asked to update the project before execution.
    - Prefer the repository's normal safe update path, such as `git pull --ff-only`, or the project's documented sync command if one exists.
@@ -76,8 +77,10 @@ This skill is an orchestration layer. It owns the background terminal session, o
    - If readiness never arrives, stop the run, preserve logs, and treat it as a failed startup window.
 6. Observe and stop when bounded
    - If a bounded window or explicit stop time was requested, keep the process running only for that agreed window and then stop it cleanly.
+   - Do not rely only on the child command to self-terminate on time; track the wall-clock deadline yourself and enforce the stop sequence when the deadline is reached.
    - Track crashes, restarts, retry storms, timeout bursts, stuck jobs, resource pressure, and repeated warnings during the run.
    - Use the project's normal shutdown path first; if graceful stop fails, escalate deterministically and record the exact stop sequence and timestamps.
+   - If the process overruns the agreed window, stop it immediately, mark the run as an overrun, and report whether the cause was a bad wrapper contract, a missing stop hook, or a failed shutdown.
 7. Explain findings from logs when requested
    - If the user asked for findings after completion, wait for the run to finish before analyzing the captured logs.
    - Invoke `analyse-app-logs` on only the captured runtime window.
@@ -130,6 +133,7 @@ Use this structure in responses:
 ## Guardrails
 
 - Do not let the project continue running past the agreed window unless the user explicitly asks.
+- Do not assume the documented bound is real until the wrapper or script implementation confirms it.
 - Do not perform a code-update step unless the user explicitly asked for it.
 - Do not claim steady-state health from startup-only evidence.
 - Keep the run folder and scheduler metadata so the investigation can be reproduced.

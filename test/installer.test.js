@@ -4,7 +4,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 
-const { installLinks, normalizeModes, syncToolkitHome } = require('../lib/installer');
+const { expandUserPath, installLinks, normalizeModes, syncToolkitHome } = require('../lib/installer');
 const { buildBanner, buildWelcomeScreen, run } = require('../lib/cli');
 
 async function createFixtureSource(rootDir) {
@@ -44,6 +44,14 @@ function createMemoryStream() {
 test('normalizeModes expands all and removes duplicates', () => {
   assert.deepEqual(normalizeModes(['codex', 'all', 'trae']), ['codex', 'openclaw', 'trae']);
   assert.throws(() => normalizeModes(['unknown']), /Invalid mode/);
+});
+
+test('expandUserPath resolves tilde against HOME', () => {
+  assert.equal(
+    expandUserPath('~/.codex/skills', { HOME: '/tmp/example-home' }),
+    path.join('/tmp/example-home', '.codex', 'skills'),
+  );
+  assert.equal(expandUserPath('/tmp/already-absolute', { HOME: '/tmp/example-home' }), '/tmp/already-absolute');
 });
 
 test('buildBanner shows Apollo Toolkit branding', () => {
@@ -108,6 +116,31 @@ test('run installs toolkit home and copies skills into selected targets', async 
   assert.equal((await fs.lstat(openclawSkill)).isDirectory(), true);
   assert.notEqual(await fs.realpath(codexSkill), expectedSource);
   assert.equal(await fs.readFile(path.join(codexSkill, 'SKILL.md'), 'utf8'), '# alpha\n');
+});
+
+test('installLinks resolves tilde-prefixed target overrides from environment', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-tilde-target-'));
+  const homeDir = path.join(tempDir, 'user-home');
+  const toolkitHome = path.join(tempDir, '.apollo-toolkit');
+  const sourceSkill = path.join(toolkitHome, 'alpha-skill');
+
+  await fs.mkdir(sourceSkill, { recursive: true });
+  await fs.writeFile(path.join(sourceSkill, 'SKILL.md'), '# alpha\n', 'utf8');
+
+  await installLinks({
+    toolkitHome,
+    modes: ['codex'],
+    previousSkillNames: ['alpha-skill'],
+    env: {
+      HOME: homeDir,
+      CODEX_SKILLS_DIR: '~/.custom-codex-skills',
+    },
+  });
+
+  assert.equal(
+    (await fs.lstat(path.join(homeDir, '.custom-codex-skills', 'alpha-skill'))).isDirectory(),
+    true,
+  );
 });
 
 test('installLinks removes stale skills that disappeared from the new version', async () => {

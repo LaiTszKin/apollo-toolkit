@@ -38,6 +38,7 @@ It is designed to be reusable by other skills that already know the issue title 
 - Preserve upstream evidence content; only localize section headers and default fallback text.
 - Make the issue type explicit: `problem`, `feature`, `performance`, `security`, `docs`, or `observability`.
 - For `problem` issues, describe the expected behavior and current behavior with BDD-style `Given / When / Then`, then state the behavioral difference explicitly.
+- Prefer `python3` plus an absolute helper path when invoking bundled scripts; do not assume `python`, relative paths, or the caller's cwd are wired correctly.
 
 ## Workflow
 
@@ -95,10 +96,16 @@ It is designed to be reusable by other skills that already know the issue title 
 
 Use the bundled script.
 
+First resolve:
+
+```bash
+SKILL_ROOT=~/.codex/skills/open-github-issue
+```
+
 Problem issue:
 
 ```bash
-python scripts/open_github_issue.py \
+python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
   --issue-type problem \
   --title "[Log] <short symptom>" \
   --problem-description $'Expected Behavior (BDD)\nGiven ...\nWhen ...\nThen ...\n\nCurrent Behavior (BDD)\nGiven ...\nWhen ...\nThen ...\n\nBehavior Gap\n- Expected: ...\n- Actual: ...\n- Difference/Impact: ...\n\nEvidence\n- symptom: ...\n- impact: ...\n- key evidence: ...' \
@@ -110,7 +117,7 @@ python scripts/open_github_issue.py \
 Feature proposal issue:
 
 ```bash
-python scripts/open_github_issue.py \
+python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
   --issue-type feature \
   --title "[Feature] <short proposal>" \
   --proposal "<what should be added or changed>" \
@@ -122,7 +129,7 @@ python scripts/open_github_issue.py \
 Performance issue:
 
 ```bash
-python scripts/open_github_issue.py \
+python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
   --issue-type performance \
   --title "[Performance] Slow dashboard query under large tenants" \
   --problem-description "Dashboard loading time degrades sharply once tenant data exceeds current pagination assumptions." \
@@ -135,7 +142,7 @@ python scripts/open_github_issue.py \
 Security issue:
 
 ```bash
-python scripts/open_github_issue.py \
+python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
   --issue-type security \
   --title "[Security] Missing authorization check on admin export" \
   --problem-description "The admin export endpoint can be reached without verifying the caller's admin role." \
@@ -150,7 +157,7 @@ python scripts/open_github_issue.py \
 Docs issue:
 
 ```bash
-python scripts/open_github_issue.py \
+python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
   --issue-type docs \
   --title "[Docs] Deployment guide omits required Redis configuration" \
   --problem-description "The deployment guide does not mention the required Redis URL and worker startup order." \
@@ -162,7 +169,7 @@ python scripts/open_github_issue.py \
 Observability issue:
 
 ```bash
-python scripts/open_github_issue.py \
+python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
   --issue-type observability \
   --title "[Observability] Missing request identifiers in payment retry logs" \
   --problem-description "Retry logs do not include stable request or trace identifiers, so multi-line failures cannot be correlated quickly." \
@@ -199,3 +206,4 @@ When another skill depends on `open-github-issue`:
 ## Resources
 
 - `scripts/open_github_issue.py`: Deterministic issue publishing helper with auth fallback and README language detection.
+- If the helper path is unavailable or still fails for environment reasons, fall back to direct `gh issue create` or GitHub REST API publishing instead of retrying the same broken relative-path invocation.

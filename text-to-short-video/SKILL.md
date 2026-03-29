@@ -82,11 +82,11 @@ Consistency rules:
 
 Use this template:
 
-- `/Users/tszkinlai/.codex/skills/text-to-short-video/.env.example`
+- `~/.codex/skills/text-to-short-video/.env.example`
 
 Copy to:
 
-- `/Users/tszkinlai/.codex/skills/text-to-short-video/.env`
+- `~/.codex/skills/text-to-short-video/.env`
 
 Required keys:
 
@@ -173,10 +173,10 @@ If provider returns multiple outputs, keep the best one that matches requested s
 When output ratio or resolution differs from target, run:
 
 ```bash
-python /Users/tszkinlai/.codex/skills/text-to-short-video/scripts/enforce_video_aspect_ratio.py \
+python ~/.codex/skills/text-to-short-video/scripts/enforce_video_aspect_ratio.py \
   --input-video "<downloaded_video_path>" \
   --output-video "<final_output_video_path>" \
-  --env-file /Users/tszkinlai/.codex/skills/text-to-short-video/.env \
+  --env-file ~/.codex/skills/text-to-short-video/.env \
   --force
 ```
 

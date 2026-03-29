@@ -50,14 +50,14 @@ OPENAI_IMAGE_MODEL=gpt-image-1
 > Both `OPENAI_IMAGE_RATIO` and `OPENAI_IMAGE_ASPECT_RATIO` are supported; `OPENAI_IMAGE_RATIO` is preferred.  
 > If a ratio is provided, the script performs center-crop post-processing to match it.  
 > If provider ignores `aspect_ratio`, use `OPENAI_IMAGE_SIZE` (for example `1024x768`).  
-> By default, the script reads `/Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/.env`.
+> By default, the script reads `~/.codex/skills/openai-text-to-image-storyboard/.env`.
 
 3. Run with JSON prompt file
 
 ```bash
 python scripts/generate_storyboard_images.py \
   --project-dir /path/to/project \
-  --env-file /Users/tszkinlai/.codex/skills/openai-text-to-image-storyboard/.env \
+  --env-file ~/.codex/skills/openai-text-to-image-storyboard/.env \
   --content-name "1_chapter_title" \
   --prompts-file /path/to/prompts.json
 ```

@@ -25,7 +25,24 @@ USAGE
 
 SCRIPT_SOURCE="${BASH_SOURCE[0]-}"
 TOOLKIT_REPO_URL="${APOLLO_TOOLKIT_REPO_URL:-https://github.com/LaiTszKin/apollo-toolkit.git}"
-TOOLKIT_HOME="${APOLLO_TOOLKIT_HOME:-$HOME/.apollo-toolkit}"
+
+expand_user_path() {
+  local raw_path="${1-}"
+
+  case "$raw_path" in
+    "~")
+      printf '%s\n' "$HOME"
+      ;;
+    "~/"*)
+      printf '%s\n' "$HOME/${raw_path#~/}"
+      ;;
+    *)
+      printf '%s\n' "$raw_path"
+      ;;
+  esac
+}
+
+TOOLKIT_HOME="$(expand_user_path "${APOLLO_TOOLKIT_HOME:-$HOME/.apollo-toolkit}")"
 
 show_banner() {
   cat <<'BANNER'
@@ -94,7 +111,7 @@ replace_with_copy() {
 
 install_codex() {
   local codex_skills_dir
-  codex_skills_dir="${CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
+  codex_skills_dir="$(expand_user_path "${CODEX_SKILLS_DIR:-$HOME/.codex/skills}")"
 
   echo "Installing to codex: $codex_skills_dir"
   for src in "${SKILL_PATHS[@]}"; do
@@ -106,7 +123,7 @@ install_openclaw() {
   local openclaw_home workspace skills_dir
   local -a workspaces
 
-  openclaw_home="${OPENCLAW_HOME:-$HOME/.openclaw}"
+  openclaw_home="$(expand_user_path "${OPENCLAW_HOME:-$HOME/.openclaw}")"
 
   workspaces=()
   while IFS= read -r workspace; do
@@ -129,7 +146,7 @@ install_openclaw() {
 
 install_trae() {
   local trae_skills_dir
-  trae_skills_dir="${TRAE_SKILLS_DIR:-$HOME/.trae/skills}"
+  trae_skills_dir="$(expand_user_path "${TRAE_SKILLS_DIR:-$HOME/.trae/skills}")"
 
   echo "Installing to trae: $trae_skills_dir"
   for src in "${SKILL_PATHS[@]}"; do
@@ -139,7 +156,7 @@ install_trae() {
 
 install_agents() {
   local agents_skills_dir
-  agents_skills_dir="${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
+  agents_skills_dir="$(expand_user_path "${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}")"
 
   echo "Installing to agents: $agents_skills_dir"
   for src in "${SKILL_PATHS[@]}"; do

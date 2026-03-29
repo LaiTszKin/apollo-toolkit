@@ -15,7 +15,7 @@ description: Investigate production or local simulation runs for runtime-toolcha
 ## Standards
 
 - Evidence: Base conclusions on the actual preset, runtime command, logs, SQLite event store, local stub responses, and the code paths that generated them.
-- Execution: Reproduce with the exact scenario first, separate product logic failures from simulation-toolchain failures, make the smallest realistic toolchain fix, and rerun the same bounded scenario to validate.
+- Execution: Reproduce with the exact scenario first, verify the bounded-run contract against the actual script/env implementation before launch, separate product logic failures from simulation-toolchain failures, make the smallest realistic toolchain fix, and rerun the same bounded scenario to validate.
 - Quality: Prefer harness or stub fixes that improve realism over one-off scenario hacks, avoid duplicating existing workflow skills, and record reusable presets when a scenario becomes part of the regular test suite.
 - Output: Return the scenario contract, observed outcomes, root-cause chain, fixes applied, validation evidence, and any remaining realism gaps.
 
@@ -41,6 +41,8 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 
 - Use the same production/local simulation script the repository already treats as canonical.
 - Prefer a bounded run window with a stable run name and output directory.
+- Before launch, read the script or wrapper that enforces the run duration and confirm the real control surface, such as the exact env var name, CLI flag, shutdown helper, and artifact path conventions.
+- Do not assume a generic `RUNTIME_SECS`-style variable is wired correctly; verify the actual variable names and stop path from code or scripts first.
 - Save and inspect the exact artifacts produced by that run:
   - main runtime log
   - actor or stub logs
@@ -48,6 +50,7 @@ Use this skill to debug simulation workflows where the repository exposes a prod
   - SQLite or other persistence outputs
   - scenario manifest or preset-resolved settings
 - Do not trust older run directories when the user asks about a new execution.
+- If the run exceeds the agreed bounded window, stop it promptly, preserve the partial artifacts, and treat the overrun itself as a toolchain bug or contract mismatch to diagnose.
 
 ### 3) Audit the artifact chain before diagnosing product logic
 
@@ -143,6 +146,7 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 
 ## Common failure patterns
 
+- **Bounded-run contract drift**: the analyst assumes the wrong duration env var, CLI flag, or shutdown path, so the run exceeds the promised window and the captured evidence no longer matches the requested contract.
 - **Wrong artifact source**: the analyst inspects an older SQLite file or the wrong event database and concludes that runtime behavior is missing.
 - **Preset says one thing, harness does another**: scenario names sound right, but the actual matrix or oracle mode does not match the user’s intent.
 - **Stub realism drift**: local quote, swap, or oracle stubs distort pricing, accounts, or program IDs enough to create false failures or false profits.

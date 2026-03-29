@@ -32,8 +32,8 @@ No mandatory dependencies.
 1. Copy env template:
 
 ```bash
-cp /Users/tszkinlai/.codex/skills/text-to-short-video/.env.example \
-   /Users/tszkinlai/.codex/skills/text-to-short-video/.env
+cp ~/.codex/skills/text-to-short-video/.env.example \
+   ~/.codex/skills/text-to-short-video/.env
 ```
 
 2. Required values:
@@ -56,10 +56,10 @@ cp /Users/tszkinlai/.codex/skills/text-to-short-video/.env.example \
 If API-generated video ratio/size does not match the target, run:
 
 ```bash
-python /Users/tszkinlai/.codex/skills/text-to-short-video/scripts/enforce_video_aspect_ratio.py \
+python ~/.codex/skills/text-to-short-video/scripts/enforce_video_aspect_ratio.py \
   --input-video "<downloaded_video_path>" \
   --output-video "<final_output_video_path>" \
-  --env-file /Users/tszkinlai/.codex/skills/text-to-short-video/.env \
+  --env-file ~/.codex/skills/text-to-short-video/.env \
   --force
 ```
 

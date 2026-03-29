@@ -4,6 +4,13 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.12.2] - 2026-03-29
+
+### Changed
+- Update the npm installer and local install scripts to expand `~/` path overrides consistently for managed toolkit homes and target skill directories.
+- Refresh skill docs and agent prompts to replace user-specific absolute home paths with portable `~/`-based examples.
+- Strengthen `production-sim-debug` and `scheduled-runtime-health-check` so bounded runs must verify the actual stop mechanism and treat overruns as contract/tooling bugs to diagnose.
+
 ## [v2.12.1] - 2026-03-28
 
 ### Changed

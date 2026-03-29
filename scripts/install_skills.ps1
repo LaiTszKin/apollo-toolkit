@@ -29,7 +29,27 @@ Optional environment overrides:
 }
 
 $ToolkitRepoUrl = if ($env:APOLLO_TOOLKIT_REPO_URL) { $env:APOLLO_TOOLKIT_REPO_URL } else { "https://github.com/LaiTszKin/apollo-toolkit.git" }
-$ToolkitHome = if ($env:APOLLO_TOOLKIT_HOME) { $env:APOLLO_TOOLKIT_HOME } else { Join-Path $HOME ".apollo-toolkit" }
+
+function Expand-UserPath {
+  param([string]$Path)
+
+  if ([string]::IsNullOrWhiteSpace($Path)) {
+    return $Path
+  }
+
+  if ($Path -eq "~") {
+    return $HOME
+  }
+
+  if ($Path.StartsWith("~/") -or $Path.StartsWith('~\')) {
+    $trimmed = $Path.Substring(2)
+    return Join-Path $HOME $trimmed
+  }
+
+  return $Path
+}
+
+$ToolkitHome = if ($env:APOLLO_TOOLKIT_HOME) { Expand-UserPath $env:APOLLO_TOOLKIT_HOME } else { Join-Path $HOME ".apollo-toolkit" }
 
 function Show-Banner {
   @"
@@ -207,7 +227,7 @@ function Install-Codex {
   param([string[]]$SkillPaths)
 
   $target = if ($env:CODEX_SKILLS_DIR) {
-    $env:CODEX_SKILLS_DIR
+    Expand-UserPath $env:CODEX_SKILLS_DIR
   }
   else {
     Join-Path $HOME ".codex/skills"
@@ -223,7 +243,7 @@ function Install-OpenClaw {
   param([string[]]$SkillPaths)
 
   $openclawHome = if ($env:OPENCLAW_HOME) {
-    $env:OPENCLAW_HOME
+    Expand-UserPath $env:OPENCLAW_HOME
   }
   else {
     Join-Path $HOME ".openclaw"
@@ -251,7 +271,7 @@ function Install-Trae {
   param([string[]]$SkillPaths)
 
   $target = if ($env:TRAE_SKILLS_DIR) {
-    $env:TRAE_SKILLS_DIR
+    Expand-UserPath $env:TRAE_SKILLS_DIR
   }
   else {
     Join-Path $HOME ".trae/skills"
@@ -267,7 +287,7 @@ function Install-Agents {
   param([string[]]$SkillPaths)
 
   $target = if ($env:AGENTS_SKILLS_DIR) {
-    $env:AGENTS_SKILLS_DIR
+    Expand-UserPath $env:AGENTS_SKILLS_DIR
   }
   else {
     Join-Path $HOME ".agents/skills"
