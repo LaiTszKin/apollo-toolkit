@@ -7,16 +7,16 @@ description: "Guide the agent to submit local changes with commit and push only 
 
 ## Dependencies
 
-- Required: `align-project-documents` and `maintain-project-constraints` before the final commit.
-- Conditional: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting changes; `archive-specs` during submission when completed spec sets should be converted into project docs and archived, or when existing project docs need normalization into the standard categorized structure.
+- Required: `submission-readiness-check` before the final commit.
+- Conditional: `review-change-set` is required for code-affecting changes; `discover-edge-cases` and `harden-app-security` are important review gates that remain conditional, but become required whenever the reviewed scope or risk profile warrants them.
 - Optional: none.
-- Fallback: If any required dependency is unavailable, or if `archive-specs` is required for spec conversion but unavailable, stop and report the missing dependency.
+- Fallback: If any required dependency is unavailable, stop and report the missing dependency.
 
 ## Standards
 
-- Evidence: Inspect git state and classify the change set before deciding which quality gates apply.
-- Execution: Run the required quality-gate skills when applicable, convert completed spec sets into categorized project docs during submission, normalize non-standard project docs when needed, keep `CHANGELOG.md` `Unreleased` aligned with the actual pending change set, preserve staging intent, honor any explicit user-specified target branch, then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
-- Quality: Re-run relevant validation for runtime changes, keep project docs plus agent constraints synchronized before committing, preserve unrelated local work safely when branch switching or post-push local sync is required, and remove stale or conflicting `Unreleased` bullets when the current change supersedes them; treat `archive-specs` outputs as the canonical project-doc structure when normalization is required.
+- Evidence: Inspect git state and classify the change set before deciding which quality gates apply, then compare the actual pending diff against root `CHANGELOG.md` `Unreleased` before committing.
+- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for changelog/docs/plan finalization, preserve staging intent, honor any explicit user-specified target branch, then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
+- Quality: Re-run relevant validation for runtime changes, preserve unrelated local work safely when branch switching or post-push local sync is required, and do not bypass blocking readiness findings such as missing/stale `Unreleased` bullets or unsynchronized project docs.
 - Output: Produce a concise Conventional Commit, push it to the intended branch, and report any temporary stash/restore or local branch sync that was required.
 
 ## Overview
@@ -43,6 +43,7 @@ Load only when needed:
    - `repo-specs-ready-for-conversion`: the relevant `spec.md`, `tasks.md`, and `checklist.md` have been updated to reflect the actual outcome of the work, and any unchecked task/decision checkbox that is clearly not selected, replaced, deferred, or `N/A` (for example, E2E intentionally not created) does not by itself mean the spec set is unfinished.
    - `project-doc-structure-mismatch`: existing `README.md` and project docs do not match the categorized structure required by `archive-specs`.
    - Treat a spec set as still active when it documents remaining implementation gaps, follow-up integration work, undecided design work, or deferred tasks that still belong to the same in-flight change.
+   - Any conditional gate whose trigger is confirmed by this classification becomes mandatory before commit, including review, spec archival, docs synchronization, and changelog updates.
 3. Resolve branch target before mutating history
    - Treat an explicit user-specified destination such as `main`, `origin/main`, or another named branch as authoritative over the current branch.
    - If the current branch does not match the requested destination, inspect `git status --short` for unrelated local changes before switching branches.
@@ -50,33 +51,20 @@ Load only when needed:
    - If the fix was committed on the wrong branch, move it to the requested branch with safe history-preserving operations such as `cherry-pick`, `merge --ff-only`, or a clean replay; do not force-push unless the user explicitly asks for it.
    - If the user asks to sync the local target branch after pushing, fast-forward or pull that branch locally and then restore any preserved worktree changes.
 4. Run code-affecting dependency skills (when applicable)
-   - Run `review-change-set`, `discover-edge-cases`, and `harden-app-security` for the same code-affecting scope when their coverage is needed.
+   - Run `review-change-set` for every code-affecting change before continuing; treat unresolved review findings as blocking.
+   - Run `discover-edge-cases` and `harden-app-security` for the same code-affecting scope when the reviewed risk profile or repository context says their coverage is needed; treat them as blocking review gates, not optional polish, whenever that condition is met.
    - Consolidate and resolve all confirmed findings before continuing.
    - Re-run relevant tests when runtime logic changes.
-5. Standardize project docs when specs or doc normalization is needed
-   - During submission, execute `archive-specs` when `repo-specs-ready-for-conversion` is true or when `project-doc-structure-mismatch` is true.
-   - Let `archive-specs` convert the relevant specs into categorized project docs such as `docs/README.md`, `docs/getting-started.md`, `docs/configuration.md`, `docs/architecture.md`, `docs/features.md`, and `docs/developer-guide.md`.
-   - Let the skill normalize any existing project docs to the same structure and archive superseded source spec files.
-   - Do not treat unchecked task or decision checkboxes alone as blocking unfinished work; read the surrounding notes and requirement status semantically.
-   - If the docs still show unresolved implementation scope that is neither completed, intentionally deferred, nor explicitly `N/A`, do not convert them yet; report that the spec files remain active and should not be deleted.
-   - If the current change intentionally ships a partial phase while the same plan set still tracks remaining work, keep that plan set live and skip archival for that scope.
-6. Run pre-commit sync dependencies
-   - Execute `align-project-documents` after spec conversion and code/doc scans are complete.
-   - Execute `maintain-project-constraints` immediately before the commit.
-7. Keep changelog synchronized before commit
-   - Treat root `CHANGELOG.md` `Unreleased` as the canonical pending release-notes source.
-   - Add or update only the bullets that correspond to the actual current change set.
-   - Preserve unaffected `Unreleased` bullets from other pending work.
-   - If an older `Unreleased` bullet conflicts with, duplicates, or is superseded by the current implementation, rewrite or remove the stale entry instead of leaving both versions behind.
-   - Keep section grouping consistent with the repository changelog format.
-8. Keep docs synchronized when needed
-   - Apply the output from `archive-specs` when repository specs were converted or existing project docs were normalized into categorized project docs.
-   - Apply the output from `align-project-documents` when behavior or usage changed.
-   - Apply the output from `maintain-project-constraints` when agent workflow/rules changed.
-9. Commit
+5. Run shared submission readiness
+   - Execute `$submission-readiness-check` after code/doc scans are complete and before the final commit.
+   - Let it decide whether completed plan sets should be converted, whether project docs or `AGENTS.md` need synchronization, and whether `CHANGELOG.md` is blocking submission.
+   - Do not continue to commit while `submission-readiness-check` reports unresolved readiness blockers.
+   - Treat root `CHANGELOG.md` `Unreleased` coverage as mandatory for code-affecting or user-visible changes: if the current work is not reflected there yet, update it before committing instead of merely noting the gap.
+   - Re-open the final `CHANGELOG.md` diff after readiness updates and confirm the `Unreleased` bullets describe the same scope as the commit you are about to create.
+6. Commit
    - Preserve user staging intent where possible.
    - Write a concise Conventional Commit message using `references/commit-messages.md`.
-10. Push
+7. Push
    - Push commit(s) to the intended branch.
    - Do not overlap `git commit`, `git push`, branch switching, or post-push sync operations; wait for each mutation to finish before starting the next one.
    - After pushing, verify the remote branch tip matches the local `HEAD`, for example by comparing `git rev-parse HEAD` with the target branch hash from `git rev-parse @{u}` or `git ls-remote --heads <remote> <branch>`.
@@ -86,6 +74,10 @@ Load only when needed:
 ## Notes
 
 - Never run version bump, tag creation, or changelog release steps in this skill.
+- Treat every scenario-matched gate as blocking before commit, not as an optional reminder to maybe do later.
+- Never skip `review-change-set` for code-affecting changes, and do not continue past review while confirmed findings remain unresolved.
+- Never downgrade `discover-edge-cases` or `harden-app-security` to optional follow-up when the change risk says they apply.
+- Never claim the repository is ready to commit while root `CHANGELOG.md` `Unreleased` is missing the current change or still describes superseded work.
 - If release/version/tag work is requested, use `version-release` instead.
 - If a new branch is required, follow `references/branch-naming.md`.
 - A pushed implementation can still leave an active spec set behind; commit completion and spec archival are separate decisions.

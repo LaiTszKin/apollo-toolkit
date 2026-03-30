@@ -31,6 +31,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can read, filter, and inspect remote GitHub issues before planning follow-up work.
 - Users can resolve a GitHub issue end-to-end and push the fix directly to a requested branch without opening a PR.
 - Users can run evidence-first application security audits focused on confirmed vulnerabilities.
+- Users can run a shared submission-readiness pass that synchronizes changelog, project docs, `AGENTS.md`, and completed plan archives before commit, push, PR creation, or release.
 - Users can learn new or improved skills from recent Codex conversation history.
 - Users can audit and maintain the skill catalog itself, including dependency classification and shared-skill extraction decisions.
 - Users can summarize mistakes into separate multiple-choice and long-answer error books backed by structured reference files and rendered PDFs.

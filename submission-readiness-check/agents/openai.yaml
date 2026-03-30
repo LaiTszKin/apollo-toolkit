@@ -1,0 +1,4 @@
+interface:
+  display_name: "Submission Readiness"
+  short_description: "Sync changelog and docs before submit"
+  default_prompt: "Use $submission-readiness-check to prepare repository docs, changelog, and plan archives before commit, push, or release."

@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.12.3] - 2026-03-30
+
+### Changed
+- Strengthen `commit-and-push`, `submission-readiness-check`, and `version-release` so submit flows must actually update root `CHANGELOG.md` `Unreleased` before continuing when the pending code-affecting or user-visible change is missing there.
+- Strengthen `commit-and-push` and `version-release` so `review-change-set` remains conditional, but becomes a blocking requirement whenever the change set includes code changes.
+- Strengthen `version-release` prompts and workflow docs to require reading the current version and existing tag/release state first, and to treat the release as incomplete until the matching commit, tag, and GitHub release all exist.
+- Clarify across submit and release workflows that every conditional gate becomes blocking as soon as its triggering scenario is present, including spec archival and other readiness work.
+- Clarify that `discover-edge-cases` and `harden-app-security` are important risk-driven code review gates that also become blocking whenever the change or release surface says they apply.
+
 ## [v2.12.2] - 2026-03-29
 
 ### Changed

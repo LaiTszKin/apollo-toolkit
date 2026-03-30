@@ -43,6 +43,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - scheduled-runtime-health-check
 - shadow-api-model-research
 - solana-development
+- submission-readiness-check
 - systematic-debug
 - text-to-short-video
 - version-release
