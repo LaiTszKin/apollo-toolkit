@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.12.5] - 2026-04-01
+
+### Changed
+- Update `maintain-project-constraints` so generated `AGENTS.md` templates must include a factual `Common Commands` section grounded in repository-owned command entry points such as CLIs, package scripts, and task runners.
+- Refresh the Apollo Toolkit root `AGENTS.md` guidance with repository-specific common commands for the local CLI, validation scripts, tests, and install flows.
+
 ## [v2.12.4] - 2026-04-01
 
 ### Added

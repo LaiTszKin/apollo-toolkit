@@ -1,4 +1,4 @@
 interface:
   display_name: "Maintain Project Constraints"
-  short_description: "Automatically create and maintain AGENTS.md so it stays aligned with the current repository architecture, core business flow, project purpose, and coding conventions. Use when AGENTS.md is missing or may be outdated after code changes."
-  default_prompt: "Use $maintain-project-constraints to automatically create and maintain AGENTS.md so it stays aligned with the current repository architecture, core business flow, project purpose, and coding conventions. Use when AGENTS.md is missing or may be outdated after code changes."
+  short_description: "Automatically create and maintain AGENTS.md so it stays aligned with the current repository architecture, core business flow, common commands, project purpose, and coding conventions. Use when AGENTS.md is missing or may be outdated after code changes."
+  default_prompt: "Use $maintain-project-constraints to automatically create and maintain AGENTS.md so it stays aligned with the current repository architecture, core business flow, common commands, project purpose, and coding conventions. Use when AGENTS.md is missing or may be outdated after code changes."

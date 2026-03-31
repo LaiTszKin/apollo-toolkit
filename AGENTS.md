@@ -58,6 +58,16 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can prepare and publish versioned releases with changelog and tag workflows.
 - Users can generate long-form videos by orchestrating storyboard, voice, and Remotion-based production steps.
 
+## Common Commands
+
+- `npm test` - 執行 Node 測試套件。
+- `node bin/apollo-toolkit.js` - 直接從倉庫啟動 Apollo Toolkit CLI。
+- `node bin/apollo-toolkit.js codex openclaw trae` - 以非互動方式將技能安裝到指定目標。
+- `python3 scripts/validate_skill_frontmatter.py` - 驗證所有頂層技能 `SKILL.md` 的 frontmatter。
+- `python3 scripts/validate_openai_agent_config.py` - 驗證所有技能 `agents/openai.yaml` 設定。
+- `./scripts/install_skills.sh codex` - 用本地安裝腳本把技能安裝到 Codex 目錄。
+- `./scripts/install_skills.sh all` - 用本地安裝腳本同步安裝到所有支援目標。
+
 ## Core Project Purpose
 
 - Provide a curated set of reusable agent skills that can be installed into Codex/OpenClaw/Trae skill directories.
