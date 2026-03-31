@@ -15,7 +15,7 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 ## Standards
 
 - Evidence: Inspect the active change set, current version files, existing tag format, existing remote tags/releases, and root `CHANGELOG.md` `Unreleased` content before touching version files, tags, or release metadata.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, and treat every conditional gate whose scenario is met as blocking before versioning or publication; hand the repository to `submission-readiness-check` before versioning work, then cut the release directly from `CHANGELOG.md` `Unreleased`, update versions and docs, commit, tag, push, and publish the GitHub release; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, and treat every conditional gate whose scenario is met as blocking before versioning or publication; hand the repository to `submission-readiness-check` before versioning work, and if the worktree is already clean inspect the current version, local/remote tag state, and existing GitHub release state before deciding whether the request is already satisfied; then cut the release directly from `CHANGELOG.md` `Unreleased`, update versions and docs, commit, tag, push, and publish the GitHub release with actual release tooling rather than PR-surrogate directives; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
 - Quality: Never guess versions, align user-facing docs with actual code, do not bypass readiness blockers from `submission-readiness-check`, do not reconstruct release notes from `git diff` when curated changelog content already exists, and do not report release success until the commit, tag, and GitHub release all exist for the same version.
 - Output: Produce a versioned release commit and tag, publish a matching GitHub release, and keep changelog plus relevant repository documentation synchronized.
 
@@ -67,6 +67,7 @@ Load only when needed:
    - Read existing version files (for example `project.toml`, `package.json`, or repo-specific version files).
    - Infer existing tag format (`vX.Y.Z` or `X.Y.Z`) from repository tags.
    - Inspect existing local and remote tags plus any existing GitHub Release for the target version before creating new release metadata, so duplicate or conflicting releases are caught early.
+   - If the requested version tag and matching published GitHub release already exist and point at the intended commit, report that the release is already complete instead of creating duplicate metadata.
    - If the user provides the target version, use it directly.
    - If it is missing, ask the user for the target version or semver bump type.
    - Provide recommendations only when explicitly requested.
@@ -96,6 +97,7 @@ Load only when needed:
    - Use the release notes from the new `CHANGELOG.md` entry unless the repository has a stronger established release-note source.
    - If the repository has publish automation triggered by `release.published`, ensure the GitHub release is actually published rather than left as a draft.
    - Prefer `gh release create <tag>` or the repository's existing release tool when available.
+   - Do not use PR-opening tools, PR directives, or placeholder URLs as a substitute for actual release publication.
    - Confirm the GitHub release URL and any triggered publish workflow status in the final report.
    - Never stop after the release commit or tag alone; creating the matching GitHub release is part of done criteria unless the user explicitly says to skip release publication.
 
@@ -106,5 +108,6 @@ Load only when needed:
 - Never skip `review-change-set` for code-affecting releases, and do not continue to versioning work while confirmed review findings remain unresolved.
 - Never downgrade `discover-edge-cases` or `harden-app-security` to optional follow-up when the release risk says they apply.
 - Never claim a release is complete without checking the actual release version, creating the matching tag, and publishing the matching GitHub release.
+- Never treat a PR creation step, release-page URL guess, or tag-only push as evidence that the GitHub release exists.
 - If tests are required by repository conventions, run them before commit.
 - If a new branch is required, follow `references/branch-naming.md`.

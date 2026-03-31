@@ -7,15 +7,15 @@ description: Read a user-specified PDF that marks the week's key financial event
 
 ## Dependencies
 
-- Required: `pdf` to read the source PDF and render the final report.
-- Conditional: none.
+- Required: `pdf` to render the final report.
+- Conditional: `document-vision-reader` when the source PDF's highlighted markers are visible in layout but not recoverable from machine-readable text alone.
 - Optional: none.
-- Fallback: If `pdf` is unavailable, stop and report the missing dependency instead of improvising another PDF workflow.
+- Fallback: If source-PDF extraction through `pdf` is unavailable or fails on macOS, use the bundled `scripts/extract_pdf_text_pdfkit.swift` helper before giving up; only stop when neither `pdf` nor the local PDFKit fallback can recover the marked events, or when final PDF rendering itself cannot be completed.
 
 ## Standards
 
 - Evidence: Research only events explicitly marked in the source PDF plus clearly material breaking developments, and verify claims with current authoritative sources.
-- Execution: Read the PDF first, lock the research window, research each marked event, then hand the final briefing to `pdf` for rendering and QA with deterministic table-safe layout rules when needed.
+- Execution: Read the PDF first, prefer `pdf` for extraction but fall back to the bundled macOS PDFKit extractor when local PDF tooling is missing, lock the research window, research each marked event, then hand the final briefing to `pdf` for rendering and QA with deterministic table-safe layout rules when needed.
 - Quality: Keep the report concise, Chinese-compatible, explicit about source-versus-breaking events, conflicts, uncertainty, PDF font safety, and long-text table legibility.
 - Output: Save only the final standardized PDF under the month folder using the financial-event-report naming scheme.
 
@@ -66,14 +66,22 @@ Do not guess any input that materially changes the research window or report sco
 
 ### 1) Read the source PDF and extract the marked events
 
-- Use the `pdf` skill to open and extract the source PDF.
+- Prefer the `pdf` skill to open and extract the source PDF.
+- If `pdf` extraction is unavailable or fails because the current machine lacks local PDF tooling, and the host is macOS, run:
+
+```bash
+swift scripts/extract_pdf_text_pdfkit.swift /absolute/path/to/source.pdf
+```
+
+- The bundled extractor prints page-delimited text directly from PDFKit so the agent can still build the source-event table without adding Python PDF packages ad hoc.
 - Identify the document's explicit markers, such as highlights, comments, callouts, boxed sections, bookmarks, or clearly labeled weekly key-event sections.
 - Build a source-event table before searching. For each marked event capture:
   - page number
   - event label in the source PDF
   - date or date range if present
   - short note about why the source document highlighted it
-- If the PDF does not expose machine-readable annotations, fall back to clearly visible marked sections or headings.
+- If the PDF does not expose machine-readable annotations, fall back to clearly visible marked sections or headings from the extracted page text.
+- If the page text alone is insufficient because the document uses visual highlights or layout callouts without recoverable text markers, use `document-vision-reader` on screenshots of the relevant PDF pages before deciding the events are ambiguous.
 - If the document still does not make the marked events unambiguous, stop and report the ambiguity rather than inventing events.
 
 ### 2) Lock the research window

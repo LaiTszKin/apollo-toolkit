@@ -15,7 +15,7 @@ description: "Guide the agent to submit local changes with commit and push only 
 ## Standards
 
 - Evidence: Inspect git state and classify the change set before deciding which quality gates apply, then compare the actual pending diff against root `CHANGELOG.md` `Unreleased` before committing.
-- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for changelog/docs/plan finalization, preserve staging intent, honor any explicit user-specified target branch, then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
+- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for changelog/docs/plan finalization, preserve staging intent, honor any explicit user-specified target branch, and when the worktree is already clean inspect local `HEAD`, upstream state, and the most recent relevant commit before deciding the request is a no-op; then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
 - Quality: Re-run relevant validation for runtime changes, preserve unrelated local work safely when branch switching or post-push local sync is required, and do not bypass blocking readiness findings such as missing/stale `Unreleased` bullets or unsynchronized project docs.
 - Output: Produce a concise Conventional Commit, push it to the intended branch, and report any temporary stash/restore or local branch sync that was required.
 
@@ -36,6 +36,7 @@ Load only when needed:
    - Run `git status -sb`, `git diff --stat`, and `git diff --cached --stat`.
    - Check staged files with `git diff --cached --name-only`.
    - Inventory repository planning artifacts and project docs, not only staged files, to detect repo specs and non-standard documentation layouts.
+   - If the worktree is already clean, inspect `git log -1 --stat`, local `HEAD`, and the configured upstream state before concluding there is nothing to submit; use that evidence to determine whether the requested work was already committed and pushed, committed but not pushed, or never landed.
 2. Classify changes
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
    - `docs-only`: content updates only (for example README, docs, comments).
@@ -78,6 +79,7 @@ Load only when needed:
 - Never skip `review-change-set` for code-affecting changes, and do not continue past review while confirmed findings remain unresolved.
 - Never downgrade `discover-edge-cases` or `harden-app-security` to optional follow-up when the change risk says they apply.
 - Never claim the repository is ready to commit while root `CHANGELOG.md` `Unreleased` is missing the current change or still describes superseded work.
+- Never fabricate a commit/push result when the worktree is already clean; either identify the exact existing commit/upstream state that satisfies the user's request or say that no matching new submission exists.
 - If release/version/tag work is requested, use `version-release` instead.
 - If a new branch is required, follow `references/branch-naming.md`.
 - A pushed implementation can still leave an active spec set behind; commit completion and spec archival are separate decisions.

@@ -4,6 +4,17 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.12.4] - 2026-04-01
+
+### Added
+- Add a bundled macOS `PDFKit` extraction helper for `weekly-financial-event-report` so marked-event PDFs can still be parsed locally when the usual PDF tooling is unavailable.
+
+### Changed
+- Expand `weekly-financial-event-report` to prefer the `pdf` skill for extraction, fall back to the local PDFKit helper on macOS, and call `document-vision-reader` when visual highlights are not recoverable from extracted text alone.
+- Rework `align-project-documents` around category-based, newcomer-friendly documentation selection with a reusable template grounded in Diataxis and common open source doc types.
+- Tighten `commit-and-push` and `version-release` so clean-worktree submit/release requests must inspect existing local and remote state instead of fabricating a new submission result.
+- Strengthen `production-sim-debug` to record the active artifact root immediately and check startup admission signals before concluding a run had no opportunities.
+
 ## [v2.12.3] - 2026-03-30
 
 ### Changed

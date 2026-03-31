@@ -41,6 +41,7 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 
 - Use the same production/local simulation script the repository already treats as canonical.
 - Prefer a bounded run window with a stable run name and output directory.
+- As soon as the harness prints the active run name or output directory, record it and treat that path as the canonical artifact root for the rest of the investigation.
 - Before launch, read the script or wrapper that enforces the run duration and confirm the real control surface, such as the exact env var name, CLI flag, shutdown helper, and artifact path conventions.
 - Do not assume a generic `RUNTIME_SECS`-style variable is wired correctly; verify the actual variable names and stop path from code or scripts first.
 - Save and inspect the exact artifacts produced by that run:
@@ -56,6 +57,7 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 
 - Confirm that you are reading the correct database and log files for the active run.
 - Verify that the event tables you expect are actually the ones written by the runtime.
+- When the run appears "too clean" or fully zeroed, inspect startup selection counters first, such as candidate pool size, listener/tracked-position counts, or the repository's equivalent admission signals, before concluding there were simply no opportunities.
 - Check whether missing results come from:
   - no candidate selection
   - no worker completion
