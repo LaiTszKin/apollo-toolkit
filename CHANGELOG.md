@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.12.7] - 2026-04-02
+
+### Added
+- Add `claude-code` install mode for copying skills into `~/.claude/skills`, with `CLAUDE_CODE_SKILLS_DIR` environment override support.
+
+### Changed
+- Move `codex-memory-manager` and `learn-skill-from-conversations` into `codex/` subdirectory to clarify agent-specific skill boundaries.
+- Update codex install mode to include skills from both root directory and the `codex/` subdirectory.
+
 ## [v2.12.6] - 2026-04-02
 
 ### Added

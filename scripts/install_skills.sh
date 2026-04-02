@@ -4,21 +4,23 @@ set -euo pipefail
 usage() {
   cat <<"USAGE"
 Usage:
-  ./scripts/install_skills.sh [codex|openclaw|trae|agents|all]...
+  ./scripts/install_skills.sh [codex|openclaw|trae|agents|claude-code|all]...
 
 Modes:
-  codex     Copy skills into ~/.codex/skills
-  openclaw  Copy skills into ~/.openclaw/workspace*/skills
-  trae      Copy skills into ~/.trae/skills
-  agents    Copy skills into ~/.agents/skills (for agent-skill-compatible software)
-  all       Install all supported targets
+  codex       Copy skills into ~/.codex/skills (includes ./codex/ agent-specific skills)
+  openclaw    Copy skills into ~/.openclaw/workspace*/skills
+  trae        Copy skills into ~/.trae/skills
+  agents      Copy skills into ~/.agents/skills (for agent-skill-compatible software)
+  claude-code Copy skills into ~/.claude/skills
+  all         Install all supported targets
 
 Optional environment overrides:
-  CODEX_SKILLS_DIR   Override codex skills destination path
-  OPENCLAW_HOME      Override openclaw home path
-  TRAE_SKILLS_DIR    Override trae skills destination path
-  AGENTS_SKILLS_DIR  Override agents skills destination path
-  APOLLO_TOOLKIT_HOME Override local install path used in curl/pipe mode
+  CODEX_SKILLS_DIR    Override codex skills destination path
+  OPENCLAW_HOME       Override openclaw home path
+  TRAE_SKILLS_DIR     Override trae skills destination path
+  AGENTS_SKILLS_DIR   Override agents skills destination path
+  CLAUDE_CODE_SKILLS_DIR Override claude-code skills destination path
+  APOLLO_TOOLKIT_HOME  Override local install path used in curl/pipe mode
   APOLLO_TOOLKIT_REPO_URL Override git repository URL used in curl/pipe mode
 USAGE
 }
@@ -86,6 +88,18 @@ collect_skills() {
       SKILL_PATHS+=("$dir")
     fi
   done < <(find "$REPO_ROOT" -mindepth 1 -maxdepth 1 -type d | sort)
+
+  # For codex mode, also include codex-specific skills
+  if [[ " ${SELECTED_MODES[*]} " =~ " codex " ]]; then
+    local codex_dir="$REPO_ROOT/codex"
+    if [[ -d "$codex_dir" ]]; then
+      while IFS= read -r dir; do
+        if [[ -f "$dir/SKILL.md" ]]; then
+          SKILL_PATHS+=("$dir")
+        fi
+      done < <(find "$codex_dir" -mindepth 1 -maxdepth 1 -type d | sort)
+    fi
+  fi
 
   if [[ ${#SKILL_PATHS[@]} -eq 0 ]]; then
     echo "No skill folders found in: $REPO_ROOT" >&2
@@ -164,6 +178,16 @@ install_agents() {
   done
 }
 
+install_claude_code() {
+  local claude_code_skills_dir
+  claude_code_skills_dir="$(expand_user_path "${CLAUDE_CODE_SKILLS_DIR:-$HOME/.claude/skills}")"
+
+  echo "Installing to claude-code: $claude_code_skills_dir"
+  for src in "${SKILL_PATHS[@]}"; do
+    replace_with_copy "$src" "$claude_code_skills_dir"
+  done
+}
+
 add_mode_once() {
   local mode="$1"
   local existing
@@ -182,7 +206,7 @@ parse_mode() {
   local mode="$1"
 
   case "$mode" in
-    codex|openclaw|trae|agents)
+    codex|openclaw|trae|agents|claude-code)
       add_mode_once "$mode"
       ;;
     all)
@@ -190,6 +214,7 @@ parse_mode() {
       add_mode_once "openclaw"
       add_mode_once "trae"
       add_mode_once "agents"
+      add_mode_once "claude-code"
       ;;
     *)
       echo "Invalid mode: $mode" >&2
@@ -222,12 +247,13 @@ choose_modes_interactive() {
   show_banner
   echo
   echo "Select install options (comma-separated):"
-  echo "1) codex (~/.codex/skills)"
+  echo "1) codex (~/.codex/skills, includes ./codex/ agent-specific skills)"
   echo "2) openclaw (~/.openclaw/workspace*/skills)"
   echo "3) trae (~/.trae/skills)"
   echo "4) agents (~/.agents/skills)"
-  echo "5) all"
-  choice="$(read_choice_from_user 'Enter choice(s) [1-5]: ')"
+  echo "5) claude-code (~/.claude/skills)"
+  echo "6) all"
+  choice="$(read_choice_from_user 'Enter choice(s) [1-6]: ')"
 
   IFS=',' read -r -a choices <<< "$choice"
   for raw_choice in "${choices[@]}"; do
@@ -237,7 +263,8 @@ choose_modes_interactive() {
       2) add_mode_once "openclaw" ;;
       3) add_mode_once "trae" ;;
       4) add_mode_once "agents" ;;
-      5) add_mode_once "codex"; add_mode_once "openclaw"; add_mode_once "trae"; add_mode_once "agents" ;;
+      5) add_mode_once "claude-code" ;;
+      6) add_mode_once "codex"; add_mode_once "openclaw"; add_mode_once "trae"; add_mode_once "agents"; add_mode_once "claude-code" ;;
       *)
         echo "Invalid choice: $raw_choice" >&2
         exit 1
@@ -282,6 +309,7 @@ main() {
       openclaw) install_openclaw ;;
       trae) install_trae ;;
       agents) install_agents ;;
+      claude-code) install_claude_code ;;
       *)
         usage
         exit 1

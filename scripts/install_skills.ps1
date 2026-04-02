@@ -9,22 +9,24 @@ $ErrorActionPreference = "Stop"
 function Show-Usage {
   @"
 Usage:
-  ./scripts/install_skills.ps1 [codex|openclaw|trae|agents|all]...
+  ./scripts/install_skills.ps1 [codex|openclaw|trae|agents|claude-code|all]...
 
 Modes:
-  codex     Copy skills into ~/.codex/skills
-  openclaw  Copy skills into ~/.openclaw/workspace*/skills
-  trae      Copy skills into ~/.trae/skills
-  agents    Copy skills into ~/.agents/skills (for agent-skill-compatible software)
-  all       Install all supported targets
+  codex       Copy skills into ~/.codex/skills (includes ./codex/ agent-specific skills)
+  openclaw    Copy skills into ~/.openclaw/workspace*/skills
+  trae        Copy skills into ~/.trae/skills
+  agents      Copy skills into ~/.agents/skills (for agent-skill-compatible software)
+  claude-code Copy skills into ~/.claude/skills
+  all         Install all supported targets
 
 Optional environment overrides:
-  CODEX_SKILLS_DIR   Override codex skills destination path
-  OPENCLAW_HOME      Override openclaw home path
-  TRAE_SKILLS_DIR    Override trae skills destination path
-  AGENTS_SKILLS_DIR  Override agents skills destination path
-  APOLLO_TOOLKIT_HOME Override local install path used when repo root is unavailable
-  APOLLO_TOOLKIT_REPO_URL Override git repository URL used when repo root is unavailable
+  CODEX_SKILLS_DIR         Override codex skills destination path
+  OPENCLAW_HOME            Override openclaw home path
+  TRAE_SKILLS_DIR          Override trae skills destination path
+  AGENTS_SKILLS_DIR        Override agents skills destination path
+  CLAUDE_CODE_SKILLS_DIR   Override claude-code skills destination path
+  APOLLO_TOOLKIT_HOME       Override local install path used when repo root is unavailable
+  APOLLO_TOOLKIT_REPO_URL   Override git repository URL used when repo root is unavailable
 "@
 }
 
@@ -109,12 +111,27 @@ else {
 }
 
 function Get-SkillPaths {
+  param([string[]]$SelectedModes)
+
   $dirs = Get-ChildItem -Path $RepoRoot -Directory | Sort-Object Name
   $skills = @()
 
   foreach ($dir in $dirs) {
     if (Test-Path -LiteralPath (Join-Path $dir.FullName "SKILL.md") -PathType Leaf) {
       $skills += $dir.FullName
+    }
+  }
+
+  # For codex mode, also include codex-specific skills
+  if ($SelectedModes -contains "codex") {
+    $codexDir = Join-Path $RepoRoot "codex"
+    if (Test-Path -LiteralPath $codexDir -PathType Container) {
+      $codexDirs = Get-ChildItem -Path $codexDir -Directory | Sort-Object Name
+      foreach ($dir in $codexDirs) {
+        if (Test-Path -LiteralPath (Join-Path $dir.FullName "SKILL.md") -PathType Leaf) {
+          $skills += $dir.FullName
+        }
+      }
     }
   }
 
@@ -145,12 +162,13 @@ function Resolve-Modes {
     Show-Banner
     Write-Host ""
     Write-Host "Select install options (comma-separated):"
-    Write-Host "1) codex (~/.codex/skills)"
+    Write-Host "1) codex (~/.codex/skills, includes ./codex/ agent-specific skills)"
     Write-Host "2) openclaw (~/.openclaw/workspace*/skills)"
     Write-Host "3) trae (~/.trae/skills)"
     Write-Host "4) agents (~/.agents/skills)"
-    Write-Host "5) all"
-    $inputValue = Read-Host "Enter choice(s) [1-5]"
+    Write-Host "5) claude-code (~/.claude/skills)"
+    Write-Host "6) all"
+    $inputValue = Read-Host "Enter choice(s) [1-6]"
 
     foreach ($rawChoice in ($inputValue -split ",")) {
       $choice = $rawChoice.Trim()
@@ -159,11 +177,13 @@ function Resolve-Modes {
         "2" { Add-ModeOnce -Selected $selected -Mode "openclaw" }
         "3" { Add-ModeOnce -Selected $selected -Mode "trae" }
         "4" { Add-ModeOnce -Selected $selected -Mode "agents" }
-        "5" {
+        "5" { Add-ModeOnce -Selected $selected -Mode "claude-code" }
+        "6" {
           Add-ModeOnce -Selected $selected -Mode "codex"
           Add-ModeOnce -Selected $selected -Mode "openclaw"
           Add-ModeOnce -Selected $selected -Mode "trae"
           Add-ModeOnce -Selected $selected -Mode "agents"
+          Add-ModeOnce -Selected $selected -Mode "claude-code"
         }
         default {
           throw "Invalid choice: $choice"
@@ -178,11 +198,13 @@ function Resolve-Modes {
         "openclaw" { Add-ModeOnce -Selected $selected -Mode "openclaw" }
         "trae" { Add-ModeOnce -Selected $selected -Mode "trae" }
         "agents" { Add-ModeOnce -Selected $selected -Mode "agents" }
+        "claude-code" { Add-ModeOnce -Selected $selected -Mode "claude-code" }
         "all" {
           Add-ModeOnce -Selected $selected -Mode "codex"
           Add-ModeOnce -Selected $selected -Mode "openclaw"
           Add-ModeOnce -Selected $selected -Mode "trae"
           Add-ModeOnce -Selected $selected -Mode "agents"
+          Add-ModeOnce -Selected $selected -Mode "claude-code"
         }
         default {
           Show-Usage
@@ -299,13 +321,29 @@ function Install-Agents {
   }
 }
 
+function Install-ClaudeCode {
+  param([string[]]$SkillPaths)
+
+  $target = if ($env:CLAUDE_CODE_SKILLS_DIR) {
+    Expand-UserPath $env:CLAUDE_CODE_SKILLS_DIR
+  }
+  else {
+    Join-Path $HOME ".claude/skills"
+  }
+
+  Write-Host "Installing to claude-code: $target"
+  foreach ($src in $SkillPaths) {
+    Copy-Skill -Source $src -TargetRoot $target
+  }
+}
+
 if ($Modes.Count -gt 0 -and ($Modes[0] -eq "-h" -or $Modes[0] -eq "--help")) {
   Show-Usage
   exit 0
 }
 
 $selectedModes = Resolve-Modes -Requested $Modes
-$skillPaths = Get-SkillPaths
+$skillPaths = Get-SkillPaths -SelectedModes $selectedModes
 
 foreach ($mode in $selectedModes) {
   switch ($mode) {
@@ -313,6 +351,7 @@ foreach ($mode in $selectedModes) {
     "openclaw" { Install-OpenClaw -SkillPaths $skillPaths }
     "trae" { Install-Trae -SkillPaths $skillPaths }
     "agents" { Install-Agents -SkillPaths $skillPaths }
+    "claude-code" { Install-ClaudeCode -SkillPaths $skillPaths }
     default { throw "Unknown mode: $mode" }
   }
 }
