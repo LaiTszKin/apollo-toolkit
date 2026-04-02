@@ -15,7 +15,7 @@ description: "Guide the agent to submit local changes with commit and push only 
 ## Standards
 
 - Evidence: Inspect git state and classify the change set before deciding which quality gates apply, then compare the actual pending diff against root `CHANGELOG.md` `Unreleased` before committing.
-- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for changelog/docs/plan finalization, preserve staging intent, honor any explicit user-specified target branch, and when the worktree is already clean inspect local `HEAD`, upstream state, and the most recent relevant commit before deciding the request is a no-op; then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
+- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for changelog/docs/plan finalization, preserve staging intent, honor any explicit user-specified target branch, and when the worktree is already clean inspect local `HEAD`, upstream state, and the most recent relevant commit before deciding the request is a no-op; when worktree-based delivery is involved, verify where the authoritative target branch lives before moving history, re-validate on that target branch after replay or merge, and remove the temporary worktree only after the target branch is safely updated; then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
 - Quality: Re-run relevant validation for runtime changes, preserve unrelated local work safely when branch switching or post-push local sync is required, and do not bypass blocking readiness findings such as missing/stale `Unreleased` bullets or unsynchronized project docs.
 - Output: Produce a concise Conventional Commit, push it to the intended branch, and report any temporary stash/restore or local branch sync that was required.
 
@@ -51,6 +51,9 @@ Load only when needed:
    - Preserve unrelated uncommitted work safely before branch operations, for example with `git stash push`, and restore it after the target branch has been updated.
    - If the fix was committed on the wrong branch, move it to the requested branch with safe history-preserving operations such as `cherry-pick`, `merge --ff-only`, or a clean replay; do not force-push unless the user explicitly asks for it.
    - If the user asks to sync the local target branch after pushing, fast-forward or pull that branch locally and then restore any preserved worktree changes.
+   - If the implementation lives in a detached or temporary `git worktree`, inspect both the temporary worktree and the main worktree before deciding the replay method.
+   - When the main worktree already contains staged or partially overlapping copies of the same changes, compare file content and branch tips first; do not create an unnecessary merge commit when a direct replay onto the authoritative target branch is safer.
+   - When the worktree diff is broader than the requested issue, stop and separate the requested commit scope before replaying anything to the target branch.
 4. Run code-affecting dependency skills (when applicable)
    - Run `review-change-set` for every code-affecting change before continuing; treat unresolved review findings as blocking.
    - Run `discover-edge-cases` and `harden-app-security` for the same code-affecting scope when the reviewed risk profile or repository context says their coverage is needed; treat them as blocking review gates, not optional polish, whenever that condition is met.
@@ -71,6 +74,7 @@ Load only when needed:
    - After pushing, verify the remote branch tip matches the local `HEAD`, for example by comparing `git rev-parse HEAD` with the target branch hash from `git rev-parse @{u}` or `git ls-remote --heads <remote> <branch>`.
    - If the push result is ambiguous, out of order, or the hashes do not match, rerun the missing git step sequentially and re-check before reporting success.
    - Confirm the local branch state matches the user's requested destination when post-push synchronization was requested.
+   - When the user explicitly asks to merge work back from a temporary worktree and delete that worktree, do the final verification on the authoritative target branch first, then remove the temporary worktree and prune stale worktree records before reporting completion.
 
 ## Notes
 
@@ -80,6 +84,7 @@ Load only when needed:
 - Never downgrade `discover-edge-cases` or `harden-app-security` to optional follow-up when the change risk says they apply.
 - Never claim the repository is ready to commit while root `CHANGELOG.md` `Unreleased` is missing the current change or still describes superseded work.
 - Never fabricate a commit/push result when the worktree is already clean; either identify the exact existing commit/upstream state that satisfies the user's request or say that no matching new submission exists.
+- Never delete a temporary worktree before the target branch has been updated, tested, and verified to contain the intended final content.
 - If release/version/tag work is requested, use `version-release` instead.
 - If a new branch is required, follow `references/branch-naming.md`.
 - A pushed implementation can still leave an active spec set behind; commit completion and spec archival are separate decisions.

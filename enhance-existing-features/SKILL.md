@@ -66,6 +66,9 @@ When in doubt, prefer direct implementation for genuinely low-risk localized cha
 If triggered:
 - Run `$generate-spec` and follow its workflow completely.
 - Use it to create or update `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, and `checklist.md`.
+- Keep each spec set scoped to at most three modules.
+- If the requested change would require edits across more than three modules, split it into multiple spec sets instead of drafting one large coupled plan.
+- Design the split spec sets so they are independently valid, do not conflict with each other, and do not require another spec set to land first.
 - Ensure planned behaviors and edge cases cover external dependency states, abuse/adversarial paths, and any relevant authorization/idempotency/concurrency/data-integrity risks.
 - After implementation and testing, update the same plan set so `spec.md` reflects requirement completion status in addition to task and checklist progress.
 - If users answer clarification questions, update the planning docs and obtain explicit approval again before implementation.
@@ -130,6 +133,7 @@ Rules:
 
 - Keep the solution minimal and executable.
 - Always decide the need for specs only after exploring the existing codebase.
+- When specs are used, keep each spec set limited to at most three modules; split broader work into independent, non-conflicting, non-dependent spec sets before approval.
 - Maintain traceability between requirements, tasks, and tests when specs are present.
 - Treat checklists as living artifacts: adjust items to match real change scope.
 - Treat mutually exclusive template choices as a decision to record, not multiple boxes to finish.

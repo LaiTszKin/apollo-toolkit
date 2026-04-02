@@ -4,6 +4,20 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.12.6] - 2026-04-02
+
+### Added
+- Add the global `apltk` CLI alias so the Apollo Toolkit installer can be launched with a shorter command after npm installation.
+
+### Changed
+- Update `develop-new-features` and `enhance-existing-features` so any spec-backed change affecting more than three modules must be split into independent, non-conflicting, non-dependent spec sets.
+- Expand `commit-and-push` with stricter worktree replay and cleanup rules so temporary worktree delivery verifies the authoritative target branch before removing the worktree.
+- Strengthen `production-sim-debug` so protocol-sensitive simulation claims must be checked against official docs or upstream source, and infeasible local-simulation designs must be collapsed quickly instead of left as pending implementation.
+- Update the Apollo Toolkit CLI so interactive global runs can start from `apltk`, check npm for newer published packages, and offer an in-place global update before continuing.
+
+### Fixed
+- Fix updater version comparison so prerelease builds such as `2.12.5-beta.1` no longer suppress available stable-release upgrade prompts.
+
 ## [v2.12.5] - 2026-04-01
 
 ### Changed

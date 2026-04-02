@@ -14,8 +14,8 @@ description: Investigate production or local simulation runs for runtime-toolcha
 
 ## Standards
 
-- Evidence: Base conclusions on the actual preset, runtime command, logs, SQLite event store, local stub responses, and the code paths that generated them.
-- Execution: Reproduce with the exact scenario first, verify the bounded-run contract against the actual script/env implementation before launch, separate product logic failures from simulation-toolchain failures, make the smallest realistic toolchain fix, and rerun the same bounded scenario to validate.
+- Evidence: Base conclusions on the actual preset, runtime command, logs, SQLite event store, local stub responses, the code paths that generated them, and official protocol or validator documentation whenever feasibility or instruction legality is in question.
+- Execution: Reproduce with the exact scenario first, verify the bounded-run contract against the actual script/env implementation before launch, separate product logic failures from simulation-toolchain failures, verify protocol-sensitive claims against official docs or upstream source before changing code or specs, make the smallest realistic toolchain fix, and rerun the same bounded scenario to validate.
 - Quality: Prefer harness or stub fixes that improve realism over one-off scenario hacks, avoid duplicating existing workflow skills, and record reusable presets when a scenario becomes part of the regular test suite.
 - Output: Return the scenario contract, observed outcomes, root-cause chain, fixes applied, validation evidence, and any remaining realism gaps.
 
@@ -69,6 +69,7 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 ### 4) Separate product failures from toolchain realism failures
 
 - When the suspected blocker touches protocol rules, instruction legality, quote semantics, or liquidation invariants, verify the claim against the relevant official docs or upstream source before assigning blame.
+- When the current spec or planned fix assumes a local-simulation capability, verify that the capability is actually supported by the validator and program ownership model before implementing it.
 - For every major blocker, explicitly classify the result as one of:
   - production bot problem
   - simulation environment problem
@@ -86,6 +87,17 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 - If the symptom is caused by the local harness, fix the harness instead of masking it in runtime logic.
 - If a local stub inflates or distorts profitability, preserve the runtime behavior and calibrate the stub.
 - If a scenario intentionally stresses one dimension, make sure the harness is not accidentally stressing unrelated dimensions.
+
+### 4.3) Collapse infeasible simulation designs quickly
+
+- If official docs or upstream source prove that the proposed local-simulation design is impossible under the current architecture, stop trying to force the implementation through.
+- Treat this as a first-class debugging outcome, not as an implementation blocker to hand-wave away.
+- Name the precise external constraint, such as:
+  - validator preload behavior only applying at genesis/startup
+  - account data mutability being restricted to the owner program
+  - protocol instruction allowlists rejecting the proposed transaction shape
+- When a live spec or plan still claims that infeasible design as in scope, update the spec artifacts immediately so they only describe the remaining feasible scope.
+- Prefer narrowing the scenario to the strongest still-valid readiness or realism checks rather than leaving impossible tasks marked as pending.
 
 ### 4.1) Map the observed failure to the real pipeline stage
 
@@ -168,6 +180,7 @@ Use this skill to debug simulation workflows where the repository exposes a prod
 - Explain the failing stage in the liquidation pipeline and whether the key counts represent positions, attempts, quotes, or executed outcomes.
 - Summarize the narrow fix and the regression test or rerun evidence.
 - If the final scenario should be reused, state where the preset or docs were added.
+- If official docs disproved part of the planned simulation design, state which spec or plan artifacts were narrowed and why.
 
 ## Example invocation
 

@@ -70,8 +70,11 @@ The interactive installer:
 
 ```bash
 npm i -g @laitszkin/apollo-toolkit
+apltk
 apollo-toolkit
 ```
+
+Global install 後，`apltk` 與 `apollo-toolkit` 都會啟動同一個 Apollo Toolkit CLI。直接執行 `apltk` 會打開互動安裝頁，並在互動模式下先檢查 npm registry 是否有新版可用；若有，CLI 會先詢問，再自動執行全域更新。
 
 ### Non-interactive install
 

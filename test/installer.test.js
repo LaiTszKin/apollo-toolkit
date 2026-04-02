@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const { expandUserPath, installLinks, normalizeModes, syncToolkitHome } = require('../lib/installer');
 const { buildBanner, buildWelcomeScreen, run } = require('../lib/cli');
+const { checkForPackageUpdate, compareVersions } = require('../lib/updater');
 
 async function createFixtureSource(rootDir) {
   await fs.mkdir(path.join(rootDir, 'alpha-skill'), { recursive: true });
@@ -65,6 +66,67 @@ test('buildWelcomeScreen shows branded setup overview', () => {
   assert.match(output, /Launching target selector/);
 });
 
+test('compareVersions orders semantic versions correctly', () => {
+  assert.equal(compareVersions('2.12.5', '2.12.4') > 0, true);
+  assert.equal(compareVersions('2.12.5', '2.12.5'), 0);
+  assert.equal(compareVersions('2.12.4', '2.12.5') < 0, true);
+  assert.equal(compareVersions('2.12.5-beta.1', '2.12.5') < 0, true);
+  assert.equal(compareVersions('v2.12.6', '2.12.5') > 0, true);
+});
+
+test('checkForPackageUpdate installs latest version after user confirmation', async () => {
+  const stdout = createMemoryStream();
+  const stderr = createMemoryStream();
+  const calls = [];
+
+  const result = await checkForPackageUpdate({
+    packageName: '@laitszkin/apollo-toolkit',
+    currentVersion: '2.12.5',
+    stdin: { isTTY: true },
+    stdout: { ...stdout, isTTY: true },
+    stderr,
+    exec: async (command, args) => {
+      calls.push([command, ...args]);
+      if (args[0] === 'view') {
+        return { stdout: '"2.13.0"\n', stderr: '' };
+      }
+      return { stdout: '', stderr: '' };
+    },
+    confirmUpdate: async () => true,
+  });
+
+  assert.equal(result.updated, true);
+  assert.deepEqual(calls, [
+    ['npm', 'view', '@laitszkin/apollo-toolkit', 'version', '--json'],
+    ['npm', 'install', '-g', '@laitszkin/apollo-toolkit@latest'],
+  ]);
+  assert.match(stdout.toString(), /Updating @laitszkin\/apollo-toolkit to 2.13.0/);
+});
+
+test('checkForPackageUpdate skips install when the user declines', async () => {
+  const stdout = createMemoryStream();
+  const calls = [];
+
+  const result = await checkForPackageUpdate({
+    packageName: '@laitszkin/apollo-toolkit',
+    currentVersion: '2.12.5',
+    stdin: { isTTY: true },
+    stdout: { ...stdout, isTTY: true },
+    stderr: createMemoryStream(),
+    exec: async (command, args) => {
+      calls.push([command, ...args]);
+      return { stdout: '"2.13.0"\n', stderr: '' };
+    },
+    confirmUpdate: async () => false,
+  });
+
+  assert.equal(result.updated, false);
+  assert.deepEqual(calls, [
+    ['npm', 'view', '@laitszkin/apollo-toolkit', 'version', '--json'],
+  ]);
+  assert.match(stdout.toString(), /Continuing with @laitszkin\/apollo-toolkit 2.12.5/);
+});
+
 test('syncToolkitHome copies managed toolkit contents only', async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-source-'));
   const sourceRoot = path.join(tempDir, 'source');
@@ -99,6 +161,7 @@ test('run installs toolkit home and copies skills into selected targets', async 
     env: {
       HOME: homeDir,
       APOLLO_TOOLKIT_HOME: toolkitHome,
+      APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
     },
     stdin: { isTTY: false },
     stdout,

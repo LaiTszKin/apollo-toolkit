@@ -56,6 +56,10 @@ Use a shared spec-generation workflow for non-trivial new feature work, then imp
   - narrowly scoped adjustments that touch only a few files/modules and do not require cross-team alignment or approval artifacts
 - In those cases, do not create `spec.md` / `tasks.md` / `checklist.md`; instead use the appropriate direct implementation workflow (for example `enhance-existing-features` for small brownfield adjustments or `systematic-debug` for bug fixes).
 - Specs are required when the request is truly a non-trivial new feature, product behavior change, or greenfield project that needs shared planning.
+- Treat each spec set as a narrowly scoped workstream that covers at most three modules.
+- If the requested change would require edits across more than three modules, do not force it into one oversized spec set.
+- Instead, split the work into multiple independent spec sets, each covering no more than three modules.
+- Define those spec sets so they do not conflict with each other and do not depend on another spec set being implemented first in order to be valid.
 - Follow `$generate-spec` completely for:
   - generating `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, and `checklist.md`
   - filling BDD requirements and risk-driven test plans
@@ -117,6 +121,7 @@ Rules:
 
 - By default, write planning docs in the user's language.
 - Keep implementation traceable to approved requirement IDs and planned risks.
+- Keep each spec set limited to at most three modules; split larger changes into independent, non-conflicting, non-dependent spec sets before approval.
 - Prefer realism over rigid templates: add or remove test coverage only when the risk profile justifies it.
 - Every planned test should justify a distinct risk; remove shallow duplicates that only prove the code "still runs".
 - Treat starter template alternatives as mutually exclusive options, not as boxes that all need to be checked.
