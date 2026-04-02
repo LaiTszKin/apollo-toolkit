@@ -264,7 +264,7 @@ choose_modes_interactive() {
       3) add_mode_once "trae" ;;
       4) add_mode_once "agents" ;;
       5) add_mode_once "claude-code" ;;
-      6) add_mode_once "codex"; add_mode_once "openclaw"; add_mode_once "trae"; add_mode_once "agents"; add_mode_once "claude-code" ;;
+      6) add_mode_once "codex"; add_mode_once "openclaw"; add_mode_once "trae"; add_mode_once "claude-code" ;;
       *)
         echo "Invalid choice: $raw_choice" >&2
         exit 1
