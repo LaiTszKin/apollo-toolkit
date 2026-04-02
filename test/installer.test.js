@@ -43,7 +43,7 @@ function createMemoryStream() {
 }
 
 test('normalizeModes expands all and removes duplicates', () => {
-  assert.deepEqual(normalizeModes(['codex', 'all', 'trae']), ['codex', 'openclaw', 'trae']);
+  assert.deepEqual(normalizeModes(['codex', 'all', 'trae']), ['codex', 'openclaw', 'trae', 'claude-code']);
   assert.throws(() => normalizeModes(['unknown']), /Invalid mode/);
 });
 
