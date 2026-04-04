@@ -17,7 +17,7 @@
 
 ## Clarification & Approval Gate (required when clarification replies exist)
 - [ ] User clarification responses are recorded (map to `spec.md`; if none, mark `N/A`).
-- [ ] Affected specs are reviewed/updated (`spec.md` / `tasks.md` / `checklist.md`; if no updates needed, mark `N/A` + reason).
+- [ ] Affected plans are reviewed/updated (`spec.md` / `tasks.md` / `checklist.md` / `contract.md` / `design.md`; if no updates needed, mark `N/A` + reason).
 - [ ] Explicit user approval on updated specs is obtained (date/conversation reference: [to be filled]).
 
 ## Behavior-to-Test Checklist (customizable)

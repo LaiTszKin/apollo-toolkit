@@ -6,7 +6,13 @@ import re
 from datetime import date
 from pathlib import Path
 
-TEMPLATE_FILENAMES = ("spec.md", "tasks.md", "checklist.md")
+TEMPLATE_FILENAMES = (
+    "spec.md",
+    "tasks.md",
+    "checklist.md",
+    "contract.md",
+    "design.md",
+)
 PLACEHOLDERS = ("[Feature Name]", "[功能名稱]")
 
 
@@ -32,7 +38,7 @@ def _render(content: str, today: str, feature_name: str, change_name: str) -> st
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Create planning docs (spec.md, tasks.md, checklist.md) "
+            "Create planning docs (spec.md, tasks.md, checklist.md, contract.md, design.md) "
             "from templates with folder format docs/plans/{date}_{change_name}."
         ),
     )
@@ -54,7 +60,7 @@ def main() -> int:
     parser.add_argument(
         "--template-dir",
         default=str(_default_template_dir()),
-        help="Directory containing spec.md/tasks.md/checklist.md templates",
+        help="Directory containing planning document templates",
     )
     parser.add_argument(
         "--force",

@@ -1,14 +1,15 @@
 # generate-spec
 
-A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, and `checklist.md` so other skills can reuse one consistent approval-gated spec workflow.
+A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` so other skills can reuse one consistent approval-gated spec workflow.
 
 ## Core capabilities
 
-- Generates `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, and `checklist.md` in one step.
+- Generates `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` in one step.
 - Uses shared templates so spec-first and brownfield workflows follow the same planning structure.
 - Requires clarification handling and explicit user approval before implementation starts.
 - Backfills task and checklist status after implementation and testing.
 - Keeps requirement, task, and test coverage mapping traceable.
+- Standardizes external dependency contracts in `contract.md` and architecture/design deltas in `design.md`.
 
 ## Repository layout
 
@@ -23,7 +24,9 @@ A shared planning skill for feature work. It centralizes creation and maintenanc
 │   └── templates/
 │       ├── spec.md
 │       ├── tasks.md
-│       └── checklist.md
+│       ├── checklist.md
+│       ├── contract.md
+│       └── design.md
 └── scripts/
     └── create-specs
 ```
@@ -45,7 +48,9 @@ Default output:
 docs/plans/<today>_membership-upgrade-flow/
 ├── spec.md
 ├── tasks.md
-└── checklist.md
+├── checklist.md
+├── contract.md
+└── design.md
 ```
 
 ## Authoring rules
@@ -53,6 +58,8 @@ docs/plans/<today>_membership-upgrade-flow/
 - `spec.md`: use BDD keywords `GIVEN / WHEN / THEN / AND / Requirements`.
 - `tasks.md`: use `## **Task N: ...**`, `- N. [ ]`, and `- N.x [ ]`.
 - `checklist.md`: use `- [ ]` only, adapt items to real scope, and record actual results.
+- `contract.md`: when external dependencies materially shape the change, record their official-source-backed invocation surface, constraints, and caller obligations in the standard dependency-record format.
+- `design.md`: record the architecture/design delta in the standard format, including affected modules, flow, invariants, tradeoffs, and validation plan.
 - If clarification responses change the plan, update the docs and obtain approval again before coding.
 
 ## Notes

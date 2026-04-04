@@ -15,7 +15,7 @@ description: Read a user-specified PDF that marks the week's key financial event
 ## Standards
 
 - Evidence: Research only events explicitly marked in the source PDF plus clearly material breaking developments, and verify claims with current authoritative sources.
-- Execution: Read the PDF first, prefer `pdf` for extraction but fall back to the bundled macOS PDFKit extractor when local PDF tooling is missing, lock the research window, research each marked event, then hand the final briefing to `pdf` for rendering and QA with deterministic table-safe layout rules when needed.
+- Execution: Read the PDF first, prefer `pdf` for extraction but fall back to the bundled macOS PDFKit extractor when local PDF tooling is missing, lock the research window, check for an existing report covering that same window before duplicating work, research each marked event, then hand the final briefing to `pdf` for rendering and QA with deterministic table-safe layout rules when needed.
 - Quality: Keep the report concise, Chinese-compatible, explicit about source-versus-breaking events, conflicts, uncertainty, PDF font safety, and long-text table legibility.
 - Output: Save only the final standardized PDF under the month folder using the financial-event-report naming scheme.
 
@@ -57,6 +57,7 @@ Do not guess any input that materially changes the research window or report sco
   - company filings or official releases
 - Use high-quality financial reporting to triangulate facts, surface timelines, or explain market reactions.
 - Record the event date or publication date for every material claim.
+- Use exact calendar dates for market holidays, exchange closures, and "next session" timing instead of relative wording such as "today" or "next Monday" alone.
 - Separate confirmed facts from interpretation.
 - Distinguish between:
   - events explicitly marked in the source PDF
@@ -91,6 +92,16 @@ swift scripts/extract_pdf_text_pdfkit.swift /absolute/path/to/source.pdf
 - If the research window remains unclear, report the ambiguity instead of assuming one.
 - State exact calendar dates and timezone in the report.
 
+### 2.5) Check for an existing report before regenerating
+
+- Before drafting a new report, inspect the target month folder for an existing `financial-event-report` PDF that already covers the same exact date range.
+- If an existing report already covers the locked window, read it first and compare it with the newly confirmed marked events plus any newly discovered breaking developments.
+- Reuse the existing report as the baseline when it already covers the same window, and regenerate only when at least one of these is true:
+  - the source PDF reveals a marked event that the existing report missed
+  - a material breaking event landed after the prior report was generated
+  - the earlier report used an incorrect or incomplete research window
+- If the existing report is still complete and current for the same window, stop and report that no refresh is needed instead of rewriting the same deliverable.
+
 ### 3) Research each marked event deeply
 
 - For every marked event, gather:
@@ -114,6 +125,7 @@ swift scripts/extract_pdf_text_pdfkit.swift /absolute/path/to/source.pdf
   - geopolitical shocks with direct market spillovers
   - unexpected company events with broad market consequences
 - Label these clearly as newly added breaking events rather than source-PDF items.
+- When a breaking event affects how an already published data point should be interpreted at the next market session, state the exact upcoming trading date or reopening date.
 
 ### 5) Write the standardized report
 

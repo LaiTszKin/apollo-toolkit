@@ -33,7 +33,7 @@ A brownfield feature-extension skill: map dependencies first, decide whether sha
 2. Trigger `generate-spec` only when the change is high complexity, hits a critical module, or crosses module boundaries.
 3. Wait for explicit approval if planning docs were generated.
 4. Implement the smallest safe brownfield change.
-5. Run risk-driven tests and backfill `spec.md`, `tasks.md`, and `checklist.md` when specs exist.
+5. Run risk-driven tests and backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` when specs exist.
 
 ## Test requirements
 

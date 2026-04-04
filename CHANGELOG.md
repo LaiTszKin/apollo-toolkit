@@ -4,6 +4,18 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.13.0] - 2026-04-05
+
+### Added
+- Add `recover-missing-plan` for restoring or reconstructing missing `docs/plans/...` plan sets from repository evidence, git history, and authoritative issue context before implementation continues.
+- Expand `generate-spec` with standardized `contract.md` and `design.md` templates plus generator support so plan sets can capture external dependency contracts and architecture deltas alongside `spec.md`, `tasks.md`, and `checklist.md`.
+
+### Changed
+- Update `develop-new-features`, `enhance-existing-features`, `archive-specs`, and related agent prompts to treat `contract.md` and `design.md` as first-class planning artifacts wherever `generate-spec` is used.
+- Update `ship-github-issue-fix` to require `recover-missing-plan` when a referenced `docs/plans/...` path is missing or archived unexpectedly.
+- Expand repository capability docs and skill inventory to include `recover-missing-plan` and the broader five-file planning workflow.
+- Strengthen `weekly-financial-event-report` so it checks for an existing report covering the same research window before regenerating output, and requires exact calendar dates for exchange/session timing when reporting market-sensitive follow-up.
+
 ## [v2.12.7] - 2026-04-02
 
 ### Added

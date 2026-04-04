@@ -1,6 +1,6 @@
 ---
 name: archive-specs
-description: Convert completed project spec sets into maintainable project documentation and archive the consumed planning files. Use when users want to consolidate `spec.md`/`tasks.md`/`checklist.md` files into evidence-backed docs covering installation and deployment, configuration, external service setup, architecture, feature introductions, and developer onboarding context.
+description: Convert completed project plan sets into maintainable project documentation and archive the consumed planning files. Use when users want to consolidate `spec.md`/`tasks.md`/`checklist.md`/`contract.md`/`design.md` files into evidence-backed docs covering installation and deployment, configuration, external service setup, architecture, feature introductions, and developer onboarding context.
 ---
 
 # Archive Specs
@@ -27,7 +27,7 @@ Convert completed planning artifacts into stable, standardized project documenta
 
 ### 1) Inventory documentation sources
 
-- Find all relevant planning files such as `docs/plans/**/spec.md`, `tasks.md`, and `checklist.md`.
+- Find all relevant planning files such as `docs/plans/**/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`.
 - Read existing `README*`, deployment scripts, manifests, env examples, infra files, CI configs, and representative source modules.
 - Build a source map for setup commands, environments, external services, module boundaries, and implemented features.
 
@@ -89,7 +89,7 @@ Ensure the split project docs cover all of the following:
 ### 7) Archive superseded spec files after successful conversion
 
 - After the standardized project docs are complete and verified, archive the old source spec files that were converted.
-- Prefer moving the consumed `spec.md`, `tasks.md`, and `checklist.md` files, or their containing plan directory, into a clearly marked archive path instead of leaving them mixed with active docs.
+- Prefer moving the consumed `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` files, or their containing plan directory, into a clearly marked archive path instead of leaving them mixed with active docs.
 - Delete converted spec files only when the repository clearly does not need historical retention.
 - Do not archive or delete any spec file that is still actively needed for unfinished implementation work.
 - Treat a spec file as active when it still records pending gaps, planned later phases, follow-up integration work, or unresolved design decisions for the same change, even if one implementation commit has already shipped.

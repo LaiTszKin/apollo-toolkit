@@ -44,6 +44,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can configure OpenClaw from official documentation, including `~/.openclaw/openclaw.json`, skills loading, SecretRefs, CLI edits, and validation or repair workflows.
 - Users can investigate production or local simulation runs, calibrate reusable presets, and fix toolchain realism gaps between harness behavior and expected on-chain behavior.
 - Users can record multi-account spending and balance changes in monthly Excel ledgers with summary analytics and charts.
+- Users can recover missing or archived `docs/plans/...` spec sets from issue context, git history, and repository evidence before continuing feature work.
 - Users can review the current git change set from an unbiased reviewer perspective to find abstraction opportunities and simplification candidates.
 - Users can process GitHub pull request review comments and resolve addressed threads.
 - Users can perform repository-wide code reviews and publish confirmed findings as GitHub issues.

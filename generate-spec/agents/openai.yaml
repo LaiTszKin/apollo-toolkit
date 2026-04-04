@@ -1,4 +1,4 @@
 interface:
   display_name: "generate-spec"
   short_description: "Generate shared feature spec, task, and checklist docs before coding"
-  default_prompt: "Use $generate-spec to create or update docs/plans/<date>_<change_name>/{spec.md,tasks.md,checklist.md} from shared templates, fill BDD requirements and risk-driven test planning, process clarification updates, and wait for explicit approval before implementation."
+  default_prompt: "Use $generate-spec to create or update docs/plans/<date>_<change_name>/{spec.md,tasks.md,checklist.md,contract.md,design.md} from shared templates, fill BDD requirements and risk-driven test planning, document external dependency contracts in contract.md when they materially constrain the change, write the architecture/design delta in design.md, process clarification updates, and wait for explicit approval before implementation."

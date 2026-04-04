@@ -1,6 +1,6 @@
 ---
 name: generate-spec
-description: Generate and maintain shared feature planning artifacts (`spec.md`, `tasks.md`, `checklist.md`) from standard templates with clarification tracking, approval gating, and post-implementation backfill. Use when a workflow needs specs before coding, or when another skill needs to create/update `docs/plans/{YYYY-MM-DD}_{change_name}/` planning docs.
+description: Generate and maintain shared feature planning artifacts (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`) from standard templates with clarification tracking, approval gating, and post-implementation backfill. Use when a workflow needs specs before coding, or when another skill needs to create/update `docs/plans/{YYYY-MM-DD}_{change_name}/` planning docs.
 ---
 
 # Generate Spec
@@ -15,8 +15,8 @@ description: Generate and maintain shared feature planning artifacts (`spec.md`,
 ## Standards
 
 - Evidence: Review the relevant code, configs, and authoritative docs before filling requirements or test plans; when external dependencies, libraries, frameworks, APIs, or platforms are involved, checking their official documentation is mandatory during spec creation.
-- Execution: Generate the planning files first, complete them with traceable requirements and risks, handle clarification updates, then wait for explicit approval before implementation.
-- Quality: Keep `spec.md`, `tasks.md`, and `checklist.md` synchronized, map each planned test to a concrete risk or requirement, and tailor the templates so only applicable items remain active.
+- Execution: Generate the planning files first, keep each spec set tightly scoped, split broader work into multiple independent spec sets when needed, complete them with traceable requirements and risks, handle clarification updates, then wait for explicit approval before implementation.
+- Quality: Keep `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` synchronized, map each planned test to a concrete risk or requirement, and tailor the templates so only applicable items remain active.
 - Output: Store planning artifacts under `docs/plans/{YYYY-MM-DD}_{change_name}/` and keep them concise, executable, and easy to update.
 
 ## Goal
@@ -32,7 +32,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - If the change depends on frameworks, libraries, SDKs, APIs, CLIs, hosted services, or other external systems, find and read the relevant official documentation before drafting requirements.
 - Treat official documentation lookup as mandatory evidence gathering, not an optional refinement step.
 - Use the official docs to verify expected behavior, supported constraints, configuration surface, integration contracts, and any implementation limits that should shape the spec.
-- Record the references that should appear in `spec.md`.
+- Record the references that should appear in `spec.md` and the dependency evidence that should appear in `contract.md`.
 - Inspect existing `docs/plans/` directories before deciding whether to edit an existing plan set.
 - Reuse an existing plan set only when it clearly matches the same requested issue/change scope.
 - If the requested work is adjacent to, but not actually covered by, an existing plan set, create a new directory instead of overwriting the neighboring one.
@@ -40,6 +40,11 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 ### 2) Generate the planning files
 
 - Resolve paths from this skill directory, not the target project directory.
+- Before generating files, identify the concrete modules that would be touched by the requested change.
+- Keep each spec set scoped to at most three modules.
+- If the requested work would span more than three modules, do not draft one oversized coupled plan.
+- Instead, split the work into multiple spec sets, each independently valid and each covering no more than three modules.
+- Define those spec sets so they do not conflict with each other and do not require another spec set to land first in order to be approved or implemented safely.
 - Use:
   - `SKILL_ROOT=<path_to_generate-spec_skill>`
   - `WORKSPACE_ROOT=<target_project_root>`
@@ -48,6 +53,8 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
   - `references/templates/spec.md`
   - `references/templates/tasks.md`
   - `references/templates/checklist.md`
+  - `references/templates/contract.md`
+  - `references/templates/design.md`
 - Save files under `docs/plans/{YYYY-MM-DD}_{change_name}/`.
 
 ### 3) Fill `spec.md`
@@ -67,7 +74,21 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Use `- N. [ ]` for tasks and `- N.x [ ]` for subtasks.
 - Include explicit tasks for testing, mocks/fakes, regression coverage, and adversarial or edge-case hardening when relevant.
 
-### 5) Fill `checklist.md`
+### 5) Fill `contract.md`
+
+- When the change uses external dependencies, libraries, frameworks, SDKs, APIs, CLIs, hosted services, or other upstream systems, document each material dependency in a standardized dependency record.
+- For each dependency, capture the official source, the invocation surface, required inputs, expected outputs, supported behavior, limits, compatibility constraints, security/access requirements, failure contract, and caller obligations.
+- Record constraints and forbidden assumptions explicitly so later implementation and review do not rely on unstated expectations.
+- If no external dependency materially constrains the change, write `None` and a brief scope-based reason instead of inventing a fake dependency record.
+
+### 6) Fill `design.md`
+
+- Write the architecture/design delta related to the current spec in a standardized format.
+- Identify the affected modules, current baseline, proposed architecture, component responsibilities, control flow, data/state impact, and risk/tradeoff decisions.
+- Cross-reference relevant requirement IDs from `spec.md` and any external dependency records from `contract.md`.
+- Make architecture boundaries, invariants, and rollback/fallback expectations explicit when they matter to safe implementation.
+
+### 7) Fill `checklist.md`
 
 - Use checkbox format `- [ ]` for checklist items, except structured placeholder fields that are intentionally left for later fill-in.
 - Treat the template as a starting point and adapt it to the actual scope.
@@ -79,18 +100,20 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Within each decision record, keep only the selected strategy or clearly mark the non-selected path as `N/A`; never treat mutually exclusive choices inside one record as multiple completed outcomes.
 - For completion-summary sections, create as many completion records as needed for distinct flows, requirement groups, or workstreams; do not force the whole spec into a single completion line when different parts finish differently.
 
-### 6) Process clarifications and approval
+### 8) Process clarifications and approval
 
 - When the user answers clarification questions, first update the clarification and approval section in `checklist.md`.
-- Review whether `spec.md`, `tasks.md`, and `checklist.md` must be updated.
+- Review whether `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` must be updated.
 - After any clarification-driven update, obtain explicit approval on the updated spec set again.
 - Do not modify implementation code before approval.
 - When clarification reveals the work is a different issue or materially different scope than the current plan set, stop editing that plan set and generate a new one with a distinct `change_name`.
 
-### 7) Backfill after implementation and testing
+### 9) Backfill after implementation and testing
 
 - Mark completed tasks in `tasks.md`.
 - Update `checklist.md` with real test outcomes, `N/A` reasons, and any scope adjustments.
+- Update `contract.md` when the final dependency usage, obligations, or verified constraints differ from the planning draft.
+- Update `design.md` when the approved architecture changes during implementation, and record the final chosen design rather than leaving stale placeholders.
 - Only mark checklist items complete when the work actually happened or the recorded decision actually applies.
 - Do not check off unused examples, placeholder rows, or non-selected decision options.
 - If different flows use different test strategies, preserve separate decision records in the final checklist instead of merging them into a misleading single summary.
@@ -101,7 +124,11 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 - By default, write planning docs in the user's language.
 - Keep requirement IDs, task IDs, and test IDs traceable across all three files.
+- Never allow one spec set to cover more than three modules.
+- When a request exceeds that scope, split it into independent, non-conflicting, non-dependent spec sets before approval.
 - Prefer realistic coverage over boilerplate: add or remove checklist items based on actual risk.
+- When external dependencies materially shape the change, `contract.md` is required and must capture the official-source-backed contract in the standardized record format.
+- `design.md` is required and must describe the architecture/design delta for the spec in the standardized format, even when the final design is intentionally minimal.
 - Finalized planning docs should read like the actual approved plan and execution record, not like a fully checked starter template.
 - If official documentation materially constrains implementation choices, reflect that constraint explicitly in the spec instead of leaving it implicit.
 - Use kebab-case for `change_name`; avoid spaces and special characters.
@@ -114,3 +141,5 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - `references/templates/spec.md`: BDD requirement template.
 - `references/templates/tasks.md`: task breakdown template.
 - `references/templates/checklist.md`: behavior-to-test alignment template.
+- `references/templates/contract.md`: external dependency contract template.
+- `references/templates/design.md`: architecture/design delta template.

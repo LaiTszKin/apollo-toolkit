@@ -2,7 +2,7 @@
 name: enhance-existing-features
 description: >-
   Extend brownfield features by exploring the codebase first, then deciding
-  whether shared specs (`spec.md`/`tasks.md`/`checklist.md`) are required
+  whether shared planning docs (`spec.md`/`tasks.md`/`checklist.md`/`contract.md`/`design.md`) are required
   before coding. When specs are needed, use `generate-spec` for planning,
   clarification, approval, and backfill, and complete approved in-scope tasks
   before yielding unless scope changes or an external blocker prevents safe
@@ -17,7 +17,7 @@ description: >-
 ## Dependencies
 
 - Required: `generate-spec` for shared planning docs when spec-trigger conditions are met.
-- Conditional: none.
+- Conditional: `recover-missing-plan` when the user points to a required `docs/plans/...` spec set that is missing, archived, or mismatched in the current workspace.
 - Optional: none.
 - Fallback: If specs are required and `generate-spec` is unavailable, stop and report the missing dependency.
 
@@ -64,12 +64,15 @@ Do not generate specs when the work is clearly small and localized, such as:
 When in doubt, prefer direct implementation for genuinely low-risk localized changes, and reserve specs for changes whose scope or risk would benefit from explicit approval artifacts.
 
 If triggered:
+- If the user already points to a specific `docs/plans/...` path and that plan set is missing or mismatched in the current workspace, run `$recover-missing-plan` before deciding whether to continue implementation or backfill.
 - Run `$generate-spec` and follow its workflow completely.
-- Use it to create or update `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, and `checklist.md`.
+- Use it to create or update `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`.
 - Keep each spec set scoped to at most three modules.
 - If the requested change would require edits across more than three modules, split it into multiple spec sets instead of drafting one large coupled plan.
 - Design the split spec sets so they are independently valid, do not conflict with each other, and do not require another spec set to land first.
 - Ensure planned behaviors and edge cases cover external dependency states, abuse/adversarial paths, and any relevant authorization/idempotency/concurrency/data-integrity risks.
+- When external dependencies materially constrain the change, make sure `contract.md` captures their official-source-backed invocation surface, constraints, and caller obligations.
+- Make sure `design.md` captures the architecture/design delta, affected modules, control flow, and tradeoff decisions for the approved scope.
 - After implementation and testing, update the same plan set so `spec.md` reflects requirement completion status in addition to task and checklist progress.
 - If users answer clarification questions, update the planning docs and obtain explicit approval again before implementation.
 - Do not modify implementation code before approval.
@@ -120,10 +123,12 @@ Rules:
 
 ### 6) Completion updates
 
-- If specs were used, backfill `spec.md`, `tasks.md`, and `checklist.md` through `$generate-spec` workflow based on actual completion and test outcomes.
+- If specs were used, backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` through `$generate-spec` workflow based on actual completion and test outcomes.
 - In `spec.md`, mark each relevant requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
 - If specs were used, mark every completed task in `tasks.md`.
 - If specs were used, update only the applicable checklist items that correspond to real scope, chosen test strategy, and actual execution.
+- If specs were used, update `contract.md` so the documented dependency obligations and constraints match the implemented reality.
+- If specs were used, update `design.md` so the architecture/design record matches the delivered implementation.
 - Do not mark unused template examples, mutually exclusive alternatives, or non-applicable branches as completed.
 - Remove, rewrite, or leave `N/A` on starter-template items when they do not belong to the real change.
 - Explicitly label any still-applicable remaining item as deferred or blocked with the reason.

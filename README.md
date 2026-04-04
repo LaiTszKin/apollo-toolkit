@@ -36,6 +36,7 @@ A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer t
 - openai-text-to-image-storyboard
 - openclaw-configuration
 - production-sim-debug
+- recover-missing-plan
 - record-spending
 - resolve-review-comments
 - review-change-set
@@ -146,6 +147,7 @@ The install commands below were checked with the Skills CLI unless otherwise not
 Compatibility note:
 
 - `generate-spec` is a local skill used by `develop-new-features` and `enhance-existing-features`.
+- `recover-missing-plan` is a local skill used by `enhance-existing-features` and `ship-github-issue-fix` when a referenced `docs/plans/...` spec set is missing or archived.
 - `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the table.
 - `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.
 

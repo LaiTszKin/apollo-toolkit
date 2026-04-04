@@ -4,7 +4,7 @@ A documentation skill that converts completed spec files into standardized proje
 
 ## Core capabilities
 
-- Scans `spec.md`, `tasks.md`, and `checklist.md` collections as documentation input.
+- Scans `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` collections as documentation input.
 - Reconciles spec claims against code, config, scripts, and deployment files.
 - Standardizes both new and existing project docs into topic-based files for setup, configuration, architecture, features, and developer onboarding.
 - Provides dedicated reference templates for the top-level README, the documentation index/reference list, and each category document.

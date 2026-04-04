@@ -20,7 +20,7 @@ description: >-
 
 ## Dependencies
 
-- Required: `generate-spec` for `spec.md`, `tasks.md`, `checklist.md`, clarification handling, approval gating, and completion-status backfill.
+- Required: `generate-spec` for `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, clarification handling, approval gating, and completion-status backfill.
 - Conditional: none.
 - Optional: none.
 - Fallback: If `generate-spec` is unavailable, stop and report the missing dependency.
@@ -54,15 +54,17 @@ Use a shared spec-generation workflow for non-trivial new feature work, then imp
   - simple configuration, constant, feature-flag, dependency, or content updates confined to one small area
   - small refactors, naming cleanups, or internal code-health work with no externally visible behavior change
   - narrowly scoped adjustments that touch only a few files/modules and do not require cross-team alignment or approval artifacts
-- In those cases, do not create `spec.md` / `tasks.md` / `checklist.md`; instead use the appropriate direct implementation workflow (for example `enhance-existing-features` for small brownfield adjustments or `systematic-debug` for bug fixes).
+- In those cases, do not create planning docs; instead use the appropriate direct implementation workflow (for example `enhance-existing-features` for small brownfield adjustments or `systematic-debug` for bug fixes).
 - Specs are required when the request is truly a non-trivial new feature, product behavior change, or greenfield project that needs shared planning.
 - Treat each spec set as a narrowly scoped workstream that covers at most three modules.
 - If the requested change would require edits across more than three modules, do not force it into one oversized spec set.
 - Instead, split the work into multiple independent spec sets, each covering no more than three modules.
 - Define those spec sets so they do not conflict with each other and do not depend on another spec set being implemented first in order to be valid.
 - Follow `$generate-spec` completely for:
-  - generating `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, and `checklist.md`
+  - generating `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`
   - filling BDD requirements and risk-driven test plans
+  - documenting external dependency contracts in `contract.md` when they materially constrain the feature
+  - documenting the architecture/design delta in `design.md`
   - handling clarification responses
   - obtaining explicit approval before coding
   - backfilling document status after implementation and testing, including requirement completion in `spec.md`
@@ -108,10 +110,12 @@ Rules:
 
 ### 6) Completion updates
 
-- Backfill `spec.md`, `tasks.md`, and `checklist.md` through `$generate-spec` workflow after implementation and testing.
+- Backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` through `$generate-spec` workflow after implementation and testing.
 - In `spec.md`, mark each approved requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
 - Mark every completed task in `tasks.md`.
 - In `checklist.md`, update only the items that are actually applicable to the approved scope and executed validation.
+- In `contract.md`, keep the final external dependency contract records aligned with the implementation and verified upstream constraints.
+- In `design.md`, keep the final architecture/design description aligned with the implementation that actually shipped.
 - Do not mark template alternatives, unused example rows, or non-applicable decision branches as completed just to make the file look fully checked.
 - Rewrite, remove, or leave `N/A` on template-only sections so the final checklist reflects the real work rather than the starter template.
 - Explicitly label any truly remaining applicable item as deferred or blocked with the reason.
