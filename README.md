@@ -1,6 +1,6 @@
 # Apollo Toolkit Skills
 
-A curated skill catalog for Codex, OpenClaw, and Trae with a managed installer that keeps the toolkit in `~/.apollo-toolkit` and copies each skill into the targets you choose.
+A curated skill catalog for Codex, OpenClaw, Trae, and Claude Code with a managed installer that keeps the toolkit in `~/.apollo-toolkit` and copies each skill into the targets you choose.
 
 ## Included skills
 
@@ -62,7 +62,7 @@ npx @laitszkin/apollo-toolkit
 The interactive installer:
 - shows a branded `Apollo Toolkit` terminal welcome screen with a short staged reveal
 - installs a managed copy into `~/.apollo-toolkit`
-- lets you multi-select `codex`, `openclaw`, `trae`, or `all`
+- lets you multi-select `codex`, `openclaw`, `trae`, `claude-code`, or `all`
 - copies `~/.apollo-toolkit/<skill>` into each selected target
 - removes stale previously installed skill directories that existed in the previous installed version but no longer exist in the current package skill list
 - replaces legacy symlink-based installs created by older Apollo Toolkit installers with real copied directories
@@ -81,6 +81,7 @@ Global install 後，`apltk` 與 `apollo-toolkit` 都會啟動同一個 Apollo T
 
 ```bash
 npx @laitszkin/apollo-toolkit codex
+npx @laitszkin/apollo-toolkit claude-code
 npx @laitszkin/apollo-toolkit codex openclaw
 npx @laitszkin/apollo-toolkit all
 ```
@@ -92,6 +93,7 @@ APOLLO_TOOLKIT_HOME=~/custom-toolkit npx @laitszkin/apollo-toolkit codex
 CODEX_SKILLS_DIR=~/custom-codex-skills npx @laitszkin/apollo-toolkit codex
 OPENCLAW_HOME=~/.openclaw npx @laitszkin/apollo-toolkit openclaw
 TRAE_SKILLS_DIR=~/.trae/skills npx @laitszkin/apollo-toolkit trae
+CLAUDE_CODE_SKILLS_DIR=~/.claude/skills npx @laitszkin/apollo-toolkit claude-code
 ```
 
 ## Local installer scripts

@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.13.1] - 2026-04-05
+
+### Fixed
+- Fix the npm / `apltk` installer so selecting `codex` now copies agent-specific skills from the repository `codex/` subdirectory into the managed toolkit home and the final Codex skills target.
+- Fix the npm / `apltk` interactive installer and help output so `claude-code` appears as a supported target and can be installed through the same CLI flow as the other modes.
+
+### Changed
+- Refresh installer banner and README wording so Claude Code support is described consistently in the npm-based installation flow.
+
 ## [v2.13.0] - 2026-04-05
 
 ### Added

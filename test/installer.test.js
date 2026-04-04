@@ -63,6 +63,7 @@ test('buildWelcomeScreen shows branded setup overview', () => {
   const output = buildWelcomeScreen({ version: '2.0.0', colorEnabled: false, stage: 4 });
   assert.match(output, /This setup will configure:/);
   assert.match(output, /Quick start after setup:/);
+  assert.match(output, /Claude Code\s+~\/\.claude\/skills/);
   assert.match(output, /Launching target selector/);
 });
 
@@ -144,6 +145,23 @@ test('syncToolkitHome copies managed toolkit contents only', async () => {
   assert.ok(!copied.includes('.github'));
 });
 
+test('syncToolkitHome includes codex-specific skills when codex mode is selected', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-codex-home-'));
+  const sourceRoot = path.join(tempDir, 'source');
+  const toolkitHome = path.join(tempDir, 'home', '.apollo-toolkit');
+  await fs.mkdir(sourceRoot, { recursive: true });
+  await createFixtureSource(sourceRoot);
+  await fs.mkdir(path.join(sourceRoot, 'codex', 'codex-only-skill'), { recursive: true });
+  await fs.writeFile(path.join(sourceRoot, 'codex', 'codex-only-skill', 'SKILL.md'), '# codex-only\n', 'utf8');
+
+  await syncToolkitHome({ sourceRoot, toolkitHome, version: '2.0.0', modes: ['codex'] });
+
+  assert.equal(
+    (await fs.lstat(path.join(toolkitHome, 'codex', 'codex-only-skill'))).isDirectory(),
+    true,
+  );
+});
+
 test('run installs toolkit home and copies skills into selected targets', async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-run-'));
   const sourceRoot = path.join(tempDir, 'source');
@@ -154,6 +172,8 @@ test('run installs toolkit home and copies skills into selected targets', async 
 
   await fs.mkdir(sourceRoot, { recursive: true });
   await createFixtureSource(sourceRoot);
+  await fs.mkdir(path.join(sourceRoot, 'codex', 'codex-only-skill'), { recursive: true });
+  await fs.writeFile(path.join(sourceRoot, 'codex', 'codex-only-skill', 'SKILL.md'), '# codex-only\n', 'utf8');
   await fs.mkdir(path.join(homeDir, '.openclaw', 'workspace1'), { recursive: true });
 
   const exitCode = await run(['codex', 'openclaw'], {
@@ -172,13 +192,16 @@ test('run installs toolkit home and copies skills into selected targets', async 
   assert.match(stdout.toString(), /Installation complete/);
 
   const codexSkill = path.join(homeDir, '.codex', 'skills', 'alpha-skill');
+  const codexOnlySkill = path.join(homeDir, '.codex', 'skills', 'codex-only-skill');
   const openclawSkill = path.join(homeDir, '.openclaw', 'workspace1', 'skills', 'alpha-skill');
   const expectedSource = await fs.realpath(path.join(toolkitHome, 'alpha-skill'));
 
   assert.equal((await fs.lstat(codexSkill)).isDirectory(), true);
+  assert.equal((await fs.lstat(codexOnlySkill)).isDirectory(), true);
   assert.equal((await fs.lstat(openclawSkill)).isDirectory(), true);
   assert.notEqual(await fs.realpath(codexSkill), expectedSource);
   assert.equal(await fs.readFile(path.join(codexSkill, 'SKILL.md'), 'utf8'), '# alpha\n');
+  assert.equal(await fs.readFile(path.join(codexOnlySkill, 'SKILL.md'), 'utf8'), '# codex-only\n');
 });
 
 test('installLinks resolves tilde-prefixed target overrides from environment', async () => {
@@ -256,4 +279,35 @@ test('installLinks replaces previously installed symlinks with copied skill dire
   assert.equal((await fs.lstat(targetSkill)).isDirectory(), true);
   assert.notEqual(await fs.realpath(targetSkill), await fs.realpath(sourceSkill));
   assert.equal(await fs.readFile(path.join(targetSkill, 'notes.txt'), 'utf8'), 'copied\n');
+});
+
+test('run installs claude-code target when requested', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-claude-code-run-'));
+  const sourceRoot = path.join(tempDir, 'source');
+  const homeDir = path.join(tempDir, 'user-home');
+  const toolkitHome = path.join(homeDir, '.apollo-toolkit');
+  const stdout = createMemoryStream();
+  const stderr = createMemoryStream();
+
+  await fs.mkdir(sourceRoot, { recursive: true });
+  await createFixtureSource(sourceRoot);
+
+  const exitCode = await run(['claude-code'], {
+    sourceRoot,
+    env: {
+      HOME: homeDir,
+      APOLLO_TOOLKIT_HOME: toolkitHome,
+      APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
+    },
+    stdin: { isTTY: false },
+    stdout,
+    stderr,
+  });
+
+  assert.equal(exitCode, 0, stderr.toString());
+  assert.match(stdout.toString(), /Claude Code/);
+  assert.equal(
+    (await fs.lstat(path.join(homeDir, '.claude', 'skills', 'alpha-skill'))).isDirectory(),
+    true,
+  );
 });
