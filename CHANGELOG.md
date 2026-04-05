@@ -4,6 +4,8 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.13.3] - 2026-04-05
+
 ### Removed
 - Remove `production-sim-debug` skill as it is no longer actively maintained or needed.
 
