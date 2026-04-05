@@ -4,6 +4,14 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.13.4] - 2026-04-05
+
+### Changed
+- Update `learn-skill-from-conversations` so it must inventory the current repository's existing skills first, weigh repeated user corrections and error-driven lessons more heavily, extract duplicated workflow fragments into shared skills when warranted, wrap repeatedly customized external skills, and keep project-specific tooling patterns in the owning project's `~/.codex/skills/`.
+
+### Fixed
+- Synchronize `package-lock.json` metadata with the current package version and CLI bin aliases before release publication.
+
 ## [v2.13.3] - 2026-04-05
 
 ### Removed

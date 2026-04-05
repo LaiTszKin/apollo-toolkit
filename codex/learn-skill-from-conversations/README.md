@@ -10,7 +10,12 @@ This skill extracts the latest conversations from `~/.codex/sessions` and `~/.co
 - Stops immediately when there are no recent sessions
 - Cleans up `sessions` files older than 7 days after reading
 - Deletes `archived_sessions` files after reading them
+- Reads existing skills in the current working repository before proposing new ones
+- Prioritizes repeated user corrections, reported errors, tool failures, and reusable workflow gaps
+- Encourages extracting duplicated workflow fragments into shared skills when several skills need the same pattern
+- Wraps repeatedly customized external skills in a local skill when that produces a more reusable workflow
 - Defaults to creating a new skill unless strong overlap is confirmed
+- Keeps project-specific tool workflows out of the shared catalog and places them in the relevant project's `~/.codex/skills/`
 - Validates each changed skill with `quick_validate.py`
 
 ## Project Structure
@@ -40,7 +45,7 @@ python3 scripts/extract_recent_conversations.py --lookback-minutes 1440
 ```
 
 - If output is `NO_RECENT_CONVERSATIONS`, no action is required.
-- Otherwise, review extracted `[USER]` / `[ASSISTANT]` messages and apply updates through `skill-creator`.
+- Otherwise, review extracted `[USER]` / `[ASSISTANT]` messages, compare the lessons against existing skills in the current repository, and apply updates through `skill-creator`.
 
 ## License
 
