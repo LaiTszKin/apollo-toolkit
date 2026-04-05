@@ -35,7 +35,6 @@ A curated skill catalog for Codex, OpenClaw, Trae, and Claude Code with a manage
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
 - openclaw-configuration
-- production-sim-debug
 - recover-missing-plan
 - record-spending
 - resolve-review-comments

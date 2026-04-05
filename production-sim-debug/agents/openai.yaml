@@ -1,4 +1,0 @@
-interface:
-  display_name: "Production Sim Debug"
-  short_description: "診斷 production/local simulation 工具鏈與結果失真"
-  default_prompt: "Use $production-sim-debug to investigate a production/local simulation run, explain why outcomes diverged, and fix the harness or runtime alignment if needed."
