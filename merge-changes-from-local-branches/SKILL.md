@@ -20,9 +20,9 @@ description: >-
 
 ## Standards
 
-- Evidence: Inspect all local branches and their changes before merging.
-- Execution: Merge each branch into main, auto-resolve conflicts to preserve functionality, and commit the result.
-- Quality: Ensure the final merged state is functional with no broken code.
+- Evidence: Inspect the current branch state, local branches, ahead/behind status, and actual conflicting files before deciding what to merge.
+- Execution: Merge only the relevant local branches into `main` sequentially, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, then verify the merged state.
+- Quality: Never use blanket timestamp rules or default `-X ours/theirs` conflict resolution as the primary merge strategy, and do not declare success until the final `main` state has been checked and verified.
 - Output: Produce a clean main branch with all local changes integrated.
 
 ## Goal
@@ -34,6 +34,8 @@ Consolidate all local branch changes into the local main branch with automatic c
 ### 1) Inventory all local branches
 
 - Run `git branch` to list all local branches.
+- Check the current branch with `git branch --show-current` and capture `git status -sb`.
+- Compare each candidate branch against `main` with `git log --oneline main..branch`, `git diff --stat main...branch`, or equivalent evidence so empty or already-merged branches are skipped.
 - For each branch, note:
   - Branch name
   - Commits ahead of main
@@ -41,11 +43,9 @@ Consolidate all local branch changes into the local main branch with automatic c
 
 ### 2) Ensure clean state on main
 
-- Check `git status` on main branch.
-- If there are uncommitted changes on main, stash them:
-  ```bash
-  git stash push -m "WIP: temporary stash before branch merging"
-  ```
+- Check `git status` on `main`.
+- If `main` has uncommitted changes that are unrelated to the merge request, stop and report them instead of stashing automatically.
+- Only proceed once you can state which branch or branches actually need to be merged.
 
 ### 3) Merge branches sequentially
 
@@ -62,19 +62,14 @@ For each local branch (excluding main):
    ```
 
 3. If conflicts occur, resolve them automatically using these rules:
-   - **Same line, different content**: Prefer the change with:
-     - More recent timestamp, OR
-     - The change that preserves existing functionality (analyze context to determine which branch's change maintains correct behavior)
-   - **File deleted in one branch, modified in another**: Keep the modification unless the deletion is explicitly required for the feature
-   - **Both branches modified same file differently**: Keep both sets of changes if non-overlapping; if overlapping, use the more recent change
-   - **Test files conflicting**: Keep both test cases unless they test mutually exclusive behaviors
+   - Read the conflict markers and both parent versions before editing.
+   - **Same line, different content**: keep the version that matches the intended post-merge behavior, not simply the newer edit.
+   - **File deleted in one branch, modified in another**: keep the version supported by current code references and tests; do not silently drop reachable code.
+   - **Both branches modified the same file differently**: preserve both changes when they are compatible; if they overlap, manually compose a merged result that keeps the verified logic from both sides.
+   - **Test files conflicting**: preserve coverage for both behaviors unless one assertion is now obsolete by verified implementation changes.
+   - Use `-X ours` / `-X theirs` only for a narrowly justified conflict after reading the actual content; never use those flags as the default merge strategy.
 
-   Auto-resolve using git's merge strategies:
-   ```bash
-   git merge -X ours <branch-name>      # Prefer main's version for conflicts
-   git merge -X theirs <branch-name>    # Prefer the merged branch's version
-   ```
-   Or manually edit conflicted files and:
+   After resolving files:
    ```bash
    git add <resolved-files>
    ```
@@ -82,7 +77,8 @@ For each local branch (excluding main):
 4. If auto-resolution is ambiguous, prefer the change that:
    - Does not break existing tests
    - Preserves the documented feature intent
-   - Keeps more recent bug fixes
+   - Aligns with the code currently shipped on the source branch
+   - Minimizes hidden semantic drift between the merged modules
 
 5. Complete the merge:
    ```bash
@@ -91,28 +87,25 @@ For each local branch (excluding main):
 
 ### 4) Verify merged state
 
-- Run relevant tests to ensure nothing is broken:
+- After each conflictful merge, run the most relevant targeted tests or build checks for the files that changed.
+- After all merges complete, run the repository's broader validation command when one exists:
   ```bash
-  # Run tests if a test command exists
   npm test  # or yarn test, cargo test, etc.
   ```
-- If tests fail, investigate and fix the conflict resolution.
+- If verification fails, fix the merged state on `main` before proceeding.
 
 ### 5) Commit the merged result
 
-The merge commits already serve as commits. If additional staging is needed:
-
-```bash
-git status
-git add -A
-git commit --amend --no-edit  # Amend the last merge commit if needed
-```
+- The merge commits are the submission artifact; do not amend them unless the user explicitly asks for history rewriting.
+- If a follow-up fix is required after verification, create a normal commit on `main` that explains the correction.
 
 ### 6) Report completion
 
 - List all branches that were merged.
+- List any branches intentionally skipped because they were already merged, empty, or out of scope.
 - Confirm main is updated with all changes.
 - Note any conflicts that were resolved and the rationale.
+- Report the verification commands that were run.
 - Confirm no remote push was performed.
 
 ## Working Rules
@@ -123,14 +116,15 @@ git commit --amend --no-edit  # Amend the last merge commit if needed
 - If a branch contains no meaningful changes (empty merge), skip it.
 - Keep the main branch history clean and readable.
 - If a branch's merge breaks tests, resolve the conflict differently before committing.
+- Do not stash or discard unrelated work automatically; stop when the working tree state makes the merge ambiguous.
 
 ## Conflict Resolution Examples
 
 | Scenario | Resolution Strategy |
 |----------|---------------------|
-| Same line, main has older change | Keep branch's change |
-| Same line, branch has older change | Keep main's change |
-| File deleted in branch, modified in main | Keep main's modification |
+| Same line, both branches changed behavior | Read both code paths and compose the merged logic that preserves the verified invariant |
+| Same line, one branch is a bug fix and the other is a refactor | Keep the bug fix and reapply the compatible refactor structure manually if needed |
+| File deleted in branch, modified in main | Keep the version supported by current references/tests and remove only if the deletion is proven correct |
 | Both added same function differently | Keep both; rename if needed |
 | Config file conflict | Keep both values if non-overlapping |
 | Test file conflict | Keep both test cases |

@@ -4,6 +4,16 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.1] - 2026-04-06
+
+### Changed
+- Tighten `merge-changes-from-local-branches` so it inspects branch divergence before merging, resolves conflicts by composing verified behavior instead of relying on blanket `-X ours/theirs` or timestamp heuristics, and requires targeted verification after conflictful merges.
+
+### Fixed
+- Add missing `agents/openai.yaml` metadata for `merge-changes-from-local-branches` and `implement-specs-with-worktree` so repository agent-config validation passes and both skills expose UI metadata consistently.
+
+## [v2.14.0] - 2026-04-05
+
 ### Added
 - Add `agents` install mode to CLI and installer, aligning npm-based CLI with shell script capabilities.
 - Add `implement-specs-with-worktree` skill for implementing specs in isolated git worktrees.
