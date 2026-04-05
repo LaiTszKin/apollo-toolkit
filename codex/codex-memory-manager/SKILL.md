@@ -1,6 +1,6 @@
 ---
 name: codex-memory-manager
-description: Manage persistent Codex user-preference memory from recent conversation history. Use when users ask to learn from the last 24 hours of chats, update `~/.codex/AGENTS.md`, maintain `~/.codex/memory/*.md`, or sync new preference categories discovered in `~/.codex/sessions` and `~/.codex/archived_sessions`.
+description: Manage persistent Codex user-preference memory from recent conversation history. Use when users ask to learn from the last 24 hours of chats, update `~/.codex/AGENTS.md`, maintain reusable preference-first memory under `~/.codex/memory/*.md`, or sync new preference categories discovered in `~/.codex/sessions` and `~/.codex/archived_sessions`.
 ---
 
 # Codex Memory Manager
@@ -16,7 +16,7 @@ description: Manage persistent Codex user-preference memory from recent conversa
 
 - Evidence: Derive memory only from actual recent Codex conversations, and keep each stored preference tied to concrete chat evidence.
 - Execution: Extract the last 24 hours first, classify durable user preferences into memory files, then refresh the AGENTS index section.
-- Quality: Ignore one-off instructions, avoid duplicating categories, and preserve the existing language and tone already used in `~/.codex/AGENTS.md`.
+- Quality: Ignore one-off instructions, avoid duplicating categories, preserve the existing language and tone already used in `~/.codex/AGENTS.md`, and keep memory entries cross-project reusable, preference-heavy, and light on repository- or incident-specific detail.
 - Output: Report which sessions were reviewed, which memory categories were created or updated, and whether the AGENTS index changed.
 
 ## Goal
@@ -59,31 +59,38 @@ python3 ~/.codex/skills/codex-memory-manager/scripts/extract_recent_conversation
 
 - Store memory files under `~/.codex/memory/*.md`.
 - Reuse an existing category file when the new preference clearly belongs there.
-- Create a new category file when the recent chats introduce a distinct new class of preferences. Example: if the existing files are Rust-focused and recent chats introduce stable Java preferences, add a new Java-oriented category file and index it.
+- Create a new category file only when recent chats introduce a distinct reusable preference class that does not fit an existing file.
 - Keep filenames in kebab-case and scoped to a real category, for example:
-  - `architecture-preferences.md`
-  - `workflow-preferences.md`
-  - `java-preferences.md`
-- Use this normalized structure inside each memory file:
+  - `engineering-workflow.md`
+  - `assistant-style.md`
+  - `integration-and-deployment-preferences.md`
+- Keep categories organized by reusable preference type, not by repository, issue, feature name, or one-off incident.
+- When a file mixes too many unrelated preference types, split it by decision domain rather than by project.
+- Prefer wording that captures a reusable choice pattern such as `Prefer X when Y` or `Do not do Z when Q`.
+- Strip or generalize project-specific nouns, module names, branch names, issue numbers, and niche scenario labels unless they are required to explain the durable preference.
+- Keep evidence notes concise and factual; they should justify the preference without turning the memory file into a project log.
+- Use the normalized structure from `references/templates/memory-file.md` inside each memory file:
 
 ```md
-# Architecture Preferences
+# User Memory - Engineering Workflow
+
+Last curated: 2026-04-05 09:20 HKT
 
 ## Scope
-User preferences about system design, reuse, abstractions, and code organization.
+User preferences about how engineering tasks should be investigated, planned, implemented, verified, merged, and documented across repositories.
 
 ## Preferences
-- Prefer extending existing modules over parallel implementations.
-  - Applies when: adding adjacent behavior in an existing codebase.
-  - Evidence: repeated direction from recent Codex conversations reviewed on 2026-03-18.
-- Avoid speculative abstractions and over-engineering.
-  - Applies when: choosing between a focused edit and a broader refactor.
-  - Evidence: explicit repeated user guidance in recent sessions.
+- Prefer modular abstractions over duplicated logic.
+  - Applies when: designing or refactoring implementation structure.
+- Skip planning artifacts for clearly small, localized, low-risk changes.
+  - Applies when: assessing whether a task needs formal spec documents.
 
 ## Maintenance
-- Keep entries concrete and action-guiding.
-- Merge duplicates instead of restating the same preference.
-- Replace older statements when newer evidence clearly supersedes them.
+- Keep entries concrete, action-guiding, and reusable across repositories.
+- Move overlapping preferences to a better-matched memory file instead of keeping mixed categories.
+
+## Evidence notes
+- 2026-03-22 through 2026-04-04 repeated workflow corrections consistently reinforced scoped planning, approval gating, and architecture-aware implementation.
 ```
 
 ### 4) Refresh the AGENTS memory index at the end of `~/.codex/AGENTS.md`
@@ -123,4 +130,12 @@ python3 ~/.codex/skills/codex-memory-manager/scripts/sync_memory_index.py \
 - Do not store secrets, tokens, credentials, or personal data that should not persist.
 - Do not invent preferences when the evidence is weak or ambiguous.
 - Do not create duplicate categories when a current memory document already covers the same theme.
+- Do not create memory files organized around a specific repository, issue number, feature branch, or single operational incident unless the user explicitly wants that narrower scope.
+- Do not preserve project-specific wording when a more general preference statement would retain the useful lesson.
 - Do not rewrite unrelated parts of `~/.codex/AGENTS.md`; only manage the memory index block at the end.
+
+## References
+
+Load only when needed:
+
+- `references/templates/memory-file.md`

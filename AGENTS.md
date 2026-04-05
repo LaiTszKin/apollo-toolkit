@@ -16,7 +16,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can investigate application logs, slice them to precise time windows, search by keyword or regex, and produce evidence-backed root-cause findings.
 - Users can answer repository-backed questions with additional web research when needed.
 - Users can commit and push local changes without performing version or release work.
-- Users can manage Codex user-preference memory by reviewing the last 24 hours of chats, storing categorized memory documents under `~/.codex/memory`, and syncing a memory index into `~/.codex/AGENTS.md`.
+- Users can manage Codex user-preference memory by reviewing the last 24 hours of chats, storing reusable preference-first memory documents under `~/.codex/memory`, and syncing a memory index into `~/.codex/AGENTS.md`.
 - Users can research a topic deeply and produce evidence-based deliverables.
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.

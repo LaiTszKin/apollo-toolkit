@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.13.2] - 2026-04-05
+
+### Changed
+- Update `codex-memory-manager` to require reusable, preference-first memory files built around a normalized `Scope / Preferences / Maintenance / Evidence notes` template instead of project- or incident-specific memory logs.
+- Add a bundled memory-file template reference plus focused template-structure tests so future updates keep the new memory format and de-projectification rules aligned.
+
 ## [v2.13.1] - 2026-04-05
 
 ### Fixed
