@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Add `agents` install mode to CLI and installer, aligning npm-based CLI with shell script capabilities.
+- Add `implement-specs-with-worktree` skill for implementing specs in isolated git worktrees.
+- Add `merge-changes-from-local-branches` skill for consolidating local branch changes into main.
+
 ## [v2.13.4] - 2026-04-05
 
 ### Changed
