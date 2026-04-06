@@ -1,6 +1,6 @@
 ---
 name: maintain-project-constraints
-description: Automatically create and maintain AGENTS.md so it stays aligned with the current repository architecture, core business flow, common commands, project purpose, and coding conventions. Use when AGENTS.md is missing or may be outdated after code changes.
+description: Automatically create and maintain AGENTS.md so it stays aligned with the current repository architecture, core business flow, common commands, macro project purpose, and coding conventions. Use when AGENTS.md is missing or may be outdated after code changes.
 ---
 
 # Maintain Project Constraints
@@ -41,6 +41,13 @@ After completing any code modification task, proactively run this skill to verif
 - Common commands
 - Core project purpose
 - Code style and coding conventions
+
+For the `Core project purpose` section, always use this format:
+
+1. Describe the repository's macro purpose instead of repeating implemented features.
+2. State what broader problem the project is meant to solve or what outcome it aims to achieve.
+3. Prefer product- or business-level intent framing when applicable.
+4. Keep it concise, but make sure the purpose is understandable without reading the rest of the document.
 
 For the `Common Commands` section, always use this format:
 
@@ -99,6 +106,7 @@ When `AGENTS.md` is absent:
 
 - Create a new root-level `AGENTS.md`.
 - Document architecture, business flow, purpose, and coding conventions from observed facts.
+- Write `Core project purpose` as the repository's macro intent, such as the problem it aims to solve or the outcome it exists to achieve, rather than as a feature list.
 - Document the repository's common commands from observed command entry points and docs.
 - Write `Core business flow` as one summary sentence followed by unordered bullets that cover every current capability found in the repository.
 - Write `Common commands` as short bullets in the style of ``- `command` — when to use it.``.
@@ -121,6 +129,7 @@ When `AGENTS.md` exists but is outdated:
 - Remove stale commands, flags, or task names that no longer exist.
 - Verify every command in `Common Commands` is either documented in repository docs or directly supported by the current codebase.
 - Verify the `Core business flow` section includes a one-sentence summary plus unordered bullets for all currently existing capabilities; do not leave major functions unlisted.
+- Verify `Core project purpose` explains the repository's macro goal and does not merely restate the feature inventory.
 - Keep instructions concise, concrete, and operational for future agents.
 
 ## Writing Rules
@@ -128,6 +137,7 @@ When `AGENTS.md` exists but is outdated:
 - Use clear headings and short bullet points.
 - Prefer repository terms already used in code/docs.
 - Do not include speculative architecture claims.
+- In `Core project purpose`, describe why the project exists at a macro level; for example, what user or business problem it solves, not a restatement of `Core business flow`.
 - In `Core business flow`, prefer many short bullets over a few vague bullets; when the product grows, add more bullets so the list remains exhaustive.
 - In `Common Commands`, prefer the smallest useful set of high-signal commands over an exhaustive dump of every helper script.
 - Keep the document focused on how agents should understand and operate in this project.

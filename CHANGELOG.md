@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.4] - 2026-04-07
+
+### Changed
+- Clarify `maintain-project-constraints` so `Core project purpose` must describe the repository's macro goal or problem-to-solve, instead of restating its implemented feature list.
+
 ## [v2.14.3] - 2026-04-07
 
 ### Changed
