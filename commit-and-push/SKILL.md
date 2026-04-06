@@ -1,6 +1,6 @@
 ---
 name: commit-and-push
-description: "Guide the agent to submit local changes with commit and push only (no versioning). Use when users ask to commit, submit, or push changes without requesting tag/version/release operations. During submission, run `archive-specs` to convert completed spec sets into project documentation and archive the consumed plans, and also use it when existing project docs do not match the standardized project-doc structure."
+description: "Guide the agent to submit local changes with commit and push only (no versioning). Use when users ask to commit, submit, or push changes without requesting tag/version/release operations. Depend directly on `archive-specs` when completed plan sets should become durable docs or when project docs need alignment, and let that skill own the downstream documentation synchronization work."
 ---
 
 # Commit and Push
@@ -8,14 +8,14 @@ description: "Guide the agent to submit local changes with commit and push only 
 ## Dependencies
 
 - Required: `submission-readiness-check` before the final commit.
-- Conditional: `review-change-set` is required for code-affecting changes; `discover-edge-cases` and `harden-app-security` are important review gates that remain conditional, but become required whenever the reviewed scope or risk profile warrants them.
+- Conditional: `archive-specs` when completed plan sets should be converted or repository docs need alignment; `review-change-set` is required for code-affecting changes; `discover-edge-cases` and `harden-app-security` are important review gates that remain conditional, but become required whenever the reviewed scope or risk profile warrants them.
 - Optional: none.
 - Fallback: If any required dependency is unavailable, stop and report the missing dependency.
 
 ## Standards
 
 - Evidence: Inspect git state and classify the change set before deciding which quality gates apply, then compare the actual pending diff against root `CHANGELOG.md` `Unreleased` before committing.
-- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for changelog/docs/plan finalization, preserve staging intent, honor any explicit user-specified target branch, and when the worktree is already clean inspect local `HEAD`, upstream state, and the most recent relevant commit before deciding the request is a no-op; when worktree-based delivery is involved, verify where the authoritative target branch lives before moving history, re-validate on that target branch after replay or merge, and remove the temporary worktree only after the target branch is safely updated; then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
+- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for readiness classification, invoke `archive-specs` directly whenever completed plan sets should be converted or project docs need alignment, preserve staging intent, honor any explicit user-specified target branch, and when the worktree is already clean inspect local `HEAD`, upstream state, and the most recent relevant commit before deciding the request is a no-op; when worktree-based delivery is involved, verify where the authoritative target branch lives before moving history, re-validate on that target branch after replay or merge, and remove the temporary worktree only after the target branch is safely updated; then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
 - Quality: Re-run relevant validation for runtime changes, preserve unrelated local work safely when branch switching or post-push local sync is required, and do not bypass blocking readiness findings such as missing/stale `Unreleased` bullets or unsynchronized project docs.
 - Output: Produce a concise Conventional Commit, push it to the intended branch, and report any temporary stash/restore or local branch sync that was required.
 
@@ -61,10 +61,11 @@ Load only when needed:
    - Re-run relevant tests when runtime logic changes.
 5. Run shared submission readiness
    - Execute `$submission-readiness-check` after code/doc scans are complete and before the final commit.
-   - Let it decide whether completed plan sets should be converted, whether project docs or `AGENTS.md` need synchronization, and whether `CHANGELOG.md` is blocking submission.
+   - Let it decide whether completed plan sets should be converted, whether project docs need alignment through `archive-specs`, and whether `CHANGELOG.md` is blocking submission.
    - Do not continue to commit while `submission-readiness-check` reports unresolved readiness blockers.
    - Treat root `CHANGELOG.md` `Unreleased` coverage as mandatory for code-affecting or user-visible changes: if the current work is not reflected there yet, update it before committing instead of merely noting the gap.
    - Re-open the final `CHANGELOG.md` diff after readiness updates and confirm the `Unreleased` bullets describe the same scope as the commit you are about to create.
+   - When readiness indicates doc conversion or project-doc drift, run `archive-specs` before the final commit instead of duplicating documentation alignment work locally.
 6. Commit
    - Preserve user staging intent where possible.
    - Write a concise Conventional Commit message using `references/commit-messages.md`.

@@ -4,6 +4,13 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.2] - 2026-04-06
+
+### Changed
+- Rewire `merge-changes-from-local-branches` so its final local-branch submission stage is handed to `commit-and-push`, which now owns the shared changelog/readiness/archival flow after merges.
+- Rework `archive-specs` so documentation alignment is delegated to `align-project-documents` and `maintain-project-constraints` before completed plan sets are archived.
+- Clarify that `commit-and-push` and `version-release` depend directly on `archive-specs` for completed plan conversion and project-doc alignment, instead of duplicating downstream documentation-sync steps.
+
 ## [v2.14.1] - 2026-04-06
 
 ### Changed

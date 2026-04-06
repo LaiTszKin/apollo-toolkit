@@ -7,7 +7,7 @@ description: Convert completed project plan sets into maintainable project docum
 
 ## Dependencies
 
-- Required: none.
+- Required: `align-project-documents` to align repository docs with current code before archiving, and `maintain-project-constraints` to synchronize `AGENTS.md` after the doc update.
 - Conditional: none.
 - Optional: none.
 - Fallback: not applicable.
@@ -15,9 +15,9 @@ description: Convert completed project plan sets into maintainable project docum
 ## Standards
 
 - Evidence: Treat code, config, deployment files, and current spec files as evidence sources; never guess when a detail is missing.
-- Execution: Inventory all relevant specs first, reconcile them with the current repository, then generate or update standardized docs from the provided templates.
+- Execution: Inventory all relevant specs first, reconcile them with the current repository, use `align-project-documents` to update durable project docs, use `maintain-project-constraints` to refresh `AGENTS.md` when repository guidance changed, then archive only the truly consumed planning artifacts.
 - Quality: Prefer source-of-truth behavior over stale plan text, align existing docs to the same standard structure, and call out unknowns explicitly instead of inventing missing setup details.
-- Output: Produce a concise `README.md` plus a categorized project-doc set, then archive or remove superseded spec files after the conversion is complete.
+- Output: Produce synchronized durable docs (`README.md`, categorized project docs, and `AGENTS.md` when needed), then archive or remove superseded spec files after the conversion is complete.
 
 ## Goal
 
@@ -44,6 +44,7 @@ Convert completed planning artifacts into stable, standardized project documenta
 
 ### 3) Standardize existing project docs into categorized outputs
 
+- Hand the documentation rewrite/alignment work to `align-project-documents`; use the templates below only as the target shape and evidence checklist.
 - If the project already has `README.md`, handbooks, setup guides, architecture docs, or runbooks, rewrite or reorganize them so they follow this skill's standardized split-document structure instead of leaving mixed formats in place.
 - Use `references/templates/readme.md` for the concise project introduction.
 - Use `references/templates/docs-index.md` for the project documentation index and reference list.
@@ -85,6 +86,7 @@ Ensure the split project docs cover all of the following:
 - `docs/README.md` should act as the reference list for the categorized docs.
 - Each category doc should stay focused on one topic instead of acting like another monolithic handbook.
 - Remove template placeholders and stale planning language before finishing.
+- After the docs are aligned, run `maintain-project-constraints` whenever the documentation changes imply `AGENTS.md` needs to reflect updated workflows, commands, or repository capabilities.
 
 ### 7) Archive superseded spec files after successful conversion
 

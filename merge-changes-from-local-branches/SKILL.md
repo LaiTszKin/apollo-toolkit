@@ -4,26 +4,28 @@ description: >-
   Read changes from all local git branches and merge them into the local main
   branch. When conflicts arise, auto-resolve them by keeping correct functionality
   (preferring the more recent change on the same line, or the change that preserves
-  working behavior). Commit the merged result to local main without pushing to
-  remote. Use when the user asks to consolidate local branch work, merge all
-  changes into main, or prepare local branches for integration.
+  working behavior). Hand the final merged local branch state to `commit-and-push`
+  so the commit workflow can handle changelog/readiness steps and any required
+  spec archival before the work is considered complete. Use when the user asks
+  to consolidate local branch work, merge all changes into main, or prepare local
+  branches for integration.
 ---
 
 # Merge Changes from Local Branches
 
 ## Dependencies
 
-- Required: none (uses native git commands).
+- Required: `commit-and-push` for the final local-branch submission flow after merge verification.
 - Conditional: none.
-- Optional: `commit-and-push` if commit message guidance is needed.
+- Optional: none.
 - Fallback: If git operations fail, stop and report the error.
 
 ## Standards
 
 - Evidence: Inspect the current branch state, local branches, ahead/behind status, and actual conflicting files before deciding what to merge.
-- Execution: Merge only the relevant local branches into `main` sequentially, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, then verify the merged state.
+- Execution: Merge only the relevant local branches into `main` sequentially, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, verify the merged state, then hand the final local branch state to `commit-and-push` so commit/changelog/spec-archival work happens through the shared submission workflow.
 - Quality: Never use blanket timestamp rules or default `-X ours/theirs` conflict resolution as the primary merge strategy, and do not declare success until the final `main` state has been checked and verified.
-- Output: Produce a clean main branch with all local changes integrated.
+- Output: Produce a clean local main branch with all local changes integrated and ready for the shared submit workflow.
 
 ## Goal
 
@@ -94,10 +96,14 @@ For each local branch (excluding main):
   ```
 - If verification fails, fix the merged state on `main` before proceeding.
 
-### 5) Commit the merged result
+### 5) Hand off the merged result for shared submission handling
 
-- The merge commits are the submission artifact; do not amend them unless the user explicitly asks for history rewriting.
-- If a follow-up fix is required after verification, create a normal commit on `main` that explains the correction.
+- Once merge verification passes, invoke `commit-and-push` for the authoritative local branch so the final submission flow owns:
+  - `CHANGELOG.md` readiness
+  - any required `archive-specs` run
+  - the final commit creation on the local target branch
+- Do not duplicate commit-message, changelog, or spec-archival logic inside this skill.
+- If a follow-up fix is required after verification, make that fix on `main` before handing off to `commit-and-push`.
 
 ### 6) Report completion
 
@@ -106,13 +112,13 @@ For each local branch (excluding main):
 - Confirm main is updated with all changes.
 - Note any conflicts that were resolved and the rationale.
 - Report the verification commands that were run.
-- Confirm no remote push was performed.
+- Confirm whether the workflow stopped at the local commit boundary or continued into a remote push because the user explicitly requested it.
 
 ## Working Rules
 
 - Never force-push; use only merge or rebase with merge.
 - Prefer preserving functionality over keeping either branch's exact changes.
-- Do not push to remote — this skill only merges to local main.
+- Do not push to remote from this skill directly; let `commit-and-push` own any later publish step only when the user explicitly requests it.
 - If a branch contains no meaningful changes (empty merge), skip it.
 - Keep the main branch history clean and readable.
 - If a branch's merge breaks tests, resolve the conflict differently before committing.

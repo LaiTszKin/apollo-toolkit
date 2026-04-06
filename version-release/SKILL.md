@@ -1,6 +1,6 @@
 ---
 name: version-release
-description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, GitHub release, and push). Use only when users explicitly request version/tag/release work. Before finalizing the release, run `archive-specs` to convert completed spec sets into project documentation and archive the consumed plans, and also use it when existing project docs do not match the standardized project-doc structure."
+description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, GitHub release, and push). Use only when users explicitly request version/tag/release work. Depend directly on `archive-specs` when completed plan sets should become durable docs or when project docs need alignment, and let that skill own the downstream documentation synchronization work."
 ---
 
 # Version Release
@@ -8,14 +8,14 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 ## Dependencies
 
 - Required: `submission-readiness-check` before version metadata edits, tagging, or release publication.
-- Conditional: `review-change-set` is required for code-affecting releases before metadata edits and the final commit; `discover-edge-cases` and `harden-app-security` are important review gates that remain conditional, but become required whenever the reviewed scope or risk profile warrants them.
+- Conditional: `archive-specs` when completed plan sets should be converted or repository docs need alignment; `review-change-set` is required for code-affecting releases before metadata edits and the final commit; `discover-edge-cases` and `harden-app-security` are important review gates that remain conditional, but become required whenever the reviewed scope or risk profile warrants them.
 - Optional: none.
 - Fallback: If a required release dependency is unavailable, stop and report the missing dependency.
 
 ## Standards
 
 - Evidence: Inspect the active change set, current version files, existing tag format, existing remote tags/releases, and root `CHANGELOG.md` `Unreleased` content before touching version files, tags, or release metadata.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, and treat every conditional gate whose scenario is met as blocking before versioning or publication; hand the repository to `submission-readiness-check` before versioning work, and if the worktree is already clean inspect the current version, local/remote tag state, and existing GitHub release state before deciding whether the request is already satisfied; then cut the release directly from `CHANGELOG.md` `Unreleased`, update versions and docs, commit, tag, push, and publish the GitHub release with actual release tooling rather than PR-surrogate directives; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, and treat every conditional gate whose scenario is met as blocking before versioning or publication; hand the repository to `submission-readiness-check` before versioning work, invoke `archive-specs` directly whenever completed plan sets should be converted or project docs need alignment, and if the worktree is already clean inspect the current version, local/remote tag state, and existing GitHub release state before deciding whether the request is already satisfied; then cut the release directly from `CHANGELOG.md` `Unreleased`, update versions and docs, commit, tag, push, and publish the GitHub release with actual release tooling rather than PR-surrogate directives; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
 - Quality: Never guess versions, align user-facing docs with actual code, do not bypass readiness blockers from `submission-readiness-check`, do not reconstruct release notes from `git diff` when curated changelog content already exists, and do not report release success until the commit, tag, and GitHub release all exist for the same version.
 - Output: Produce a versioned release commit and tag, publish a matching GitHub release, and keep changelog plus relevant repository documentation synchronized.
 
@@ -61,8 +61,9 @@ Load only when needed:
    - Resolve all confirmed findings before changing version files, tags, or release metadata.
 4. Run shared submission readiness
    - Execute `$submission-readiness-check` before version file edits, tags, or release publication.
-   - Let it decide whether completed plan sets should be archived, whether project docs or `AGENTS.md` need synchronization, and whether `CHANGELOG.md` `Unreleased` is ready to be cut into a versioned release entry.
+   - Let it decide whether completed plan sets should be converted, whether project docs need alignment through `archive-specs`, and whether `CHANGELOG.md` `Unreleased` is ready to be cut into a versioned release entry.
    - Do not continue while `submission-readiness-check` reports unresolved blockers.
+   - When readiness indicates completed-spec conversion or project-doc drift, run `archive-specs` before version edits instead of reproducing documentation alignment inside the release workflow.
 5. Decide version and tag format
    - Read existing version files (for example `project.toml`, `package.json`, or repo-specific version files).
    - Infer existing tag format (`vX.Y.Z` or `X.Y.Z`) from repository tags.
