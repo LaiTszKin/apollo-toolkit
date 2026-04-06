@@ -14,8 +14,8 @@ description: Use a background terminal to run a user-specified command immediate
 
 ## Standards
 
-- Evidence: Anchor every conclusion to the requested command, execution window, startup/shutdown timestamps, captured logs, and concrete runtime signals.
-- Execution: Collect the run contract, verify the real stop mechanism before launch, use a background terminal, optionally update the code only when the user asks, execute the requested command immediately or in the requested window, capture logs, stop cleanly when bounded, then delegate log review to `analyse-app-logs` only when findings are requested or needed.
+- Evidence: Anchor every conclusion to the requested command, execution window, startup/shutdown timestamps, one canonical run folder or artifact root, captured logs, and concrete runtime signals.
+- Execution: Collect the run contract, verify the real stop mechanism before launch, use a background terminal, optionally update the code only when the user asks, execute the requested command immediately or in the requested window, record the canonical run folder once the process materializes it, capture logs, stop cleanly when bounded, then delegate log review to `analyse-app-logs` only when findings are requested or needed.
 - Quality: Keep scheduling, execution, and shutdown deterministic; separate confirmed findings from hypotheses; and mark each assessed module healthy/degraded/failed/unknown with reasons.
 - Output: Return the run configuration, execution status, log locations, optional code-update result, optional module health by area, confirmed issues, potential issues, observability gaps, and scheduler status when applicable.
 
@@ -45,10 +45,12 @@ This skill is an orchestration layer. It owns the background terminal session, o
 
 - Prefer one bounded observation window over open-ended monitoring.
 - Use one dedicated background terminal session per requested run so execution and logs stay correlated.
+- Record the canonical run directory, artifact root, or other generated output location as soon as it exists, and use that as the source of truth for later analysis.
 - Treat code update as optional and only perform it when the user explicitly requests it.
 - Treat startup, steady-state, and shutdown as part of the same investigation.
 - Do not call a module healthy unless there is at least one positive signal for it.
 - Separate scheduler failures, boot failures, runtime failures, and shutdown failures.
+- For complex pipelines, identify the last successful stage before attributing the failure to application logic.
 - If logs cannot support a health judgment, mark the module as `unknown` instead of guessing.
 
 ## Required workflow
@@ -62,6 +64,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
    - Create a dedicated run folder and record timezone, cwd, requested command, terminal session identifier, and any requested start/end boundaries.
    - Capture stdout and stderr from the beginning of the session so the full run stays auditable.
    - Identify and record the exact bounded-stop mechanism before launch: signal path, wrapper script, env var names, CLI flags, PID capture, and any project-specific shutdown helper.
+   - Decide in advance what the canonical evidence root will be if the command generates its own run directory, artifact bundle, database, or report file, so later diagnosis does not drift across multiple runs.
 3. Optionally update to the latest safe code state
    - Only do this step when the user explicitly asked to update the project before execution.
    - Prefer the repository's normal safe update path, such as `git pull --ff-only`, or the project's documented sync command if one exists.
@@ -73,6 +76,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
    - If the user requested a future start time and no reliable scheduler is available, fail closed and report the scheduling limitation instead of starting early.
 5. Run and capture readiness
    - Execute the requested command in the same background terminal.
+   - As soon as the command emits or creates its canonical run directory, artifact root, or equivalent output location, record that path and reuse it for every later check.
    - Wait for a concrete readiness signal when the command is expected to stay up, such as a health endpoint, listening-port log, worker boot line, or queue-consumer ready message.
    - If readiness never arrives, stop the run, preserve logs, and treat it as a failed startup window.
 6. Observe and stop when bounded
@@ -84,7 +88,8 @@ This skill is an orchestration layer. It owns the background terminal session, o
 7. Explain findings from logs when requested
    - If the user asked for findings after completion, wait for the run to finish before analyzing the captured logs.
    - Invoke `analyse-app-logs` on only the captured runtime window.
-   - Pass the service or module names, environment, timezone, run folder, relevant log files, and the exact start/end boundaries.
+   - Pass the service or module names, environment, timezone, canonical run folder, relevant log files, and the exact start/end boundaries.
+   - When the command produced reports, databases, or other structured artifacts, compare them against the same run's logs before making a health judgment.
    - Reuse its confirmed issues, hypotheses, and monitoring improvements instead of rewriting a separate incident workflow.
 8. Produce the final report
    - Always summarize the actual command executed, actual start/end timestamps, execution status, and log locations.
@@ -114,7 +119,7 @@ Absence of errors alone is not enough for `healthy`.
 Use this structure in responses:
 
 1. Run summary
-   - Workspace, command, schedule if any, actual start/end timestamps, duration if bounded, readiness result, shutdown result if applicable, and log locations.
+   - Workspace, command, schedule if any, actual start/end timestamps, duration if bounded, readiness result, shutdown result if applicable, canonical run folder or artifact root, and log locations.
 2. Execution result
    - Whether the command completed, stayed up for the requested window, or failed early.
 3. Code update result

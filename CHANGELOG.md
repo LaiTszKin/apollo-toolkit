@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.3] - 2026-04-07
+
+### Changed
+- Strengthen `systematic-debug` so runtime-pipeline investigations must anchor on one canonical run or artifact root, map failures to concrete stages, and separate toolchain/platform faults from application-logic faults before fixing.
+- Strengthen `scheduled-runtime-health-check` so bounded runs must record the canonical run folder as soon as it materializes and use structured artifacts from that same run when analyzing health.
+
 ## [v2.14.2] - 2026-04-06
 
 ### Changed
