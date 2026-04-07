@@ -10,6 +10,7 @@
 - Included spec sets: [[spec-name-1], [spec-name-2]]
 - Shared outcome: [what the batch delivers when all spec sets land]
 - Out of scope: [shared exclusions for the batch]
+- Independence rule: [state how each spec remains independently implementable, testable, and mergeable without another spec in this batch landing first]
 
 ## Shared Context
 - Current baseline: [the current system shape that all spec sets must assume]
@@ -35,17 +36,19 @@
 - Primary concern: [what this spec owns]
 - Allowed touch points: [files/modules it may change]
 - Must not change: [files/modules owned by another spec unless explicitly coordinated]
-- Depends on shared preparation: [None / specific shared item above]
+- Depends on shared preparation: [None / specific shared item above that already exists or can be completed within this spec]
+- Cross-spec implementation dependency: [None; if not None, re-slice the batch]
 
 ### Spec Set 2: [spec-name-2]
 - Primary concern: [what this spec owns]
 - Allowed touch points: [files/modules it may change]
 - Must not change: [files/modules owned by another spec unless explicitly coordinated]
-- Depends on shared preparation: [None / specific shared item above]
+- Depends on shared preparation: [None / specific shared item above that already exists or can be completed within this spec]
+- Cross-spec implementation dependency: [None; if not None, re-slice the batch]
 
 ## Conflict Boundaries
 - Shared files requiring coordination: [file/module list or `None`]
-- Merge order / landing order: [independent / explicit order]
+- Merge order / landing order: [independent / optional convenience order only, never a functional prerequisite]
 - Worktree notes: [branch naming, rebase expectations, or `None`]
 
 ## Integration Checkpoints

@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.8] - 2026-04-08
+
+### Changed
+- Tighten `generate-spec` so multi-spec batch planning must slice work into independently completable specs that can each be approved, implemented, tested, and merged without depending on another spec in the same batch landing first.
+- Update `generate-spec` coordination guidance and templates so batch-level merge order may be a convenience only, never a functional prerequisite between specs.
 ## [v2.14.7] - 2026-04-08
 
 ### Changed
