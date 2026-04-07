@@ -10,7 +10,7 @@ All notable changes to this project are documented in this file.
 - Added explicit rule that test coverage is required even when specs are not used.
 
 ### Added
-- Added `scripts/create-specs` for generating specs into `docs/plans/{YYYY-MM-DD}_{change_name}/`.
+- Added `scripts/create-specs` for generating specs into `docs/plans/{YYYY-MM-DD}/{change_name}/`.
 - Added reusable templates under `references/templates/`.
 
 ## [v0.1.2] - 2026-02-12

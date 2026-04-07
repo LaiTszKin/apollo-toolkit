@@ -16,6 +16,7 @@
 - Spec requirements covered: [R?.?]
 - Affected modules: [module/file/service list]
 - External contracts involved: [dependency names from `contract.md`, or `None`]
+- Coordination reference: [`../coordination.md` or `None`]
 
 ## Current Architecture
 [Describe the relevant current components, data flow, control flow, and boundaries.]

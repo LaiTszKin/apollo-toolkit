@@ -2,7 +2,8 @@
 name: implement-specs-with-worktree
 description: >-
   Read a specs planning set (spec.md, tasks.md, checklist.md, contract.md, design.md)
-  from `docs/plans/{YYYY-MM-DD}_{change_name}/` and implement the approved tasks
+  from `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`
+  plus parent `coordination.md` when present, and implement the approved tasks
   within an isolated git worktree. Use when the user asks to implement from an
   existing spec set, execute a spec plan, or work on a feature branch without
   affecting the main working tree. If not already in a worktree, create a new
@@ -34,15 +35,17 @@ Implement approved spec planning sets in an isolated git worktree, ensuring main
 
 ### 1) Identify and read the specs set
 
-- Locate the specs directory. The path format is `docs/plans/{YYYY-MM-DD}_{change_name}/`.
+- Locate the specs directory. The path format is `docs/plans/{YYYY-MM-DD}/{change_name}/` for single-spec work, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` for coordinated multi-spec work.
 - If the user provides a specific path, use that directly.
 - If only a `change_name` or date is given, search for matching directories under `docs/plans/`.
+- When the plan sits under a batch directory, also read the sibling `coordination.md` before implementation.
 - Read all five spec files:
   - `spec.md` — requirements and BDD behaviors
   - `tasks.md` — task breakdown
   - `checklist.md` — behavior-to-test alignment and completion tracking
   - `contract.md` — API/interface contracts
   - `design.md` — design decisions and architecture notes
+- If `coordination.md` exists in the parent batch directory, read it as the shared source of truth for ownership boundaries, shared preparation, replacement direction, merge order, and cross-spec integration checkpoints.
 - Understand the scope, requirements, and planned tasks before proceeding.
 
 ### 2) Check current worktree state
@@ -70,6 +73,7 @@ Use branch naming from `references/branch-naming.md`.
 
 - Explore the existing codebase relevant to the planned tasks.
 - Verify latest authoritative docs for involved stacks/integrations.
+- When `coordination.md` exists, respect its shared-field preparation, legacy-replacement direction, and allowed touch-point boundaries before editing.
 - Implement each task in `tasks.md` systematically.
 - For each implemented change, add appropriate tests:
   - Unit tests for changed logic
@@ -88,6 +92,7 @@ After implementation and testing:
 - Update `spec.md` with actual completion state for each requirement.
 - Mark completed tasks in `tasks.md`.
 - Update `checklist.md` with test execution results, N/A reasons, and any scope adjustments.
+- If the shared implementation direction changed, update the parent `coordination.md` as well before finishing.
 - Do not mark unused template examples or non-applicable items as complete.
 
 ### 6) Commit changes
@@ -113,6 +118,7 @@ After implementation and testing:
 - Always work in an isolated worktree to keep main clean.
 - Complete all planned tasks before committing; do not stop with partial work.
 - Treat the specs as the source of truth for scope — do not deviate without user approval.
+- When `coordination.md` exists, treat it as the source of truth for batch-level ownership and cutover direction.
 - Follow the testing standards from `enhance-existing-features` and `develop-new-features`.
 - Do not push to remote unless the user explicitly requests it.
 

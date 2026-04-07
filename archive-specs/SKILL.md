@@ -1,6 +1,6 @@
 ---
 name: archive-specs
-description: Convert completed project plan sets into maintainable project documentation and archive the consumed planning files. Use when users want to consolidate `spec.md`/`tasks.md`/`checklist.md`/`contract.md`/`design.md` files into evidence-backed docs covering installation and deployment, configuration, external service setup, architecture, feature introductions, and developer onboarding context.
+description: Convert completed project plan sets into maintainable project documentation and archive the consumed planning files. Use when users want to consolidate `spec.md`/`tasks.md`/`checklist.md`/`contract.md`/`design.md` and any batch-level `coordination.md` into evidence-backed docs covering installation and deployment, configuration, external service setup, architecture, feature introductions, and developer onboarding context.
 ---
 
 # Archive Specs
@@ -27,7 +27,7 @@ Convert completed planning artifacts into stable, standardized project documenta
 
 ### 1) Inventory documentation sources
 
-- Find all relevant planning files such as `docs/plans/**/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`.
+- Find all relevant planning files such as `docs/plans/**/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and any batch-level `coordination.md`.
 - Read existing `README*`, deployment scripts, manifests, env examples, infra files, CI configs, and representative source modules.
 - Build a source map for setup commands, environments, external services, module boundaries, and implemented features.
 
@@ -40,6 +40,7 @@ Convert completed planning artifacts into stable, standardized project documenta
   4. existing docs
 - When specs disagree with the codebase, keep the codebase truth and note the mismatch while updating docs.
 - Merge repeated or overlapping feature descriptions into one stable capability summary.
+- Use `coordination.md` to understand shared preparation, ownership boundaries, legacy cutover direction, and which old features or paths were intentionally replaced across multiple spec sets.
 - Distinguish between completed scope that should become durable docs and still-active scope that remains planning material for follow-up work.
 
 ### 3) Standardize existing project docs into categorized outputs
@@ -91,11 +92,12 @@ Ensure the split project docs cover all of the following:
 ### 7) Archive superseded spec files after successful conversion
 
 - After the standardized project docs are complete and verified, archive the old source spec files that were converted.
-- Prefer moving the consumed `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` files, or their containing plan directory, into a clearly marked archive path instead of leaving them mixed with active docs.
+- Prefer moving the consumed `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when applicable their shared `coordination.md`, or the containing batch/spec plan directory, into a clearly marked archive path instead of leaving them mixed with active docs.
 - Delete converted spec files only when the repository clearly does not need historical retention.
 - Do not archive or delete any spec file that is still actively needed for unfinished implementation work.
 - Treat a spec file as active when it still records pending gaps, planned later phases, follow-up integration work, or unresolved design decisions for the same change, even if one implementation commit has already shipped.
 - If only part of a plan set is complete, convert or summarize only the truly completed scope and leave the active plan set in place unless the repository has a separate archival convention for partial phases.
+- If only part of a coordinated batch is complete, archive only the fully consumed spec subdirectories and keep the batch-level `coordination.md` active until no remaining spec set relies on it.
 
 ## Working Rules
 
@@ -105,6 +107,7 @@ Ensure the split project docs cover all of the following:
 - When a section cannot be completed from evidence, keep an explicit `Unknown` or `TBD (missing repository evidence)` marker.
 - The final repository state should not keep both standardized docs and redundant active spec files for the same completed scope.
 - Do not equate "code was committed" with "planning scope is complete"; archive only when the remaining notes no longer guide future implementation.
+- Do not archive a batch `coordination.md` while it still governs active replacement work, shared field preparation, or unresolved cross-spec merge sequencing.
 
 ## References
 

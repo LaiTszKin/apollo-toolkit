@@ -1,10 +1,11 @@
 # generate-spec
 
-A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` so other skills can reuse one consistent approval-gated spec workflow.
+A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed `coordination.md` so other skills can reuse one consistent approval-gated spec workflow.
 
 ## Core capabilities
 
-- Generates `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` in one step.
+- Generates single-spec plans under `docs/plans/{YYYY-MM-DD}/{change_name}/`.
+- Generates multi-spec parallel batches under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with a shared `coordination.md`.
 - Uses shared templates so spec-first and brownfield workflows follow the same planning structure.
 - Requires clarification handling and explicit user approval before implementation starts.
 - Backfills task and checklist status after implementation and testing.
@@ -26,7 +27,8 @@ A shared planning skill for feature work. It centralizes creation and maintenanc
 │       ├── tasks.md
 │       ├── checklist.md
 │       ├── contract.md
-│       └── design.md
+│       ├── design.md
+│       └── coordination.md
 └── scripts/
     └── create-specs
 ```
@@ -42,15 +44,37 @@ python3 "$SKILL_ROOT/scripts/create-specs" "Membership upgrade flow" \
   --output-dir "$WORKSPACE_ROOT/docs/plans"
 ```
 
-Default output:
+Single-spec output:
 
 ```text
-docs/plans/<today>_membership-upgrade-flow/
+docs/plans/<today>/membership-upgrade-flow/
 ├── spec.md
 ├── tasks.md
 ├── checklist.md
 ├── contract.md
 └── design.md
+```
+
+Parallel batch output:
+
+```bash
+python3 "$SKILL_ROOT/scripts/create-specs" "Membership write path" \
+  --change-name membership-write-path \
+  --batch-name membership-cutover \
+  --with-coordination \
+  --template-dir "$SKILL_ROOT/references/templates" \
+  --output-dir "$WORKSPACE_ROOT/docs/plans"
+```
+
+```text
+docs/plans/<today>/membership-cutover/
+├── coordination.md
+└── membership-write-path/
+    ├── spec.md
+    ├── tasks.md
+    ├── checklist.md
+    ├── contract.md
+    └── design.md
 ```
 
 ## Authoring rules
@@ -60,9 +84,10 @@ docs/plans/<today>_membership-upgrade-flow/
 - `checklist.md`: use `- [ ]` only, adapt items to real scope, and record actual results.
 - `contract.md`: when external dependencies materially shape the change, record their official-source-backed invocation surface, constraints, and caller obligations in the standard dependency-record format.
 - `design.md`: record the architecture/design delta in the standard format, including affected modules, flow, invariants, tradeoffs, and validation plan.
+- `coordination.md`: for multi-spec batches only, record shared preparation, ownership boundaries, replacement direction, merge order, and cross-spec integration checkpoints.
 - If clarification responses change the plan, update the docs and obtain approval again before coding.
 
 ## Notes
 
 - `scripts/...` and `references/...` are skill-folder paths, not project-folder paths.
-- The generator replaces `[YYYY-MM-DD]`, `[Feature Name]`, `[功能名稱]`, and `[change_name]` placeholders.
+- The generator replaces `[YYYY-MM-DD]`, `[Feature Name]`, `[功能名稱]`, `[change_name]`, and `[batch_name]` placeholders.

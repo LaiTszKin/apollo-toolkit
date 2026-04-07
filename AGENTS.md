@@ -12,7 +12,7 @@
 This repository enables users to install and run a curated set of reusable agent skills for software delivery, research, repository maintenance, and media-generation workflows.
 
 - Users can align project documentation with the current codebase.
-- Users can consolidate completed project specs into a standardized README and categorized project documentation set, then archive the consumed planning files.
+- Users can consolidate completed project specs and batch-level coordination plans into a standardized README and categorized project documentation set, then archive only the truly consumed planning files.
 - Users can investigate application logs, slice them to precise time windows, search by keyword or regex, and produce evidence-backed root-cause findings.
 - Users can answer repository-backed questions with additional web research when needed.
 - Users can commit and push local changes without performing version or release work.
@@ -22,7 +22,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.
 - Users can install Apollo Toolkit through npm or npx and interactively choose one or more target skill directories to populate with copied skills.
 - Users can design and implement new features through a spec-first workflow.
-- Users can generate shared feature spec, task, and checklist planning artifacts for approval-gated workflows.
+- Users can generate shared feature planning artifacts for approval-gated workflows, including parallel multi-spec batches coordinated through one batch-level `coordination.md`.
 - Users can convert text or documents into audio files with subtitle timelines.
 - Users can turn lecture slides, past papers, and answer books into mock exams, worked solutions, study notes, or graded PDFs with KaTeX-rendered math.
 - Users can extend existing features in a brownfield codebase with required tests and approvals.

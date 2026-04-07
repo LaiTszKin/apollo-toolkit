@@ -1,4 +1,4 @@
 interface:
   display_name: "Implement Specs with Worktree"
   short_description: "Implement an approved spec set inside an isolated git worktree"
-  default_prompt: "Use $implement-specs-with-worktree to read the full plan set under docs/plans, create or reuse an isolated git worktree, implement all approved tasks with the required tests, backfill completion status into the planning docs, and commit the result to the local worktree branch without affecting main."
+  default_prompt: "Use $implement-specs-with-worktree to read the full plan set under docs/plans, including parent coordination.md when the spec belongs to a parallel batch, create or reuse an isolated git worktree, implement all approved tasks within the shared ownership and replacement-direction constraints, backfill completion status into the planning docs, and commit the result to the local worktree branch without affecting main."

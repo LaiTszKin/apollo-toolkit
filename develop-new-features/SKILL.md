@@ -60,11 +60,13 @@ Use a shared spec-generation workflow for non-trivial new feature work, then imp
 - If the requested change would require edits across more than three modules, do not force it into one oversized spec set.
 - Instead, split the work into multiple independent spec sets, each covering no more than three modules.
 - Define those spec sets so they do not conflict with each other and do not depend on another spec set being implemented first in order to be valid.
+- When multiple spec sets belong to one coordinated feature batch, place them under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` and create one shared `coordination.md` at the batch root for shared preparation, ownership boundaries, replacement direction, and merge order.
 - Follow `$generate-spec` completely for:
-  - generating `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`
+  - generating `docs/plans/{YYYY-MM-DD}/{change_name}/...` for single-spec work, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/...` plus `coordination.md` for parallel batches
   - filling BDD requirements and risk-driven test plans
   - documenting external dependency contracts in `contract.md` when they materially constrain the feature
   - documenting the architecture/design delta in `design.md`
+  - documenting shared preparation and implementation direction in `coordination.md` when multiple spec sets will be implemented in parallel
   - handling clarification responses
   - obtaining explicit approval before coding
   - backfilling document status after implementation and testing, including requirement completion in `spec.md`
@@ -111,6 +113,7 @@ Rules:
 ### 6) Completion updates
 
 - Backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` through `$generate-spec` workflow after implementation and testing.
+- If the feature used a parallel batch, also backfill `coordination.md` with any final shared preparation, cutover, or ownership changes that emerged during execution.
 - In `spec.md`, mark each approved requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
 - Mark every completed task in `tasks.md`.
 - In `checklist.md`, update only the items that are actually applicable to the approved scope and executed validation.
@@ -126,6 +129,7 @@ Rules:
 - By default, write planning docs in the user's language.
 - Keep implementation traceable to approved requirement IDs and planned risks.
 - Keep each spec set limited to at most three modules; split larger changes into independent, non-conflicting, non-dependent spec sets before approval.
+- When multiple spec sets are used for one feature batch, keep cross-spec rules in `coordination.md` rather than repeating them in every `design.md`.
 - Prefer realism over rigid templates: add or remove test coverage only when the risk profile justifies it.
 - Every planned test should justify a distinct risk; remove shallow duplicates that only prove the code "still runs".
 - Treat starter template alternatives as mutually exclusive options, not as boxes that all need to be checked.

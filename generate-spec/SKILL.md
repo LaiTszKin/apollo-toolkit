@@ -1,6 +1,6 @@
 ---
 name: generate-spec
-description: Generate and maintain shared feature planning artifacts (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`) from standard templates with clarification tracking, approval gating, and post-implementation backfill. Use when a workflow needs specs before coding, or when another skill needs to create/update `docs/plans/{YYYY-MM-DD}_{change_name}/` planning docs.
+description: Generate and maintain shared feature planning artifacts (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed `coordination.md`) from standard templates with clarification tracking, approval gating, and post-implementation backfill. Use when a workflow needs specs before coding, or when another skill needs to create/update planning docs under `docs/plans/{YYYY-MM-DD}/...`.
 ---
 
 # Generate Spec
@@ -17,7 +17,7 @@ description: Generate and maintain shared feature planning artifacts (`spec.md`,
 - Evidence: Review the relevant code, configs, and authoritative docs before filling requirements or test plans; when external dependencies, libraries, frameworks, APIs, or platforms are involved, checking their official documentation is mandatory during spec creation.
 - Execution: Generate the planning files first, keep each spec set tightly scoped, split broader work into multiple independent spec sets when needed, complete them with traceable requirements and risks, handle clarification updates, then wait for explicit approval before implementation.
 - Quality: Keep `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` synchronized, map each planned test to a concrete risk or requirement, and tailor the templates so only applicable items remain active.
-- Output: Store planning artifacts under `docs/plans/{YYYY-MM-DD}_{change_name}/` and keep them concise, executable, and easy to update.
+- Output: Store planning artifacts under `docs/plans/{YYYY-MM-DD}/{change_name}/` for single-spec work, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` plus `coordination.md` for multi-spec parallel work, and keep them concise, executable, and easy to update.
 
 ## Goal
 
@@ -49,13 +49,17 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
   - `SKILL_ROOT=<path_to_generate-spec_skill>`
   - `WORKSPACE_ROOT=<target_project_root>`
   - `python3 "$SKILL_ROOT/scripts/create-specs" "<feature_name>" --change-name <kebab-case> --template-dir "$SKILL_ROOT/references/templates" --output-dir "$WORKSPACE_ROOT/docs/plans"`
+- For parallel multi-spec generation, also use:
+  - `--batch-name <kebab-case-batch-name>`
+  - `--with-coordination`
 - Always generate:
   - `references/templates/spec.md`
   - `references/templates/tasks.md`
   - `references/templates/checklist.md`
   - `references/templates/contract.md`
   - `references/templates/design.md`
-- Save files under `docs/plans/{YYYY-MM-DD}_{change_name}/`.
+- Generate `references/templates/coordination.md` at the batch root when multiple spec sets are intentionally created for parallel implementation.
+- Save files under `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`.
 
 ### 3) Fill `spec.md`
 
@@ -87,6 +91,17 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Identify the affected modules, current baseline, proposed architecture, component responsibilities, control flow, data/state impact, and risk/tradeoff decisions.
 - Cross-reference relevant requirement IDs from `spec.md` and any external dependency records from `contract.md`.
 - Make architecture boundaries, invariants, and rollback/fallback expectations explicit when they matter to safe implementation.
+- When the spec belongs to a parallel batch, add a short reference to the parent `coordination.md` and keep `design.md` focused on the single-spec delta rather than duplicating cross-spec ownership rules.
+
+### 6.5) Fill `coordination.md` for parallel multi-spec batches
+
+- Create `coordination.md` only when one user request is intentionally split into multiple spec sets that may be implemented in parallel.
+- Place it at `docs/plans/{YYYY-MM-DD}/{batch_name}/coordination.md`.
+- Use it as the batch-level source of truth for shared preparation, ownership boundaries, merge order, and cross-spec constraints.
+- Record shared fields, shared contracts, or shared data-shape preparation that multiple spec sets must align on before implementation starts.
+- When one spec set replaces or removes legacy behavior, state that direction explicitly so all worktrees implement toward the same target rather than preserving the old behavior accidentally.
+- Capture which spec set may touch which modules, which files require coordination, and whether any landing order or cutover sequence must be respected.
+- Keep single-spec concerns in that spec's own `design.md`; reserve `coordination.md` for batch-wide rules only.
 
 ### 7) Fill `checklist.md`
 
@@ -114,6 +129,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Update `checklist.md` with real test outcomes, `N/A` reasons, and any scope adjustments.
 - Update `contract.md` when the final dependency usage, obligations, or verified constraints differ from the planning draft.
 - Update `design.md` when the approved architecture changes during implementation, and record the final chosen design rather than leaving stale placeholders.
+- Update `coordination.md` when shared ownership, replacement sequencing, or cross-spec preparation changed during implementation or merge planning.
 - Only mark checklist items complete when the work actually happened or the recorded decision actually applies.
 - Do not check off unused examples, placeholder rows, or non-selected decision options.
 - If different flows use different test strategies, preserve separate decision records in the final checklist instead of merging them into a misleading single summary.
@@ -126,6 +142,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Keep requirement IDs, task IDs, and test IDs traceable across all three files.
 - Never allow one spec set to cover more than three modules.
 - When a request exceeds that scope, split it into independent, non-conflicting, non-dependent spec sets before approval.
+- When multiple spec sets are created for one batch, keep their shared implementation direction in one `coordination.md` instead of duplicating cross-spec rules in every `design.md`.
 - Prefer realistic coverage over boilerplate: add or remove checklist items based on actual risk.
 - When external dependencies materially shape the change, `contract.md` is required and must capture the official-source-backed contract in the standardized record format.
 - `design.md` is required and must describe the architecture/design delta for the spec in the standardized format, even when the final design is intentionally minimal.
@@ -143,3 +160,4 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - `references/templates/checklist.md`: behavior-to-test alignment template.
 - `references/templates/contract.md`: external dependency contract template.
 - `references/templates/design.md`: architecture/design delta template.
+- `references/templates/coordination.md`: parallel batch coordination template.

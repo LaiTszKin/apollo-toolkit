@@ -66,10 +66,11 @@ When in doubt, prefer direct implementation for genuinely low-risk localized cha
 If triggered:
 - If the user already points to a specific `docs/plans/...` path and that plan set is missing or mismatched in the current workspace, run `$recover-missing-plan` before deciding whether to continue implementation or backfill.
 - Run `$generate-spec` and follow its workflow completely.
-- Use it to create or update `docs/plans/{YYYY-MM-DD}_{change_name}/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`.
+- Use it to create or update `docs/plans/{YYYY-MM-DD}/{change_name}/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`.
 - Keep each spec set scoped to at most three modules.
 - If the requested change would require edits across more than three modules, split it into multiple spec sets instead of drafting one large coupled plan.
 - Design the split spec sets so they are independently valid, do not conflict with each other, and do not require another spec set to land first.
+- When multiple spec sets are created for one coordinated change, place them under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` and maintain one batch-level `coordination.md` that records shared preparation, ownership boundaries, replacement direction, and merge order.
 - Ensure planned behaviors and edge cases cover external dependency states, abuse/adversarial paths, and any relevant authorization/idempotency/concurrency/data-integrity risks.
 - When external dependencies materially constrain the change, make sure `contract.md` captures their official-source-backed invocation surface, constraints, and caller obligations.
 - Make sure `design.md` captures the architecture/design delta, affected modules, control flow, and tradeoff decisions for the approved scope.
@@ -124,6 +125,7 @@ Rules:
 ### 6) Completion updates
 
 - If specs were used, backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` through `$generate-spec` workflow based on actual completion and test outcomes.
+- If the change used a parallel batch, update `coordination.md` whenever shared preparation, legacy replacement direction, or merge constraints changed during execution.
 - In `spec.md`, mark each relevant requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
 - If specs were used, mark every completed task in `tasks.md`.
 - If specs were used, update only the applicable checklist items that correspond to real scope, chosen test strategy, and actual execution.
@@ -139,6 +141,7 @@ Rules:
 - Keep the solution minimal and executable.
 - Always decide the need for specs only after exploring the existing codebase.
 - When specs are used, keep each spec set limited to at most three modules; split broader work into independent, non-conflicting, non-dependent spec sets before approval.
+- When specs are split for parallel worktree implementation, keep batch-wide rules only in `coordination.md` rather than copying them into every spec-local `design.md`.
 - Maintain traceability between requirements, tasks, and tests when specs are present.
 - Treat checklists as living artifacts: adjust items to match real change scope.
 - Treat mutually exclusive template choices as a decision to record, not multiple boxes to finish.

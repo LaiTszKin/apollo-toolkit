@@ -4,6 +4,15 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.6] - 2026-04-08
+
+### Added
+- Add batch-level `coordination.md` support to `generate-spec` so one planning request can create multiple parallel spec workstreams under `docs/plans/{YYYY-MM-DD}/{batch_name}/`, while keeping shared field preparation, ownership boundaries, merge order, and legacy-replacement direction in one canonical coordination file.
+
+### Changed
+- Update `develop-new-features`, `enhance-existing-features`, and `implement-specs-with-worktree` so multi-spec worktree execution reads and maintains shared `coordination.md` state instead of duplicating cross-spec rules inside each `design.md`.
+- Update `archive-specs` and `recover-missing-plan` so the newer nested `docs/plans/{YYYY-MM-DD}/...` layout and batch-level `coordination.md` files are recognized during archival, reconciliation, and recovery workflows.
+
 ## [v2.14.5] - 2026-04-08
 
 ### Changed

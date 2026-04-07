@@ -13,6 +13,7 @@ TEMPLATE_FILENAMES = (
     "contract.md",
     "design.md",
 )
+COORDINATION_TEMPLATE = "coordination.md"
 PLACEHOLDERS = ("[Feature Name]", "[功能名稱]")
 
 
@@ -27,11 +28,18 @@ def _default_template_dir() -> Path:
     return Path(__file__).resolve().parent.parent / "references" / "templates"
 
 
-def _render(content: str, today: str, feature_name: str, change_name: str) -> str:
+def _render(
+    content: str,
+    today: str,
+    feature_name: str,
+    change_name: str,
+    batch_name: str | None,
+) -> str:
     rendered = content.replace("[YYYY-MM-DD]", today)
     for placeholder in PLACEHOLDERS:
         rendered = rendered.replace(placeholder, feature_name)
     rendered = rendered.replace("[change_name]", change_name)
+    rendered = rendered.replace("[batch_name]", batch_name or "None")
     return rendered
 
 
@@ -39,7 +47,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Create planning docs (spec.md, tasks.md, checklist.md, contract.md, design.md) "
-            "from templates with folder format docs/plans/{date}_{change_name}."
+            "from templates with folder format docs/plans/{date}/{change_name} "
+            "or docs/plans/{date}/{batch_name}/{change_name}."
         ),
     )
     parser.add_argument("feature_name", help="Display name used in generated documents")
@@ -50,6 +59,21 @@ def main() -> int:
         help=(
             "Folder name part used after date. "
             "Defaults to slugified feature_name when omitted."
+        ),
+    )
+    parser.add_argument(
+        "--batch-name",
+        help=(
+            "Optional batch folder used for parallel spec generation. "
+            "When provided, specs are written under docs/plans/{date}/{batch_name}/{change_name}."
+        ),
+    )
+    parser.add_argument(
+        "--with-coordination",
+        action="store_true",
+        help=(
+            "When used with --batch-name, also create or update "
+            "docs/plans/{date}/{batch_name}/coordination.md from the shared template."
         ),
     )
     parser.add_argument(
@@ -81,6 +105,10 @@ def main() -> int:
             "Unable to build change_name. Provide --change-name with ASCII letters/numbers."
         )
 
+    batch_name = args.batch_name.strip() if args.batch_name else None
+    if args.with_coordination and not batch_name:
+        raise SystemExit("--with-coordination requires --batch-name")
+
     template_dir = Path(args.template_dir).expanduser().resolve()
     if not template_dir.exists() or not template_dir.is_dir():
         raise SystemExit(f"Template directory not found: {template_dir}")
@@ -88,15 +116,22 @@ def main() -> int:
     missing_templates = [
         name for name in TEMPLATE_FILENAMES if not (template_dir / name).exists()
     ]
+    if args.with_coordination and not (template_dir / COORDINATION_TEMPLATE).exists():
+        missing_templates.append(COORDINATION_TEMPLATE)
     if missing_templates:
         missing = ", ".join(missing_templates)
         raise SystemExit(f"Missing template files in {template_dir}: {missing}")
 
     output_dir = Path(args.output_dir).expanduser().resolve()
     today = date.today().isoformat()
-    output_root = output_dir / f"{today}_{change_name}"
+    date_root = output_dir / today
+    batch_root = date_root / batch_name if batch_name else None
+    output_root = (batch_root / change_name) if batch_root else (date_root / change_name)
 
     output_paths = [output_root / name for name in TEMPLATE_FILENAMES]
+    coordination_path = (
+        batch_root / COORDINATION_TEMPLATE if args.with_coordination and batch_root else None
+    )
     existing_files = [path for path in output_paths if path.exists()]
     if existing_files and not args.force:
         existing = ", ".join(str(path) for path in existing_files)
@@ -116,12 +151,28 @@ def main() -> int:
                 today=today,
                 feature_name=feature_name,
                 change_name=change_name,
+                batch_name=batch_name,
+            ),
+            encoding="utf-8",
+        )
+
+    if coordination_path and (args.force or not coordination_path.exists()):
+        coordination_template = template_dir / COORDINATION_TEMPLATE
+        coordination_path.write_text(
+            _render(
+                content=coordination_template.read_text(encoding="utf-8"),
+                today=today,
+                feature_name=feature_name,
+                change_name=change_name,
+                batch_name=batch_name,
             ),
             encoding="utf-8",
         )
 
     for output_path in output_paths:
         print(output_path)
+    if coordination_path:
+        print(coordination_path)
     return 0
 
 

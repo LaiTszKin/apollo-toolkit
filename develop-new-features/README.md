@@ -30,10 +30,11 @@ A spec-first feature development skill for new behavior and greenfield work. It 
 ## Workflow summary
 
 1. Review only the official docs and code paths needed for the feature.
-2. Run `generate-spec` to create and maintain `docs/plans/{YYYY-MM-DD}_{change_name}/`.
+2. Run `generate-spec` to create and maintain `docs/plans/{YYYY-MM-DD}/{change_name}/`, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` plus `coordination.md` for parallel batches.
 3. Wait for explicit approval on the spec set.
 4. Implement the approved behavior with minimal changes.
 5. Run risk-driven tests and backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`.
+6. For parallel batches, keep shared preparation and replacement direction in `coordination.md`.
 
 ## Testing expectations
 

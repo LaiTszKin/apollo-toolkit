@@ -1,14 +1,15 @@
 # archive-specs
 
-A documentation skill that converts completed spec files into standardized project docs and archives the consumed planning files. It produces a concise `README.md` plus a categorized document set grounded in real repository evidence.
+A documentation skill that converts completed spec files and batch-level coordination files into standardized project docs and archives the consumed planning files. It produces a concise `README.md` plus a categorized document set grounded in real repository evidence.
 
 ## Core capabilities
 
-- Scans `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` collections as documentation input.
+- Scans `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and batch-level `coordination.md` collections as documentation input.
 - Reconciles spec claims against code, config, scripts, and deployment files.
 - Standardizes both new and existing project docs into topic-based files for setup, configuration, architecture, features, and developer onboarding.
 - Provides dedicated reference templates for the top-level README, the documentation index/reference list, and each category document.
 - Archives superseded spec source files after a successful conversion, and deletes them only when the repository clearly does not need historical retention.
+- Preserves active batch coordination files until no remaining spec set still depends on their shared preparation or replacement direction.
 - Keeps unknown or unverifiable details explicit instead of guessing.
 
 ## Repository layout

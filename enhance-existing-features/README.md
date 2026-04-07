@@ -34,6 +34,7 @@ A brownfield feature-extension skill: map dependencies first, decide whether sha
 3. Wait for explicit approval if planning docs were generated.
 4. Implement the smallest safe brownfield change.
 5. Run risk-driven tests and backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` when specs exist.
+6. If the work is split into parallel spec sets, maintain one batch-level `coordination.md` for shared preparation, ownership, and replacement direction.
 
 ## Test requirements
 
