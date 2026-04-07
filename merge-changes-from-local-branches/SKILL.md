@@ -22,8 +22,8 @@ description: >-
 
 ## Standards
 
-- Evidence: Inspect the current branch state, local branches, ahead/behind status, and actual conflicting files before deciding what to merge.
-- Execution: Merge only the relevant local branches into `main` sequentially, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, verify the merged state, delete each successfully merged branch and its detached worktree only after the merged result is confirmed, then hand the final local branch state to `commit-and-push` so commit/changelog/spec-archival work happens through the shared submission workflow.
+- Evidence: Inspect the current branch state, local branches, ahead/behind status, actual conflicting files, and any active batch-spec `coordination.md` merge-order guidance before deciding what to merge.
+- Execution: Merge only the relevant local branches into `main` sequentially, read any active batch-spec `coordination.md` and honor its documented merge order when present, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, verify the merged state, delete each successfully merged branch and its detached worktree only after the merged result is confirmed, then hand the final local branch state to `commit-and-push` so commit/changelog/spec-archival work happens through the shared submission workflow.
 - Quality: Never use blanket timestamp rules or default `-X ours/theirs` conflict resolution as the primary merge strategy, and do not declare success until the final `main` state has been checked and verified.
 - Output: Produce a clean local main branch with all local changes integrated and ready for the shared submit workflow.
 
@@ -37,11 +37,21 @@ Consolidate all local branch changes into the local main branch with automatic c
 
 - Run `git branch` to list all local branches.
 - Check the current branch with `git branch --show-current` and capture `git status -sb`.
+- Inspect active planning artifacts under `docs/plans/` and look for batch roots that still contain live spec sets plus a `coordination.md`.
+- When an active batch is present, read its `coordination.md` before deciding merge order.
 - Compare each candidate branch against `main` with `git log --oneline main..branch`, `git diff --stat main...branch`, or equivalent evidence so empty or already-merged branches are skipped.
 - For each branch, note:
   - Branch name
   - Commits ahead of main
   - Last commit message (via `git log -1 --oneline`)
+
+### 1.5) Resolve merge order from active batch specs
+
+- Treat active batch specs as authoritative merge-order guidance when they include a concrete `Merge order / landing order` entry in `coordination.md`.
+- Map branch names to the corresponding spec sets or worktrees using the batch folder names, spec-set names, and current git evidence; do not guess when the mapping is ambiguous.
+- Merge branches in the documented order when that order is explicit.
+- If multiple active batches exist, reconcile their merge-order guidance before merging; if the orders conflict or the branch-to-spec mapping is unclear, stop and report the ambiguity instead of choosing an arbitrary sequence.
+- If no active batch spec provides an explicit merge order, fall back to the normal branch inventory evidence and merge the relevant branches sequentially based on the safest verified order.
 
 ### 2) Ensure clean state on main
 
@@ -49,7 +59,7 @@ Consolidate all local branch changes into the local main branch with automatic c
 - If `main` has uncommitted changes that are unrelated to the merge request, stop and report them instead of stashing automatically.
 - Only proceed once you can state which branch or branches actually need to be merged.
 
-### 3) Merge branches sequentially
+### 3) Merge branches sequentially in the resolved order
 
 For each local branch (excluding main):
 
@@ -139,6 +149,7 @@ For each local branch (excluding main):
 - If a branch's merge breaks tests, resolve the conflict differently before committing.
 - Do not stash or discard unrelated work automatically; stop when the working tree state makes the merge ambiguous.
 - Delete merged source branches and their detached worktrees only after the merge commit and verification both succeed.
+- When active batch specs provide merge-order guidance, follow that order unless new evidence proves the plan is stale or inapplicable; if so, stop and report the mismatch instead of silently overriding the batch plan.
 
 ## Conflict Resolution Examples
 

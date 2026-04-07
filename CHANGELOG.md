@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.9] - 2026-04-08
+
+### Changed
+- Update `merge-changes-from-local-branches` so it must inspect active batch-spec `coordination.md` files under `docs/plans/` and follow their documented merge order when one is explicitly provided.
+- Clarify that merge-order guidance from active batch specs is authoritative unless the plan is stale, conflicting, or cannot be mapped safely to the current branches.
+
 ## [v2.14.8] - 2026-04-08
 
 ### Changed
