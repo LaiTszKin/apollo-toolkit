@@ -15,7 +15,7 @@ description: Read a user-specified PDF that marks the week's key financial event
 ## Standards
 
 - Evidence: Research only events explicitly marked in the source PDF plus clearly material breaking developments, and verify claims with current authoritative sources.
-- Execution: Read the PDF first, prefer `pdf` for extraction but fall back to the bundled macOS PDFKit extractor when local PDF tooling is missing, lock the research window, check for an existing report covering that same window before duplicating work, research each marked event, then hand the final briefing to `pdf` for rendering and QA with deterministic table-safe layout rules when needed.
+- Execution: Read the PDF first, prefer `pdf` for extraction but fall back to the bundled macOS PDFKit extractor when local PDF tooling is missing, lock the research window, check for an existing report covering that same window before duplicating work, research each marked event, then hand the final briefing to `pdf` for rendering and QA with deterministic table-safe layout rules when needed; when a Codex automation prompt includes an explicit `Automation memory:` path, reuse that concrete path for run-memory notes instead of assuming `$CODEX_HOME` resolves in the shell.
 - Quality: Keep the report concise, Chinese-compatible, explicit about source-versus-breaking events, conflicts, uncertainty, PDF font safety, and long-text table legibility.
 - Output: Save only the final standardized PDF under the month folder using the financial-event-report naming scheme.
 
@@ -43,6 +43,7 @@ Before writing, confirm these facts from the PDF, user context, or current sourc
 - Any user-specified geography, market, sector, or asset-class focus
 - Output directory if the user specified one
 - Language preference if different from the Chinese default
+- Automation memory path when the task prompt explicitly provides an `Automation memory:` line and the run needs to persist a concise automation summary
 
 Do not guess any input that materially changes the research window or report scope.
 
@@ -182,6 +183,12 @@ swift scripts/extract_pdf_text_pdfkit.swift /absolute/path/to/source.pdf
 - Treat those screenshots as temporary QA artifacts only.
 - If the output fails visual QA, revise the content or PDF requirements and call the `pdf` skill again.
 - After the final PDF passes QA, require the `pdf` skill to delete all temporary screenshots before finishing.
+
+### 8) Persist automation run memory when applicable
+
+- If the task prompt includes an explicit `Automation memory:` path, read that file first when it exists so the run can build on the prior summary.
+- After the final report is generated, write a concise run note back to that exact path.
+- Prefer the explicit path from the prompt over `$CODEX_HOME/...` interpolation when the shell environment does not define `CODEX_HOME`.
 
 ## Standard Report Requirements
 

@@ -15,7 +15,7 @@ description: Learn and evolve the local skill library from recent Codex conversa
 ## Standards
 
 - Evidence: Extract recent Codex session history first and derive reusable lessons only from actual conversation patterns.
-- Execution: Inventory the current working directory's existing skills before editing, prioritize repeated requests, user corrections, tool failures, logic bugs, architecture mismatches, documentation drift, and post-completion follow-up asks that reveal missing closure, then prefer a focused update to the strongest related skill or create a new skill only when the overlap is weak.
+- Execution: Inventory the current working directory's existing skills before editing, prioritize repeated requests, user corrections, tool failures, logic bugs, architecture mismatches, documentation drift, and post-completion follow-up asks that reveal missing closure, then prefer a focused update to the strongest related skill or create a new skill only when the overlap is weak; when a Codex automation prompt includes an explicit `Automation memory:` path, treat that path as the authoritative run-memory location instead of assuming `$CODEX_HOME` is available in the shell.
 - Quality: Take no action when there are no recent sessions, avoid unrelated broad refactors, keep shared skills cross-project reusable, route project-specific tooling patterns into the relevant project's `~/.codex/skills/`, and validate every changed skill.
 - Output: Report the analyzed sessions, extracted lessons, created or updated skills, shared-vs-project-specific placement decisions, and the reasoning behind each decision.
 
@@ -42,6 +42,7 @@ python3 ~/.codex/skills/learn-skill-from-conversations/scripts/extract_recent_co
 - Otherwise, review all `[USER]` and `[ASSISTANT]` blocks from each returned session.
 - The extractor reads both `~/.codex/sessions` and `~/.codex/archived_sessions`.
 - After extraction completes, it deletes `~/.codex/sessions` records older than 7 days and deletes all files under `~/.codex/archived_sessions`.
+- If the prompt provides an explicit `Automation memory:` path, read that file first when it exists so the current run can build on the prior automation summary even when shell variable expansion is unavailable.
 
 ### 2) Derive reusable lessons
 
@@ -98,6 +99,7 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py <skill-p
 ### 6) Report result
 
 - Summarize analyzed sessions, repeated needs, user corrections, error-driven lessons, created/updated skills, placement decisions, and why each decision was made.
+- When running inside a Codex automation thread, also write the concise run summary back to the explicit `Automation memory:` path from the prompt when one is provided; prefer that concrete path over `$CODEX_HOME/...` interpolation if the environment variable is unset.
 
 ## Guardrails
 

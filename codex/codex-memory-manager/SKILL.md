@@ -15,7 +15,7 @@ description: Manage persistent Codex user-preference memory from recent conversa
 ## Standards
 
 - Evidence: Derive memory only from actual recent Codex conversations, and keep each stored preference tied to concrete chat evidence.
-- Execution: Extract the last 24 hours first, classify durable user preferences into memory files, then refresh the AGENTS index section.
+- Execution: Extract the last 24 hours first, classify durable user preferences into memory files, then refresh the AGENTS index section; when a Codex automation prompt includes an explicit `Automation memory:` path, use that path directly for run-memory read/write instead of assuming `$CODEX_HOME` is set.
 - Quality: Ignore one-off instructions, avoid duplicating categories, preserve the existing language and tone already used in `~/.codex/AGENTS.md`, and keep memory entries cross-project reusable, preference-heavy, and light on repository- or incident-specific detail.
 - Output: Report which sessions were reviewed, which memory categories were created or updated, and whether the AGENTS index changed.
 
@@ -42,6 +42,7 @@ python3 ~/.codex/skills/codex-memory-manager/scripts/extract_recent_conversation
 - If output is exactly `NO_RECENT_CONVERSATIONS`, stop immediately and report that no memory update is needed.
 - Review every returned `[USER]` and `[ASSISTANT]` block before deciding that a preference is stable.
 - The extractor also cleans up stale session files after reading, matching the existing conversation-learning workflow.
+- If the prompt provides an explicit `Automation memory:` path, open that file first when present so the current curation run can extend the previous automation summary without relying on shell variable expansion.
 
 ### 2) Distill only stable user preferences
 
@@ -121,6 +122,7 @@ python3 ~/.codex/skills/codex-memory-manager/scripts/sync_memory_index.py \
   - which categories were created or updated
   - whether a new category was introduced
   - whether the AGENTS memory index changed
+- When an explicit `Automation memory:` path is provided in the task prompt, also write the concise run summary back to that exact file path and prefer it over `$CODEX_HOME/...` interpolation when the shell environment is incomplete.
 - When the user asks what memory exists or asks why a known preference was not mentioned, include the already-stored preferences that are directly relevant to the question instead of summarizing only newly added entries.
 - When a stable preference already existed and was still reinforced by recent chats, say that it remains stored and point to the category where it lives.
 - If no durable preferences were found, say so explicitly and avoid creating placeholder memory files.

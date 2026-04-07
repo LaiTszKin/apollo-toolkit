@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.5] - 2026-04-08
+
+### Changed
+- Clarify `learn-skill-from-conversations`, `codex-memory-manager`, and `weekly-financial-event-report` so Codex automation runs must treat an explicit `Automation memory:` path in the prompt as authoritative and not rely on `$CODEX_HOME` shell expansion being available.
+
 ## [v2.14.4] - 2026-04-07
 
 ### Changed
