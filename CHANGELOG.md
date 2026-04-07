@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.7] - 2026-04-08
+
+### Changed
+- Update `merge-changes-from-local-branches` so it removes successfully merged source branches and any detached worktrees only after the merge commit and verification both succeed, while refusing forced deletion for branches that are not actually merged.
+
 ## [v2.14.6] - 2026-04-08
 
 ### Added

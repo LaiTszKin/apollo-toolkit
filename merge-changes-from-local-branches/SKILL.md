@@ -23,7 +23,7 @@ description: >-
 ## Standards
 
 - Evidence: Inspect the current branch state, local branches, ahead/behind status, and actual conflicting files before deciding what to merge.
-- Execution: Merge only the relevant local branches into `main` sequentially, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, verify the merged state, then hand the final local branch state to `commit-and-push` so commit/changelog/spec-archival work happens through the shared submission workflow.
+- Execution: Merge only the relevant local branches into `main` sequentially, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, verify the merged state, delete each successfully merged branch and its detached worktree only after the merged result is confirmed, then hand the final local branch state to `commit-and-push` so commit/changelog/spec-archival work happens through the shared submission workflow.
 - Quality: Never use blanket timestamp rules or default `-X ours/theirs` conflict resolution as the primary merge strategy, and do not declare success until the final `main` state has been checked and verified.
 - Output: Produce a clean local main branch with all local changes integrated and ready for the shared submit workflow.
 
@@ -98,6 +98,21 @@ For each local branch (excluding main):
 
 ### 5) Hand off the merged result for shared submission handling
 
+- After a branch has been merged successfully and the merged `main` state has been verified, remove the source branch worktree if one exists:
+  ```bash
+  git worktree list
+  git worktree remove <worktree-path>
+  ```
+- Delete only branches that were merged successfully:
+  ```bash
+  git branch -d <branch-name>
+  ```
+- If a branch still has an attached worktree, remove the worktree before deleting the branch.
+- Never delete:
+  - `main`
+  - the currently checked-out branch
+  - branches that were skipped, failed to merge, or still need manual follow-up
+- If `git branch -d` refuses deletion because the branch is not actually merged, stop and report the branch instead of forcing deletion with `-D`.
 - Once merge verification passes, invoke `commit-and-push` for the authoritative local branch so the final submission flow owns:
   - `CHANGELOG.md` readiness
   - any required `archive-specs` run
@@ -123,6 +138,7 @@ For each local branch (excluding main):
 - Keep the main branch history clean and readable.
 - If a branch's merge breaks tests, resolve the conflict differently before committing.
 - Do not stash or discard unrelated work automatically; stop when the working tree state makes the merge ambiguous.
+- Delete merged source branches and their detached worktrees only after the merge commit and verification both succeed.
 
 ## Conflict Resolution Examples
 

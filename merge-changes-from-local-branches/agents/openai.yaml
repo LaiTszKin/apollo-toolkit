@@ -1,4 +1,4 @@
 interface:
   display_name: "Merge Changes from Local Branches"
   short_description: "Merge relevant local branches into main with verified conflict resolution"
-  default_prompt: "Use $merge-changes-from-local-branches to inventory local branches, merge only the relevant ones into local main, resolve conflicts by reading and composing the correct behavior instead of relying on blanket merge strategies, run targeted verification after conflictful merges, and leave remote state untouched."
+  default_prompt: "Use $merge-changes-from-local-branches to inventory local branches, merge only the relevant ones into local main, resolve conflicts by reading and composing the correct behavior instead of relying on blanket merge strategies, run targeted verification after conflictful merges, delete successfully merged source branches and detached worktrees only after verification succeeds, and leave remote state untouched."
