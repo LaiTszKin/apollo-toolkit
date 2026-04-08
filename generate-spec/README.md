@@ -84,7 +84,7 @@ docs/plans/<today>/membership-cutover/
 - `checklist.md`: use `- [ ]` only, adapt items to real scope, and record actual results.
 - `contract.md`: when external dependencies materially shape the change, record their official-source-backed invocation surface, constraints, and caller obligations in the standard dependency-record format.
 - `design.md`: record the architecture/design delta in the standard format, including affected modules, flow, invariants, tradeoffs, and validation plan.
-- `coordination.md`: for multi-spec batches only, record shared preparation, ownership boundaries, replacement direction, merge order, and cross-spec integration checkpoints, but never use it to make one spec depend on another spec's implementation before it can be completed.
+- `coordination.md`: for multi-spec batches only, record shared preparation, ownership boundaries, replacement direction, file ownership guardrails, shared API/schema freeze or additive-only rules, compatibility-shim retention rules, merge order, and cross-spec integration checkpoints, but never use it to make one spec depend on another spec's implementation before it can be completed.
 - If clarification responses change the plan, update the docs and obtain approval again before coding.
 
 ## Notes

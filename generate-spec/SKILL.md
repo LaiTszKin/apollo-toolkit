@@ -104,6 +104,11 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Record shared fields, shared contracts, or shared data-shape preparation that multiple spec sets must align on before implementation starts.
 - When one spec set replaces or removes legacy behavior, state that direction explicitly so all worktrees implement toward the same target rather than preserving the old behavior accidentally.
 - Capture which spec set may touch which modules, which files require coordination, and whether any landing order or cutover sequence must be respected.
+- Treat `coordination.md` as a merge-conflict prevention contract, not just a planning summary.
+- Record the concrete file ownership map, forbidden touch points, and shared files that require explicit coordination before edits begin.
+- For shared APIs, event schemas, config shapes, manifests, or artifact fields, record whether changes are additive-only during the batch and which spec set owns the canonical naming.
+- When temporary compatibility shims, adapters, or legacy bridges must survive until the whole batch lands, record that retention rule explicitly so one worktree does not remove a path another still depends on.
+- Record the post-merge integration checkpoints that must be re-verified after multiple worktrees land, especially when text merges may succeed while behavior still drifts.
 - If the batch still needs a recommended merge order, make that order operationally convenient rather than functionally required for any single spec to work correctly.
 - Keep single-spec concerns in that spec's own `design.md`; reserve `coordination.md` for batch-wide rules only.
 
@@ -148,6 +153,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - When a request exceeds that scope, split it into independent, non-conflicting, non-dependent spec sets before approval.
 - For batch specs, independence is mandatory: each spec must describe a complete slice that can be implemented, tested, reviewed, and merged without waiting for another spec in the same batch.
 - When multiple spec sets are created for one batch, keep their shared implementation direction in one `coordination.md` instead of duplicating cross-spec rules in every `design.md`.
+- For parallel worktree batches, make `coordination.md` specific enough that another engineer can tell which files they may edit, which shared contracts are frozen or additive-only, which shims must remain in place, and what combined behaviors need verification after merge.
 - Prefer realistic coverage over boilerplate: add or remove checklist items based on actual risk.
 - When external dependencies materially shape the change, `contract.md` is required and must capture the official-source-backed contract in the standardized record format.
 - `design.md` is required and must describe the architecture/design delta for the spec in the standardized format, even when the final design is intentionally minimal.

@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.10] - 2026-04-09
+
+### Changed
+- Strengthen `generate-spec` coordination guidance and template so parallel worktree batches must record file ownership guardrails, shared API or schema freeze rules, compatibility-shim retention rules, and post-merge integration checkpoints that reduce functional merge conflicts.
+- Update `implement-specs-with-worktree` so engineers executing batch specs must treat those `coordination.md` guardrails as blocking constraints during implementation instead of optional notes.
+
 ## [v2.14.9] - 2026-04-08
 
 ### Changed

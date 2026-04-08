@@ -48,6 +48,9 @@
 
 ## Conflict Boundaries
 - Shared files requiring coordination: [file/module list or `None`]
+- File ownership / edit guardrails: [which spec set owns which shared files or `None`]
+- Shared API / schema freeze: [frozen owner + additive-only rule, or `None`]
+- Compatibility shim retention rules: [which adapters/flags/tests must remain until batch completion, or `None`]
 - Merge order / landing order: [independent / optional convenience order only, never a functional prerequisite]
 - Worktree notes: [branch naming, rebase expectations, or `None`]
 

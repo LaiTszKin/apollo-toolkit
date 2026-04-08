@@ -75,6 +75,7 @@ Use branch naming from `references/branch-naming.md`.
 - Verify latest authoritative docs for involved stacks/integrations.
 - When `coordination.md` exists, respect its shared-field preparation, legacy-replacement direction, and allowed touch-point boundaries before editing.
 - Implement each task in `tasks.md` systematically.
+- When `coordination.md` defines file ownership guardrails, additive-only shared-contract rules, or compatibility-shim retention requirements, treat them as blocking execution constraints rather than optional guidance.
 - For each implemented change, add appropriate tests:
   - Unit tests for changed logic
   - Regression tests for bug-prone behavior
@@ -119,6 +120,7 @@ After implementation and testing:
 - Complete all planned tasks before committing; do not stop with partial work.
 - Treat the specs as the source of truth for scope — do not deviate without user approval.
 - When `coordination.md` exists, treat it as the source of truth for batch-level ownership and cutover direction.
+- Never remove a shared shim, rename a shared field, or rewrite a shared file outside the ownership map unless `coordination.md` explicitly allows that change or the user approves a coordination update first.
 - Follow the testing standards from `enhance-existing-features` and `develop-new-features`.
 - Do not push to remote unless the user explicitly requests it.
 
