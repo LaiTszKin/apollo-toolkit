@@ -22,9 +22,9 @@ description: >-
 
 ## Standards
 
-- Evidence: Read and understand the complete specs set before starting implementation.
-- Execution: Create or use an isolated worktree for implementation, follow the implementation standards from the dependent skills, and commit to a local branch when done.
-- Quality: Complete all planned tasks, run relevant tests, and backfill the spec documents with actual completion status.
+- Evidence: Read and understand the complete specs set before starting implementation, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
+- Execution: Create or use an isolated worktree for implementation, sync the exact approved plan set into that worktree when it is missing there, follow the implementation standards from the dependent skills, and commit to a local branch when done.
+- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, and avoid dragging unrelated sibling specs into the worktree just because they share a batch directory.
 - Output: Keep the worktree branch clean with only the intended implementation commits.
 
 ## Goal
@@ -38,6 +38,11 @@ Implement approved spec planning sets in an isolated git worktree, ensuring main
 - Locate the specs directory. The path format is `docs/plans/{YYYY-MM-DD}/{change_name}/` for single-spec work, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` for coordinated multi-spec work.
 - If the user provides a specific path, use that directly.
 - If only a `change_name` or date is given, search for matching directories under `docs/plans/`.
+- If the requested path is absent from the current worktree, stop and identify the authoritative source before implementing:
+  - inspect the main working tree and any relevant local branches/worktrees for that exact `docs/plans/...` path
+  - prefer the exact matching plan directory from the repository's authoritative branch or main working tree over archived, approximate, or sibling plan directories
+  - if the plan lives under a batch directory, sync only the requested spec directory plus the shared `coordination.md` that governs it
+  - do not copy neighboring sibling spec directories into the worktree unless the user explicitly expanded scope
 - When the plan sits under a batch directory, also read the sibling `coordination.md` before implementation.
 - Read all five spec files:
   - `spec.md` — requirements and BDD behaviors
@@ -52,6 +57,7 @@ Implement approved spec planning sets in an isolated git worktree, ensuring main
 
 - Run `git worktree list` to see existing worktrees and branches.
 - Determine if the current session is already inside a worktree (check `git rev-parse --show-toplevel` and compare with `git worktree list`).
+- If the current worktree is missing the exact requested plan set, sync that plan into the worktree before coding and re-read the synced files there so implementation happens against the same plan snapshot that will be backfilled later.
 
 ### 3) Create a new worktree if needed
 

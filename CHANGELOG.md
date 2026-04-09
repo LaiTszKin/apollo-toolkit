@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.12] - 2026-04-10
+
+### Changed
+- Tighten `implement-specs-with-worktree` so detached or temporary worktrees must recover the exact requested `docs/plans/...` spec set from the authoritative branch or main working tree before coding, instead of substituting nearby plans.
+- Require `implement-specs-with-worktree` to sync only the in-scope spec directory plus its governing batch `coordination.md`, avoiding accidental sibling-spec imports into the worktree.
+
 ## [v2.14.11] - 2026-04-09
 
 ### Changed
