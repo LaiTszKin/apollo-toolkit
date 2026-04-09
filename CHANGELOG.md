@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.11] - 2026-04-09
+
+### Changed
+- Re-scope `merge-changes-from-local-branches` so it merges only verified child branches that forked from the current branch, and lands the result back onto that same current branch instead of sweeping all local branches into `main`.
+- Require `merge-changes-from-local-branches` to run `archive-specs` after merge verification so completed plan sets are archived and durable project docs are synchronized before `commit-and-push` creates the final current-branch submission.
+
 ## [v2.14.10] - 2026-04-09
 
 ### Changed
