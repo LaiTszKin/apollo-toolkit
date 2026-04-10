@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.14] - 2026-04-11
+
+### Changed
+- Tighten `commit-and-push` so it must distinguish staged versus unstaged work before choosing commit scope, preserve intentionally separated commit boundaries, and only broaden scope after an explicit user request.
+- Update `learn-skill-from-conversations` so repeated follow-ups that correct commit scope or local-versus-remote submission boundaries are treated as evidence to harden the owning submit workflow.
+
 ## [v2.14.13] - 2026-04-10
 
 ### Added

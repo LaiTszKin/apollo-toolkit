@@ -14,10 +14,10 @@ description: "Guide the agent to submit local changes with commit and push only 
 
 ## Standards
 
-- Evidence: Inspect git state and classify the change set before deciding which quality gates apply, then compare the actual pending diff against root `CHANGELOG.md` `Unreleased` before committing.
-- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for readiness classification, invoke `archive-specs` directly whenever completed plan sets should be converted or project docs need alignment, preserve staging intent, honor any explicit user-specified target branch, and when the worktree is already clean inspect local `HEAD`, upstream state, and the most recent relevant commit before deciding the request is a no-op; when worktree-based delivery is involved, verify where the authoritative target branch lives before moving history, re-validate on that target branch after replay or merge, and remove the temporary worktree only after the target branch is safely updated; then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
-- Quality: Re-run relevant validation for runtime changes, preserve unrelated local work safely when branch switching or post-push local sync is required, and do not bypass blocking readiness findings such as missing/stale `Unreleased` bullets or unsynchronized project docs.
-- Output: Produce a concise Conventional Commit, push it to the intended branch, and report any temporary stash/restore or local branch sync that was required.
+- Evidence: Inspect git state and classify the change set before deciding which quality gates apply, then compare the actual pending diff against root `CHANGELOG.md` `Unreleased` before committing, while also distinguishing the staged surface from additional unstaged work before deciding commit scope.
+- Execution: Run the required quality-gate skills when applicable, and treat every conditional gate whose scenario is met as blocking before submission; hand the repository to `submission-readiness-check` for readiness classification, invoke `archive-specs` directly whenever completed plan sets should be converted or project docs need alignment, preserve staging intent, honor any explicit user-specified target branch, and when the worktree is already clean inspect local `HEAD`, upstream state, and the most recent relevant commit before deciding the request is a no-op; when worktree-based delivery is involved, verify where the authoritative target branch lives before moving history, re-validate on that target branch after replay or merge, and remove the temporary worktree only after the target branch is safely updated; when the user asks for multiple commits or a narrower staged subset, keep those commit boundaries explicit instead of broadening scope implicitly; then commit and push without release steps; run dependent git mutations sequentially and verify the remote branch actually contains the new local `HEAD` before reporting success.
+- Quality: Re-run relevant validation for runtime changes, preserve unrelated local work safely when branch switching or post-push local sync is required, do not bypass blocking readiness findings such as missing/stale `Unreleased` bullets or unsynchronized project docs, and never collapse intentionally separated commit scopes just because related unstaged changes are present.
+- Output: Produce a concise Conventional Commit, push it to the intended branch, and report any temporary stash/restore, commit-scope separation, or local branch sync that was required.
 
 ## Overview
 
@@ -35,6 +35,7 @@ Load only when needed:
 1. Inspect current state
    - Run `git status -sb`, `git diff --stat`, and `git diff --cached --stat`.
    - Check staged files with `git diff --cached --name-only`.
+   - Compare the staged and unstaged surfaces explicitly so you can tell whether the user already prepared a narrower commit than the full worktree diff.
    - Inventory repository planning artifacts and project docs, not only staged files, to detect repo specs and non-standard documentation layouts.
    - If the worktree is already clean, inspect `git log -1 --stat`, local `HEAD`, and the configured upstream state before concluding there is nothing to submit; use that evidence to determine whether the requested work was already committed and pushed, committed but not pushed, or never landed.
 2. Classify changes
@@ -68,6 +69,8 @@ Load only when needed:
    - When readiness indicates doc conversion or project-doc drift, run `archive-specs` before the final commit instead of duplicating documentation alignment work locally.
 6. Commit
    - Preserve user staging intent where possible.
+   - If the user explicitly asks for separate commits, or the staged set is already a deliberate subset of the worktree, keep those scopes separated and do not auto-stage the remaining diff unless the user expands the requested scope.
+   - If the user later broadens the requested scope, restate the new grouping, verify it against the actual staged/unstaged surfaces, and only then create the additional commit(s).
    - Write a concise Conventional Commit message using `references/commit-messages.md`.
 7. Push
    - Push commit(s) to the intended branch.
@@ -86,6 +89,7 @@ Load only when needed:
 - Never claim the repository is ready to commit while root `CHANGELOG.md` `Unreleased` is missing the current change or still describes superseded work.
 - Never fabricate a commit/push result when the worktree is already clean; either identify the exact existing commit/upstream state that satisfies the user's request or say that no matching new submission exists.
 - Never delete a temporary worktree before the target branch has been updated, tested, and verified to contain the intended final content.
+- Never auto-stage or auto-merge unrelated unstaged changes into a commit when the user or current index state already defines narrower commit boundaries.
 - If release/version/tag work is requested, use `version-release` instead.
 - If a new branch is required, follow `references/branch-naming.md`.
 - A pushed implementation can still leave an active spec set behind; commit completion and spec archival are separate decisions.
