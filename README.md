@@ -22,6 +22,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, and Claude Code with a manage
 - read-github-issue
 - generate-spec
 - harden-app-security
+- implement-specs
 - improve-observability
 - jupiter-development
 - katex

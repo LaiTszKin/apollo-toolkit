@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Specs"
+  short_description: "Implement approved specs in the current checkout"
+  default_prompt: "Use $implement-specs to read the full plan set under docs/plans, including parent coordination.md when the spec belongs to a parallel batch, implement all approved tasks in the current checkout without creating branches or git worktrees, backfill completion status into the planning docs, and commit the result to the current branch."

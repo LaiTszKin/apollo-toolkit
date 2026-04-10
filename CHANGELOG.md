@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.13] - 2026-04-10
+
+### Added
+- Add `implement-specs` for executing approved spec sets directly in the current checkout without creating a branch or git worktree.
+
 ## [v2.14.12] - 2026-04-10
 
 ### Changed

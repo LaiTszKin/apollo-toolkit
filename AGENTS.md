@@ -34,6 +34,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can run a shared submission-readiness pass that synchronizes changelog, project docs, `AGENTS.md`, and completed plan archives before commit, push, PR creation, or release.
 - Users can learn new or improved skills from recent Codex conversation history.
 - Users can audit and maintain the skill catalog itself, including dependency classification and shared-skill extraction decisions.
+- Users can implement approved spec planning sets directly in the current checkout and commit them to the active branch.
 - Users can summarize mistakes into separate multiple-choice and long-answer error books backed by structured reference files and rendered PDFs.
 - Users can build or review marginfi protocol integrations using official SDK, CLI, protocol, and The Arena documentation.
 - Users can create or maintain `AGENTS.md` so project constraints stay aligned with the repository.
