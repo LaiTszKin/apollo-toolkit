@@ -5,6 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Changed
+- None yet.
+
+## [v2.14.16] - 2026-04-11
+
+### Changed
 - Strengthen `generate-spec` so batch planning now requires spec sets to be truly parallel-implementable, not merely independently scoped.
 - Update `generate-spec` templates and prompts so `coordination.md` captures parallel-readiness gates, collision-resolution records, and pre-agreed ownership rules before concurrent implementation starts.
 
