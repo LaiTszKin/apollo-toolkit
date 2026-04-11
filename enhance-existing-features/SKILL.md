@@ -24,7 +24,7 @@ description: >-
 ## Standards
 
 - Evidence: Explore the existing codebase first and verify the latest authoritative docs for the involved stack or integrations.
-- Execution: Decide whether specs are required from the actual change surface, run `generate-spec` when needed, then continue through implementation, testing, and backfill until the active scope is fully reconciled.
+- Execution: Decide whether specs are required from the actual change surface, run `generate-spec` when needed, then continue through implementation, testing, and backfill until the active scope is fully reconciled; when the user asks for a specific final behavior or architectural end state, do not substitute a preparatory or partial milestone unless the user explicitly re-scopes the request.
 - Quality: Add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
 - Output: Keep implementation and any planning artifacts traceable, updated, and aligned with actual completion results.
 
@@ -97,6 +97,7 @@ If not triggered:
 - Update environment examples only when new inputs are required.
 - If specs exist, treat every unchecked in-scope task and applicable checklist item as part of the required deliverable for this run.
 - Do not stop after partial code changes, partial tests, or partial backfill when approved planned work remains.
+- Do not present an enabling first stage, temporary coalescing step, or other intermediate milestone as complete when the user asked for the final scoped behavior.
 - Only pause before completion if:
   - the user changes scope or explicitly asks to stop
   - new clarification requires plan updates and renewed approval

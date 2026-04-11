@@ -7,6 +7,12 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v2.14.17] - 2026-04-12
+
+### Changed
+- Tighten `version-release` so explicit semver wording such as `patch update`, `minor update`, or `major update` counts as release intent and still requires publishing the matching GitHub release.
+- Tighten `enhance-existing-features` so it must not report an enabling intermediate milestone as complete when the user asked for the final scoped behavior.
+
 ## [v2.14.16] - 2026-04-11
 
 ### Changed

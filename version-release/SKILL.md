@@ -1,6 +1,6 @@
 ---
 name: version-release
-description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, GitHub release, and push). Use only when users explicitly request version/tag/release work. Depend directly on `archive-specs` when completed plan sets should become durable docs or when project docs need alignment, and let that skill own the downstream documentation synchronization work."
+description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, GitHub release, and push). Use only when users explicitly request version/tag/release work, including direct semver wording such as patch/minor/major updates. Depend directly on `archive-specs` when completed plan sets should become durable docs or when project docs need alignment, and let that skill own the downstream documentation synchronization work."
 ---
 
 # Version Release
@@ -47,6 +47,7 @@ Load only when needed:
    - Inventory repository planning artifacts and project docs, not only staged files, to detect repo specs and non-standard documentation layouts.
 2. Confirm release intent
    - Use this skill only when the user explicitly requests version/tag/release work.
+   - Treat explicit semver-delivery wording such as `patch update`, `minor update`, `major update`, `patch release`, `bump the version`, or requests to trigger release-published automation as release intent even when the user does not separately say `make a release`.
    - If no release intent is present, use `commit-and-push` instead.
 3. Classify changes and run dependencies when required
    - `code-affecting`: runtime code, tests, build scripts, CI logic, or behavior-changing config.
