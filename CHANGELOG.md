@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v2.14.15] - 2026-04-11
+
+### Changed
+- Update `merge-changes-from-local-branches` so merge scope is determined from explicit branch names or spec-name mappings, instead of verifying child-branch ancestry from git history.
+- Update `implement-specs-with-worktree` so new worktree branches inherit from the same parent branch as the worktree base, and use the spec-set name as the canonical branch/worktree identifier.
+
 ## [v2.14.14] - 2026-04-11
 
 ### Changed

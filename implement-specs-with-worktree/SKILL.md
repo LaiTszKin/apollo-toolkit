@@ -6,9 +6,10 @@ description: >-
   plus parent `coordination.md` when present, and implement the approved tasks
   within an isolated git worktree. Use when the user asks to implement from an
   existing spec set, execute a spec plan, or work on a feature branch without
-  affecting the main working tree. If not already in a worktree, create a new
-  worktree with an independent branch, implement all planned tasks, then commit
-  the changes to that local branch when complete.
+  affecting the parent working tree. If not already in a worktree, create a new
+  worktree with a spec-named branch from the same parent branch as the worktree
+  base, implement all planned tasks, then commit the changes to that local
+  branch when complete.
 ---
 
 # Implement Specs with Worktree
@@ -22,14 +23,14 @@ description: >-
 
 ## Standards
 
-- Evidence: Read and understand the complete specs set before starting implementation, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
-- Execution: Create or use an isolated worktree for implementation, sync the exact approved plan set into that worktree when it is missing there, follow the implementation standards from the dependent skills, and commit to a local branch when done.
+- Evidence: Read and understand the complete specs set before starting implementation, identify the authoritative parent branch that the worktree should inherit from, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
+- Execution: Create or use an isolated worktree for implementation, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, follow the implementation standards from the dependent skills, and commit to a local branch when done.
 - Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, and avoid dragging unrelated sibling specs into the worktree just because they share a batch directory.
 - Output: Keep the worktree branch clean with only the intended implementation commits.
 
 ## Goal
 
-Implement approved spec planning sets in an isolated git worktree, ensuring main development is never interrupted by in-progress work.
+Implement approved spec planning sets in an isolated git worktree, ensuring the parent working tree is never interrupted by in-progress work.
 
 ## Workflow
 
@@ -58,18 +59,26 @@ Implement approved spec planning sets in an isolated git worktree, ensuring main
 - Run `git worktree list` to see existing worktrees and branches.
 - Determine if the current session is already inside a worktree (check `git rev-parse --show-toplevel` and compare with `git worktree list`).
 - If the current worktree is missing the exact requested plan set, sync that plan into the worktree before coding and re-read the synced files there so implementation happens against the same plan snapshot that will be backfilled later.
+- Determine the authoritative parent branch for the new worktree:
+  - if the current checkout already comes from a branch, reuse that branch as the base
+  - if the current session is inside a detached worktree, identify the parent branch that owns that worktree before creating another branch from it
+  - do not default to `main` unless `main` is actually the parent branch of the worktree you are extending
 
 ### 3) Create a new worktree if needed
 
 If not already in a worktree, or if the user explicitly requests a fresh worktree:
 
-- Create a new branch for this implementation:
+- Derive the canonical spec name from the requested `change_name` directory.
+- Use that spec name as the shared branch/worktree identifier:
+  - branch name: `<type>/<spec-name>` following `references/branch-naming.md`
+  - worktree directory name: `<spec-name>`
+- Create a new branch for this implementation from the same parent branch identified in step 2:
   ```bash
-  git branch <branch-name> main
+  git branch <branch-name> <parent-branch>
   ```
 - Add a new worktree:
   ```bash
-  git worktree add ../<worktree-name> -b <branch-name>
+  git worktree add ../<spec-name> <branch-name>
   ```
 - Move into the new worktree directory and begin work there.
 
@@ -117,12 +126,14 @@ After implementation and testing:
 ### 7) Report completion
 
 - Summarize what was implemented.
-- Note the branch name and worktree location.
-- Confirm that main remains unaffected.
+- Note the spec-derived branch name and worktree location.
+- Confirm that the parent branch remains unaffected.
 
 ## Working Rules
 
-- Always work in an isolated worktree to keep main clean.
+- Always work in an isolated worktree to keep the parent checkout clean.
+- Keep the new branch based on the same parent branch as the worktree base; do not silently rebase the workflow onto a different branch.
+- Use the spec-set name as the canonical identifier for the branch and worktree unless the user explicitly asks for a different naming scheme.
 - Complete all planned tasks before committing; do not stop with partial work.
 - Treat the specs as the source of truth for scope — do not deviate without user approval.
 - When `coordination.md` exists, treat it as the source of truth for batch-level ownership and cutover direction.
