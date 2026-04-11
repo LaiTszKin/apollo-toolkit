@@ -17,6 +17,7 @@
 - Affected modules: [module/file/service list]
 - External contracts involved: [dependency names from `contract.md`, or `None`]
 - Coordination reference: [`../coordination.md` or `None`]
+- Parallel implementation assumption: [why this spec can be implemented concurrently, or `None` for single-spec work]
 
 ## Current Architecture
 [Describe the relevant current components, data flow, control flow, and boundaries.]
@@ -54,6 +55,7 @@
 - Key risks: [failure, concurrency, authorization, partial-write, dependency risk]
 - Rejected alternatives: [alternative + why it was not chosen]
 - Operational constraints: [performance, quota, observability, deployment coupling]
+- Cross-spec collision notes: [known shared-file/shared-contract collision avoided by ownership rules, or `None`]
 
 ## Validation Plan
 - Tests: [UT / PBT / IT / E2E / adversarial]

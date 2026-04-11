@@ -31,5 +31,6 @@
 - Task order should reflect actual implementation sequence.
 - Every main task must map back to `spec.md` requirement IDs.
 - Include explicit tasks for required test coverage (unit, regression, property-based, integration/E2E as applicable), mock scenario setup, and adversarial/edge-case hardening.
+- For batch specs, tasks must never include "wait for Spec X to land first" as a prerequisite; if such a dependency appears, re-slice the plan or move the coordination rule into `coordination.md`.
 - After execution, the agent must update each checkbox (`[x]` for done, `[ ]` for not done).
 - Remove all placeholder guidance text in square brackets after filling.

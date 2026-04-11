@@ -6,6 +6,11 @@
 ## Coordination Goal
 [Describe the shared implementation goal across this batch of parallel spec sets.]
 
+## Parallel Readiness Gate
+- Ready for parallel implementation now: [Yes / No]
+- Blocking coordination items before coding: [None / list concrete ownership or contract decisions that must be settled first]
+- Re-coordination trigger: [what kind of new overlap or contract change forces the batch to stop and re-align]
+
 ## Batch Scope
 - Included spec sets: [[spec-name-1], [spec-name-2]]
 - Shared outcome: [what the batch delivers when all spec sets land]
@@ -23,6 +28,7 @@
 - Shared fields to introduce or reuse: [field / config / API shape / event schema]
 - Canonical source of truth: [which module or data owner defines them]
 - Required preparation before implementation: [migration, adapter, stub, flag, fallback, fixture]
+- Additive-only rule during batch: [what may be added safely without breaking parallel work, or `None`]
 
 ### Replacement / Legacy Direction
 - Legacy behavior being replaced: [feature / flow / module / endpoint / UI]
@@ -53,6 +59,22 @@
 - Compatibility shim retention rules: [which adapters/flags/tests must remain until batch completion, or `None`]
 - Merge order / landing order: [independent / optional convenience order only, never a functional prerequisite]
 - Worktree notes: [branch naming, rebase expectations, or `None`]
+
+## Collision Resolution Records
+
+### Collision 1: [Shared file / schema / manifest / contract]
+- Involved spec sets: [[spec-name-1], [spec-name-2]]
+- Conflict shape: [same file / same symbol / same schema field / same generated artifact]
+- Pre-agreed resolution: [single owner / additive-only edits / split by section / move into one spec]
+- Allowed edits per spec: [exact ownership boundary]
+- Escalation rule: [when engineers must stop and re-coordinate]
+
+### Collision 2: [Shared file / schema / manifest / contract]
+- Involved spec sets: [[spec-name-1], [spec-name-2]]
+- Conflict shape: [same file / same symbol / same schema field / same generated artifact]
+- Pre-agreed resolution: [single owner / additive-only edits / split by section / move into one spec]
+- Allowed edits per spec: [exact ownership boundary]
+- Escalation rule: [when engineers must stop and re-coordinate]
 
 ## Integration Checkpoints
 - Combined behaviors to verify after merge: [cross-spec outcome]

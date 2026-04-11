@@ -5,7 +5,7 @@ A shared planning skill for feature work. It centralizes creation and maintenanc
 ## Core capabilities
 
 - Generates single-spec plans under `docs/plans/{YYYY-MM-DD}/{change_name}/`.
-- Generates multi-spec parallel batches under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with a shared `coordination.md`, while keeping every batch spec independently completable.
+- Generates multi-spec parallel batches under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with a shared `coordination.md`, while keeping every batch spec independently completable and safe to implement concurrently.
 - Uses shared templates so spec-first and brownfield workflows follow the same planning structure.
 - Requires clarification handling and explicit user approval before implementation starts.
 - Backfills task and checklist status after implementation and testing.
@@ -84,11 +84,11 @@ docs/plans/<today>/membership-cutover/
 - `checklist.md`: use `- [ ]` only, adapt items to real scope, and record actual results.
 - `contract.md`: when external dependencies materially shape the change, record their official-source-backed invocation surface, constraints, and caller obligations in the standard dependency-record format.
 - `design.md`: record the architecture/design delta in the standard format, including affected modules, flow, invariants, tradeoffs, and validation plan.
-- `coordination.md`: for multi-spec batches only, record shared preparation, ownership boundaries, replacement direction, file ownership guardrails, shared API/schema freeze or additive-only rules, compatibility-shim retention rules, merge order, and cross-spec integration checkpoints, but never use it to make one spec depend on another spec's implementation before it can be completed.
+- `coordination.md`: for multi-spec batches only, record shared preparation, ownership boundaries, replacement direction, file ownership guardrails, known collision candidates, pre-agreed edit rules for shared surfaces, shared API/schema freeze or additive-only rules, compatibility-shim retention rules, merge order, and cross-spec integration checkpoints, but never use it to make one spec depend on another spec's implementation before it can be completed.
 - If clarification responses change the plan, update the docs and obtain approval again before coding.
 
 ## Notes
 
 - `scripts/...` and `references/...` are skill-folder paths, not project-folder paths.
 - The generator replaces `[YYYY-MM-DD]`, `[Feature Name]`, `[功能名稱]`, `[change_name]`, and `[batch_name]` placeholders.
-- If a batch split produces specs that must land in a functional sequence, re-slice the work so each spec becomes independently implementable, testable, and mergeable.
+- If a batch split produces specs that must land in a functional sequence, or still leaves unresolved shared-file collisions, re-slice the work so each spec becomes independently implementable, testable, mergeable, and parallel-safe before coding starts.

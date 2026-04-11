@@ -48,7 +48,8 @@ def main() -> int:
         description=(
             "Create planning docs (spec.md, tasks.md, checklist.md, contract.md, design.md) "
             "from templates with folder format docs/plans/{date}/{change_name} "
-            "or docs/plans/{date}/{batch_name}/{change_name}."
+            "or docs/plans/{date}/{batch_name}/{change_name}, including coordination "
+            "templates for truly parallel-safe batch specs."
         ),
     )
     parser.add_argument("feature_name", help="Display name used in generated documents")
@@ -73,7 +74,8 @@ def main() -> int:
         action="store_true",
         help=(
             "When used with --batch-name, also create or update "
-            "docs/plans/{date}/{batch_name}/coordination.md from the shared template."
+            "docs/plans/{date}/{batch_name}/coordination.md from the shared template "
+            "for up-front ownership and collision coordination."
         ),
     )
     parser.add_argument(
