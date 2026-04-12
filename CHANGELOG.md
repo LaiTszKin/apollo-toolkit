@@ -7,6 +7,12 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v2.14.18] - 2026-04-13
+
+### Changed
+- Update `review-codebases` so issue-publishing runs must search for overlapping open or recent issues first and skip publishing duplicates when the root cause already has a tracker.
+- Tighten `implement-specs-with-worktree` so archived or already-landed spec requests must verify whether the work is already present before creating a fresh worktree, and report a no-op with evidence when appropriate.
+
 ## [v2.14.17] - 2026-04-12
 
 ### Changed

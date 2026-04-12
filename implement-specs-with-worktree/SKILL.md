@@ -23,8 +23,8 @@ description: >-
 
 ## Standards
 
-- Evidence: Read and understand the complete specs set before starting implementation, identify the authoritative parent branch that the worktree should inherit from, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
-- Execution: Create or use an isolated worktree for implementation, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, follow the implementation standards from the dependent skills, and commit to a local branch when done.
+- Evidence: Read and understand the complete specs set before starting implementation, identify the authoritative parent branch that the worktree should inherit from, verify whether the requested scope is already implemented on that parent branch or current main working tree, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
+- Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, follow the implementation standards from the dependent skills, and commit to a local branch when done.
 - Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, and avoid dragging unrelated sibling specs into the worktree just because they share a batch directory.
 - Output: Keep the worktree branch clean with only the intended implementation commits.
 
@@ -63,10 +63,14 @@ Implement approved spec planning sets in an isolated git worktree, ensuring the 
   - if the current checkout already comes from a branch, reuse that branch as the base
   - if the current session is inside a detached worktree, identify the parent branch that owns that worktree before creating another branch from it
   - do not default to `main` unless `main` is actually the parent branch of the worktree you are extending
+- Before creating a new worktree, inspect the parent branch and current main working tree for evidence that the requested spec is already implemented:
+  - search the codebase, tests, and recent git history for the exact feature boundary or cutover named by the spec
+  - if the requested plan is archived, treat that as a signal to verify whether the implementation already landed before starting any new branch
+  - when the requested behavior is already present and verified, report a `no-op` result with concrete evidence instead of recreating the same work in a fresh worktree
 
 ### 3) Create a new worktree if needed
 
-If not already in a worktree, or if the user explicitly requests a fresh worktree:
+If not already in a worktree, or if the user explicitly requests a fresh worktree, and the spec is not already implemented:
 
 - Derive the canonical spec name from the requested `change_name` directory.
 - Use that spec name as the shared branch/worktree identifier:
@@ -132,6 +136,7 @@ After implementation and testing:
 ## Working Rules
 
 - Always work in an isolated worktree to keep the parent checkout clean.
+- Treat an already-landed spec as complete work, not as a reason to recreate a duplicate worktree.
 - Keep the new branch based on the same parent branch as the worktree base; do not silently rebase the workflow onto a different branch.
 - Use the spec-set name as the canonical identifier for the branch and worktree unless the user explicitly asks for a different naming scheme.
 - Complete all planned tasks before committing; do not stop with partial work.

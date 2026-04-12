@@ -8,7 +8,7 @@ description: Repository-wide code review workflow that requires reading the full
 ## Dependencies
 
 - Required: none.
-- Conditional: `open-github-issue` when confirmed findings should be tracked as GitHub issues.
+- Conditional: `read-github-issue` when issue publication requires duplicate checks; `open-github-issue` when confirmed findings should be tracked as GitHub issues.
 - Optional: none.
 - Fallback: If publication is needed and `open-github-issue` is unavailable, return draft issue bodies instead of inventing another publisher.
 
@@ -58,7 +58,11 @@ Only continue to the next level when the current level has no confirmed findings
 5. Review edge cases last
    - Run this step only when there are no architecture or code-quality findings.
    - Check null or empty inputs, boundary values, partial failures, retries, concurrency, ordering assumptions, idempotency, and invalid state transitions.
-6. Publish each confirmed finding
+6. Check for duplicate issues before publication
+   - When findings will be published, use `read-github-issue` to search the target repository for open and recently closed issues that match the same module, failure mode, or architectural boundary.
+   - Treat an existing issue as a duplicate when the underlying root cause, affected boundary, and requested outcome materially overlap, even if the wording differs.
+   - If a duplicate exists, cite it in the final report and do not publish a new issue for that finding.
+7. Publish each confirmed non-duplicate finding
    - Invoke `open-github-issue` once per finding.
    - Use a tier-specific title prefix:
      - `[Architecture] <short finding>`
@@ -99,6 +103,7 @@ Use this structure in responses:
    - impact
    - confidence
 4. GitHub issue publication status
+   - duplicate-check status and any matching existing issue URLs
    - publication mode (`gh-cli` / `github-token` / `draft-only`)
    - created issue URL or draft output per finding
 5. Deferred follow-up
