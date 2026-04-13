@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v2.14.19] - 2026-04-14
+
+### Changed
+- Update `version-release` so same-version prerelease hotfixes retarget the existing prerelease tag and GitHub release instead of forcing an extra semver bump.
+
 ## [v2.14.18] - 2026-04-13
 
 ### Changed

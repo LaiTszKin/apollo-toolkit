@@ -15,7 +15,7 @@ description: "Guide the agent to prepare and publish a versioned release (versio
 ## Standards
 
 - Evidence: Inspect the active change set, current version files, existing tag format, existing remote tags/releases, and root `CHANGELOG.md` `Unreleased` content before touching version files, tags, or release metadata.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, and treat every conditional gate whose scenario is met as blocking before versioning or publication; hand the repository to `submission-readiness-check` before versioning work, invoke `archive-specs` directly whenever completed plan sets should be converted or project docs need alignment, and if the worktree is already clean inspect the current version, local/remote tag state, and existing GitHub release state before deciding whether the request is already satisfied; then cut the release directly from `CHANGELOG.md` `Unreleased`, update versions and docs, commit, tag, push, and publish the GitHub release with actual release tooling rather than PR-surrogate directives; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
+- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, and treat every conditional gate whose scenario is met as blocking before versioning or publication; hand the repository to `submission-readiness-check` before versioning work, invoke `archive-specs` directly whenever completed plan sets should be converted or project docs need alignment, and if the worktree is already clean inspect the current version, local/remote tag state, and existing GitHub release state before deciding whether the request is already satisfied; when the user explicitly wants the same prerelease version to point at newer fixes, retarget the existing prerelease tag and GitHub release instead of inventing an extra version bump; otherwise cut the release directly from `CHANGELOG.md` `Unreleased`, update versions and docs, commit, tag, push, and publish the GitHub release with actual release tooling rather than PR-surrogate directives; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release.
 - Quality: Never guess versions, align user-facing docs with actual code, do not bypass readiness blockers from `submission-readiness-check`, do not reconstruct release notes from `git diff` when curated changelog content already exists, and do not report release success until the commit, tag, and GitHub release all exist for the same version.
 - Output: Produce a versioned release commit and tag, publish a matching GitHub release, and keep changelog plus relevant repository documentation synchronized.
 
@@ -69,11 +69,13 @@ Load only when needed:
    - Read existing version files (for example `project.toml`, `package.json`, or repo-specific version files).
    - Infer existing tag format (`vX.Y.Z` or `X.Y.Z`) from repository tags.
    - Inspect existing local and remote tags plus any existing GitHub Release for the target version before creating new release metadata, so duplicate or conflicting releases are caught early.
+   - If the user explicitly asks to keep the same prerelease version or to `repoint`, `retarget`, or `move` an existing prerelease after follow-up fixes, treat that as a retarget flow: keep the version unchanged, confirm the existing prerelease tag/release name, and plan to move that tag/release to the new commit instead of bumping semver.
    - If the requested version tag and matching published GitHub release already exist and point at the intended commit, report that the release is already complete instead of creating duplicate metadata.
    - If the user provides the target version, use it directly.
    - If it is missing, ask the user for the target version or semver bump type.
    - Provide recommendations only when explicitly requested.
    - Do not continue until you can state the current version, the intended next version, and the exact tag name that will be created.
+   - For retarget flows, explicitly state that the intended next version stays unchanged and that the existing tag name will be moved to the new commit.
 6. Update version files
    - Update every detected version file consistently.
    - Preserve file formatting; change only version values.
@@ -87,15 +89,18 @@ Load only when needed:
    - Update `AGENTS.md` only when agent workflow/rules changed.
 8. Commit and tag
    - Create a release-oriented commit message (for example `chore(release): publish 2.12.1`) when applicable.
-   - Create the version tag locally after commit.
+   - For new-version flows, create the version tag locally after commit.
+   - For prerelease retarget flows, move the existing tag locally only after the new fix commit exists, and verify the target commit hash before rewriting the tag.
    - Re-read the version files after editing and before tagging to confirm they all match the intended release version.
 9. Push
    - Push commit(s) and the release tag to the current branch before publishing the GitHub release when the hosting platform requires the tag to exist remotely.
+   - For prerelease retarget flows, push the rewritten tag explicitly (for example `--force-with-lease` for the single tag only), then verify the remote tag hash matches local `HEAD` before touching the GitHub release.
    - Do not overlap `git commit`, `git tag`, `git push`, or release-publish steps; wait for each mutation to finish before starting the next one.
    - After pushing, verify the remote branch tip matches local `HEAD`, and verify the release tag exists remotely via `git ls-remote --tags <remote> <tag>`.
    - If any git step finishes ambiguously or the remote hashes do not match local state, rerun the missing step sequentially and re-check before publishing the GitHub release.
 10. Publish the GitHub release
    - Create a non-draft GitHub release that matches the pushed version tag.
+   - For prerelease retarget flows, update the existing GitHub prerelease so it points at the rewritten tag/commit and refresh its notes when the new fix changes the shipped behavior.
    - Use the release notes from the new `CHANGELOG.md` entry unless the repository has a stronger established release-note source.
    - If the repository has publish automation triggered by `release.published`, ensure the GitHub release is actually published rather than left as a draft.
    - Prefer `gh release create <tag>` or the repository's existing release tool when available.
