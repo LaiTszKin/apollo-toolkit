@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v2.14.20] - 2026-04-15
+
+### Changed
+- Tighten `version-release` so same-version prerelease retarget flows fall back to a GitHub-accepted `target_commitish` such as the release branch name when raw commit SHA updates are rejected.
+
 ## [v2.14.19] - 2026-04-14
 
 ### Changed
