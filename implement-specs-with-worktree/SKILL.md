@@ -24,8 +24,8 @@ description: >-
 ## Standards
 
 - Evidence: Read and understand the complete specs set before starting implementation, identify the authoritative parent branch that the worktree should inherit from, verify whether the requested scope is already implemented on that parent branch or current main working tree, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
-- Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, follow the implementation standards from the dependent skills, and commit to a local branch when done.
-- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, and avoid dragging unrelated sibling specs into the worktree just because they share a batch directory.
+- Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, prefer direct `git` ref checks over brittle shell inference when deciding whether a branch or worktree already exists, and commit to a local branch when done.
+- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, avoid dragging unrelated sibling specs into the worktree just because they share a batch directory, and if branch/worktree creation reports ambiguous state re-check the actual git refs and worktree list before retrying.
 - Output: Keep the worktree branch clean with only the intended implementation commits.
 
 ## Goal
@@ -85,6 +85,12 @@ If not already in a worktree, or if the user explicitly requests a fresh worktre
   git worktree add ../<spec-name> <branch-name>
   ```
 - Move into the new worktree directory and begin work there.
+- When checking whether the target branch or worktree already exists, use direct git evidence instead of shell heuristics:
+  ```bash
+  git show-ref --verify --quiet refs/heads/<branch-name>
+  git worktree list --porcelain
+  ```
+- If branch creation or worktree creation fails in a way that leaves the state unclear, stop and re-read `git show-ref` plus `git worktree list --porcelain` before retrying; do not guess from wrapper output or compound shell conditionals.
 
 Use branch naming from `references/branch-naming.md`.
 

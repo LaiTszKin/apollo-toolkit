@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v2.14.21] - 2026-04-16
+
+### Changed
+- Tighten `implement-specs-with-worktree` so branch/worktree setup uses direct `git` ref checks and requires an explicit re-check of repo state before retrying after ambiguous creation failures.
+
 ## [v2.14.20] - 2026-04-15
 
 ### Changed
