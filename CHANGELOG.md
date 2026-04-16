@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v2.14.22] - 2026-04-17
+
+### Changed
+- Strengthen `systematic-debug` so failing-test investigations must classify each symptom as stale test contract, test-harness interference, or real product bug, and must treat isolated-only passes as evidence to inspect shared-state and parallel-test interference before changing product code.
+
 ## [v2.14.21] - 2026-04-16
 
 ### Changed
