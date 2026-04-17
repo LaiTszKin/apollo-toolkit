@@ -7,6 +7,13 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v2.14.23] - 2026-04-18
+
+### Changed
+- Strengthen `scheduled-runtime-health-check` so bounded runtime investigations must explicitly choose and report the highest-fidelity execution mode that matches the user's claim, instead of silently substituting a lower-fidelity harness for production-like behavior.
+- Strengthen `systematic-debug` so runtime bug investigations must reproduce failures in the same runtime mode as the observed claim, and treat scenario or harness reruns as lower-fidelity evidence unless that limitation is made explicit.
+- Strengthen `improve-observability` so aggregate success counters must stay reconcilable with per-entity detail records across harness and production paths, treating missing detail rows as an observability bug.
+
 ## [v2.14.22] - 2026-04-17
 
 ### Changed

@@ -15,7 +15,7 @@ description: Add focused observability to an existing system so opaque workflows
 ## Standards
 
 - Evidence: Read the real execution path and current telemetry before deciding where visibility actually disappears.
-- Execution: Add the smallest useful instrumentation around decision points, scope contracts, outcomes, and failure reasons.
+- Execution: Add the smallest useful instrumentation around decision points, scope contracts, outcomes, failure reasons, and any cross-path lifecycle gaps between summary counters and detailed outcome records.
 - Quality: Keep changes behavior-neutral, use structured high-signal telemetry, avoid secrets, and lock the signals with tests.
 - Output: Report which stages are now observable, which fields or metrics to inspect, and which tests validate the instrumentation.
 
@@ -41,6 +41,7 @@ Do not use this skill for generic bug fixing when the main request is behavior c
 
 - Read the relevant entrypoints, orchestration layers, and current telemetry before editing.
 - Identify the exact stages where information disappears: validation, branching, external calls, persistence, retries, settlement, cleanup, or error handling.
+- When the same business event can flow through multiple execution paths such as harness, replay, batch worker, or production runtime, compare those paths explicitly and find where their observability contract diverges.
 - Reuse the project's existing logger, tracing library, metric naming style, and error taxonomy.
 
 ### 2. Choose the smallest useful signals
@@ -53,6 +54,7 @@ Add instrumentation only where it helps answer a concrete debugging question. Pr
 - explicit logs for skipped paths and early returns
 - metrics or counters for outcome classes when aggregates matter
 - trace spans only when the project already uses tracing or timing data is necessary
+- paired detail records or structured child events when an aggregate success counter would otherwise hide which entities actually completed downstream follow-up work
 
 Avoid logging secrets, full payload dumps, or highly volatile text that breaks searchability.
 
@@ -68,6 +70,15 @@ For each critical stage, make these states observable when relevant:
 - final outcome and failure reason
 
 If a failure is already logged, improve its context instead of duplicating another generic error line.
+
+### 3.2 Keep aggregate and detail telemetry in lockstep
+
+When a system reports aggregate counts such as `success_count`, `processed_count`, or `remediation_success_count`, ensure operators can reconcile those counts back to detailed records.
+
+- emit or persist one detail record per counted entity when feasible
+- carry the same identifiers and outcome stage across both aggregate and detailed telemetry
+- treat "aggregate says success but detail table is empty" as an observability bug, not as an acceptable reporting gap
+- if multiple runtime modes claim the same business event, keep the critical observability fields aligned across those modes unless the output contract intentionally differs
 
 ### 3.1 Preserve cross-stage scope contracts
 

@@ -15,7 +15,7 @@ description: Use a background terminal to run a user-specified command immediate
 ## Standards
 
 - Evidence: Anchor every conclusion to the requested command, execution window, startup/shutdown timestamps, one canonical run folder or artifact root, captured logs, and concrete runtime signals.
-- Execution: Collect the run contract, verify the real stop mechanism before launch, use a background terminal, optionally update the code only when the user asks, execute the requested command immediately or in the requested window, record the canonical run folder once the process materializes it, capture logs, stop cleanly when bounded, then delegate log review to `analyse-app-logs` only when findings are requested or needed.
+- Execution: Collect the run contract, verify the real stop mechanism before launch, choose the highest-fidelity execution mode that matches the user's intent, use a background terminal, optionally update the code only when the user asks, execute the requested command immediately or in the requested window, record the canonical run folder once the process materializes it, capture logs, stop cleanly when bounded, then delegate log review to `analyse-app-logs` only when findings are requested or needed.
 - Quality: Keep scheduling, execution, and shutdown deterministic; separate confirmed findings from hypotheses; and mark each assessed module healthy/degraded/failed/unknown with reasons.
 - Output: Return the run configuration, execution status, log locations, optional code-update result, optional module health by area, confirmed issues, potential issues, observability gaps, and scheduler status when applicable.
 
@@ -46,6 +46,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
 - Prefer one bounded observation window over open-ended monitoring.
 - Use one dedicated background terminal session per requested run so execution and logs stay correlated.
 - Record the canonical run directory, artifact root, or other generated output location as soon as it exists, and use that as the source of truth for later analysis.
+- When a repository exposes both synthetic harnesses and production-like runtime entrypoints, prefer the production-like path for claims about real runtime, market, or operator behavior; use the lower-fidelity harness only when the user explicitly asked for it or when it is the only safe reproduction surface.
 - Treat code update as optional and only perform it when the user explicitly requests it.
 - Treat startup, steady-state, and shutdown as part of the same investigation.
 - Do not call a module healthy unless there is at least one positive signal for it.
@@ -58,6 +59,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
 1. Define the run contract
    - Confirm or derive the workspace, execution command, optional code-update step, optional schedule, optional duration, readiness signal, log locations, and whether post-run findings are required.
    - Derive commands from trustworthy sources first: `package.json`, `Makefile`, `docker-compose.yml`, `Procfile`, scripts, or project docs.
+   - If multiple commands exist for the same workflow, rank them by fidelity and state explicitly which mode you are choosing: production-like runtime, bounded integration harness, or synthetic scenario replay.
    - If no trustworthy execution command or stop method can be found, stop and ask only for the missing command rather than guessing.
 2. Prepare the background terminal run
    - Use a dedicated background terminal session for the whole workflow.
@@ -77,6 +79,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
 5. Run and capture readiness
    - Execute the requested command in the same background terminal.
    - As soon as the command emits or creates its canonical run directory, artifact root, or equivalent output location, record that path and reuse it for every later check.
+   - Report the exact runtime mode used in the evidence record so later analysis does not accidentally treat synthetic-harness results as proof about production behavior.
    - Wait for a concrete readiness signal when the command is expected to stay up, such as a health endpoint, listening-port log, worker boot line, or queue-consumer ready message.
    - If readiness never arrives, stop the run, preserve logs, and treat it as a failed startup window.
 6. Observe and stop when bounded

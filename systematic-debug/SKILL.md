@@ -15,7 +15,7 @@ description: "Systematic debugging workflow for program issues: understand obser
 ## Standards
 
 - Evidence: Gather expected versus observed behavior from code and runtime facts before deciding on a cause, and when the issue involves a runtime pipeline or bounded run, anchor the investigation to one canonical artifact root or run directory instead of mixed terminal snippets from multiple runs.
-- Execution: Inspect the relevant paths, reproduce every plausible cause with tests or bounded reruns, map each observed failure to a concrete pipeline stage, distinguish toolchain/platform faults from application-logic faults, classify failing tests as stale test contract vs test-harness interference vs real product bug, then apply the minimal fix at the true owner.
+- Execution: Inspect the relevant paths, reproduce every plausible cause with tests or bounded reruns, choose a reproduction mode whose fidelity matches the user's claim, map each observed failure to a concrete pipeline stage, distinguish toolchain/platform faults from application-logic faults, classify failing tests as stale test contract vs test-harness interference vs real product bug, then apply the minimal fix at the true owner.
 - Quality: Keep scope focused on the bug, prefer existing test patterns, explicitly rule out hypotheses that could not be reproduced, and when failures disappear in isolated reruns treat shared-state or parallel-test interference as a first-class hypothesis instead of silently dismissing the original failure.
 - Output: Deliver the plausible-cause list, the canonical evidence source, reproduction tests or reruns, the final failure classification for each investigated symptom, validated fix summary, and passing-test confirmation.
 
@@ -25,6 +25,7 @@ description: "Systematic debugging workflow for program issues: understand obser
 - Cover all plausible causes with reproducible tests instead of guessing a single cause.
 - Keep fixes minimal, focused, and validated by passing tests.
 - When logs or runtime artifacts exist, treat one run as canonical and compare every conclusion against that same run's generated artifacts, not against ad hoc console recollection.
+- When a repository has both scenario or harness runs and a production-like runtime, do not treat the lower-fidelity mode as proof about the higher-fidelity mode unless you explicitly state that limitation and the user agrees.
 - When the failing flow crosses multiple layers, identify the last confirmed successful stage before assigning blame.
 - When tests fail, separate stale assertions and fixture drift from real implementation regressions before changing product code.
 - If failures only appear under parallel execution or shared shell-out paths, investigate test isolation, shared locks, temp directories, run-name collisions, and environment leakage before blaming the product.
@@ -45,7 +46,7 @@ Also auto-invoke this skill when mismatch evidence appears during normal executi
 
 1. **Understand and inspect**: Parse expected vs observed behavior, explore relevant code paths, record the canonical failing run or artifact root when runtime output is involved, and build a list of plausible root causes.
 2. **Map the failure boundary**: Break the flow into concrete stages such as setup, startup, readiness, steady-state execution, persistence, and shutdown, then identify the last stage that is confirmed to have succeeded.
-3. **Reproduce with tests or bounded reruns**: Write or extend tests that reproduce every plausible cause, and when the bug depends on runtime orchestration rerun the same bounded command or scenario instead of switching contexts mid-investigation. When a failing test passes in isolation, rerun it under the original suite shape to determine whether the real cause is stale expectations, fixture drift, or shared-state interference.
+3. **Reproduce with tests or bounded reruns**: Write or extend tests that reproduce every plausible cause, and when the bug depends on runtime orchestration rerun the same bounded command or the same runtime mode instead of switching contexts mid-investigation. If the user is asking about real runtime or market behavior, prefer the production-like bounded run over a synthetic scenario replay unless safety or tooling constraints make that impossible. When a failing test passes in isolation, rerun it under the original suite shape to determine whether the real cause is stale expectations, fixture drift, or shared-state interference.
 4. **Diagnose and confirm**: Use reproduction evidence to confirm the true root cause, explicitly rule out non-causes, and classify whether each investigated failure belongs to the toolchain/platform layer, test contract drift, test-harness interference, orchestration, or application logic.
 5. **Fix and validate**: Implement focused fixes and iterate until all reproduction tests or bounded reruns pass.
 
