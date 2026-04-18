@@ -13,12 +13,13 @@ REPORTLAB_AVAILABLE = importlib.util.find_spec("reportlab") is not None
 
 if REPORTLAB_AVAILABLE:
     from reportlab.platypus import Paragraph
-
-
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "render_error_book_json_to_pdf.py"
-SPEC = importlib.util.spec_from_file_location("render_error_book_json_to_pdf", SCRIPT_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(MODULE)
+    SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "render_error_book_json_to_pdf.py"
+    SPEC = importlib.util.spec_from_file_location("render_error_book_json_to_pdf", SCRIPT_PATH)
+    MODULE = importlib.util.module_from_spec(SPEC)
+    SPEC.loader.exec_module(MODULE)
+else:
+    Paragraph = object
+    MODULE = None
 
 
 def minimal_payload() -> dict:
