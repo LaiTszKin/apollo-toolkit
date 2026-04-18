@@ -52,6 +52,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
 - Do not call a module healthy unless there is at least one positive signal for it.
 - Separate scheduler failures, boot failures, runtime failures, and shutdown failures.
 - For complex pipelines, identify the last successful stage before attributing the failure to application logic.
+- When the user asks to compare a bounded run with a previous run, compare only runs with the same command or preset, duration, runtime mode, and complete structured artifacts. If the previous run lacks canonical reports, databases, or startup artifacts, mark the runs incomparable and explain the artifact completeness gap instead of inventing performance deltas.
 - If logs cannot support a health judgment, mark the module as `unknown` instead of guessing.
 
 ## Required workflow
@@ -93,6 +94,8 @@ This skill is an orchestration layer. It owns the background terminal session, o
    - Invoke `analyse-app-logs` on only the captured runtime window.
    - Pass the service or module names, environment, timezone, canonical run folder, relevant log files, and the exact start/end boundaries.
    - When the command produced reports, databases, or other structured artifacts, compare them against the same run's logs before making a health judgment.
+   - For follow-up questions about why most business events did not happen, build a stage-by-stage funnel from the canonical artifacts before reading isolated logs: candidate counts, admission/precheck decisions, queue or governor outcomes, skipped/blocked reasons, executed counts, retry/remediation outcomes, and persistence records.
+   - For follow-up questions about runtime speed, report latency from structured timestamps when available, separating startup/readiness, queue wait, precheck/final-prepare, submission, confirmation, and end-to-end timings rather than collapsing them into one vague duration.
    - Reuse its confirmed issues, hypotheses, and monitoring improvements instead of rewriting a separate incident workflow.
 8. Produce the final report
    - Always summarize the actual command executed, actual start/end timestamps, execution status, and log locations.

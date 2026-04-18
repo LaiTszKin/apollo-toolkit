@@ -7,6 +7,12 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.0.1] - 2026-04-19
+
+### Changed
+- Strengthen `jupiter-development` so Jupiter program registries are treated as discovery and observability inputs rather than automatic signing allowlists, preserving fail-closed local transaction grammar for wallet flows.
+- Strengthen `scheduled-runtime-health-check` and `systematic-debug` so bounded runtime follow-ups compare only complete like-for-like run artifacts, derive missing-business-event causes from structured funnels, and report per-stage latency instead of vague wall-clock duration.
+
 ## [v3.0.0] - 2026-04-18
 
 ### Changed

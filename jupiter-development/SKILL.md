@@ -66,6 +66,10 @@ Implement Jupiter-backed Solana features safely by following the current officia
 - Treat Jupiter token and price data as curated but evolving.
   - Tokens V2 responses can change as Jupiter improves the schema.
   - Price V3 intentionally withholds unreliable prices.
+- Treat Jupiter routing program metadata as discovery data, not signer policy.
+  - Official program-label mappings such as `program-id-to-label` may help build observability, drift detection, and review queues for newly observed router programs.
+  - Do not automatically convert a Jupiter-maintained program list into a signing allowlist for wallet, hot-wallet, or `/swap-to-sol` style flows.
+  - Keep local transaction grammar fail-closed around allowed program classes, signer/writable scope, fee/output policy, instruction discriminators, and receiver semantics; only promote newly discovered programs after the local safety contract is understood and tested.
 - For Jupiter Lend advanced recipes, expect versioned transactions, address lookup tables, and sometimes extra compute budget.
 - Never commit private keys. Use environment variables, wallet adapters, secure signers, or managed key systems.
 
@@ -74,6 +78,7 @@ Implement Jupiter-backed Solana features safely by following the current officia
 - Confirm the base URL, auth header, and required parameters match the official docs you used.
 - Verify that any routing, payer, referral, or fee assumptions still hold after optional parameters are added.
 - When building transactions manually, verify quote endpoint compatibility, instruction order, compute budget, address lookup tables, and signing flow.
+- When using Jupiter-maintained program registries, verify that registry drift handling is observability-first: record unknown program labels and route context, alert or fail closed on unsafe transaction shapes, and keep signing decisions owned by the local policy layer rather than by the remote registry response.
 - When the task involves on-chain actions, report any remaining environment needs clearly, such as API keys, RPC endpoints, or wallet secrets that were intentionally not embedded.
 
 ## Reference Files

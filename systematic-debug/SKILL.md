@@ -25,6 +25,7 @@ description: "Systematic debugging workflow for program issues: understand obser
 - Cover all plausible causes with reproducible tests instead of guessing a single cause.
 - Keep fixes minimal, focused, and validated by passing tests.
 - When logs or runtime artifacts exist, treat one run as canonical and compare every conclusion against that same run's generated artifacts, not against ad hoc console recollection.
+- When comparing runtime runs, first verify the baseline run is complete enough for the requested comparison: same command or scenario, same runtime mode, same bounded duration, and matching structured artifacts. If the baseline is incomplete, report that the only proven change is artifact/run completeness and avoid drawing strategy or performance conclusions from missing data.
 - When a repository has both scenario or harness runs and a production-like runtime, do not treat the lower-fidelity mode as proof about the higher-fidelity mode unless you explicitly state that limitation and the user agrees.
 - When the failing flow crosses multiple layers, identify the last confirmed successful stage before assigning blame.
 - When tests fail, separate stale assertions and fixture drift from real implementation regressions before changing product code.
@@ -58,6 +59,8 @@ Also auto-invoke this skill when mismatch evidence appears during normal executi
 - If a hypothesized cause cannot be reproduced, document why and deprioritize it explicitly.
 - For long-running or generated-artifact workflows, record the exact command, timestamps, and artifact paths before inspecting outputs so later comparisons stay on the same evidence set.
 - Do not mix baseline data and rerun data casually; compare the same scenario or command across runs and call out when a conclusion comes from a rerun rather than the original failure.
+- For post-run "why did most events not happen" questions, derive the answer from a funnel over structured artifacts first, then corroborate with logs: discovered or eligible candidates, admission blocks, stale or skipped decisions, queue/governor outcomes, execution attempts, confirmations, retries, and persisted event rows.
+- For speed questions, compute per-stage timings from available event timestamps and state which stages are measured versus unavailable; avoid treating wall-clock bounded duration as pipeline latency.
 - When test fixtures or assertions no longer match the implemented contract, update the tests instead of weakening the product behavior to satisfy stale expectations.
 - When tests shell out to shared local infrastructure, add deterministic isolation such as mutexes, unique temp roots, or serialized sections before accepting flakes as inevitable.
 
