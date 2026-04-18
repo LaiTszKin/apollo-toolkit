@@ -9,7 +9,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from reportlab.platypus import Paragraph
+REPORTLAB_AVAILABLE = importlib.util.find_spec("reportlab") is not None
+
+if REPORTLAB_AVAILABLE:
+    from reportlab.platypus import Paragraph
 
 
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "render_error_book_json_to_pdf.py"
@@ -66,6 +69,7 @@ def minimal_payload() -> dict:
     }
 
 
+@unittest.skipUnless(REPORTLAB_AVAILABLE, "reportlab is required for PDF rendering tests")
 class RenderErrorBookTests(unittest.TestCase):
     def test_safe_text_handles_lists_numbers_and_defaults(self) -> None:
         self.assertEqual(MODULE._safe_text([" A ", 2, ""], default="-"), "A, 2")

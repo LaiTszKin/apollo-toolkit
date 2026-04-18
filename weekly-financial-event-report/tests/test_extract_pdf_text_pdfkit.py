@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import shutil
 import subprocess
 import sys
@@ -9,7 +10,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from reportlab.pdfgen import canvas
+REPORTLAB_AVAILABLE = importlib.util.find_spec("reportlab") is not None
+
+if REPORTLAB_AVAILABLE:
+    from reportlab.pdfgen import canvas
 
 
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "extract_pdf_text_pdfkit.swift"
@@ -35,6 +39,7 @@ class ExtractPdfTextPdfkitTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("Unable to open PDF", result.stderr)
 
+    @unittest.skipUnless(REPORTLAB_AVAILABLE, "reportlab is required to generate fixture PDFs")
     @unittest.skipUnless(sys.platform == "darwin", "PDFKit extraction only works on macOS")
     def test_extracts_text_from_generated_pdf(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

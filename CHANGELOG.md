@@ -13,6 +13,7 @@ All notable changes to this repository are documented in this file.
 - Add bundled `apltk` tool dispatch so packaged skill scripts can be listed with `apltk tools` and executed directly through `apltk <tool> ...`.
 - Update skill and repository docs to prefer bundled `apltk` tool commands over direct script paths for log filtering, spec generation, KaTeX rendering, audio generation, error-book rendering, GitHub issue publishing, and related helpers.
 - Harden `open-github-issue` with `--payload-file` and `@file` support so Markdown-rich fields containing backticks or shell metacharacters survive CLI invocation without shell corruption.
+- Skip `reportlab`-dependent Python tests when that optional module is unavailable so release CI stays aligned with the repository's optional PDF-tooling contract.
 
 ### Added
 - Add `lib/tool-runner.js` plus Node and Python regression tests that cover bundled tool discovery, CLI dispatch, safe wrapper behavior, and new helper entrypoints.
