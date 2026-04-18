@@ -13,13 +13,17 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from PIL import Image
+PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
 
-
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "generate_storyboard_images.py"
-SPEC = importlib.util.spec_from_file_location("generate_storyboard_images", SCRIPT_PATH)
-MODULE = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(MODULE)
+if PIL_AVAILABLE:
+    from PIL import Image
+    SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "generate_storyboard_images.py"
+    SPEC = importlib.util.spec_from_file_location("generate_storyboard_images", SCRIPT_PATH)
+    MODULE = importlib.util.module_from_spec(SPEC)
+    SPEC.loader.exec_module(MODULE)
+else:
+    Image = None
+    MODULE = None
 
 
 def png_bytes(width: int, height: int, color: tuple[int, int, int] = (64, 128, 255)) -> bytes:
@@ -28,6 +32,7 @@ def png_bytes(width: int, height: int, color: tuple[int, int, int] = (64, 128, 2
     return buffer.getvalue()
 
 
+@unittest.skipUnless(PIL_AVAILABLE, "Pillow is required for storyboard image tests")
 class GenerateStoryboardImagesTests(unittest.TestCase):
     def test_sanitize_component_property_removes_invalid_path_characters(self) -> None:
         generator = random.Random(20260418)
