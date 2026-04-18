@@ -43,14 +43,15 @@ def run_extractor(
     archived_dir: Path | None = None,
     *extra_args: str,
 ) -> str:
+    effective_archived_dir = archived_dir or (sessions_dir.parent / "__isolated_archived_sessions__")
     cmd = [
         sys.executable,
         str(SCRIPT_PATH),
         "--sessions-dir",
         str(sessions_dir),
+        "--archived-sessions-dir",
+        str(effective_archived_dir),
     ]
-    if archived_dir is not None:
-        cmd.extend(["--archived-sessions-dir", str(archived_dir)])
     cmd.extend(extra_args)
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     return result.stdout

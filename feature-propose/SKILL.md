@@ -92,6 +92,7 @@ Load these references as needed during classification:
   - `reason`: why this feature should exist now
   - `suggested-architecture`: minimal architecture and module plan
   - `repo`: target repository in `owner/repo` format when known
+- If invoking the publisher CLI directly, pass accepted proposal details through `apltk open-github-issue --payload-file <json>` or `@file` inputs rather than inline shell arguments so Markdown and code identifiers remain literal.
 - Reuse the returned `mode`, `issue_url`, and `publish_error` in the response.
 - After the related feature is implemented, remove that feature entry from `## Accepted Feature Proposals` in `AGENTS.md`.
 - Remove only implemented items; keep unimplemented accepted items untouched.

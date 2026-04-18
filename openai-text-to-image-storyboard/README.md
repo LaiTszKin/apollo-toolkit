@@ -55,7 +55,7 @@ OPENAI_IMAGE_MODEL=gpt-image-1
 3. Run with JSON prompt file
 
 ```bash
-python scripts/generate_storyboard_images.py \
+apltk generate-storyboard-images \
   --project-dir /path/to/project \
   --env-file ~/.codex/skills/openai-text-to-image-storyboard/.env \
   --content-name "1_chapter_title" \

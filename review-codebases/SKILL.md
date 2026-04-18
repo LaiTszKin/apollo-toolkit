@@ -74,6 +74,7 @@ Only continue to the next level when the current level has no confirmed findings
      - `suspected-cause`: file references, causal chain, and confidence
      - `reproduction`: concrete trigger or conditions when known; otherwise leave empty
      - `repo`: target repository in `owner/repo` format when known
+   - If invoking the publisher CLI directly, pass finding details through `apltk open-github-issue --payload-file <json>` or `@file` inputs rather than inline shell arguments so code snippets and backticks survive unchanged.
 
 ## Evidence standard
 

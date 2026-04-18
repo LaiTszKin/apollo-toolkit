@@ -66,7 +66,7 @@ A template is provided at:
 Use JSON prompt file:
 
 ```bash
-python ~/.codex/skills/openai-text-to-image-storyboard/scripts/generate_storyboard_images.py \
+apltk generate-storyboard-images \
   --project-dir /path/to/project \
   --env-file ~/.codex/skills/openai-text-to-image-storyboard/.env \
   --content-name "1_chapter_title" \

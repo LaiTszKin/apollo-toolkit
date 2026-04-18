@@ -50,9 +50,8 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Treat any unresolved shared-file collision, overlapping ownership, or incompatible contract change across spec sets as a planning bug to resolve before approval, not an implementation-time surprise.
 - If two candidate spec sets would still need to edit the same non-additive surface, either merge them into one spec set or record a concrete ownership split plus additive-only rule that makes parallel work safe.
 - Use:
-  - `SKILL_ROOT=<path_to_generate-spec_skill>`
   - `WORKSPACE_ROOT=<target_project_root>`
-  - `python3 "$SKILL_ROOT/scripts/create-specs" "<feature_name>" --change-name <kebab-case> --template-dir "$SKILL_ROOT/references/templates" --output-dir "$WORKSPACE_ROOT/docs/plans"`
+  - `apltk create-specs "<feature_name>" --change-name <kebab-case> --output-dir "$WORKSPACE_ROOT/docs/plans"`
 - For parallel multi-spec generation, also use:
   - `--batch-name <kebab-case-batch-name>`
   - `--with-coordination`
@@ -170,7 +169,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 ## References
 
-- `scripts/create-specs`: shared planning file generator.
+- `scripts/create-specs`: shared planning file generator, exposed as `apltk create-specs`.
 - `references/templates/spec.md`: BDD requirement template.
 - `references/templates/tasks.md`: task breakdown template.
 - `references/templates/checklist.md`: behavior-to-test alignment template.

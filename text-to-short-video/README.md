@@ -56,7 +56,7 @@ cp ~/.codex/skills/text-to-short-video/.env.example \
 If API-generated video ratio/size does not match the target, run:
 
 ```bash
-python ~/.codex/skills/text-to-short-video/scripts/enforce_video_aspect_ratio.py \
+apltk enforce-video-aspect-ratio \
   --input-video "<downloaded_video_path>" \
   --output-video "<final_output_video_path>" \
   --env-file ~/.codex/skills/text-to-short-video/.env \

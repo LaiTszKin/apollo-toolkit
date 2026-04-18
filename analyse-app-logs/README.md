@@ -21,8 +21,8 @@ This skill helps agents analyze logs end-to-end, correlate runtime signals with 
 - `agents/openai.yaml`: Agent interface metadata and default prompt.
 - `references/investigation-checklist.md`: Investigation validation checklist.
 - `references/log-signal-patterns.md`: Log signal pattern reference.
-- `scripts/filter_logs_by_time.py`: Time-window log filtering helper.
-- `scripts/search_logs.py`: Keyword / regex search helper with optional context.
+- `scripts/filter_logs_by_time.py`: Time-window log filtering helper, exposed as `apltk filter-logs`.
+- `scripts/search_logs.py`: Keyword / regex search helper with optional context, exposed as `apltk search-logs`.
 - `scripts/log_cli_utils.py`: Shared timestamp parsing utilities.
 - Dependency skill: `open-github-issue` for deterministic issue publishing.
 
@@ -72,9 +72,9 @@ When the time window is not explicitly provided, the skill should first derive a
 Useful bundled commands:
 
 ```bash
-python3 scripts/filter_logs_by_time.py app.log --start "2026-03-24T10:00:00Z" --end "2026-03-24T10:30:00Z"
-python3 scripts/search_logs.py app.log --keyword timeout --keyword payment --mode all --after-context 3
-python3 scripts/search_logs.py app.log --regex "request_id=ab12.*ERROR" --start "2026-03-24T10:00:00Z" --end "2026-03-24T10:15:00Z"
+apltk filter-logs app.log --start "2026-03-24T10:00:00Z" --end "2026-03-24T10:30:00Z"
+apltk search-logs app.log --keyword timeout --keyword payment --mode all --after-context 3
+apltk search-logs app.log --regex "request_id=ab12.*ERROR" --start "2026-03-24T10:00:00Z" --end "2026-03-24T10:15:00Z"
 ```
 
 ## Example

@@ -25,7 +25,7 @@ Extract recent conversations, identify reusable lessons, and convert those lesso
 
 ## Required Resources
 
-- `scripts/extract_recent_conversations.py` for deterministic session extraction.
+- `scripts/extract_recent_conversations.py` for deterministic session extraction, exposed as `apltk extract-skill-conversations`.
 - `$skill-creator` for all skill creation/update work.
 
 ## Workflow
@@ -35,7 +35,7 @@ Extract recent conversations, identify reusable lessons, and convert those lesso
 - Run:
 
 ```bash
-python3 ~/.codex/skills/learn-skill-from-conversations/scripts/extract_recent_conversations.py --lookback-minutes 1440
+apltk extract-skill-conversations --lookback-minutes 1440
 ```
 
 - If output is exactly `NO_RECENT_CONVERSATIONS`, stop immediately and report that no action is required.

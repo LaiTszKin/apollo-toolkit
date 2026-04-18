@@ -77,6 +77,15 @@ apollo-toolkit
 
 Global install 後，`apltk` 與 `apollo-toolkit` 都會啟動同一個 Apollo Toolkit CLI。直接執行 `apltk` 會打開互動安裝頁，並在互動模式下先檢查 npm registry 是否有新版可用；若有，CLI 會先詢問，再自動執行全域更新。
 
+除了安裝模式之外，`apltk` 也會把技能內常用腳本暴露成簡單 CLI 工具，例如：
+
+```bash
+apltk tools
+apltk filter-logs app.log --start "2026-03-24T10:00:00Z"
+apltk create-specs "Membership upgrade flow" --change-name membership-upgrade-flow
+apltk open-github-issue --help
+```
+
 ### Non-interactive install
 
 ```bash

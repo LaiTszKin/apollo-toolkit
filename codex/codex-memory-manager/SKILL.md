@@ -25,8 +25,8 @@ Keep a durable, categorized memory of user preferences so future agents can quic
 
 ## Required Resources
 
-- `scripts/extract_recent_conversations.py` to read the last 24 hours of Codex sessions, including archived sessions.
-- `scripts/sync_memory_index.py` to maintain a normalized memory index section at the end of `~/.codex/AGENTS.md`.
+- `scripts/extract_recent_conversations.py` to read the last 24 hours of Codex sessions, including archived sessions, exposed as `apltk extract-codex-conversations`.
+- `scripts/sync_memory_index.py` to maintain a normalized memory index section at the end of `~/.codex/AGENTS.md`, exposed as `apltk sync-codex-memory-index`.
 
 ## Workflow
 
@@ -35,7 +35,7 @@ Keep a durable, categorized memory of user preferences so future agents can quic
 - Run:
 
 ```bash
-python3 ~/.codex/skills/codex-memory-manager/scripts/extract_recent_conversations.py --lookback-minutes 1440
+apltk extract-codex-conversations --lookback-minutes 1440
 ```
 
 - The extractor reads both `~/.codex/sessions` and `~/.codex/archived_sessions`.
@@ -97,14 +97,14 @@ User preferences about how engineering tasks should be investigated, planned, im
 ### 4) Refresh the AGENTS memory index at the end of `~/.codex/AGENTS.md`
 
 - First inspect `~/.codex/AGENTS.md` and mirror its existing language in the memory section instructions.
-- After updating memory files, run `scripts/sync_memory_index.py` to rewrite the managed section at the end of the file.
+- After updating memory files, run `apltk sync-codex-memory-index` to rewrite the managed section at the end of the file.
 - The section must do both of these things explicitly:
   - instruct future agents to review the index before starting work
   - instruct future agents to update the matching memory files and refresh the index when a new category appears
 - Example command in English AGENTS files:
 
 ```bash
-python3 ~/.codex/skills/codex-memory-manager/scripts/sync_memory_index.py \
+apltk sync-codex-memory-index \
   --agents-file ~/.codex/AGENTS.md \
   --memory-dir ~/.codex/memory \
   --section-title "## User Memory Index" \

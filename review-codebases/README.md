@@ -50,6 +50,8 @@ For each confirmed finding, delegate publication to `$open-github-issue` with:
 - file references and causal reasoning in `suspected-cause`
 - reproduction conditions when known
 
+When invoking the publisher CLI directly, use `apltk open-github-issue --payload-file <json>` or `@file` inputs for Markdown-rich fields so shell parsing cannot consume backticks or code snippets.
+
 If issue publication is unavailable, return draft issue content instead of switching to an ad-hoc publishing path.
 
 ## Output expectations

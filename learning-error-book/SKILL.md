@@ -111,8 +111,8 @@ error_book/
 
 5) Render structured data -> PDF (CJK font support)
    - Run:
-     - `python3 learning-error-book/scripts/render_error_book_json_to_pdf.py error_book/references/mc-question-reference.json error_book/mc-question-error-book.pdf`
-     - `python3 learning-error-book/scripts/render_error_book_json_to_pdf.py error_book/references/long-question-reference.json error_book/long-question-error-book.pdf`
+     - `apltk render-error-book error_book/references/mc-question-reference.json error_book/mc-question-error-book.pdf`
+     - `apltk render-error-book error_book/references/long-question-reference.json error_book/long-question-error-book.pdf`
    - If paper size/font needs change: adjust script flags (`--help`)
 
 ## Built-in Template

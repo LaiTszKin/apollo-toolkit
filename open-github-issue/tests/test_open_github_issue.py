@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
@@ -21,6 +22,100 @@ class OpenGitHubIssueTests(unittest.TestCase):
     def test_validate_repo_rejects_invalid_format(self) -> None:
         with self.assertRaises(SystemExit):
             MODULE.validate_repo("owner-only")
+
+    def test_hydrate_args_loads_payload_file_with_literal_backticks(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            payload_path = Path(temp_dir) / "issue.json"
+            payload_path.write_text(
+                json.dumps(
+                    {
+                        "title": "[Log] backticks",
+                        "issue_type": MODULE.ISSUE_TYPE_PROBLEM,
+                        "problem_description": (
+                            "Expected Behavior (BDD)\n"
+                            "Given markdown content contains code spans\n"
+                            "When the issue is published\n"
+                            "Then `printf should_not_run` remains literal\n\n"
+                            "Current Behavior (BDD)\n"
+                            "Given markdown content contains code spans\n"
+                            "When the issue is published\n"
+                            "Then `printf should_not_run` can be eaten by shell quoting\n\n"
+                            "Behavior Gap\n"
+                            "- Expected: `printf should_not_run` survives.\n"
+                            "- Actual: inline shell args are fragile.\n"
+                            "- Difference/Impact: issue evidence can be corrupted.\n"
+                        ),
+                        "suspected_cause": "Shell command substitution happens before Python receives argv.",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            args = Namespace(
+                payload_file=str(payload_path),
+                title=None,
+                issue_type=None,
+                problem_description=None,
+                suspected_cause=None,
+                reproduction=None,
+                proposal=None,
+                reason=None,
+                suggested_architecture=None,
+                impact=None,
+                evidence=None,
+                suggested_action=None,
+                severity=None,
+                affected_scope=None,
+                repo=None,
+                dry_run=False,
+            )
+
+            hydrated = MODULE.hydrate_args(args)
+
+        self.assertEqual(hydrated.title, "[Log] backticks")
+        self.assertIn("`printf should_not_run` remains literal", hydrated.problem_description)
+        self.assertEqual(hydrated.issue_type, MODULE.ISSUE_TYPE_PROBLEM)
+
+    def test_hydrate_args_reads_at_file_text_values(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            description_path = Path(temp_dir) / "description.md"
+            description_path.write_text(
+                "Expected Behavior (BDD)\n"
+                "Given a markdown file contains backticks\n"
+                "When it is loaded with @file syntax\n"
+                "Then `literal` content survives\n\n"
+                "Current Behavior (BDD)\n"
+                "Given a markdown file contains backticks\n"
+                "When inline shell args are avoided\n"
+                "Then `literal` content reaches argparse unchanged\n\n"
+                "Behavior Gap\n"
+                "- Expected: file content is safe.\n"
+                "- Actual: inline shell content is fragile.\n"
+                "- Difference/Impact: safer invocation is needed.\n",
+                encoding="utf-8",
+            )
+            args = Namespace(
+                payload_file=None,
+                title="[Log] @file",
+                issue_type=MODULE.ISSUE_TYPE_PROBLEM,
+                problem_description=f"@{description_path}",
+                suspected_cause="Use @file for rich text fields.",
+                reproduction=None,
+                proposal=None,
+                reason=None,
+                suggested_architecture=None,
+                impact=None,
+                evidence=None,
+                suggested_action=None,
+                severity=None,
+                affected_scope=None,
+                repo="owner/repo",
+                dry_run=True,
+            )
+
+            hydrated = MODULE.hydrate_args(args)
+
+        self.assertIn("Then `literal` content survives", hydrated.problem_description)
 
     def test_detect_issue_language_prefers_chinese_when_threshold_met(self) -> None:
         readme = "這是一個中文專案說明。" * 10

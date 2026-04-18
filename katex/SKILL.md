@@ -15,7 +15,7 @@ description: Render and embed math formulas with KaTeX using official documentat
 ## Standards
 
 - Evidence: Follow the official KaTeX docs in `references/official-docs.md` before choosing render mode, options, or insertion strategy.
-- Execution: Decide between pre-rendering and client-side auto-render first, then use `scripts/render_katex.py` for deterministic output whenever a static rendered snippet is enough.
+- Execution: Decide between pre-rendering and client-side auto-render first, then use `apltk render-katex` for deterministic output whenever a static rendered snippet is enough.
 - Quality: Default to `htmlAndMathml`, keep `trust` disabled unless the content source is explicitly trusted, and include the KaTeX stylesheet whenever the output will be displayed in HTML.
 - Output: Return insertion-ready content plus the exact CSS or runtime requirements still needed by the target file.
 
@@ -41,7 +41,7 @@ Use KaTeX safely and consistently so mathematical formulas can be inserted into 
 Run the bundled renderer for pre-rendered output:
 
 ```bash
-python3 katex/scripts/render_katex.py \
+apltk render-katex \
   --tex '\int_0^1 x^2 \\, dx = \\frac{1}{3}' \
   --display-mode \
   --output-format html-fragment
@@ -88,5 +88,5 @@ See `references/insertion-patterns.md` for concrete insertion guidance.
 
 - `references/official-docs.md`: condensed notes from the official KaTeX docs and direct source links.
 - `references/insertion-patterns.md`: insertion patterns for HTML, Markdown/MDX, and auto-rendered pages.
-- `scripts/render_katex.py`: deterministic wrapper around the official KaTeX CLI for insertion-ready output.
+- `scripts/render_katex.py`: deterministic wrapper around the official KaTeX CLI for insertion-ready output, exposed as `apltk render-katex`.
 - `scripts/render_katex.sh`: shell wrapper for environments that prefer an executable script entrypoint.

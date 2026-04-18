@@ -36,11 +36,9 @@ A shared planning skill for feature work. It centralizes creation and maintenanc
 ## Quick start
 
 ```bash
-SKILL_ROOT=/path/to/generate-spec
 WORKSPACE_ROOT=/path/to/target-project
-python3 "$SKILL_ROOT/scripts/create-specs" "Membership upgrade flow" \
+apltk create-specs "Membership upgrade flow" \
   --change-name membership-upgrade-flow \
-  --template-dir "$SKILL_ROOT/references/templates" \
   --output-dir "$WORKSPACE_ROOT/docs/plans"
 ```
 
@@ -58,11 +56,10 @@ docs/plans/<today>/membership-upgrade-flow/
 Parallel batch output:
 
 ```bash
-python3 "$SKILL_ROOT/scripts/create-specs" "Membership write path" \
+apltk create-specs "Membership write path" \
   --change-name membership-write-path \
   --batch-name membership-cutover \
   --with-coordination \
-  --template-dir "$SKILL_ROOT/references/templates" \
   --output-dir "$WORKSPACE_ROOT/docs/plans"
 ```
 
@@ -89,6 +86,6 @@ docs/plans/<today>/membership-cutover/
 
 ## Notes
 
-- `scripts/...` and `references/...` are skill-folder paths, not project-folder paths.
+- `scripts/...` and `references/...` remain skill-folder paths when you need the raw assets, but `apltk create-specs` is the preferred command surface.
 - The generator replaces `[YYYY-MM-DD]`, `[Feature Name]`, `[功能名稱]`, `[change_name]`, and `[batch_name]` placeholders.
 - If a batch split produces specs that must land in a functional sequence, or still leaves unresolved shared-file collisions, re-slice the work so each spec becomes independently implementable, testable, mergeable, and parallel-safe before coding starts.

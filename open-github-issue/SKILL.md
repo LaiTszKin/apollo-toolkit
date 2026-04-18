@@ -38,7 +38,8 @@ It is designed to be reusable by other skills that already know the issue title 
 - Preserve upstream evidence content; only localize section headers and default fallback text.
 - Make the issue type explicit: `problem`, `feature`, `performance`, `security`, `docs`, or `observability`.
 - For `problem` issues, describe the expected behavior and current behavior with BDD-style `Given / When / Then`, then state the behavioral difference explicitly.
-- Prefer `python3` plus an absolute helper path when invoking bundled scripts; do not assume `python`, relative paths, or the caller's cwd are wired correctly.
+- Prefer the bundled `apltk open-github-issue` command when available; if it is unavailable, fall back to the packaged script with an absolute path instead of assuming `python`, relative paths, or the caller's cwd are wired correctly.
+- Never pass Markdown-rich issue content inline when it may contain backticks, `$()`, quotes, or shell metacharacters. Write a JSON payload file or content files first, then pass `--payload-file` or `@file` references so the shell cannot perform command substitution before Python receives the text.
 
 ## Workflow
 
@@ -94,88 +95,100 @@ It is designed to be reusable by other skills that already know the issue title 
 
 ## Deterministic command
 
-Use the bundled script.
+Use the bundled command. Prefer `--payload-file` for all rich issue content because inline shell arguments can corrupt Markdown code spans such as `` `symbol` `` before the script starts.
 
-First resolve:
+Safe problem issue payload:
 
 ```bash
-SKILL_ROOT=~/.codex/skills/open-github-issue
+cat > /tmp/open-github-issue-payload.json <<'JSON'
+{
+  "issue_type": "problem",
+  "title": "[Log] <short symptom>",
+  "problem_description": "Expected Behavior (BDD)\nGiven ...\nWhen ...\nThen `literal_code_span` should remain unchanged\n\nCurrent Behavior (BDD)\nGiven ...\nWhen ...\nThen ...\n\nBehavior Gap\n- Expected: ...\n- Actual: ...\n- Difference/Impact: ...\n\nEvidence\n- symptom: ...\n- impact: ...\n- key evidence: ...",
+  "suspected_cause": "<path:line + causal chain + confidence>",
+  "reproduction": "<steps/conditions or leave empty>"
+}
+JSON
+
+apltk open-github-issue --payload-file /tmp/open-github-issue-payload.json --repo <owner/repo>
 ```
 
-Problem issue:
+Safe feature proposal payload:
 
 ```bash
-python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
+cat > /tmp/open-github-issue-payload.json <<'JSON'
+{
+  "issue_type": "feature",
+  "title": "[Feature] <short proposal>",
+  "proposal": "<what should be added or changed>",
+  "reason": "<why this matters now, user value, constraints>",
+  "suggested_architecture": "<modules, boundaries, implementation direction>"
+}
+JSON
+
+apltk open-github-issue --payload-file /tmp/open-github-issue-payload.json --repo <owner/repo>
+```
+
+Safe individual field files are also supported:
+
+```bash
+apltk open-github-issue --repo <owner/repo> \
   --issue-type problem \
   --title "[Log] <short symptom>" \
-  --problem-description $'Expected Behavior (BDD)\nGiven ...\nWhen ...\nThen ...\n\nCurrent Behavior (BDD)\nGiven ...\nWhen ...\nThen ...\n\nBehavior Gap\n- Expected: ...\n- Actual: ...\n- Difference/Impact: ...\n\nEvidence\n- symptom: ...\n- impact: ...\n- key evidence: ...' \
-  --suspected-cause "<path:line + causal chain + confidence>" \
-  --reproduction "<steps/conditions or leave empty>" \
-  --repo <owner/repo>
-```
-
-Feature proposal issue:
-
-```bash
-python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
-  --issue-type feature \
-  --title "[Feature] <short proposal>" \
-  --proposal "<what should be added or changed>" \
-  --reason "<why this matters now, user value, constraints>" \
-  --suggested-architecture "<modules, boundaries, implementation direction>" \
-  --repo <owner/repo>
+  --problem-description @/tmp/problem-description.md \
+  --suspected-cause @/tmp/suspected-cause.md
 ```
 
 Performance issue:
 
 ```bash
-python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
+apltk open-github-issue \
   --issue-type performance \
   --title "[Performance] Slow dashboard query under large tenants" \
-  --problem-description "Dashboard loading time degrades sharply once tenant data exceeds current pagination assumptions." \
-  --impact "Users wait 8-12 seconds before the page becomes interactive; this blocks support workflows." \
-  --evidence "Profiler output, slow-query logs, and production timings all point to repeated full-table scans in the summary query path." \
-  --suggested-action "Add bounded pagination, pre-aggregated summaries, and an index review for the offending query path." \
+  --problem-description @/tmp/performance-problem.md \
+  --impact @/tmp/performance-impact.md \
+  --evidence @/tmp/performance-evidence.md \
+  --suggested-action @/tmp/performance-action.md \
   --repo <owner/repo>
 ```
 
 Security issue:
 
 ```bash
-python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
+apltk open-github-issue \
   --issue-type security \
   --title "[Security] Missing authorization check on admin export" \
-  --problem-description "The admin export endpoint can be reached without verifying the caller's admin role." \
+  --problem-description @/tmp/security-risk.md \
   --severity high \
   --affected-scope "/admin/export endpoint and exported customer data" \
-  --impact "Unauthorized users may access privileged exports containing sensitive business data." \
-  --evidence "Code path review and reproduced requests show the handler validates session presence but not the admin permission gate." \
-  --suggested-action "Add explicit authorization enforcement, regression tests, and audit logging for denied access attempts." \
+  --impact @/tmp/security-impact.md \
+  --evidence @/tmp/security-evidence.md \
+  --suggested-action @/tmp/security-action.md \
   --repo <owner/repo>
 ```
 
 Docs issue:
 
 ```bash
-python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
+apltk open-github-issue \
   --issue-type docs \
   --title "[Docs] Deployment guide omits required Redis configuration" \
-  --problem-description "The deployment guide does not mention the required Redis URL and worker startup order." \
-  --evidence "README deploy steps differ from the actual compose file and runtime startup checks." \
-  --suggested-action "Update deployment docs with required env vars, startup order, and a minimal validation checklist." \
+  --problem-description @/tmp/docs-gap.md \
+  --evidence @/tmp/docs-evidence.md \
+  --suggested-action @/tmp/docs-action.md \
   --repo <owner/repo>
 ```
 
 Observability issue:
 
 ```bash
-python3 "$SKILL_ROOT/scripts/open_github_issue.py" \
+apltk open-github-issue \
   --issue-type observability \
   --title "[Observability] Missing request identifiers in payment retry logs" \
-  --problem-description "Retry logs do not include stable request or trace identifiers, so multi-line failures cannot be correlated quickly." \
-  --impact "On-call engineers cannot isolate a single failing payment flow without manual log stitching." \
-  --evidence "Current retry log lines include endpoint and error text only; incident review required manual timestamp matching." \
-  --suggested-action "Add request_id, trace_id, upstream target, and retry attempt fields to retry logs and dashboard facets." \
+  --problem-description @/tmp/observability-gap.md \
+  --impact @/tmp/observability-impact.md \
+  --evidence @/tmp/observability-evidence.md \
+  --suggested-action @/tmp/observability-action.md \
   --repo <owner/repo>
 ```
 
@@ -198,6 +211,7 @@ When another skill depends on `open-github-issue`:
 
 - Pass exactly one confirmed issue or one accepted proposal per invocation.
 - Prepare evidence or proposal details before calling this skill; do not ask this skill to infer root cause or architecture.
+- When invoking the CLI directly, write rich Markdown fields into a JSON payload file or `@file` inputs first; do not inline text containing backticks or shell metacharacters.
 - For `problem` issues, pass a `problem-description` that contains `Expected Behavior (BDD)`, `Current Behavior (BDD)`, and `Behavior Gap`; the difference must be explicit, not implied.
 - Reuse the returned `mode`, `issue_url`, and `publish_error` in the parent skill response.
 - For accepted feature proposals, pass `--issue-type feature` plus `--proposal`, `--reason`, and `--suggested-architecture`.
@@ -205,5 +219,5 @@ When another skill depends on `open-github-issue`:
 
 ## Resources
 
-- `scripts/open_github_issue.py`: Deterministic issue publishing helper with auth fallback and README language detection.
+- `scripts/open_github_issue.py`: Deterministic issue publishing helper with auth fallback and README language detection, exposed as `apltk open-github-issue`.
 - If the helper path is unavailable or still fails for environment reasons, fall back to direct `gh issue create` or GitHub REST API publishing instead of retrying the same broken relative-path invocation.

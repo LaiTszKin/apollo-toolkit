@@ -39,7 +39,7 @@ Two modes are supported:
 ### 1) say mode
 
 ```bash
-python3 scripts/docs_to_voice.py \
+apltk docs-to-voice \
   --project-dir "/path/to/project" \
   --mode say \
   --text "Hello, this is a voice synthesis test."
@@ -48,13 +48,13 @@ python3 scripts/docs_to_voice.py \
 ### 2) api mode (Model Studio)
 
 ```bash
-python3 scripts/docs_to_voice.py \
+apltk docs-to-voice \
   --project-dir "/path/to/project" \
   --mode api \
   --text "Hello, this is a qwen3-tts test."
 ```
 
-> Compatibility note: `scripts/docs_to_voice.sh` still works and internally delegates to the Python script.
+> Compatibility note: `scripts/docs_to_voice.sh` still works, while `apltk docs-to-voice` is the preferred entrypoint.
 
 ## `.env` settings
 

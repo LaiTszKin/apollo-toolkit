@@ -45,13 +45,13 @@ Persist durable user preferences from recent Codex conversations into reusable, 
 Extract the recent conversations:
 
 ```bash
-python3 scripts/extract_recent_conversations.py --lookback-minutes 1440
+apltk extract-codex-conversations --lookback-minutes 1440
 ```
 
 Refresh the AGENTS memory index after updating the memory files:
 
 ```bash
-python3 scripts/sync_memory_index.py --agents-file ~/.codex/AGENTS.md --memory-dir ~/.codex/memory
+apltk sync-codex-memory-index --agents-file ~/.codex/AGENTS.md --memory-dir ~/.codex/memory
 ```
 
 Use the bundled memory template when creating or refactoring category files:

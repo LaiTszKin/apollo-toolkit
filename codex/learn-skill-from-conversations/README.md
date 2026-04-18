@@ -41,7 +41,7 @@ This skill extracts the latest conversations from `~/.codex/sessions` and `~/.co
 Run the extractor:
 
 ```bash
-python3 scripts/extract_recent_conversations.py --lookback-minutes 1440
+apltk extract-skill-conversations --lookback-minutes 1440
 ```
 
 - If output is `NO_RECENT_CONVERSATIONS`, no action is required.

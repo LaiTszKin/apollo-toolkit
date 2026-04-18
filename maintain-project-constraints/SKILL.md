@@ -70,9 +70,9 @@ Example:
 ## Common Commands
 
 - `npm test` — run the repository's automated test suite.
-- `python3 scripts/validate_skill_frontmatter.py` — validate every top-level `SKILL.md` frontmatter block.
-- `python3 scripts/validate_openai_agent_config.py` — validate every `agents/openai.yaml` interface config.
-- `./scripts/install_skills.sh codex` — install the current toolkit into the local Codex skills directory.
+- `apltk validate-skill-frontmatter` — validate every top-level `SKILL.md` frontmatter block.
+- `apltk validate-openai-agent-config` — validate every `agents/openai.yaml` interface config.
+- `apltk codex` — install the current toolkit into the local Codex skills directory.
 
 ## Core Business Flow
 

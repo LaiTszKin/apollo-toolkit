@@ -46,8 +46,8 @@ Use this skill to run an end-to-end GitHub PR review loop: collect review thread
 - If user does not provide PR number, infer from current branch context.
 
 ```bash
-python3 scripts/review_threads.py list --repo <owner>/<repo> --pr <number>
-python3 scripts/review_threads.py list
+apltk review-threads list --repo <owner>/<repo> --pr <number>
+apltk review-threads list
 ```
 
 ## 2) Read unresolved review threads
@@ -55,8 +55,8 @@ python3 scripts/review_threads.py list
 Use table view for quick scan, then JSON when you need full details.
 
 ```bash
-python3 scripts/review_threads.py list --pr <number> --state unresolved --output table
-python3 scripts/review_threads.py list --pr <number> --state unresolved --output json > /tmp/pr_threads.json
+apltk review-threads list --pr <number> --state unresolved --output table
+apltk review-threads list --pr <number> --state unresolved --output json > /tmp/pr_threads.json
 ```
 
 The JSON output contains `thread_id`, `path`, `line`, and comment bodies for decision and resolution.
@@ -98,13 +98,13 @@ Track adopted thread IDs in a JSON file:
 Resolve only threads you actually addressed in code.
 
 ```bash
-python3 scripts/review_threads.py resolve --pr <number> --thread-id-file adopted_threads.json
+apltk review-threads resolve --pr <number> --thread-id-file adopted_threads.json
 ```
 
 Optional preview without mutating GitHub state:
 
 ```bash
-python3 scripts/review_threads.py resolve --pr <number> --thread-id-file adopted_threads.json --dry-run
+apltk review-threads resolve --pr <number> --thread-id-file adopted_threads.json --dry-run
 ```
 
 ## 8) Handle non-adopted comments
@@ -113,9 +113,9 @@ python3 scripts/review_threads.py resolve --pr <number> --thread-id-file adopted
 - Reply with a concise technical reason and, if needed, a proposed follow-up.
 - Never resolve rejected or unhandled feedback threads.
 
-## Scripts
+## CLI
 
-### `scripts/review_threads.py`
+### `apltk review-threads`
 
 - `list`: fetch PR review threads via GitHub GraphQL (`gh api graphql`), supports repo/PR inference.
 - `resolve`: resolve selected review threads by thread IDs.

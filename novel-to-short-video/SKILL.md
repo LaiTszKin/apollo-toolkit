@@ -120,7 +120,7 @@ If producing multiple short videos in one request, enforce the same 50-60 second
 - Generate images with:
 
 ```bash
-python ~/.codex/skills/openai-text-to-image-storyboard/scripts/generate_storyboard_images.py \
+apltk generate-storyboard-images \
   --project-dir "<project_dir>" \
   --env-file ~/.codex/skills/openai-text-to-image-storyboard/.env \
   --content-name "<content_name>" \
@@ -133,7 +133,7 @@ python ~/.codex/skills/openai-text-to-image-storyboard/scripts/generate_storyboa
 - Generate audio + timeline + SRT:
 
 ```bash
-python ~/.codex/skills/docs-to-voice/scripts/docs_to_voice.py \
+apltk docs-to-voice \
   --project-dir "<project_dir>" \
   --project-name "<content_name>" \
   --text "<loop_narration_script>"

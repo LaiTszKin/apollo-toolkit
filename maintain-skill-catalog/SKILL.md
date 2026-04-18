@@ -56,8 +56,8 @@ Keep a skill repository coherent when many top-level skills evolve together.
 ### 4) Validate the catalog after changes
 
 - Run:
-  - `python3 scripts/validate_skill_frontmatter.py`
-  - `python3 scripts/validate_openai_agent_config.py`
+  - `apltk validate-skill-frontmatter`
+  - `apltk validate-openai-agent-config`
 - If the change touched installer or repo-discovery behavior, verify the relevant install scripts or discovery logic as well.
 - Resolve validation failures before finishing; missing `agents/openai.yaml`, stale prompt references, and mismatched skill names are catalog bugs, not follow-up work.
 

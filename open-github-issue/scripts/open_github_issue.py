@@ -43,6 +43,38 @@ PROBLEM_BDD_MARKER_GROUPS = (
         r"行為(?:落差|差異)",
     ),
 )
+TEXT_FIELDS = (
+    "title",
+    "problem_description",
+    "suspected_cause",
+    "reproduction",
+    "proposal",
+    "reason",
+    "suggested_architecture",
+    "impact",
+    "evidence",
+    "suggested_action",
+    "affected_scope",
+)
+PAYLOAD_FIELDS = frozenset(
+    (
+        "title",
+        "issue_type",
+        "problem_description",
+        "suspected_cause",
+        "reproduction",
+        "proposal",
+        "reason",
+        "suggested_architecture",
+        "impact",
+        "evidence",
+        "suggested_action",
+        "severity",
+        "affected_scope",
+        "repo",
+        "dry_run",
+    )
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,11 +84,18 @@ def parse_args() -> argparse.Namespace:
             "Auth order: gh CLI login -> GitHub token -> draft only."
         )
     )
-    parser.add_argument("--title", required=True, help="Issue title")
+    parser.add_argument(
+        "--payload-file",
+        help=(
+            "Path to a JSON payload file. Use '-' to read JSON from stdin. "
+            "CLI flags override values loaded from the payload."
+        ),
+    )
+    parser.add_argument("--title", help="Issue title")
     parser.add_argument(
         "--issue-type",
         choices=ISSUE_TYPES,
-        default=ISSUE_TYPE_PROBLEM,
+        default=None,
         help="Structured issue type to publish.",
     )
     parser.add_argument(
@@ -114,6 +153,94 @@ def parse_args() -> argparse.Namespace:
         help="Build and print payload only, without creating an issue.",
     )
     return parser.parse_args()
+
+
+def normalize_payload_key(key: str) -> str:
+    return key.replace("-", "_")
+
+
+def read_payload_file(raw_path: str) -> dict[str, object]:
+    if raw_path == "-":
+        raw_content = sys.stdin.read()
+        context = "stdin"
+    else:
+        path = Path(raw_path).expanduser()
+        raw_content = path.read_text(encoding="utf-8")
+        context = str(path)
+
+    try:
+        payload = json.loads(raw_content)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid JSON payload in {context}: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise SystemExit(f"Invalid JSON payload in {context}: top-level value must be an object.")
+
+    normalized: dict[str, object] = {}
+    for raw_key, value in payload.items():
+        key = normalize_payload_key(str(raw_key))
+        if key not in PAYLOAD_FIELDS:
+            raise SystemExit(f"Unsupported payload key: {raw_key}")
+        normalized[key] = value
+    return normalized
+
+
+def payload_value_to_string(field_name: str, value: object) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    raise SystemExit(f"Payload field '{field_name}' must be a string or null.")
+
+
+def read_at_file_value(field_name: str, value: str | None) -> str | None:
+    if value is None:
+        return None
+    if value.startswith("@@"):
+        return value[1:]
+    if value == "@-":
+        return sys.stdin.read()
+    if value.startswith("@") and len(value) > 1:
+        path = Path(value[1:]).expanduser()
+        try:
+            return path.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise SystemExit(f"Unable to read @{field_name} file {path}: {exc}") from exc
+    return value
+
+
+def hydrate_args(args: argparse.Namespace) -> argparse.Namespace:
+    payload_file = getattr(args, "payload_file", None)
+    if payload_file:
+        payload = read_payload_file(payload_file)
+        for field_name, value in payload.items():
+            current_value = getattr(args, field_name, None)
+            if field_name == "dry_run":
+                if not isinstance(value, bool):
+                    raise SystemExit("Payload field 'dry_run' must be a boolean.")
+                if not current_value:
+                    setattr(args, field_name, value)
+                continue
+
+            if field_name in TEXT_FIELDS:
+                value = payload_value_to_string(field_name, value)
+            elif not isinstance(value, str):
+                raise SystemExit(f"Payload field '{field_name}' must be a string.")
+
+            if current_value is None or current_value == "":
+                setattr(args, field_name, value)
+
+    if args.issue_type is None:
+        args.issue_type = ISSUE_TYPE_PROBLEM
+    if args.issue_type not in ISSUE_TYPES:
+        raise SystemExit(f"Invalid issue_type: {args.issue_type}")
+
+    for field_name in TEXT_FIELDS:
+        setattr(args, field_name, read_at_file_value(field_name, getattr(args, field_name, None)))
+
+    if not (args.title or "").strip():
+        raise SystemExit("Issue title is required. Pass --title or include title in --payload-file.")
+    return args
 
 
 def validate_issue_content_args(args: argparse.Namespace) -> None:
@@ -497,7 +624,7 @@ def create_issue_with_token(repo: str, title: str, body: str, token: str) -> str
 
 
 def main() -> int:
-    args = parse_args()
+    args = hydrate_args(parse_args())
     validate_issue_content_args(args)
 
     gh_authenticated = has_gh_auth()

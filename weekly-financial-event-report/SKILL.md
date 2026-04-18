@@ -10,7 +10,7 @@ description: Read a user-specified PDF that marks the week's key financial event
 - Required: `pdf` to render the final report.
 - Conditional: `document-vision-reader` when the source PDF's highlighted markers are visible in layout but not recoverable from machine-readable text alone.
 - Optional: none.
-- Fallback: If source-PDF extraction through `pdf` is unavailable or fails on macOS, use the bundled `scripts/extract_pdf_text_pdfkit.swift` helper before giving up; only stop when neither `pdf` nor the local PDFKit fallback can recover the marked events, or when final PDF rendering itself cannot be completed.
+- Fallback: If source-PDF extraction through `pdf` is unavailable or fails on macOS, use the bundled `apltk extract-pdf-text-pdfkit` helper before giving up; only stop when neither `pdf` nor the local PDFKit fallback can recover the marked events, or when final PDF rendering itself cannot be completed.
 
 ## Standards
 
@@ -72,7 +72,7 @@ Do not guess any input that materially changes the research window or report sco
 - If `pdf` extraction is unavailable or fails because the current machine lacks local PDF tooling, and the host is macOS, run:
 
 ```bash
-swift scripts/extract_pdf_text_pdfkit.swift /absolute/path/to/source.pdf
+apltk extract-pdf-text-pdfkit /absolute/path/to/source.pdf
 ```
 
 - The bundled extractor prints page-delimited text directly from PDFKit so the agent can still build the source-event table without adding Python PDF packages ad hoc.

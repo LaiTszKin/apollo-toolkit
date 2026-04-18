@@ -15,13 +15,13 @@ description: Convert text and document content into audio files and sentence-lev
 ## Standards
 
 - Evidence: Confirm `project_dir`, input source, mode, and environment-backed settings before generation.
-- Execution: Use `scripts/docs_to_voice.py` to write audio plus matching timeline and subtitle files under `project_dir/audio/{project_name}/`.
+- Execution: Use `apltk docs-to-voice` to write audio plus matching timeline and subtitle files under `project_dir/audio/{project_name}/`.
 - Quality: Respect mode-specific options, sentence splitting rules, and post-process requirements such as `ffmpeg` for speed changes.
 - Output: Return the absolute output audio path together with the generated `.timeline.json` and `.srt` companions.
 
 ## Overview
 
-Use `scripts/docs_to_voice.py` to convert raw text or text files into audio and always save under:
+Use `apltk docs-to-voice` to convert raw text or text files into audio and always save under:
 
 `project_dir/audio/{project_name}/`
 
@@ -69,7 +69,7 @@ Modes:
 
 ## Script Reference
 
-`scripts/docs_to_voice.py` flags:
+`apltk docs-to-voice` flags:
 
 - `--project-dir` (required)
 - `--project-name` (optional)
@@ -104,4 +104,4 @@ Environment variables:
 - `api` mode: confirm `command -v python3` and valid `DASHSCOPE_API_KEY`.
 - Long-text chunk merge (especially AIFF output): recommend `command -v ffmpeg`.
 - If output exists, use `--force` or a new `--output-name`.
-- `scripts/docs_to_voice.sh` is kept as a compatibility wrapper for existing workflows.
+- `scripts/docs_to_voice.sh` is kept as a compatibility wrapper for existing workflows, but prefer `apltk docs-to-voice`.

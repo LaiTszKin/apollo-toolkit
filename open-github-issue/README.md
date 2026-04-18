@@ -16,7 +16,7 @@ This skill helps agents publish confirmed findings, accepted proposals, document
 
 - `SKILL.md`: Main skill definition and workflow.
 - `agents/openai.yaml`: Agent interface metadata and default prompt.
-- `scripts/open_github_issue.py`: Deterministic issue publisher.
+- `scripts/open_github_issue.py`: Deterministic issue publisher, exposed as `apltk open-github-issue`.
 
 ## Installation
 
@@ -36,40 +36,49 @@ Invoke the skill in your prompt:
 Use $open-github-issue to publish this confirmed finding or accepted proposal to GitHub.
 ```
 
-The bundled script can also be called directly:
+The bundled CLI can also be called directly:
 
 ```bash
-python scripts/open_github_issue.py \
-  --issue-type problem \
-  --title "[Log] Payment timeout spike" \
-  --problem-description $'Expected Behavior (BDD)\nGiven the payment service sees transient upstream latency\nWhen the retry path runs\nThen requests should recover without user-visible failures\n\nCurrent Behavior (BDD)\nGiven the payment service sees transient upstream latency\nWhen the retry path runs\nThen repeated timeout warnings still escalate into request failures\n\nBehavior Gap\n- Expected: retries absorb transient upstream slowness.\n- Actual: retries still end in request failures.\n- Difference/Impact: customers receive failed payment attempts during the incident window.\n\nEvidence\n- symptom: repeated timeout warnings escalated into request failures.\n- impact: payment attempts failed for end users.\n- key evidence: logs from the incident window show retries without successful recovery.' \
-  --suspected-cause "payment-api/handler.py:84 retries immediately against a slow upstream with no jitter; confidence high." \
-  --reproduction "Not yet reliably reproducible; more runtime evidence is required." \
-  --repo owner/repo
+cat > /tmp/open-github-issue-payload.json <<'JSON'
+{
+  "issue_type": "problem",
+  "title": "[Log] Payment timeout spike",
+  "problem_description": "Expected Behavior (BDD)\nGiven the payment service sees transient upstream latency\nWhen the retry path runs\nThen requests should recover without user-visible failures and keep `request_id` evidence intact\n\nCurrent Behavior (BDD)\nGiven the payment service sees transient upstream latency\nWhen the retry path runs\nThen repeated timeout warnings still escalate into request failures\n\nBehavior Gap\n- Expected: retries absorb transient upstream slowness.\n- Actual: retries still end in request failures.\n- Difference/Impact: customers receive failed payment attempts during the incident window.\n\nEvidence\n- symptom: repeated timeout warnings escalated into request failures.\n- impact: payment attempts failed for end users.\n- key evidence: logs from the incident window show retries without successful recovery.",
+  "suspected_cause": "payment-api/handler.py:84 retries immediately against a slow upstream with no jitter; confidence high.",
+  "reproduction": "Not yet reliably reproducible; more runtime evidence is required."
+}
+JSON
+
+apltk open-github-issue --payload-file /tmp/open-github-issue-payload.json --repo owner/repo
 ```
 
 ```bash
-python scripts/open_github_issue.py \
-  --issue-type feature \
-  --title "[Feature] Add incident timeline export" \
-  --proposal "Allow users to export incident timelines as Markdown and CSV from the incident detail page." \
-  --reason "Support handoff to on-call engineers and postmortem writing without copy-paste." \
-  --suggested-architecture "Add an export action in the incident UI, reuse timeline query service, and centralize renderers in a shared export module." \
-  --repo owner/repo
+cat > /tmp/open-github-issue-payload.json <<'JSON'
+{
+  "issue_type": "feature",
+  "title": "[Feature] Add incident timeline export",
+  "proposal": "Allow users to export incident timelines as Markdown and CSV from the incident detail page.",
+  "reason": "Support handoff to on-call engineers and postmortem writing without copy-paste.",
+  "suggested_architecture": "Add an export action in the incident UI, reuse timeline query service, and centralize renderers in a shared export module."
+}
+JSON
+
+apltk open-github-issue --payload-file /tmp/open-github-issue-payload.json --repo owner/repo
 ```
 
 ```bash
-python scripts/open_github_issue.py \
+apltk open-github-issue --repo owner/repo \
   --issue-type security \
   --title "[Security] Missing authorization check on admin export" \
-  --problem-description "The admin export endpoint can be reached without verifying the caller's admin role." \
+  --problem-description @/tmp/security-risk.md \
   --severity high \
   --affected-scope "/admin/export endpoint and exported customer data" \
-  --impact "Unauthorized users may access privileged exports containing sensitive business data." \
-  --evidence "Code path review and reproduced requests show the handler validates session presence but not the admin permission gate." \
-  --suggested-action "Add explicit authorization enforcement, regression tests, and audit logging for denied access attempts." \
-  --repo owner/repo
+  --impact @/tmp/security-impact.md \
+  --evidence @/tmp/security-evidence.md \
+  --suggested-action @/tmp/security-action.md
 ```
+
+Use `--payload-file` or `@file` for Markdown-rich fields. Inline shell arguments can corrupt backticks, `$()`, quotes, and other shell metacharacters before the Python script receives them.
 
 ## Publication behavior
 

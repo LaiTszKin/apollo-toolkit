@@ -21,6 +21,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.
 - Users can install Apollo Toolkit through npm or npx and interactively choose one or more target skill directories to populate with copied skills.
+- Users can run bundled helper tools through `apltk tools` and direct `apltk <tool>` commands for selected packaged skill scripts.
 - Users can design and implement new features through a spec-first workflow.
 - Users can generate shared feature planning artifacts for approval-gated workflows, including parallel multi-spec batches coordinated through one batch-level `coordination.md`.
 - Users can convert text or documents into audio files with subtitle timelines.
@@ -64,6 +65,8 @@ This repository enables users to install and run a curated set of reusable agent
 - `npm test` - 執行 Node 測試套件。
 - `node bin/apollo-toolkit.js` - 直接從倉庫啟動 Apollo Toolkit CLI。
 - `node bin/apollo-toolkit.js codex openclaw trae` - 以非互動方式將技能安裝到指定目標。
+- `node bin/apollo-toolkit.js tools` - 列出 Apollo Toolkit 內建 CLI 工具。
+- `node bin/apollo-toolkit.js filter-logs app.log --start 2026-03-24T10:00:00Z` - 透過內建工具包裝器執行技能腳本。
 - `python3 scripts/validate_skill_frontmatter.py` - 驗證所有頂層技能 `SKILL.md` 的 frontmatter。
 - `python3 scripts/validate_openai_agent_config.py` - 驗證所有技能 `agents/openai.yaml` 設定。
 - `./scripts/install_skills.sh codex` - 用本地安裝腳本把技能安裝到 Codex 目錄。
