@@ -7,6 +7,12 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.0.2] - 2026-04-20
+
+### Changed
+- Strengthen `scheduled-runtime-health-check` so bounded-run investigations must detect artifact-path drift, reconcile reports back to one canonical run root before comparison, and report bounded execute time separately from setup and shutdown overhead.
+- Strengthen `systematic-debug` so runtime reruns that inherit stale report paths are classified as artifact-routing problems before any performance conclusion, and speed analysis now separates execute time from provisioning/readiness/cleanup overhead.
+
 ## [v3.0.1] - 2026-04-19
 
 ### Changed

@@ -14,7 +14,7 @@ description: "Systematic debugging workflow for program issues: understand obser
 
 ## Standards
 
-- Evidence: Gather expected versus observed behavior from code and runtime facts before deciding on a cause, and when the issue involves a runtime pipeline or bounded run, anchor the investigation to one canonical artifact root or run directory instead of mixed terminal snippets from multiple runs.
+- Evidence: Gather expected versus observed behavior from code and runtime facts before deciding on a cause, and when the issue involves a runtime pipeline or bounded run, anchor the investigation to one canonical artifact root or run directory instead of mixed terminal snippets from multiple runs; if generated reports or databases drift into an older run directory, capture that mismatch explicitly before treating any artifact as evidence.
 - Execution: Inspect the relevant paths, reproduce every plausible cause with tests or bounded reruns, choose a reproduction mode whose fidelity matches the user's claim, map each observed failure to a concrete pipeline stage, distinguish toolchain/platform faults from application-logic faults, classify failing tests as stale test contract vs test-harness interference vs real product bug, then apply the minimal fix at the true owner.
 - Quality: Keep scope focused on the bug, prefer existing test patterns, explicitly rule out hypotheses that could not be reproduced, and when failures disappear in isolated reruns treat shared-state or parallel-test interference as a first-class hypothesis instead of silently dismissing the original failure.
 - Output: Deliver the plausible-cause list, the canonical evidence source, reproduction tests or reruns, the final failure classification for each investigated symptom, validated fix summary, and passing-test confirmation.
@@ -59,8 +59,9 @@ Also auto-invoke this skill when mismatch evidence appears during normal executi
 - If a hypothesized cause cannot be reproduced, document why and deprioritize it explicitly.
 - For long-running or generated-artifact workflows, record the exact command, timestamps, and artifact paths before inspecting outputs so later comparisons stay on the same evidence set.
 - Do not mix baseline data and rerun data casually; compare the same scenario or command across runs and call out when a conclusion comes from a rerun rather than the original failure.
+- When rerun artifacts land in the wrong directory because a wrapper or inherited environment reused a previous report path, fix the evidence layout first and only then compare metrics; otherwise classify the result as an artifact-routing problem rather than a performance delta.
 - For post-run "why did most events not happen" questions, derive the answer from a funnel over structured artifacts first, then corroborate with logs: discovered or eligible candidates, admission blocks, stale or skipped decisions, queue/governor outcomes, execution attempts, confirmations, retries, and persisted event rows.
-- For speed questions, compute per-stage timings from available event timestamps and state which stages are measured versus unavailable; avoid treating wall-clock bounded duration as pipeline latency.
+- For speed questions, compute per-stage timings from available event timestamps and state which stages are measured versus unavailable; avoid treating wall-clock bounded duration as pipeline latency, and separately report bounded execute time versus provisioning/readiness/cleanup overhead when both are present.
 - When test fixtures or assertions no longer match the implemented contract, update the tests instead of weakening the product behavior to satisfy stale expectations.
 - When tests shell out to shared local infrastructure, add deterministic isolation such as mutexes, unique temp roots, or serialized sections before accepting flakes as inevitable.
 

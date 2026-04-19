@@ -14,7 +14,7 @@ description: Use a background terminal to run a user-specified command immediate
 
 ## Standards
 
-- Evidence: Anchor every conclusion to the requested command, execution window, startup/shutdown timestamps, one canonical run folder or artifact root, captured logs, and concrete runtime signals.
+- Evidence: Anchor every conclusion to the requested command, execution window, startup/shutdown timestamps, one canonical run folder or artifact root, captured logs, and concrete runtime signals; when structured artifacts land outside that canonical root because of inherited environment or wrapper drift, prove the mismatch and treat the artifact-path correction as part of the evidence trail.
 - Execution: Collect the run contract, verify the real stop mechanism before launch, choose the highest-fidelity execution mode that matches the user's intent, use a background terminal, optionally update the code only when the user asks, execute the requested command immediately or in the requested window, record the canonical run folder once the process materializes it, capture logs, stop cleanly when bounded, then delegate log review to `analyse-app-logs` only when findings are requested or needed.
 - Quality: Keep scheduling, execution, and shutdown deterministic; separate confirmed findings from hypotheses; and mark each assessed module healthy/degraded/failed/unknown with reasons.
 - Output: Return the run configuration, execution status, log locations, optional code-update result, optional module health by area, confirmed issues, potential issues, observability gaps, and scheduler status when applicable.
@@ -53,6 +53,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
 - Separate scheduler failures, boot failures, runtime failures, and shutdown failures.
 - For complex pipelines, identify the last successful stage before attributing the failure to application logic.
 - When the user asks to compare a bounded run with a previous run, compare only runs with the same command or preset, duration, runtime mode, and complete structured artifacts. If the previous run lacks canonical reports, databases, or startup artifacts, mark the runs incomparable and explain the artifact completeness gap instead of inventing performance deltas.
+- When wrappers, copied environments, or report-path variables cause the current run's report or database to land under an older run directory, stop and reconcile the artifact root before analysis: record the intended run root, locate the actual emitted files, move or copy them back only when needed to restore one canonical evidence set, and report the path drift as an observability problem instead of silently mixing runs.
 - If logs cannot support a health judgment, mark the module as `unknown` instead of guessing.
 
 ## Required workflow
@@ -80,6 +81,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
 5. Run and capture readiness
    - Execute the requested command in the same background terminal.
    - As soon as the command emits or creates its canonical run directory, artifact root, or equivalent output location, record that path and reuse it for every later check.
+   - If later structured outputs appear under a different directory than the recorded run root, pause the analysis and reconcile the mismatch before reading metrics or logs from either location.
    - Report the exact runtime mode used in the evidence record so later analysis does not accidentally treat synthetic-harness results as proof about production behavior.
    - Wait for a concrete readiness signal when the command is expected to stay up, such as a health endpoint, listening-port log, worker boot line, or queue-consumer ready message.
    - If readiness never arrives, stop the run, preserve logs, and treat it as a failed startup window.
@@ -99,6 +101,7 @@ This skill is an orchestration layer. It owns the background terminal session, o
    - Reuse its confirmed issues, hypotheses, and monitoring improvements instead of rewriting a separate incident workflow.
 8. Produce the final report
    - Always summarize the actual command executed, actual start/end timestamps, execution status, and log locations.
+   - Separate bounded execute time from setup, readiness, collection, and shutdown overhead so a 2-minute observation is not misreported as 2 minutes of end-to-end pipeline latency.
    - Include the code-update result only when an update step was requested.
    - When findings were requested, classify each relevant module as `healthy`, `degraded`, `failed`, or `unknown` with concrete evidence and separate observed issues from risks that still need validation.
 
@@ -125,7 +128,7 @@ Absence of errors alone is not enough for `healthy`.
 Use this structure in responses:
 
 1. Run summary
-   - Workspace, command, schedule if any, actual start/end timestamps, duration if bounded, readiness result, shutdown result if applicable, canonical run folder or artifact root, and log locations.
+   - Workspace, command, schedule if any, actual start/end timestamps, bounded execute duration, total wall-clock duration, readiness result, shutdown result if applicable, canonical run folder or artifact root, and log locations.
 2. Execution result
    - Whether the command completed, stayed up for the requested window, or failed early.
 3. Code update result
