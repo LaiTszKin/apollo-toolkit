@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.0.3] - 2026-04-21
+
+### Changed
+- Strengthen `improve-observability` so ownership-model refactors must audit and repair stale log messages, event names, and structured fields, keeping canonical owners distinct from compatibility projections in telemetry.
+
 ## [v3.0.2] - 2026-04-20
 
 ### Changed

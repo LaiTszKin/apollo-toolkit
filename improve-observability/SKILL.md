@@ -14,10 +14,10 @@ description: Add focused observability to an existing system so opaque workflows
 
 ## Standards
 
-- Evidence: Read the real execution path and current telemetry before deciding where visibility actually disappears.
-- Execution: Add the smallest useful instrumentation around decision points, scope contracts, outcomes, failure reasons, and any cross-path lifecycle gaps between summary counters and detailed outcome records.
-- Quality: Keep changes behavior-neutral, use structured high-signal telemetry, avoid secrets, and lock the signals with tests.
-- Output: Report which stages are now observable, which fields or metrics to inspect, and which tests validate the instrumentation.
+- Evidence: Read the real execution path, current telemetry, and the true ownership model before deciding where visibility actually disappears or where existing logs no longer describe the live code path.
+- Execution: Add the smallest useful instrumentation around decision points, scope contracts, outcomes, failure reasons, and any cross-path lifecycle gaps between summary counters and detailed outcome records; when observability drift already exists, repair stale log names and structured fields so they match the current owner, scope, and lifecycle semantics.
+- Quality: Keep changes behavior-neutral, use structured high-signal telemetry, avoid secrets, and lock the signals with tests; treat stale terminology after refactors as an observability defect, not harmless wording.
+- Output: Report which stages are now observable, which fields or metrics to inspect, which stale signals were renamed or re-scoped, and which tests validate the instrumentation.
 
 ## Overview
 
@@ -42,6 +42,8 @@ Do not use this skill for generic bug fixing when the main request is behavior c
 - Read the relevant entrypoints, orchestration layers, and current telemetry before editing.
 - Identify the exact stages where information disappears: validation, branching, external calls, persistence, retries, settlement, cleanup, or error handling.
 - When the same business event can flow through multiple execution paths such as harness, replay, batch worker, or production runtime, compare those paths explicitly and find where their observability contract diverges.
+- Identify the canonical owner of the workflow under today's implementation, such as account, request, job, batch, position projection, or transaction step, before changing any log labels or field names.
+- Distinguish canonical owners from compatibility projections or legacy mirrors. If the code still stores or exposes a compatibility projection, keep it diagnosable but do not let logs present that projection as the primary truth.
 - Reuse the project's existing logger, tracing library, metric naming style, and error taxonomy.
 
 ### 2. Choose the smallest useful signals
@@ -80,6 +82,16 @@ When a system reports aggregate counts such as `success_count`, `processed_count
 - treat "aggregate says success but detail table is empty" as an observability bug, not as an acceptable reporting gap
 - if multiple runtime modes claim the same business event, keep the critical observability fields aligned across those modes unless the output contract intentionally differs
 
+### 3.3 Repair terminology drift after refactors
+
+When the codebase has moved from one ownership model or lifecycle model to another, audit existing observability for stale terminology.
+
+- rename log messages, event names, metrics, and structured fields that still describe retired concepts such as old owners, outdated scope units, or deprecated lifecycle phases
+- prefer names that describe the live source of truth, for example `account`, `account_opportunity`, `projection`, `admission_health`, or `projected_step`, instead of legacy names that survived only because a field was never revisited
+- preserve compatibility aliases only when operators or downstream dashboards still require them, and clearly label them as compatibility views rather than canonical truth
+- when a workflow still legitimately mixes canonical owners and derived projections, name both explicitly so operators can tell which field is authoritative
+- update or add tests that lock the renamed signals, especially around branch-specific reason codes, progress events, and structured field keys
+
 ### 3.1 Preserve cross-stage scope contracts
 
 When a workflow derives scope in one stage and consumes it later, make that contract observable end-to-end.
@@ -105,6 +117,7 @@ Add or update tests that prove the new observability survives refactors. Focus o
 - metrics increments for success, skip, and failure paths
 - regression coverage for the exact opaque scenario that motivated the work
 - edge paths such as early-return, dependency failure, and partial completion
+- renamed observability fields or progress-event names after ownership-model or lifecycle refactors
 
 Use existing test helpers for log capture and avoid brittle assertions on timestamps or fully formatted log strings.
 
