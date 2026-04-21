@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.0.4] - 2026-04-22
+
+### Changed
+- Strengthen `systematic-debug` so stress, chaos, and edge-case reruns must preserve a minimally executable path, classify globally disabling profiles as toolchain or harness invalidation before blaming product logic, and report whether the final scenario still exercises the target lifecycle stage.
+
 ## [v3.0.3] - 2026-04-21
 
 ### Changed

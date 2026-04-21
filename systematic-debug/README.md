@@ -14,6 +14,7 @@ Use this skill when:
 - Multiple code paths may explain the same failure
 - You need evidence-backed fixes with reproducible tests
 - You want to reduce regressions from guess-based changes
+- You need to determine whether a stress or chaos profile exposed a product bug or merely disabled the local harness
 
 ## Invocation rule
 
@@ -42,6 +43,7 @@ This skill follows a fixed workflow:
 - **Comprehensive hypotheses**: do not stop at the first guess.
 - **Minimal change**: keep fixes targeted to confirmed failures.
 - **Clear traceability**: map fixes to specific failing-then-passing tests.
+- **Executable pressure**: keep stress and fault profiles adversarial without destroying every path to the lifecycle stage being measured.
 
 ## Typical deliverables
 
