@@ -5,6 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Changed
+- None yet.
+
+## [v3.1.4] - 2026-04-23
+
+### Changed
 - Refine `iterative-code-quality` so it now treats naming, abstraction, module boundaries, logging, and tests as selectable execution directions under continuous full-codebase rescans, guiding agents to choose the highest-confidence, highest-leverage gradual refactors that prepare the ground for deeper later cleanup while preserving behavior under green guardrails and a precise system-level definition of macro architecture.
 
 ## [v3.1.3] - 2026-04-23
