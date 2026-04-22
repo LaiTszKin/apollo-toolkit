@@ -69,3 +69,5 @@ Before and after simplification, verify:
 - public API and CLI behavior remain stable,
 - log fields remain compatible unless stale names were intentionally corrected,
 - existing tests still pass and new tests cover extracted rules.
+
+If these checks can be enforced by existing or newly added tests, do not treat subjective confidence alone as a reason to avoid the simplification.

@@ -28,6 +28,8 @@ If validation fails:
 - keep regression coverage for real defects,
 - do not mask failures by weakening assertions.
 
+If validation passes and the guardrails meaningfully cover the changed behavior, do not keep a known quality issue in place purely because of subjective confidence concerns.
+
 ## Re-scan after each pass
 
 Inspect touched areas and the full known quality backlog for:

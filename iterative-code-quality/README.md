@@ -10,6 +10,7 @@ Improve an existing repository through repeated, evidence-backed code-quality pa
 - Splits mixed-responsibility code into narrower modules without changing macro architecture.
 - Repairs stale or missing logs and adds tests for important observability contracts.
 - Adds high-value unit, property-based, integration, or E2E tests based on risk.
+- Uses those tests and other guardrails to justify more aggressive refactors, instead of leaving known issues in place for subjective confidence reasons.
 - Repeats the pass cycle while any known in-scope actionable quality issue remains, and forbids a completion report until the latest scan is clear or remaining items are explicitly deferred with a valid reason.
 - Synchronizes project docs and `AGENTS.md` through `align-project-documents` and `maintain-project-constraints` after implementation.
 

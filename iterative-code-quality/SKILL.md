@@ -22,8 +22,8 @@ description: >-
 ## Standards
 
 - Evidence: Read repository docs, project constraints, source, tests, logs, and entrypoints before editing; every rename, extraction, split, log update, or test must be backed by code context.
-- Execution: Work in bounded passes, prioritize behavior-neutral improvements with the highest maintainability and test value, validate after each pass, and keep iterating while any known in-scope codebase quality issue remains unresolved; do not produce the completion report while the scan still contains actionable gaps.
-- Quality: Preserve business behavior and macro architecture unless tests expose an existing logic defect; avoid style-only churn, compatibility theater, broad rewrites, and unverified "cleanup".
+- Execution: Work in bounded passes, prioritize behavior-neutral improvements with the highest maintainability and test value, validate after each pass, and keep iterating while any known in-scope codebase quality issue remains unresolved; when tests or other reliable guardrails can prove equivalence, prefer taking the refactor instead of deferring it for subjective confidence reasons; do not produce the completion report while the scan still contains actionable gaps.
+- Quality: Preserve business behavior and macro architecture unless tests expose an existing logic defect; avoid style-only churn, compatibility theater, broad rewrites, and unverified "cleanup", but do not reject a worthwhile refactor purely because it feels risky when existing or newly added guardrails can verify it safely.
 - Output: Deliver a concise pass-by-pass summary, changed behavior-neutral surfaces, test coverage added, validation results, and documentation/`AGENTS.md` sync status only after every known in-scope quality issue is resolved or explicitly classified as blocked, unsafe, low-value, speculative, or requiring user approval.
 
 ## Goal
@@ -71,6 +71,7 @@ For each pass:
 - Prefer repository-native abstractions over new parallel frameworks.
 - Preserve public behavior, data contracts, side effects, error classes, and macro architecture.
 - Add or update tests in the same pass when the change touches non-trivial logic, observability contracts, or extracted helpers.
+- If strong guardrails exist or can be added cheaply, prefer the clearer or more maintainable refactor instead of leaving a known issue in place due to subjective caution alone.
 - Validate the touched scope before starting another pass.
 
 ### 3) Rename for clarity without churn
@@ -87,6 +88,7 @@ For each pass:
 - Extract helpers only when they reduce duplication, centralize one business rule, clarify caller intent, or make a behavior testable.
 - Keep helper placement aligned with current module ownership.
 - Do not create abstractions for one-off code unless they isolate a meaningful domain rule or external contract.
+- If tests or equivalent guardrails can prove behavior preservation, do not let moderate implementation uncertainty block an otherwise valuable simplification or extraction.
 - Preserve observable behavior unless a test proves the current behavior is a defect.
 
 ### 5) Split modules by responsibility
@@ -95,6 +97,7 @@ For each pass:
 - Define the new module's responsibility before moving code.
 - Keep interfaces narrow, explicit, and consistent with existing project style.
 - Avoid macro-architecture changes such as new layers, new service boundaries, new persistence strategies, or framework swaps unless the user explicitly expands scope.
+- When module boundaries are currently poor but can be protected by focused tests or other guardrails, choose the cleaner split instead of preserving a mixed-responsibility file out of caution alone.
 - Use `references/module-boundaries.md` for extraction rules and anti-patterns.
 
 ### 6) Repair logging and observability drift

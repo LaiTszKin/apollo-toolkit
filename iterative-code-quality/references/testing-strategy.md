@@ -6,6 +6,8 @@ Choose tests from the risk inventory, not from a generic coverage target.
 
 For every non-trivial pass, ask what could regress silently if the cleanup were wrong.
 
+Use the resulting guardrails aggressively: when tests or equivalent verification can prove behavior preservation, they should unlock bolder refactors rather than merely justify small cosmetic edits.
+
 ## Unit tests
 
 Use for:
@@ -76,3 +78,4 @@ Consider:
 - Preserve failing seeds or examples from property-based tests.
 - Do not weaken existing tests to fit the refactor.
 - If old tests asserted implementation details, rewrite them around stable behavior while preserving the business invariant.
+- Once stable guardrails exist, do not refuse a maintainability-improving refactor purely because confidence feels lower than ideal; let the guardrails decide.
