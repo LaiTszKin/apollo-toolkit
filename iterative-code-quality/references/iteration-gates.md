@@ -2,7 +2,7 @@
 
 ## Pass discipline
 
-Each pass must have:
+Each iteration must have:
 
 - a concrete quality target,
 - a bounded file/symbol scope,
@@ -10,7 +10,9 @@ Each pass must have:
 - validation plan,
 - rollback point if evidence contradicts the change.
 
-Avoid starting a broad second pass before validating the first, but do not stop after a validated pass if known actionable quality issues remain anywhere in the in-scope codebase.
+An iteration is not "one work type". Within the selected scope, it should try to finish all actionable cleanup categories that matter: naming, simplification, module boundaries, logging, and tests.
+
+Avoid starting a broad second iteration before validating the first, but do not stop after a validated iteration if known actionable quality issues remain anywhere in the in-scope codebase.
 
 ## Validation cadence
 
@@ -29,6 +31,8 @@ If validation fails:
 - do not mask failures by weakening assertions.
 
 If validation passes and the guardrails meaningfully cover the changed behavior, do not keep a known quality issue in place purely because of subjective confidence concerns.
+
+The final stopping condition also requires the relevant guarded test surface to be green; a partially red repository is not a completed refactor outcome.
 
 ## Re-scan after each pass
 
@@ -52,7 +56,7 @@ Repeat the cycle when:
 - logs are still misleading or missing at critical decisions,
 - high-value business logic remains untested and is testable.
 
-Do not produce a final completion report while any item in this section is true. Continue with the next bounded pass instead.
+Do not produce a final completion report while any item in this section is true. Continue with the next bounded iteration instead.
 
 ## Stop when
 
@@ -74,6 +78,7 @@ The final report should make the stopping point auditable:
 
 - passes completed,
 - validation commands and outcomes,
+- confirmation that the guarded test surface is green after the refactor,
 - tests added by risk category,
 - behavior-preservation evidence,
 - docs and constraints sync status,

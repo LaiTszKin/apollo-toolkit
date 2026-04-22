@@ -5,7 +5,7 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Changed
-- None yet.
+- Refine `iterative-code-quality` so one iteration now means a full cleanup round across naming, abstraction, module boundaries, logging, and tests, while its goal explicitly shifts to solving as many inherited repository quality problems as safely possible under green guardrails and a more precise system-level definition of macro architecture.
 
 ## [v3.1.3] - 2026-04-23
 

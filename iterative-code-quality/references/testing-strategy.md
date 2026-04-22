@@ -8,6 +8,8 @@ For every non-trivial pass, ask what could regress silently if the cleanup were 
 
 Use the resulting guardrails aggressively: when tests or equivalent verification can prove behavior preservation, they should unlock bolder refactors rather than merely justify small cosmetic edits.
 
+The intended end state is not merely "some tests passed for touched files". The refactor is complete only when the relevant guarded test surface for the repository remains green after the cleanup.
+
 ## Unit tests
 
 Use for:

@@ -21,6 +21,26 @@ Define:
 - which interfaces must remain stable,
 - which tests prove behavior did not change.
 
+## Macro architecture boundary
+
+For this skill, `macro architecture` means the whole system's runtime shape and operating model, such as:
+
+- major subsystems and their top-level responsibilities,
+- deployment/runtime boundaries,
+- persistence model and data ownership model,
+- inter-service or inter-process boundaries,
+- the overall execution logic by which the system operates end to end.
+
+The following do **not** count as macro-architecture changes by themselves:
+
+- moving logic between ordinary internal modules,
+- extracting helpers,
+- splitting a mixed-responsibility file into narrower local modules,
+- clarifying call boundaries inside one subsystem,
+- replacing duplicated local control flow with a shared internal abstraction.
+
+Treat those changes as ordinary refactoring work unless they also alter the top-level system model above.
+
 ## Safe split patterns
 
 - Move pure domain logic into a domain-owned helper module.

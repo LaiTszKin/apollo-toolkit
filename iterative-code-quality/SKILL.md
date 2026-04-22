@@ -5,7 +5,7 @@ description: >-
   passes: clarify poor variable names, simplify or extract reusable functions,
   split oversized code into single-responsibility modules, repair stale or
   missing logs, and add high-value tests while preserving business behavior and
-  macro architecture. Use when users ask for comprehensive refactoring, code
+  system-level macro architecture. Use when users ask for comprehensive refactoring, code
   cleanup, maintainability hardening, naming cleanup, log alignment, or test
   coverage improvement across a repository.
 ---
@@ -22,15 +22,17 @@ description: >-
 ## Standards
 
 - Evidence: Read repository docs, project constraints, source, tests, logs, and entrypoints before editing; every rename, extraction, split, log update, or test must be backed by code context.
-- Execution: Work in bounded passes, prioritize behavior-neutral improvements with the highest maintainability and test value, validate after each pass, and keep iterating while any known in-scope codebase quality issue remains unresolved; when tests or other reliable guardrails can prove equivalence, prefer taking the refactor instead of deferring it for subjective confidence reasons; do not produce the completion report while the scan still contains actionable gaps.
-- Quality: Preserve business behavior and macro architecture unless tests expose an existing logic defect; avoid style-only churn, compatibility theater, broad rewrites, and unverified "cleanup", but do not reject a worthwhile refactor purely because it feels risky when existing or newly added guardrails can verify it safely.
+- Execution: Treat each iteration as one full repository-quality pass that attempts to clear all known in-scope issue classes together—naming, abstraction, module boundaries, logging, and tests—rather than treating each work type as its own round; validate after each iteration, then keep iterating while any known in-scope codebase quality issue remains unresolved; when tests or other reliable guardrails can prove equivalence, prefer taking the refactor instead of deferring it for subjective confidence reasons; do not produce the completion report while the scan still contains actionable gaps.
+- Quality: Solve as many inherited code-quality problems as safely possible without changing intended behavior or the system's macro architecture; avoid style-only churn, compatibility theater, broad rewrites, and unverified "cleanup", but do not reject a worthwhile refactor purely because it feels risky when existing or newly added guardrails can verify it safely.
 - Output: Deliver a concise pass-by-pass summary, changed behavior-neutral surfaces, test coverage added, validation results, and documentation/`AGENTS.md` sync status only after every known in-scope quality issue is resolved or explicitly classified as blocked, unsafe, low-value, speculative, or requiring user approval.
 
 ## Goal
 
-Raise code quality across an existing repository without changing intended product behavior or the system's macro architecture.
+Resolve as many inherited repository quality problems as possible without breaking intended behavior, and use tests plus other reliable guardrails to prove that the refactor leaves the project in a fully green state.
 
-This skill is intentionally implementation-oriented, not report-only. It should identify high-value improvements, apply them, test them, and keep iterating across the codebase until there are no unresolved known in-scope quality issues. If a post-pass scan finds remaining actionable gaps, continue the next pass instead of writing a completion report.
+This skill is intentionally implementation-oriented, not report-only. It should identify high-value legacy issues, apply as much safe cleanup as the repository can support, add or strengthen tests to guard the refactor, and keep iterating across the codebase until there are no unresolved known in-scope quality issues. If a post-iteration scan finds remaining actionable gaps, continue the next iteration instead of writing a completion report.
+
+For this skill, `macro architecture` means the system's top-level runtime shape and overall operating logic: major subsystems, top-level execution model, deployment/runtime boundaries, persistence model, service boundaries, and the end-to-end way the whole system works. Ordinary module interactions, helper extraction, local responsibility moves, and internal call-boundary cleanup do not count as macro-architecture changes by themselves.
 
 ## Required Reference Loading
 
@@ -54,9 +56,11 @@ Load references only when they match the active pass:
 - Build an initial quality backlog with concrete file/function/test targets before changing code.
 - Use `references/repository-scan.md` for the scan checklist and backlog scoring.
 
-### 2) Execute bounded improvement passes
+### 2) Execute full iterations, not one-task rounds
 
-Run focused passes in the order that fits the repository evidence. A typical order is:
+Each iteration should try to complete all required kinds of repository cleanup that remain actionable in the selected scope. Do not treat "rename variables", "simplify functions", or "add tests" as separate iterations by default.
+
+A typical iteration should evaluate all of these dimensions together:
 
 1. Naming clarity for variables, parameters, fields, local helpers, and test data.
 2. Function simplification and reusable extraction for duplicated or hard-coded workflows.
@@ -64,15 +68,15 @@ Run focused passes in the order that fits the repository evidence. A typical ord
 4. Logging alignment for stale, misleading, missing, or low-context diagnostics.
 5. Risk-based test coverage for high-value business logic and boundary cases.
 
-For each pass:
+For each iteration:
 
 - Read all directly affected callers, tests, and public interfaces before editing.
-- Keep the pass small enough to validate and review; split broad cleanups into multiple passes.
+- Keep the scope small enough to validate and review, but within that scope try to finish every actionable quality category rather than stopping after one category.
 - Prefer repository-native abstractions over new parallel frameworks.
 - Preserve public behavior, data contracts, side effects, error classes, and macro architecture.
-- Add or update tests in the same pass when the change touches non-trivial logic, observability contracts, or extracted helpers.
+- Add or update tests in the same iteration when the change touches non-trivial logic, observability contracts, or extracted helpers.
 - If strong guardrails exist or can be added cheaply, prefer the clearer or more maintainable refactor instead of leaving a known issue in place due to subjective caution alone.
-- Validate the touched scope before starting another pass.
+- Validate the touched scope before starting another iteration.
 
 ### 3) Rename for clarity without churn
 
@@ -96,7 +100,7 @@ For each pass:
 - Split code only when one file/module owns multiple change reasons, domain boundaries, external integrations, or lifecycle stages.
 - Define the new module's responsibility before moving code.
 - Keep interfaces narrow, explicit, and consistent with existing project style.
-- Avoid macro-architecture changes such as new layers, new service boundaries, new persistence strategies, or framework swaps unless the user explicitly expands scope.
+- Avoid macro-architecture changes such as new top-level layers, new service boundaries, new persistence strategies, deployment/runtime model changes, or framework swaps unless the user explicitly expands scope.
 - When module boundaries are currently poor but can be protected by focused tests or other guardrails, choose the cleaner split instead of preserving a mixed-responsibility file out of caution alone.
 - Use `references/module-boundaries.md` for extraction rules and anti-patterns.
 
@@ -118,11 +122,11 @@ For each pass:
 - If a new test exposes an existing business-logic bug, invoke `systematic-debug`, fix the true owner, and keep the regression test.
 - Use `references/testing-strategy.md` for coverage selection and required `N/A` reasoning.
 
-### 8) Iterate until quality gates pass
+### 8) Iterate until the repository is clear of known actionable issues
 
-- After each pass, run the narrowest relevant tests first, then broaden validation when confidence increases.
+- After each iteration, run the narrowest relevant tests first, then broaden validation until the changed scope and final repository state are adequately guarded.
 - Re-scan both touched areas and the known quality backlog for new naming drift, duplicated helper candidates, module-boundary cracks, logging drift, and missing tests.
-- Repeat the full pass cycle whenever any known in-scope actionable gap remains and can be fixed safely without changing business behavior or macro architecture.
+- Repeat the full iteration whenever any known in-scope actionable gap remains and can be fixed safely without changing business behavior or macro architecture.
 - Do not write the completion report, summarize the task as done, or hand back as complete while the latest scan still contains known actionable quality issues.
 - Stop only when every known in-scope issue has been resolved, or each remaining candidate is explicitly classified as low-value, speculative, blocked, unsafe, or requiring product/architecture approval.
 - Use `references/iteration-gates.md` for stopping criteria.
@@ -138,7 +142,7 @@ After code and tests are complete:
 ## Hard Guardrails
 
 - Do not change intended business logic while refactoring.
-- Do not change macro architecture, framework choice, storage model, deployment model, or service boundaries unless the user explicitly approves that expanded scope.
+- Do not change the system's macro architecture—its top-level runtime shape, deployment/runtime model, persistence model, major service boundaries, or overall operating logic—unless the user explicitly approves that expanded scope.
 - Do not use one-off scripts to rewrite product code.
 - Do not perform style-only churn that does not improve naming, reuse, modularity, observability, or test confidence.
 - Do not weaken tests to make refactors pass; update tests to stable invariants or fix the implementation defect.
@@ -146,7 +150,7 @@ After code and tests are complete:
 
 ## Completion Report
 
-Only write this report after the latest scan confirms there are no known actionable in-scope quality issues remaining. If any such issue remains, continue iterating instead of reporting completion.
+Only write this report after the latest scan confirms there are no known actionable in-scope quality issues remaining and the relevant test/guardrail suite is green. If any such issue remains, continue iterating instead of reporting completion.
 
 Return:
 
