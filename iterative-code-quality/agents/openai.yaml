@@ -1,0 +1,4 @@
+interface:
+  display_name: "Iterative Code Quality"
+  short_description: "Refactor names, functions, modules, logs, and tests in repeated behavior-safe passes"
+  default_prompt: "Use $iterative-code-quality to scan this repository, build an evidence-backed quality backlog, then iteratively clarify variable names, simplify or extract reusable functions, split code into single-responsibility modules, repair stale or missing logs, and add high-value unit/property/integration/E2E tests while preserving business behavior and macro architecture; after code and tests are complete, run $align-project-documents and $maintain-project-constraints to synchronize docs and AGENTS.md."

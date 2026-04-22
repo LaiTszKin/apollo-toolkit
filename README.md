@@ -24,6 +24,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, and Claude Code with a manage
 - harden-app-security
 - implement-specs
 - improve-observability
+- iterative-code-quality
 - jupiter-development
 - katex
 - learn-skill-from-conversations

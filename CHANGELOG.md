@@ -4,8 +4,8 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
-### Changed
-- None yet.
+### Added
+- Add `iterative-code-quality`, a new repository-wide improvement skill that performs repeated behavior-neutral passes for naming cleanup, function simplification, module-boundary refactors, logging alignment, and risk-based test coverage, then synchronizes project docs and `AGENTS.md`.
 
 ## [v3.0.4] - 2026-04-22
 

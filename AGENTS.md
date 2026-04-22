@@ -53,6 +53,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can investigate gated or shadow LLM APIs by capturing real client request shapes, replaying verified traffic patterns, and attributing the likely underlying model through black-box fingerprinting.
 - Users can build and maintain Solana programs and Rust clients using official Solana development workflows.
 - Users can add focused observability to opaque workflows through targeted logs, metrics, traces, and tests.
+- Users can iteratively improve repository code quality through behavior-neutral naming, simplification, module-boundary, logging, and test-coverage passes.
 - Users can build against Jupiter's official Solana swap, token, price, lending, trigger, recurring, and portfolio APIs with an evidence-based development guide.
 - Users can render and embed math formulas with KaTeX using official documentation-backed guidance and reusable rendering scripts.
 - Users can debug software systematically by reproducing causes, validating fixes, and testing outcomes.
