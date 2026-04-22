@@ -5,7 +5,7 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Changed
-- None yet.
+- Rewrite `iterative-code-quality` around a strict three-step loop of full-codebase scan, per-round job selection/refactor, and final doc/constraint sync, while moving job-specific execution guidance into reference documents so the main skill no longer reads like a serial workflow.
 
 ## [v3.1.5] - 2026-04-23
 

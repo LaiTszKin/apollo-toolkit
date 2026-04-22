@@ -1,183 +1,100 @@
 ---
 name: iterative-code-quality
 description: >-
-  Improve an existing codebase through repeated evidence-based code-quality
-  passes: clarify poor variable names, simplify or extract reusable functions,
-  split oversized code into single-responsibility modules, repair stale or
-  missing logs, and add high-value tests while preserving business behavior and
-  system-level macro architecture. Use when users ask for comprehensive refactoring, code
-  cleanup, maintainability hardening, naming cleanup, log alignment, or test
-  coverage improvement across a repository.
+  Improve an existing codebase through repeated evidence-based repository-wide
+  scans and behavior-safe refactors until no known in-scope actionable quality
+  issue remains: clarify poor names, simplify or extract reusable functions,
+  split mixed-responsibility code, repair stale or missing logs, and add
+  high-value tests where guardrails are missing, while preserving intended
+  business behavior and the system's macro architecture. Use when users ask for
+  comprehensive refactoring, code cleanup, maintainability hardening, naming
+  cleanup, log alignment, or test coverage improvement across a repository.
 ---
 
 # Iterative Code Quality
 
 ## Dependencies
 
-- Required: `align-project-documents` and `maintain-project-constraints` after implementation changes are complete.
-- Conditional: `systematic-debug` when a new or existing test reveals a real business-logic defect that must be fixed.
-- Optional: `discover-edge-cases` for high-risk boundary exploration before choosing missing tests; `improve-observability` for complex telemetry design.
-- Fallback: If required completion dependencies are unavailable, finish code and tests, then report exactly which documentation or constraint sync step could not run.
+- Required: `align-project-documents` and `maintain-project-constraints` after the repository is truly iteration-complete.
+- Conditional: `systematic-debug` when a newly added or existing test exposes a real business-logic defect that must be fixed at the true owner.
+- Optional: `discover-edge-cases` for high-risk boundary exploration before adding tests; `improve-observability` for non-trivial telemetry design.
+- Fallback: If required completion dependencies are unavailable, finish code and validation first, then report exactly which documentation or constraint-sync action could not run.
 
 ## Standards
 
-- Evidence: Read repository docs, project constraints, source, tests, logs, and entrypoints before editing; every rename, extraction, split, log update, or test must be backed by code context.
-- Execution: Continuously re-scan the full codebase, treat naming, abstraction, module boundaries, logging, and tests as selectable execution directions rather than a fixed sequence, choose the highest-confidence directions that can safely land now, and use those smaller refactors to prepare the ground for larger future refactors; validate after each iteration, then keep iterating while any known in-scope codebase quality issue remains unresolved; when tests or other reliable guardrails can prove equivalence, prefer taking the refactor instead of deferring it for subjective confidence reasons; do not produce the completion report while the scan still contains actionable gaps.
-- Quality: Solve as many inherited code-quality problems as safely possible without changing intended behavior or the system's macro architecture; avoid style-only churn, compatibility theater, broad rewrites, and unverified "cleanup", but do not reject a worthwhile refactor purely because it feels risky when existing or newly added guardrails can verify it safely.
-- Output: Deliver a concise pass-by-pass summary, changed behavior-neutral surfaces, test coverage added, validation results, and documentation/`AGENTS.md` sync status only after every known in-scope quality issue is resolved or explicitly classified as blocked, unsafe, low-value, speculative, or requiring user approval.
+- Evidence: Read repository docs, project constraints, source, tests, logs, build scripts, entrypoints, and nearby abstractions before editing; every refactor and every new test must be justified by code context.
+- Execution: Run a continuous three-step loop of full-codebase scan → choose this round's jobs and refactor → if and only if the latest full-codebase scan is clear, update docs and constraints; otherwise return to scanning immediately. Do not treat jobs as workflow steps. Do not produce a completion report while any known in-scope actionable issue remains.
+- Quality: Resolve as many inherited quality problems as safely possible without changing intended behavior or the system's macro architecture. Do not require pre-existing tests before every safe refactor; if an area is high-risk and weakly guarded, add the missing guardrails as part of the work instead of treating the area as untouchable.
+- Output: Return iteration-by-iteration decisions, selected jobs, changed files, behavior-preservation evidence, tests and guardrails added, validation results, and docs/constraint sync status only after the latest scan shows no remaining known actionable in-scope issue.
 
-## Goal
+## Mission
 
-Resolve as many inherited repository quality problems as possible without breaking intended behavior, and use tests plus other reliable guardrails to prove that the refactor leaves the project in a fully green state.
+Leave the repository materially cleaner by continuously scanning the whole codebase, landing the highest-value safe refactors available at each moment, and repeating until there is no known in-scope actionable quality gap left to fix.
 
-This skill is intentionally implementation-oriented, not report-only. It should keep scanning the full codebase, choose the best available refactor directions at each moment, apply as much safe cleanup as the repository can support, add or strengthen tests to guard the refactor, and use incremental cleanup to unlock deeper improvements over time. If a post-iteration scan finds remaining actionable gaps, continue the next iteration instead of writing a completion report.
+For this skill, `macro architecture` means the system's top-level runtime shape and overall operating logic: major subsystems, top-level execution model, deployment/runtime boundaries, persistence model, service boundaries, and the end-to-end way the whole system works. Ordinary module interactions, helper extraction, local responsibility moves, internal call-boundary cleanup, and local module splits do not count as macro-architecture changes by themselves.
 
-For this skill, `macro architecture` means the system's top-level runtime shape and overall operating logic: major subsystems, top-level execution model, deployment/runtime boundaries, persistence model, service boundaries, and the end-to-end way the whole system works. Ordinary module interactions, helper extraction, local responsibility moves, and internal call-boundary cleanup do not count as macro-architecture changes by themselves.
+## Three-Step Loop
 
-## Required Reference Loading
+### 1) Scan the repository
 
-Load references only when they match the active pass:
+- Read root guidance first: `AGENTS.md`, `README*`, package manifests, task runners, CI/test config, and major project docs.
+- Map runtime entrypoints, domain modules, external integrations, logging utilities, and current test surfaces.
+- Exclude generated, vendored, lock, build-output, fixture, or snapshot files unless evidence shows they are human-maintained source.
+- Build or refresh a concrete repository-wide backlog of known actionable quality issues.
+- Re-scan the full codebase after every landed iteration, not only the files just changed.
+- Load `references/repository-scan.md` for the scan checklist and backlog shaping rules.
 
-- `references/repository-scan.md`: scope mapping, generated-file exclusions, and quality backlog selection.
-- `references/naming-and-simplification.md`: variable renames, function simplification, reusable extraction, and behavior-preservation checks.
-- `references/module-boundaries.md`: single-responsibility split heuristics and safe module extraction rules.
-- `references/coupled-core-file-strategy.md`: staged unlock strategy for large, coupled, or apparently core files that should not become stop signals.
-- `references/logging-alignment.md`: stale log detection, missing log criteria, and behavior-neutral observability updates.
-- `references/testing-strategy.md`: risk-based unit, property, integration, and E2E coverage selection.
-- `references/iteration-gates.md`: multi-pass quality gates, stopping criteria, and validation cadence.
+### 2) Choose this round's jobs and refactor
 
-## Workflow
+- Choose jobs only after the latest full-codebase scan. Jobs are optional execution directions, not ordered workflow steps.
+- Select the smallest set of jobs that can safely improve the repository right now under current guardrails.
+- Prefer smaller, high-confidence refactors that reduce risk and prepare the ground for deeper later cleanup.
+- If a desired refactor is high-risk and weakly guarded, make guardrail-building part of this round instead of stopping.
+- If a file feels too coupled, too central, or too risky for a direct rewrite, do staged unlock work rather than declaring the area blocked.
+- Read all directly affected callers, tests, interfaces, and logs before editing.
+- Validate from narrow to broad after each bounded round, then perform a full-codebase stage-gate decision:
+  - if any known in-scope actionable issue still remains, return to Step 1;
+  - only continue to Step 3 when the latest scan is clear.
 
-### 1) Establish the repository baseline
+Load references for this step only as needed:
 
-- Read root guidance first: `AGENTS.md`, `README*`, major docs, package manifests, task runners, CI configs, and test setup.
-- Map runtime entrypoints, domain modules, external integrations, logging/telemetry utilities, and existing test suites.
-- Identify generated, vendored, lock, build-output, fixture, or snapshot files; exclude them from refactoring unless evidence shows they are human-maintained source.
-- Run or inspect the most relevant existing validation commands before editing when feasible, so pre-existing failures are distinguishable from new regressions.
-- Build an initial quality backlog with concrete file/function/test targets before changing code.
-- Use `references/repository-scan.md` for the scan checklist and backlog scoring.
+- `references/job-selection.md` for next-job choice conditions and tie-breakers.
+- `references/naming-and-simplification.md` for naming cleanup and function simplification/extraction.
+- `references/module-boundaries.md` for single-responsibility module cleanup.
+- `references/logging-alignment.md` for stale or missing log repair.
+- `references/testing-strategy.md` for unit, property, integration, and E2E test strategy.
+- `references/coupled-core-file-strategy.md` for staged unlock work on large coupled or apparently core files.
+- `references/iteration-gates.md` for validation cadence, stage-gate rules, and stop criteria.
 
-### 2) Execute continuous full scans with selectable directions
+### 3) Update project documents and constraints
 
-Do not force one fixed order such as "finish naming first, then abstraction, then modules". Instead, keep re-scanning the whole codebase and select the execution directions that are highest-confidence and highest-leverage right now.
+Only enter this step when the latest full-codebase scan confirms there is no remaining known actionable in-scope quality issue except items explicitly classified as blocked, unsafe, speculative, low-value, or approval-dependent.
 
-Treat these as multi-select execution directions, not mandatory sequential stages:
-
-1. Naming clarity for variables, parameters, fields, local helpers, and test data.
-2. Function simplification and reusable extraction for duplicated or hard-coded workflows.
-3. Single-responsibility module splits for oversized or mixed-concern code.
-4. Logging alignment for stale, misleading, missing, or low-context diagnostics.
-5. Risk-based test coverage for high-value business logic and boundary cases.
-
-Direction-selection rules:
-
-- Prefer the directions with the strongest current evidence and best guardrails.
-- Prefer smaller, higher-confidence refactors that unlock or de-risk larger later refactors.
-- Prefer outside-in progress: stabilize boundaries, callers, naming, logs, and tests around a subsystem before attempting deeper internal rewrites.
-- Re-evaluate the whole backlog after every landed iteration; the next best direction may change because the previous cleanup improved the local safety or clarity.
-- When a file appears too coupled, too central, or too risky for a direct rewrite, treat that as a prompt to switch into staged unlock work rather than a reason to stop. Load `references/coupled-core-file-strategy.md` and choose the next smallest refactor that reduces future risk.
-
-For each iteration:
-
-- Read all directly affected callers, tests, and public interfaces before editing.
-- Keep the scope small enough to validate and review, and select whichever directions are most justified for that scope instead of forcing every direction to appear in every iteration.
-- Prefer repository-native abstractions over new parallel frameworks.
-- Preserve public behavior, data contracts, side effects, error classes, and macro architecture.
-- Add or update tests in the same iteration when the change touches non-trivial logic, observability contracts, or extracted helpers.
-- If strong guardrails exist or can be added cheaply, prefer the clearer or more maintainable refactor instead of leaving a known issue in place due to subjective caution alone.
-- Validate the touched scope before starting another iteration.
-
-### 3) Rename for clarity without churn
-
-- Rename only when the current name hides domain meaning, confuses ownership, conflicts with real units, or makes tests/logs misleading.
-- Prefer names that encode domain role, unit, lifecycle stage, or canonical owner.
-- Update all references, tests, fixtures, structured log fields, docs, and comments that describe the renamed concept.
-- Avoid renaming stable public API fields or persisted schema names unless the user explicitly requested a breaking migration.
-- Use `references/naming-and-simplification.md` before broad rename passes.
-
-### 4) Simplify and extract reusable functions
-
-- Simplify functions when branches, temporary state, repeated transformations, or hard-coded workflows obscure the invariant.
-- Extract helpers only when they reduce duplication, centralize one business rule, clarify caller intent, or make a behavior testable.
-- Keep helper placement aligned with current module ownership.
-- Do not create abstractions for one-off code unless they isolate a meaningful domain rule or external contract.
-- If tests or equivalent guardrails can prove behavior preservation, do not let moderate implementation uncertainty block an otherwise valuable simplification or extraction.
-- Preserve observable behavior unless a test proves the current behavior is a defect.
-
-### 5) Split modules by responsibility
-
-- Split code only when one file/module owns multiple change reasons, domain boundaries, external integrations, or lifecycle stages.
-- Define the new module's responsibility before moving code.
-- Keep interfaces narrow, explicit, and consistent with existing project style.
-- Avoid macro-architecture changes such as new top-level layers, new service boundaries, new persistence strategies, deployment/runtime model changes, or framework swaps unless the user explicitly expands scope.
-- When module boundaries are currently poor but can be protected by focused tests or other guardrails, choose the cleaner split instead of preserving a mixed-responsibility file out of caution alone.
-- Use `references/module-boundaries.md` for extraction rules and anti-patterns.
-
-### 5.1) Handle large coupled or apparently core files through unlock work
-
-- Do not treat a large coupled file, a central orchestrator, or a historically fragile module as an automatic stop condition.
-- First ask: what is the next smallest refactor that lowers the risk of changing this area later without changing business behavior now?
-- Prefer unlock steps such as characterization tests, naming cleanup, type extraction, pure-function extraction, side-effect boundary isolation, read/write path separation, dependency seam introduction, and caller grouping.
-- Only stop when no such unlock step can be identified under current guardrails. If an unlock step exists, do it before reconsidering the larger refactor.
-- Use `references/coupled-core-file-strategy.md` whenever the current obstacle is "too coupled", "too central", or "too risky to touch directly".
-
-### 6) Repair logging and observability drift
-
-- Compare log messages, event names, structured fields, metrics, and trace names against the current code ownership model.
-- Fix stale terminology after renames or refactors so logs describe the live workflow.
-- Add logs only at high-value decision points: branch selection, skipped work, external dependency outcome, persistence side effect, retry/rollback, and final outcome.
-- Use structured fields already accepted by the project; never log secrets, tokens, full sensitive payloads, or personal data.
-- Add tests or assertions for important log fields when the project has log-capture helpers.
-- Use `references/logging-alignment.md` for detailed criteria.
-
-### 7) Add high-value tests
-
-- Start from risk, not coverage percentage.
-- Prioritize tests for business rules, state transitions, error handling, extracted helpers, edge cases, observability contracts, and integration boundaries.
-- Use unit tests for local logic, property-based tests for invariants and generated input spaces, integration tests for cross-module chains, and E2E tests only when external services are stable or can be controlled reliably.
-- Mock or fake external services unless the real service contract is the subject under test.
-- If a new test exposes an existing business-logic bug, invoke `systematic-debug`, fix the true owner, and keep the regression test.
-- Use `references/testing-strategy.md` for coverage selection and required `N/A` reasoning.
-
-### 8) Iterate gradually from outside to inside until the repository is clear of known actionable issues
-
-- After each iteration, run the narrowest relevant tests first, then broaden validation until the changed scope and final repository state are adequately guarded.
-- Re-scan the full codebase, not only the touched area, because the best next direction may have shifted after the last cleanup.
-- Perform an explicit stage-gate decision after that full-codebase scan: decide whether all known in-scope issues are now resolved, whether remaining issues are only legitimately deferred categories, or whether another iteration is required right now.
-- Re-rank the backlog after every iteration and choose the next highest-confidence, highest-leverage direction set.
-- Use small external or boundary-level cleanups to make later deeper refactors safer; treat that groundwork as progress toward a thorough long-horizon refactor, not as a distraction from it.
-- Repeat the full iteration whenever any known in-scope actionable gap remains and can be fixed safely without changing business behavior or macro architecture.
-- Do not write the completion report, summarize the task as done, or hand back as complete while the latest scan still contains known actionable quality issues.
-- Stop only when every known in-scope issue has been resolved, or each remaining candidate is explicitly classified as low-value, speculative, blocked, unsafe, or requiring product/architecture approval.
-- Use `references/iteration-gates.md` for stopping criteria.
-
-### 9) Synchronize docs and constraints
-
-After code and tests are complete:
-
-- Invoke `align-project-documents` when README, docs, architecture notes, debugging docs, setup instructions, or test guidance may have drifted.
-- Invoke `maintain-project-constraints` to verify `AGENTS.md` still reflects architecture, business flow, common commands, macro purpose, and coding conventions.
-- Update only documentation that is affected by real code, command, logging, or test changes.
+- Run `align-project-documents` when README, architecture notes, setup docs, debugging docs, or test guidance may have drifted.
+- Run `maintain-project-constraints` to verify `AGENTS.md` still matches the repository's real architecture, business flow, commands, and conventions.
+- Update only the documentation and constraints that changed in reality because of the refactor.
 
 ## Hard Guardrails
 
-- Do not change intended business logic while refactoring.
-- Do not change the system's macro architecture—its top-level runtime shape, deployment/runtime model, persistence model, major service boundaries, or overall operating logic—unless the user explicitly approves that expanded scope.
+- Do not change intended business logic while refactoring, except to fix a real defect exposed by tests and verified at the true owner.
+- Do not change the system's macro architecture unless the user explicitly expands scope.
 - Do not use one-off scripts to rewrite product code.
-- Do not perform style-only churn that does not improve naming, reuse, modularity, observability, or test confidence.
-- Do not weaken tests to make refactors pass; update tests to stable invariants or fix the implementation defect.
-- Do not add E2E tests that depend on unreliable external services when a controlled integration test can prove the same business risk.
+- Do not stop early just because a file is large, central, or historically fragile; if a safe unlock step exists, that is the next job.
+- Do not weaken tests to make a refactor pass; fix the real defect or update stale expectations to stable invariants.
+- Do not add style-only churn that does not improve naming, modularity, observability, reuse, or guardrail strength.
+- Do not add unreliable E2E coverage when a controlled integration or characterization test can prove the same risk more safely.
 
 ## Completion Report
 
-Only write this report after the latest scan confirms there are no known actionable in-scope quality issues remaining and the relevant test/guardrail suite is green. If any such issue remains, continue iterating instead of reporting completion.
+Only report completion after Step 3 is done and the latest Step 1 scan is clear.
 
 Return:
 
-1. Iterations completed, which execution directions were selected in each one, and the stage-gate decision after each full-codebase re-scan.
-2. Key files changed and the quality issue each change resolved.
-3. Business behavior preservation evidence.
-4. Tests added or updated, including property/integration/E2E `N/A` reasons where relevant.
-5. Validation commands and results.
-6. Documentation and `AGENTS.md` synchronization status.
-7. Remaining quality gaps, blockers, or deferred architecture/product decisions.
+1. Iterations completed and the jobs selected in each iteration.
+2. Stage-gate verdict after each full-codebase re-scan.
+3. Key files changed and the quality issue each change resolved.
+4. Business behavior preservation evidence.
+5. Tests or other guardrails added or updated, including property/integration/E2E `N/A` reasons where relevant.
+6. Validation commands and results.
+7. Documentation and `AGENTS.md` synchronization status.
+8. Remaining blocked or approval-dependent items, if any.

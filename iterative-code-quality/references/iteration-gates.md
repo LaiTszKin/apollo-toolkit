@@ -52,6 +52,8 @@ Then choose the next execution directions with these priorities:
 2. strongest leverage for later deeper cleanup,
 3. lowest business-risk path toward broader system improvement.
 
+Use `references/job-selection.md` to convert those priorities into a concrete next-job choice.
+
 ## Stage-gate after each iteration
 
 After every validated iteration, run a deliberate full-codebase decision pass:

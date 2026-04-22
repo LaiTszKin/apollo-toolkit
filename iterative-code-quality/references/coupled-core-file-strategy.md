@@ -12,6 +12,8 @@ A large coupled file is a **decomposition signal**, not a **completion blocker**
 
 If a safe, behavior-preserving unlock step exists under current guardrails, take that step now instead of deferring the whole area.
 
+If guardrails are too weak for direct cleanup, strengthening them is itself the next unlock step.
+
 ## First questions to ask
 
 When a file feels untouchable, ask:
@@ -56,6 +58,8 @@ Prefer the next step that maximizes:
 4. low risk to current business behavior.
 
 If two steps are both safe, choose the one that makes the next iteration easier.
+
+If the file is high-risk and under-tested, prefer adding the smallest useful characterization tests before attempting deeper structural edits.
 
 ## Completion rule for coupled files
 
