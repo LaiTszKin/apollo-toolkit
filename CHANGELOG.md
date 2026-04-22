@@ -5,6 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Changed
+- None yet.
+
+## [v3.1.3] - 2026-04-23
+
+### Changed
 - Tighten `iterative-code-quality` so agents must keep iterating while any known in-scope actionable quality issue remains, must not produce a completion report until the latest scan is clear or remaining candidates are explicitly classified as blocked, unsafe, low-value, speculative, or approval-dependent, and should use tests or equivalent guardrails to support more aggressive refactors instead of deferring them for subjective confidence reasons.
 
 ## [v3.1.2] - 2026-04-23
