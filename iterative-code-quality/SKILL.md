@@ -22,15 +22,15 @@ description: >-
 ## Standards
 
 - Evidence: Read repository docs, project constraints, source, tests, logs, and entrypoints before editing; every rename, extraction, split, log update, or test must be backed by code context.
-- Execution: Work in bounded passes, prioritize behavior-neutral improvements with the highest maintainability and test value, validate after each pass, and repeat until the remaining quality gaps are low-value or unsafe to change.
+- Execution: Work in bounded passes, prioritize behavior-neutral improvements with the highest maintainability and test value, validate after each pass, and keep iterating while any known in-scope codebase quality issue remains unresolved; do not produce the completion report while the scan still contains actionable gaps.
 - Quality: Preserve business behavior and macro architecture unless tests expose an existing logic defect; avoid style-only churn, compatibility theater, broad rewrites, and unverified "cleanup".
-- Output: Deliver a concise pass-by-pass summary, changed behavior-neutral surfaces, test coverage added, validation results, unresolved risks, and documentation/`AGENTS.md` sync status.
+- Output: Deliver a concise pass-by-pass summary, changed behavior-neutral surfaces, test coverage added, validation results, and documentation/`AGENTS.md` sync status only after every known in-scope quality issue is resolved or explicitly classified as blocked, unsafe, low-value, speculative, or requiring user approval.
 
 ## Goal
 
 Raise code quality across an existing repository without changing intended product behavior or the system's macro architecture.
 
-This skill is intentionally implementation-oriented, not report-only. It should identify high-value improvements, apply them, test them, and keep iterating until further changes would be speculative, low-value, or architecture-changing.
+This skill is intentionally implementation-oriented, not report-only. It should identify high-value improvements, apply them, test them, and keep iterating across the codebase until there are no unresolved known in-scope quality issues. If a post-pass scan finds remaining actionable gaps, continue the next pass instead of writing a completion report.
 
 ## Required Reference Loading
 
@@ -118,9 +118,10 @@ For each pass:
 ### 8) Iterate until quality gates pass
 
 - After each pass, run the narrowest relevant tests first, then broaden validation when confidence increases.
-- Re-scan touched areas for new naming drift, duplicated helper candidates, module-boundary cracks, logging drift, and missing tests.
-- Repeat the full pass cycle when significant gaps remain and can be fixed safely without changing business behavior or macro architecture.
-- Stop only when remaining issues are low-value, speculative, blocked, or require explicit product/architecture approval.
+- Re-scan both touched areas and the known quality backlog for new naming drift, duplicated helper candidates, module-boundary cracks, logging drift, and missing tests.
+- Repeat the full pass cycle whenever any known in-scope actionable gap remains and can be fixed safely without changing business behavior or macro architecture.
+- Do not write the completion report, summarize the task as done, or hand back as complete while the latest scan still contains known actionable quality issues.
+- Stop only when every known in-scope issue has been resolved, or each remaining candidate is explicitly classified as low-value, speculative, blocked, unsafe, or requiring product/architecture approval.
 - Use `references/iteration-gates.md` for stopping criteria.
 
 ### 9) Synchronize docs and constraints
@@ -141,6 +142,8 @@ After code and tests are complete:
 - Do not add E2E tests that depend on unreliable external services when a controlled integration test can prove the same business risk.
 
 ## Completion Report
+
+Only write this report after the latest scan confirms there are no known actionable in-scope quality issues remaining. If any such issue remains, continue iterating instead of reporting completion.
 
 Return:
 

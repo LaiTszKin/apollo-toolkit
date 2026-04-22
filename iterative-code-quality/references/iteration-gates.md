@@ -10,7 +10,7 @@ Each pass must have:
 - validation plan,
 - rollback point if evidence contradicts the change.
 
-Avoid starting a broad second pass before validating the first.
+Avoid starting a broad second pass before validating the first, but do not stop after a validated pass if known actionable quality issues remain anywhere in the in-scope codebase.
 
 ## Validation cadence
 
@@ -30,7 +30,7 @@ If validation fails:
 
 ## Re-scan after each pass
 
-Inspect touched areas for:
+Inspect touched areas and the full known quality backlog for:
 
 - new naming drift from moved or extracted concepts,
 - duplicated logic that remains after extraction,
@@ -43,15 +43,18 @@ Inspect touched areas for:
 
 Repeat the cycle when:
 
+- any known in-scope actionable quality issue remains unresolved,
 - high-impact unclear names remain,
 - duplicated or hard-coded workflows still have safe extraction paths,
 - a module still mixes distinct responsibilities and can be split locally,
 - logs are still misleading or missing at critical decisions,
 - high-value business logic remains untested and is testable.
 
+Do not produce a final completion report while any item in this section is true. Continue with the next bounded pass instead.
+
 ## Stop when
 
-Stop when remaining candidates are:
+Stop only when there are no unresolved known in-scope actionable issues. Any remaining candidates must be explicitly classified as one of:
 
 - low-value style preference,
 - speculative without concrete evidence,
@@ -60,6 +63,8 @@ Stop when remaining candidates are:
 - product behavior changes needing user approval,
 - blocked by unavailable credentials, unstable external systems, or missing documentation,
 - untestable with the current repository tooling and too risky to change safely.
+
+If a remaining candidate cannot be placed in one of these categories, it is still an actionable gap and the agent must continue iterating rather than complete the task.
 
 ## Completion evidence
 
@@ -70,4 +75,5 @@ The final report should make the stopping point auditable:
 - tests added by risk category,
 - behavior-preservation evidence,
 - docs and constraints sync status,
-- deferred items with reason and required approval or dependency.
+- proof that the latest scan found no known actionable in-scope quality issues,
+- deferred items with reason and required approval, dependency, or safety constraint.
