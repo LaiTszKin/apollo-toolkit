@@ -110,15 +110,16 @@ else {
   $RepoRoot = $ToolkitHome
 }
 
-function Get-SkillPaths {
+function Get-SkillPathGroups {
   param([string[]]$SelectedModes)
 
   $dirs = Get-ChildItem -Path $RepoRoot -Directory | Sort-Object Name
-  $skills = @()
+  $sharedSkills = @()
+  $codexSkills = @()
 
   foreach ($dir in $dirs) {
     if (Test-Path -LiteralPath (Join-Path $dir.FullName "SKILL.md") -PathType Leaf) {
-      $skills += $dir.FullName
+      $sharedSkills += $dir.FullName
     }
   }
 
@@ -129,17 +130,20 @@ function Get-SkillPaths {
       $codexDirs = Get-ChildItem -Path $codexDir -Directory | Sort-Object Name
       foreach ($dir in $codexDirs) {
         if (Test-Path -LiteralPath (Join-Path $dir.FullName "SKILL.md") -PathType Leaf) {
-          $skills += $dir.FullName
+          $codexSkills += $dir.FullName
         }
       }
     }
   }
 
-  if ($skills.Count -eq 0) {
+  if ($sharedSkills.Count -eq 0) {
     throw "No skill folders found in: $RepoRoot"
   }
 
-  return $skills
+  [PSCustomObject]@{
+    Shared = $sharedSkills
+    Codex = $codexSkills
+  }
 }
 
 function Add-ModeOnce {
@@ -343,15 +347,15 @@ if ($Modes.Count -gt 0 -and ($Modes[0] -eq "-h" -or $Modes[0] -eq "--help")) {
 }
 
 $selectedModes = Resolve-Modes -Requested $Modes
-$skillPaths = Get-SkillPaths -SelectedModes $selectedModes
+$skillPathGroups = Get-SkillPathGroups -SelectedModes $selectedModes
 
 foreach ($mode in $selectedModes) {
   switch ($mode) {
-    "codex" { Install-Codex -SkillPaths $skillPaths }
-    "openclaw" { Install-OpenClaw -SkillPaths $skillPaths }
-    "trae" { Install-Trae -SkillPaths $skillPaths }
-    "agents" { Install-Agents -SkillPaths $skillPaths }
-    "claude-code" { Install-ClaudeCode -SkillPaths $skillPaths }
+    "codex" { Install-Codex -SkillPaths ($skillPathGroups.Shared + $skillPathGroups.Codex) }
+    "openclaw" { Install-OpenClaw -SkillPaths $skillPathGroups.Shared }
+    "trae" { Install-Trae -SkillPaths $skillPathGroups.Shared }
+    "agents" { Install-Agents -SkillPaths $skillPathGroups.Shared }
+    "claude-code" { Install-ClaudeCode -SkillPaths $skillPathGroups.Shared }
     default { throw "Unknown mode: $mode" }
   }
 }

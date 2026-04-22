@@ -78,14 +78,16 @@ else
   SCRIPT_DIR="$REPO_ROOT/scripts"
 fi
 SELECTED_MODES=()
-SKILL_PATHS=()
+SHARED_SKILL_PATHS=()
+CODEX_SKILL_PATHS=()
 
 collect_skills() {
   local dir
-  SKILL_PATHS=()
+  SHARED_SKILL_PATHS=()
+  CODEX_SKILL_PATHS=()
   while IFS= read -r dir; do
     if [[ -f "$dir/SKILL.md" ]]; then
-      SKILL_PATHS+=("$dir")
+      SHARED_SKILL_PATHS+=("$dir")
     fi
   done < <(find "$REPO_ROOT" -mindepth 1 -maxdepth 1 -type d | sort)
 
@@ -95,13 +97,13 @@ collect_skills() {
     if [[ -d "$codex_dir" ]]; then
       while IFS= read -r dir; do
         if [[ -f "$dir/SKILL.md" ]]; then
-          SKILL_PATHS+=("$dir")
+          CODEX_SKILL_PATHS+=("$dir")
         fi
       done < <(find "$codex_dir" -mindepth 1 -maxdepth 1 -type d | sort)
     fi
   fi
 
-  if [[ ${#SKILL_PATHS[@]} -eq 0 ]]; then
+  if [[ ${#SHARED_SKILL_PATHS[@]} -eq 0 ]]; then
     echo "No skill folders found in: $REPO_ROOT" >&2
     exit 1
   fi
@@ -124,17 +126,17 @@ replace_with_copy() {
 }
 
 install_codex() {
-  local codex_skills_dir
+  local codex_skills_dir src
   codex_skills_dir="$(expand_user_path "${CODEX_SKILLS_DIR:-$HOME/.codex/skills}")"
 
   echo "Installing to codex: $codex_skills_dir"
-  for src in "${SKILL_PATHS[@]}"; do
+  for src in "${SHARED_SKILL_PATHS[@]}" "${CODEX_SKILL_PATHS[@]}"; do
     replace_with_copy "$src" "$codex_skills_dir"
   done
 }
 
 install_openclaw() {
-  local openclaw_home workspace skills_dir
+  local openclaw_home workspace skills_dir src
   local -a workspaces
 
   openclaw_home="$(expand_user_path "${OPENCLAW_HOME:-$HOME/.openclaw}")"
@@ -152,38 +154,38 @@ install_openclaw() {
   for workspace in "${workspaces[@]}"; do
     skills_dir="$workspace/skills"
     echo "Installing to openclaw workspace: $skills_dir"
-    for src in "${SKILL_PATHS[@]}"; do
+    for src in "${SHARED_SKILL_PATHS[@]}"; do
       replace_with_copy "$src" "$skills_dir"
     done
   done
 }
 
 install_trae() {
-  local trae_skills_dir
+  local trae_skills_dir src
   trae_skills_dir="$(expand_user_path "${TRAE_SKILLS_DIR:-$HOME/.trae/skills}")"
 
   echo "Installing to trae: $trae_skills_dir"
-  for src in "${SKILL_PATHS[@]}"; do
+  for src in "${SHARED_SKILL_PATHS[@]}"; do
     replace_with_copy "$src" "$trae_skills_dir"
   done
 }
 
 install_agents() {
-  local agents_skills_dir
+  local agents_skills_dir src
   agents_skills_dir="$(expand_user_path "${AGENTS_SKILLS_DIR:-$HOME/.agents/skills}")"
 
   echo "Installing to agents: $agents_skills_dir"
-  for src in "${SKILL_PATHS[@]}"; do
+  for src in "${SHARED_SKILL_PATHS[@]}"; do
     replace_with_copy "$src" "$agents_skills_dir"
   done
 }
 
 install_claude_code() {
-  local claude_code_skills_dir
+  local claude_code_skills_dir src
   claude_code_skills_dir="$(expand_user_path "${CLAUDE_CODE_SKILLS_DIR:-$HOME/.claude/skills}")"
 
   echo "Installing to claude-code: $claude_code_skills_dir"
-  for src in "${SKILL_PATHS[@]}"; do
+  for src in "${SHARED_SKILL_PATHS[@]}"; do
     replace_with_copy "$src" "$claude_code_skills_dir"
   done
 }
@@ -233,7 +235,7 @@ read_choice_from_user() {
   elif [[ -r /dev/tty ]]; then
     read -r -p "$prompt" result < /dev/tty
   else
-    echo "Interactive input unavailable. Pass mode arguments (e.g. codex/openclaw/trae/all)." >&2
+    echo "Interactive input unavailable. Pass mode arguments (e.g. codex/openclaw/trae/agents/claude-code/all)." >&2
     exit 1
   fi
 
@@ -264,7 +266,7 @@ choose_modes_interactive() {
       3) add_mode_once "trae" ;;
       4) add_mode_once "agents" ;;
       5) add_mode_once "claude-code" ;;
-      6) add_mode_once "codex"; add_mode_once "openclaw"; add_mode_once "trae"; add_mode_once "claude-code" ;;
+      6) add_mode_once "codex"; add_mode_once "openclaw"; add_mode_once "trae"; add_mode_once "agents"; add_mode_once "claude-code" ;;
       *)
         echo "Invalid choice: $raw_choice" >&2
         exit 1

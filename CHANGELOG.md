@@ -7,6 +7,12 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.1.1] - 2026-04-22
+
+### Changed
+- Fix Apollo Toolkit installers so `codex`-only skills stay scoped to Codex targets, while shared skills continue to install across the selected destinations.
+- Align the CLI welcome/help text, non-interactive guidance, and README examples with the supported `agents` target and current installer behavior.
+
 ## [v3.1.0] - 2026-04-22
 
 ### Added

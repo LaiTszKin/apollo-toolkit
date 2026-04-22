@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const { expandUserPath, installLinks, normalizeModes, syncToolkitHome } = require('../lib/installer');
-const { buildBanner, buildWelcomeScreen, run } = require('../lib/cli');
+const { buildBanner, buildWelcomeScreen, promptForModes, run } = require('../lib/cli');
 const { checkForPackageUpdate, compareVersions } = require('../lib/updater');
 
 async function createFixtureSource(rootDir) {
@@ -63,8 +63,21 @@ test('buildWelcomeScreen shows branded setup overview', () => {
   const output = buildWelcomeScreen({ version: '2.0.0', colorEnabled: false, stage: 4 });
   assert.match(output, /This setup will configure:/);
   assert.match(output, /Quick start after setup:/);
+  assert.match(output, /Agents\s+~\/\.agents\/skills/);
   assert.match(output, /Claude Code\s+~\/\.claude\/skills/);
   assert.match(output, /Launching target selector/);
+});
+
+test('promptForModes TTY error lists every supported target', async () => {
+  await assert.rejects(
+    promptForModes({
+      stdin: { isTTY: false },
+      stdout: { isTTY: false },
+      version: '2.0.0',
+      env: {},
+    }),
+    /`codex`, `openclaw`, `trae`, `agents`, `claude-code`, or `all`/,
+  );
 });
 
 test('compareVersions orders semantic versions correctly', () => {
@@ -194,6 +207,7 @@ test('run installs toolkit home and copies skills into selected targets', async 
   const codexSkill = path.join(homeDir, '.codex', 'skills', 'alpha-skill');
   const codexOnlySkill = path.join(homeDir, '.codex', 'skills', 'codex-only-skill');
   const openclawSkill = path.join(homeDir, '.openclaw', 'workspace1', 'skills', 'alpha-skill');
+  const openclawCodexOnlySkill = path.join(homeDir, '.openclaw', 'workspace1', 'skills', 'codex-only-skill');
   const expectedSource = await fs.realpath(path.join(toolkitHome, 'alpha-skill'));
 
   assert.equal((await fs.lstat(codexSkill)).isDirectory(), true);
@@ -202,6 +216,7 @@ test('run installs toolkit home and copies skills into selected targets', async 
   assert.notEqual(await fs.realpath(codexSkill), expectedSource);
   assert.equal(await fs.readFile(path.join(codexSkill, 'SKILL.md'), 'utf8'), '# alpha\n');
   assert.equal(await fs.readFile(path.join(codexOnlySkill, 'SKILL.md'), 'utf8'), '# codex-only\n');
+  await assert.rejects(fs.access(openclawCodexOnlySkill));
 });
 
 test('installLinks resolves tilde-prefixed target overrides from environment', async () => {
