@@ -7,6 +7,12 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.1.2] - 2026-04-23
+
+### Changed
+- Tighten `commit-and-push` so emitted UI git directives such as `::git-stage`, `::git-commit`, and `::git-push` never count as evidence that staging, commit creation, or remote push actually happened.
+- Tighten `version-release` so release flows require real git mutations for staging, commit/tag creation, and push verification instead of treating UI git directives as proof that the release commit or tag exists.
+
 ## [v3.1.1] - 2026-04-22
 
 ### Changed
