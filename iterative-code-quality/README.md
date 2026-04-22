@@ -14,6 +14,8 @@ Improve an existing repository through repeated, evidence-backed full-iteration 
 - Uses those tests and other guardrails to justify more aggressive refactors, instead of leaving known issues in place for subjective confidence reasons.
 - Re-scans the full repository after every iteration and picks the next highest-confidence, highest-leverage directions.
 - Uses small safe refactors to prepare the ground for larger later refactors, progressing gradually from outside to inside.
+- Treats large coupled or apparently core files as staged unlock problems, not as automatic stop signals.
+- Runs a stage-gate full-codebase decision after every iteration to decide whether more rounds are still required.
 - Repeats the pass cycle while any known in-scope actionable quality issue remains, and forbids a completion report until the latest scan is clear or remaining items are explicitly deferred with a valid reason.
 - Targets as many inherited repository quality problems as can be solved safely, and expects the guarded test surface to remain green after the refactor.
 - Synchronizes project docs and `AGENTS.md` through `align-project-documents` and `maintain-project-constraints` after implementation.

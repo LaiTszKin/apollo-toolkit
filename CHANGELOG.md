@@ -5,7 +5,7 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Changed
-- None yet.
+- Strengthen `iterative-code-quality` so large coupled or apparently core files trigger staged unlock work instead of passive stopping, and require a full-codebase stage-gate decision after every iteration to determine whether additional rounds are still needed.
 
 ## [v3.1.4] - 2026-04-23
 

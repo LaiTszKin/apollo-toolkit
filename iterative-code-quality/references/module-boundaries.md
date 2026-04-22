@@ -41,6 +41,8 @@ The following do **not** count as macro-architecture changes by themselves:
 
 Treat those changes as ordinary refactoring work unless they also alter the top-level system model above.
 
+Large coupled or central files should therefore be treated as decomposition problems, not as automatic macro-architecture blockers. If the top-level system model remains intact, prefer staged internal cleanup over stopping.
+
 ## Safe split patterns
 
 - Move pure domain logic into a domain-owned helper module.

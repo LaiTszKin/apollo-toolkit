@@ -41,6 +41,7 @@ Load references only when they match the active pass:
 - `references/repository-scan.md`: scope mapping, generated-file exclusions, and quality backlog selection.
 - `references/naming-and-simplification.md`: variable renames, function simplification, reusable extraction, and behavior-preservation checks.
 - `references/module-boundaries.md`: single-responsibility split heuristics and safe module extraction rules.
+- `references/coupled-core-file-strategy.md`: staged unlock strategy for large, coupled, or apparently core files that should not become stop signals.
 - `references/logging-alignment.md`: stale log detection, missing log criteria, and behavior-neutral observability updates.
 - `references/testing-strategy.md`: risk-based unit, property, integration, and E2E coverage selection.
 - `references/iteration-gates.md`: multi-pass quality gates, stopping criteria, and validation cadence.
@@ -74,6 +75,7 @@ Direction-selection rules:
 - Prefer smaller, higher-confidence refactors that unlock or de-risk larger later refactors.
 - Prefer outside-in progress: stabilize boundaries, callers, naming, logs, and tests around a subsystem before attempting deeper internal rewrites.
 - Re-evaluate the whole backlog after every landed iteration; the next best direction may change because the previous cleanup improved the local safety or clarity.
+- When a file appears too coupled, too central, or too risky for a direct rewrite, treat that as a prompt to switch into staged unlock work rather than a reason to stop. Load `references/coupled-core-file-strategy.md` and choose the next smallest refactor that reduces future risk.
 
 For each iteration:
 
@@ -111,6 +113,14 @@ For each iteration:
 - When module boundaries are currently poor but can be protected by focused tests or other guardrails, choose the cleaner split instead of preserving a mixed-responsibility file out of caution alone.
 - Use `references/module-boundaries.md` for extraction rules and anti-patterns.
 
+### 5.1) Handle large coupled or apparently core files through unlock work
+
+- Do not treat a large coupled file, a central orchestrator, or a historically fragile module as an automatic stop condition.
+- First ask: what is the next smallest refactor that lowers the risk of changing this area later without changing business behavior now?
+- Prefer unlock steps such as characterization tests, naming cleanup, type extraction, pure-function extraction, side-effect boundary isolation, read/write path separation, dependency seam introduction, and caller grouping.
+- Only stop when no such unlock step can be identified under current guardrails. If an unlock step exists, do it before reconsidering the larger refactor.
+- Use `references/coupled-core-file-strategy.md` whenever the current obstacle is "too coupled", "too central", or "too risky to touch directly".
+
 ### 6) Repair logging and observability drift
 
 - Compare log messages, event names, structured fields, metrics, and trace names against the current code ownership model.
@@ -133,6 +143,7 @@ For each iteration:
 
 - After each iteration, run the narrowest relevant tests first, then broaden validation until the changed scope and final repository state are adequately guarded.
 - Re-scan the full codebase, not only the touched area, because the best next direction may have shifted after the last cleanup.
+- Perform an explicit stage-gate decision after that full-codebase scan: decide whether all known in-scope issues are now resolved, whether remaining issues are only legitimately deferred categories, or whether another iteration is required right now.
 - Re-rank the backlog after every iteration and choose the next highest-confidence, highest-leverage direction set.
 - Use small external or boundary-level cleanups to make later deeper refactors safer; treat that groundwork as progress toward a thorough long-horizon refactor, not as a distraction from it.
 - Repeat the full iteration whenever any known in-scope actionable gap remains and can be fixed safely without changing business behavior or macro architecture.
@@ -163,7 +174,7 @@ Only write this report after the latest scan confirms there are no known actiona
 
 Return:
 
-1. Iterations completed and which execution directions were selected in each one.
+1. Iterations completed, which execution directions were selected in each one, and the stage-gate decision after each full-codebase re-scan.
 2. Key files changed and the quality issue each change resolved.
 3. Business behavior preservation evidence.
 4. Tests added or updated, including property/integration/E2E `N/A` reasons where relevant.

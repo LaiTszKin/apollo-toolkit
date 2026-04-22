@@ -52,6 +52,18 @@ Then choose the next execution directions with these priorities:
 2. strongest leverage for later deeper cleanup,
 3. lowest business-risk path toward broader system improvement.
 
+## Stage-gate after each iteration
+
+After every validated iteration, run a deliberate full-codebase decision pass:
+
+1. Re-scan the repository and refresh the known quality backlog.
+2. Ask whether any known in-scope actionable issue still remains.
+3. If yes, decide whether it should be addressed in the very next iteration or whether first-step unlock work is needed.
+4. If the obstacle is a large, coupled, or central file, do not stop there; switch to staged unlock work and continue.
+5. Only declare the repository iteration-complete when the re-scan shows no remaining actionable in-scope issue except items that are explicitly deferred under the allowed stop categories.
+
+This stage-gate is mandatory. A validated local change does not by itself mean the repository is done.
+
 ## Continue when
 
 Repeat the cycle when:
@@ -87,6 +99,7 @@ The final report should make the stopping point auditable:
 
 - passes completed,
 - execution directions selected per iteration,
+- stage-gate verdict after each full-codebase re-scan,
 - validation commands and outcomes,
 - confirmation that the guarded test surface is green after the refactor,
 - tests added by risk category,
