@@ -22,7 +22,7 @@ description: >-
 ## Standards
 
 - Evidence: Read repository docs, project constraints, source, tests, logs, and entrypoints before editing; every rename, extraction, split, log update, or test must be backed by code context.
-- Execution: Treat each iteration as one full repository-quality pass that attempts to clear all known in-scope issue classes together—naming, abstraction, module boundaries, logging, and tests—rather than treating each work type as its own round; validate after each iteration, then keep iterating while any known in-scope codebase quality issue remains unresolved; when tests or other reliable guardrails can prove equivalence, prefer taking the refactor instead of deferring it for subjective confidence reasons; do not produce the completion report while the scan still contains actionable gaps.
+- Execution: Continuously re-scan the full codebase, treat naming, abstraction, module boundaries, logging, and tests as selectable execution directions rather than a fixed sequence, choose the highest-confidence directions that can safely land now, and use those smaller refactors to prepare the ground for larger future refactors; validate after each iteration, then keep iterating while any known in-scope codebase quality issue remains unresolved; when tests or other reliable guardrails can prove equivalence, prefer taking the refactor instead of deferring it for subjective confidence reasons; do not produce the completion report while the scan still contains actionable gaps.
 - Quality: Solve as many inherited code-quality problems as safely possible without changing intended behavior or the system's macro architecture; avoid style-only churn, compatibility theater, broad rewrites, and unverified "cleanup", but do not reject a worthwhile refactor purely because it feels risky when existing or newly added guardrails can verify it safely.
 - Output: Deliver a concise pass-by-pass summary, changed behavior-neutral surfaces, test coverage added, validation results, and documentation/`AGENTS.md` sync status only after every known in-scope quality issue is resolved or explicitly classified as blocked, unsafe, low-value, speculative, or requiring user approval.
 
@@ -30,7 +30,7 @@ description: >-
 
 Resolve as many inherited repository quality problems as possible without breaking intended behavior, and use tests plus other reliable guardrails to prove that the refactor leaves the project in a fully green state.
 
-This skill is intentionally implementation-oriented, not report-only. It should identify high-value legacy issues, apply as much safe cleanup as the repository can support, add or strengthen tests to guard the refactor, and keep iterating across the codebase until there are no unresolved known in-scope quality issues. If a post-iteration scan finds remaining actionable gaps, continue the next iteration instead of writing a completion report.
+This skill is intentionally implementation-oriented, not report-only. It should keep scanning the full codebase, choose the best available refactor directions at each moment, apply as much safe cleanup as the repository can support, add or strengthen tests to guard the refactor, and use incremental cleanup to unlock deeper improvements over time. If a post-iteration scan finds remaining actionable gaps, continue the next iteration instead of writing a completion report.
 
 For this skill, `macro architecture` means the system's top-level runtime shape and overall operating logic: major subsystems, top-level execution model, deployment/runtime boundaries, persistence model, service boundaries, and the end-to-end way the whole system works. Ordinary module interactions, helper extraction, local responsibility moves, and internal call-boundary cleanup do not count as macro-architecture changes by themselves.
 
@@ -56,11 +56,11 @@ Load references only when they match the active pass:
 - Build an initial quality backlog with concrete file/function/test targets before changing code.
 - Use `references/repository-scan.md` for the scan checklist and backlog scoring.
 
-### 2) Execute full iterations, not one-task rounds
+### 2) Execute continuous full scans with selectable directions
 
-Each iteration should try to complete all required kinds of repository cleanup that remain actionable in the selected scope. Do not treat "rename variables", "simplify functions", or "add tests" as separate iterations by default.
+Do not force one fixed order such as "finish naming first, then abstraction, then modules". Instead, keep re-scanning the whole codebase and select the execution directions that are highest-confidence and highest-leverage right now.
 
-A typical iteration should evaluate all of these dimensions together:
+Treat these as multi-select execution directions, not mandatory sequential stages:
 
 1. Naming clarity for variables, parameters, fields, local helpers, and test data.
 2. Function simplification and reusable extraction for duplicated or hard-coded workflows.
@@ -68,10 +68,17 @@ A typical iteration should evaluate all of these dimensions together:
 4. Logging alignment for stale, misleading, missing, or low-context diagnostics.
 5. Risk-based test coverage for high-value business logic and boundary cases.
 
+Direction-selection rules:
+
+- Prefer the directions with the strongest current evidence and best guardrails.
+- Prefer smaller, higher-confidence refactors that unlock or de-risk larger later refactors.
+- Prefer outside-in progress: stabilize boundaries, callers, naming, logs, and tests around a subsystem before attempting deeper internal rewrites.
+- Re-evaluate the whole backlog after every landed iteration; the next best direction may change because the previous cleanup improved the local safety or clarity.
+
 For each iteration:
 
 - Read all directly affected callers, tests, and public interfaces before editing.
-- Keep the scope small enough to validate and review, but within that scope try to finish every actionable quality category rather than stopping after one category.
+- Keep the scope small enough to validate and review, and select whichever directions are most justified for that scope instead of forcing every direction to appear in every iteration.
 - Prefer repository-native abstractions over new parallel frameworks.
 - Preserve public behavior, data contracts, side effects, error classes, and macro architecture.
 - Add or update tests in the same iteration when the change touches non-trivial logic, observability contracts, or extracted helpers.
@@ -122,10 +129,12 @@ For each iteration:
 - If a new test exposes an existing business-logic bug, invoke `systematic-debug`, fix the true owner, and keep the regression test.
 - Use `references/testing-strategy.md` for coverage selection and required `N/A` reasoning.
 
-### 8) Iterate until the repository is clear of known actionable issues
+### 8) Iterate gradually from outside to inside until the repository is clear of known actionable issues
 
 - After each iteration, run the narrowest relevant tests first, then broaden validation until the changed scope and final repository state are adequately guarded.
-- Re-scan both touched areas and the known quality backlog for new naming drift, duplicated helper candidates, module-boundary cracks, logging drift, and missing tests.
+- Re-scan the full codebase, not only the touched area, because the best next direction may have shifted after the last cleanup.
+- Re-rank the backlog after every iteration and choose the next highest-confidence, highest-leverage direction set.
+- Use small external or boundary-level cleanups to make later deeper refactors safer; treat that groundwork as progress toward a thorough long-horizon refactor, not as a distraction from it.
 - Repeat the full iteration whenever any known in-scope actionable gap remains and can be fixed safely without changing business behavior or macro architecture.
 - Do not write the completion report, summarize the task as done, or hand back as complete while the latest scan still contains known actionable quality issues.
 - Stop only when every known in-scope issue has been resolved, or each remaining candidate is explicitly classified as low-value, speculative, blocked, unsafe, or requiring product/architecture approval.
@@ -154,7 +163,7 @@ Only write this report after the latest scan confirms there are no known actiona
 
 Return:
 
-1. Passes completed and why they were ordered that way.
+1. Iterations completed and which execution directions were selected in each one.
 2. Key files changed and the quality issue each change resolved.
 3. Business behavior preservation evidence.
 4. Tests added or updated, including property/integration/E2E `N/A` reasons where relevant.

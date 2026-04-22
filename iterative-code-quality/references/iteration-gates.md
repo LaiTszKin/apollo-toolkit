@@ -6,11 +6,12 @@ Each iteration must have:
 
 - a concrete quality target,
 - a bounded file/symbol scope,
+- one or more selected execution directions,
 - expected behavior-neutral outcome,
 - validation plan,
 - rollback point if evidence contradicts the change.
 
-An iteration is not "one work type". Within the selected scope, it should try to finish all actionable cleanup categories that matter: naming, simplification, module boundaries, logging, and tests.
+An iteration is not "one work type", and it also does not need to include every direction every time. Within the selected scope, choose the subset of directions that has the best current confidence and leverage: naming, simplification, module boundaries, logging, and/or tests.
 
 Avoid starting a broad second iteration before validating the first, but do not stop after a validated iteration if known actionable quality issues remain anywhere in the in-scope codebase.
 
@@ -34,9 +35,9 @@ If validation passes and the guardrails meaningfully cover the changed behavior,
 
 The final stopping condition also requires the relevant guarded test surface to be green; a partially red repository is not a completed refactor outcome.
 
-## Re-scan after each pass
+## Re-scan after each iteration
 
-Inspect touched areas and the full known quality backlog for:
+Inspect the full known quality backlog for:
 
 - new naming drift from moved or extracted concepts,
 - duplicated logic that remains after extraction,
@@ -44,6 +45,12 @@ Inspect touched areas and the full known quality backlog for:
 - logs that now use stale names,
 - tests that cover only the happy path,
 - documentation or `AGENTS.md` drift.
+
+Then choose the next execution directions with these priorities:
+
+1. highest confidence under current guardrails,
+2. strongest leverage for later deeper cleanup,
+3. lowest business-risk path toward broader system improvement.
 
 ## Continue when
 
@@ -57,6 +64,8 @@ Repeat the cycle when:
 - high-value business logic remains untested and is testable.
 
 Do not produce a final completion report while any item in this section is true. Continue with the next bounded iteration instead.
+
+Prefer gradual outside-in progress: boundary cleanup, naming clarity, and guardrail strengthening should often come before deeper internal rewrites because they make the deeper work safer later.
 
 ## Stop when
 
@@ -77,6 +86,7 @@ If a remaining candidate cannot be placed in one of these categories, it is stil
 The final report should make the stopping point auditable:
 
 - passes completed,
+- execution directions selected per iteration,
 - validation commands and outcomes,
 - confirmation that the guarded test surface is green after the refactor,
 - tests added by risk category,
