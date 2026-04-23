@@ -9,11 +9,14 @@ Each iteration must have:
 - an explicit record of which job lenses were checked during the deep read,
 - a bounded file/symbol scope,
 - one or more selected execution directions,
+- a confidence assessment covering the agent's own ability to complete the refactor, the task's inherent difficulty, objective guardrail strength, and rollback or repair paths,
 - expected behavior-neutral outcome,
 - validation plan,
 - rollback point if evidence contradicts the change.
 
 An iteration is not "one work type", and it also does not need to include every direction every time. Within the selected scope, choose the subset of directions that has the best current confidence and leverage: naming, simplification, module boundaries, logging, and/or tests.
+
+Confidence is not a synonym for "easy". Assess whether the agent has enough understanding, skill, local context, tests, validation commands, and recovery path to complete the refactor safely. A hard task can still be high-confidence when strong tests, characterization coverage, and clear rollback let the agent repair mistakes by making the guarded behavior green again.
 
 Avoid starting a broad second iteration before validating the first, but do not stop after a validated iteration if known actionable quality issues remain anywhere in the in-scope codebase.
 
@@ -35,7 +38,7 @@ If validation fails:
 - keep regression coverage for real defects,
 - do not mask failures by weakening assertions.
 
-If validation passes and the guardrails meaningfully cover the changed behavior, do not keep a known quality issue in place purely because of subjective confidence concerns.
+If validation passes and the guardrails meaningfully cover the changed behavior, do not keep a known quality issue in place purely because of subjective confidence concerns. Reassess whether the agent has enough capability and objective support to proceed; if yes, continue, and if no, choose the smallest guardrail or unlock step that would make the next refactor credible.
 
 The final stopping condition also requires the relevant guarded test surface to be green; a partially red repository is not a completed refactor outcome.
 
@@ -54,7 +57,7 @@ Inspect the full known quality backlog for:
 
 Then choose the next execution directions with these priorities:
 
-1. highest confidence under current guardrails,
+1. highest combined confidence from agent capability, code understanding, guardrails, and recovery path,
 2. strongest leverage for later deeper cleanup,
 3. lowest business-risk path toward broader system improvement.
 

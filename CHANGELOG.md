@@ -7,6 +7,14 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.2.0] - 2026-04-23
+
+### Added
+- Add `iterative-code-performance`, a repository-wide speed optimization skill that repeatedly scans each in-scope module, measures or proves bottlenecks, selects safe performance jobs, adds benchmark and regression guardrails, and loops until no actionable bottleneck or unvisited module remains.
+
+### Changed
+- Strengthen `iterative-code-quality` and `iterative-code-performance` so confidence decisions require the agent to assess its own ability alongside task difficulty, objective guardrails, test or benchmark strength, and rollback or repair paths before deferring or attempting deeper refactors.
+
 ## [v3.1.8] - 2026-04-23
 
 ### Changed

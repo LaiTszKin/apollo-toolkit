@@ -24,6 +24,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - harden-app-security
 - implement-specs
 - improve-observability
+- iterative-code-performance
 - iterative-code-quality
 - jupiter-development
 - katex

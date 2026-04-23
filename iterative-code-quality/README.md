@@ -16,6 +16,7 @@ Improve an existing repository through a strict three-step loop of full-codebase
 - Repairs stale or missing logs and adds tests for important observability contracts.
 - Adds high-value unit, property-based, integration, or E2E tests based on risk.
 - Does not require pre-existing tests before every refactor; for high-risk under-guarded areas, it treats test addition as the next unlock direction.
+- Requires confidence decisions to combine the agent's self-assessed ability, task complexity, guardrail strength, rollback or repair paths, and whether a strong test suite can safely drive broken refactors back to green.
 - Uses those tests and other guardrails to justify more aggressive refactors, instead of leaving known issues in place for subjective confidence reasons.
 - Re-scans the full repository after every iteration and picks the next highest-confidence, highest-leverage directions.
 - Uses small safe refactors to prepare the ground for larger later refactors, progressing gradually from outside to inside.

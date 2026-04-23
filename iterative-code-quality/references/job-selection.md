@@ -66,10 +66,13 @@ If multiple jobs are plausible, prefer the one that:
 2. reduces cognitive load fastest,
 3. removes the strongest blocker to a deeper future refactor,
 4. helps an unvisited module reach deep-read coverage,
-5. preserves behavior with the clearest available guardrails.
+5. matches the agent's self-assessed ability to understand, execute, and repair the change under current evidence,
+6. preserves behavior with the clearest available guardrails.
 
 ## Hard rule
 
 If a high-risk area lacks enough guardrails, `test addition` or another guardrail-building job should usually win before a deeper structural refactor.
+
+If the area is difficult but the agent can explain the behavior, affected contracts, rollback path, and available tests clearly, do not downgrade confidence just because the refactor is non-trivial. Strong guardrails mean accidental breakage should be repaired by returning the test suite to green, not avoided by leaving an actionable quality issue in place.
 
 If any in-scope module remains unvisited, choose jobs that help the next easiest useful unvisited module become deeply read, improved, or validated-clear before spending another round on already-familiar areas.

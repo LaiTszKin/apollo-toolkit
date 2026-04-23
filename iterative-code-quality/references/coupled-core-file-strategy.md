@@ -52,14 +52,14 @@ Avoid these anti-patterns:
 
 Prefer the next step that maximizes:
 
-1. confidence under existing tests or quickly addable tests,
+1. combined confidence from the agent's own ability, code understanding, existing tests, or quickly addable tests,
 2. leverage for future deeper cleanup,
 3. reduction in coupling or cognitive load,
 4. low risk to current business behavior.
 
 If two steps are both safe, choose the one that makes the next iteration easier.
 
-If the file is high-risk and under-tested, prefer adding the smallest useful characterization tests before attempting deeper structural edits.
+If the file is high-risk and under-tested, prefer adding the smallest useful characterization tests before attempting deeper structural edits. If the file is high-risk but well-guarded, do not stop only because the change is difficult; use the guardrails to validate the agent's work and repair any accidental breakage.
 
 ## Completion rule for coupled files
 

@@ -52,6 +52,7 @@ For this skill, `macro architecture` means the system's top-level runtime shape 
 - Choose jobs only after the latest full-codebase scan. Jobs are optional execution directions, not ordered workflow steps.
 - Treat module scanning and job choice as one linked activity: inspect the selected module through every available job lens before deciding which jobs actually land in this round.
 - Select the smallest set of jobs that can safely improve the currently selected module or module cluster under current guardrails.
+- Before choosing or deferring a refactor, explicitly assess refactor confidence as a combination of the agent's own ability to understand and complete the task, the objective safety net from tests and other guardrails, the clarity of rollback or repair paths, and the task's inherent difficulty. Do not treat difficulty alone as low confidence; when strong tests guard the behavior, use them to support bolder changes because failures can be driven back to green.
 - Prefer easy-first module ordering: start from low-risk, high-confidence modules when doing so builds context, tests, naming clarity, or seams that make harder modules safer later.
 - Do not keep revisiting familiar modules while other in-scope modules remain unvisited unless the familiar module blocks the next unvisited module's safe deep read.
 - Prefer smaller, high-confidence refactors that reduce risk and prepare the ground for deeper later cleanup.

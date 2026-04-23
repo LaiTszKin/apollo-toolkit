@@ -8,6 +8,8 @@ For every non-trivial pass, ask what could regress silently if the cleanup were 
 
 Use the resulting guardrails aggressively: when tests or equivalent verification can prove behavior preservation, they should unlock bolder refactors rather than merely justify small cosmetic edits.
 
+Confidence decisions must include the agent's own ability to understand and complete the refactor, not only the apparent difficulty of the code. Strong tests, characterization coverage, narrow rollback points, and clear validation commands are objective support: if the refactor breaks behavior, the agent should use the failing guardrails to repair the true owner and return the suite to green instead of treating the task as impossible.
+
 Do not require pre-existing tests before every refactor. Instead:
 
 - if existing guardrails are already sufficient, proceed;
@@ -89,5 +91,5 @@ Consider:
 - Preserve failing seeds or examples from property-based tests.
 - Do not weaken existing tests to fit the refactor.
 - If old tests asserted implementation details, rewrite them around stable behavior while preserving the business invariant.
-- Once stable guardrails exist, do not refuse a maintainability-improving refactor purely because confidence feels lower than ideal; let the guardrails decide.
+- Once stable guardrails exist, do not refuse a maintainability-improving refactor purely because confidence feels lower than ideal; combine self-assessed ability with the objective safety net and let the guardrails decide.
 - If stable guardrails do not yet exist for a high-risk area, create them as the next execution direction instead of treating the refactor as blocked forever.
