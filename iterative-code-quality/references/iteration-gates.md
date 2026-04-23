@@ -4,6 +4,7 @@
 
 Each iteration must have:
 
+- a selected module or bounded module cluster,
 - a concrete quality target,
 - a bounded file/symbol scope,
 - one or more selected execution directions,
@@ -14,6 +15,8 @@ Each iteration must have:
 An iteration is not "one work type", and it also does not need to include every direction every time. Within the selected scope, choose the subset of directions that has the best current confidence and leverage: naming, simplification, module boundaries, logging, and/or tests.
 
 Avoid starting a broad second iteration before validating the first, but do not stop after a validated iteration if known actionable quality issues remain anywhere in the in-scope codebase.
+
+Do not stop after a validated iteration if any in-scope module remains unvisited in the module coverage ledger.
 
 ## Validation cadence
 
@@ -39,6 +42,7 @@ The final stopping condition also requires the relevant guarded test surface to 
 
 Inspect the full known quality backlog for:
 
+- modules that are still unvisited or only shallowly read,
 - new naming drift from moved or extracted concepts,
 - duplicated logic that remains after extraction,
 - module boundaries that are still mixed,
@@ -59,10 +63,11 @@ Use `references/job-selection.md` to convert those priorities into a concrete ne
 After every validated iteration, run a deliberate full-codebase decision pass:
 
 1. Re-scan the repository and refresh the known quality backlog.
-2. Ask whether any known in-scope actionable issue still remains.
-3. If yes, decide whether it should be addressed in the very next iteration or whether first-step unlock work is needed.
-4. If the obstacle is a large, coupled, or central file, do not stop there; switch to staged unlock work and continue.
-5. Only declare the repository iteration-complete when the re-scan shows no remaining actionable in-scope issue except items that are explicitly deferred under the allowed stop categories.
+2. Refresh the module coverage ledger and identify unvisited in-scope modules.
+3. Ask whether any known in-scope actionable issue still remains.
+4. If yes, decide whether it should be addressed in the very next iteration or whether first-step unlock work is needed.
+5. If the obstacle is a large, coupled, or central file, do not stop there; switch to staged unlock work and continue.
+6. Only declare the repository iteration-complete when the re-scan shows no remaining actionable in-scope issue and no unvisited in-scope module except items that are explicitly deferred or excluded under the allowed stop categories.
 
 This stage-gate is mandatory. A validated local change does not by itself mean the repository is done.
 
@@ -71,6 +76,7 @@ This stage-gate is mandatory. A validated local change does not by itself mean t
 Repeat the cycle when:
 
 - any known in-scope actionable quality issue remains unresolved,
+- any in-scope module remains unvisited,
 - high-impact unclear names remain,
 - duplicated or hard-coded workflows still have safe extraction paths,
 - a module still mixes distinct responsibilities and can be split locally,
@@ -95,12 +101,16 @@ Stop only when there are no unresolved known in-scope actionable issues. Any rem
 
 If a remaining candidate cannot be placed in one of these categories, it is still an actionable gap and the agent must continue iterating rather than complete the task.
 
+If an in-scope module has not received a deep-read iteration, it is still an actionable coverage gap even when the already-read modules look clean.
+
 ## Completion evidence
 
 The final report should make the stopping point auditable:
 
 - passes completed,
 - execution directions selected per iteration,
+- module or module cluster covered per iteration,
+- final module coverage ledger,
 - stage-gate verdict after each full-codebase re-scan,
 - validation commands and outcomes,
 - confirmation that the guarded test surface is green after the refactor,

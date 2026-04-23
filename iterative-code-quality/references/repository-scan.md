@@ -2,13 +2,14 @@
 
 ## Purpose
 
-Build a factual map before changing code, then choose the highest-value quality improvements.
+Build a factual map before changing code, then choose the highest-value quality improvements while tracking module-by-module deep-read coverage.
 
 ## Required scan
 
 - Read `AGENTS.md`, `README*`, project docs, manifests, task runners, CI configs, and test setup.
 - List entrypoints: CLI commands, servers, workers, jobs, frontend routes, scripts, libraries, or public packages.
 - Identify core domain modules, external integrations, persistence boundaries, logging utilities, and test helpers.
+- Create a module inventory and coverage ledger using `references/module-coverage.md`.
 - Inspect current git state before editing so unrelated user changes are not overwritten.
 - Identify generated, vendored, lock, snapshot, build-output, and fixture files; exclude them from refactoring unless they are human-maintained source.
 
@@ -29,6 +30,7 @@ Prioritize files or functions with:
 For each candidate record:
 
 - file path and symbol name,
+- owning module or module cluster,
 - observed quality problem,
 - why it matters to maintainability or correctness confidence,
 - expected behavior-neutral change,
@@ -57,3 +59,5 @@ Score each candidate by:
 4. **Blast radius**: number of modules, public contracts, and migrations affected.
 
 Start with high-impact, high-confidence, low-blast-radius items. Escalate broad changes only when smaller passes cannot resolve the root problem.
+
+Do not finish from backlog scoring alone. Completion also requires the module coverage ledger to show that every in-scope module has been deeply read and either improved, validated-clear, deferred, or excluded with evidence.

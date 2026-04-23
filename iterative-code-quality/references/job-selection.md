@@ -6,7 +6,7 @@ Help the agent choose the next execution direction after each full-codebase re-s
 
 These are job-selection rules for Step 2 of the main skill loop. They are not workflow steps.
 
-The goal is not to force one permanent order. The goal is to choose the next job that most safely improves the codebase and unlocks later work.
+The goal is not to force one permanent order. The goal is to choose the next job that most safely improves the selected module or module cluster and unlocks later work.
 
 ## Available jobs
 
@@ -63,8 +63,11 @@ If multiple jobs are plausible, prefer the one that:
 1. increases safety for the next iteration,
 2. reduces cognitive load fastest,
 3. removes the strongest blocker to a deeper future refactor,
-4. preserves behavior with the clearest available guardrails.
+4. helps an unvisited module reach deep-read coverage,
+5. preserves behavior with the clearest available guardrails.
 
 ## Hard rule
 
 If a high-risk area lacks enough guardrails, `test addition` or another guardrail-building job should usually win before a deeper structural refactor.
+
+If any in-scope module remains unvisited, choose jobs that help the next easiest useful unvisited module become deeply read, improved, or validated-clear before spending another round on already-familiar areas.
