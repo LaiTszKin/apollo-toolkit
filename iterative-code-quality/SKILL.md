@@ -24,7 +24,7 @@ description: >-
 ## Standards
 
 - Evidence: Read repository docs, project constraints, source, tests, logs, build scripts, entrypoints, and nearby abstractions before editing; every refactor and every new test must be justified by code context.
-- Execution: Run a continuous three-step loop of full-codebase scan → choose this round's jobs and refactor → if and only if the latest full-codebase scan is clear, update docs and constraints; otherwise return to scanning immediately. Maintain a module inventory and coverage ledger so every in-scope module receives a deep-read iteration before completion. Do not treat jobs as workflow steps. Do not produce a completion report while any known in-scope actionable issue or unvisited in-scope module remains.
+- Execution: Run a continuous three-step loop of full-codebase scan → choose this round's jobs and refactor → if and only if the latest full-codebase scan is clear, update docs and constraints; otherwise return to scanning immediately. Maintain a module inventory and coverage ledger so every in-scope module receives a job-oriented deep-read iteration before completion. Do not treat jobs as workflow steps. Do not produce a completion report while any known in-scope actionable issue or unvisited in-scope module remains.
 - Quality: Resolve as many inherited quality problems as safely possible without changing intended behavior or the system's macro architecture. Do not require pre-existing tests before every safe refactor; if an area is high-risk and weakly guarded, add the missing guardrails as part of the work instead of treating the area as untouchable.
 - Output: Return iteration-by-iteration decisions, selected jobs, module coverage status, changed files, behavior-preservation evidence, tests and guardrails added, validation results, and docs/constraint sync status only after the latest scan shows no remaining known actionable in-scope issue and no unvisited in-scope module.
 
@@ -42,14 +42,15 @@ For this skill, `macro architecture` means the system's top-level runtime shape 
 - Map runtime entrypoints, domain modules, external integrations, logging utilities, and current test surfaces.
 - Exclude generated, vendored, lock, build-output, fixture, or snapshot files unless evidence shows they are human-maintained source.
 - Build or refresh a concrete repository-wide backlog of known actionable quality issues.
-- Build or refresh a module inventory and coverage ledger; every in-scope module starts as unvisited until it has received a deep-read iteration with callers, callees, tests, logs, and relevant contracts inspected.
+- Build or refresh a module inventory and coverage ledger; every in-scope module starts as unvisited until it has received a job-oriented deep-read iteration with callers, callees, tests, logs, relevant contracts, and each available job lens inspected.
 - Re-scan the full codebase after every landed iteration, not only the files just changed.
 - Load `references/repository-scan.md` for the scan checklist and backlog shaping rules.
-- Load `references/module-coverage.md` for module inventory, deep-read coverage, easy-first ordering, and completion rules.
+- Load `references/module-coverage.md` for module inventory, job-oriented deep-read coverage, easy-first ordering, and completion rules.
 
 ### 2) Choose this round's jobs and refactor
 
 - Choose jobs only after the latest full-codebase scan. Jobs are optional execution directions, not ordered workflow steps.
+- Treat module scanning and job choice as one linked activity: inspect the selected module through every available job lens before deciding which jobs actually land in this round.
 - Select the smallest set of jobs that can safely improve the currently selected module or module cluster under current guardrails.
 - Prefer easy-first module ordering: start from low-risk, high-confidence modules when doing so builds context, tests, naming clarity, or seams that make harder modules safer later.
 - Do not keep revisiting familiar modules while other in-scope modules remain unvisited unless the familiar module blocks the next unvisited module's safe deep read.
@@ -63,7 +64,7 @@ For this skill, `macro architecture` means the system's top-level runtime shape 
 
 Load references for this step only as needed:
 
-- `references/module-coverage.md` for choosing the next module and proving every in-scope module has been deeply read.
+- `references/module-coverage.md` for choosing the next module and proving every in-scope module has been deeply read through the available-job lenses.
 - `references/job-selection.md` for next-job choice conditions and tie-breakers.
 - `references/naming-and-simplification.md` for naming cleanup and function simplification/extraction.
 - `references/module-boundaries.md` for single-responsibility module cleanup.

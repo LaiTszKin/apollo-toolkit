@@ -8,6 +8,7 @@ Improve an existing repository through a strict three-step loop of full-codebase
 - Uses a strict three-step loop: scan the codebase, choose this round's jobs and refactor, then update docs/constraints only when no actionable gap remains.
 - Keeps job execution guidance in focused reference documents instead of embedding every job as a workflow step in the main skill.
 - Builds a module inventory and coverage ledger so every in-scope module receives a deep-read iteration before completion.
+- Defines deep-read as a job-oriented scan across naming, simplification, module boundaries, logging, testing, and staged unlock opportunities instead of generic reading.
 - Starts from the easiest useful modules first, while preserving the rule that unvisited modules cannot be skipped before completion.
 - Clarifies ambiguous variable, parameter, field, helper, and test-data names.
 - Simplifies complex functions and extracts reusable helpers only when they centralize real behavior.

@@ -6,6 +6,7 @@ Each iteration must have:
 
 - a selected module or bounded module cluster,
 - a concrete quality target,
+- an explicit record of which job lenses were checked during the deep read,
 - a bounded file/symbol scope,
 - one or more selected execution directions,
 - expected behavior-neutral outcome,
@@ -43,6 +44,7 @@ The final stopping condition also requires the relevant guarded test surface to 
 Inspect the full known quality backlog for:
 
 - modules that are still unvisited or only shallowly read,
+- modules that were read but not yet checked against every available job lens,
 - new naming drift from moved or extracted concepts,
 - duplicated logic that remains after extraction,
 - module boundaries that are still mixed,
@@ -110,6 +112,7 @@ The final report should make the stopping point auditable:
 - passes completed,
 - execution directions selected per iteration,
 - module or module cluster covered per iteration,
+- job lenses checked per iteration,
 - final module coverage ledger,
 - stage-gate verdict after each full-codebase re-scan,
 - validation commands and outcomes,

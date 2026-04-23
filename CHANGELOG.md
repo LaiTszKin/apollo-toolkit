@@ -5,7 +5,7 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Changed
-- None yet.
+- Refine `iterative-code-quality` so module deep reads must scan each module through the available job lenses before choosing which refactors land, preventing scan phases from degrading into generic reading or low-value micro-fixes.
 
 ## [v3.1.7] - 2026-04-23
 

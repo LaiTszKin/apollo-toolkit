@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Build a factual map before changing code, then choose the highest-value quality improvements while tracking module-by-module deep-read coverage.
+Build a factual map before changing code, then choose the highest-value quality improvements while tracking module-by-module job-oriented deep-read coverage.
 
 ## Required scan
 
@@ -10,6 +10,7 @@ Build a factual map before changing code, then choose the highest-value quality 
 - List entrypoints: CLI commands, servers, workers, jobs, frontend routes, scripts, libraries, or public packages.
 - Identify core domain modules, external integrations, persistence boundaries, logging utilities, and test helpers.
 - Create a module inventory and coverage ledger using `references/module-coverage.md`.
+- For each module, scan through the available job lenses instead of treating scan as generic code reading.
 - Inspect current git state before editing so unrelated user changes are not overwritten.
 - Identify generated, vendored, lock, snapshot, build-output, and fixture files; exclude them from refactoring unless they are human-maintained source.
 
@@ -31,6 +32,7 @@ For each candidate record:
 
 - file path and symbol name,
 - owning module or module cluster,
+- job lens that exposed the issue,
 - observed quality problem,
 - why it matters to maintainability or correctness confidence,
 - expected behavior-neutral change,

@@ -8,6 +8,8 @@ These are job-selection rules for Step 2 of the main skill loop. They are not wo
 
 The goal is not to force one permanent order. The goal is to choose the next job that most safely improves the selected module or module cluster and unlocks later work.
 
+Before choosing, the agent should first scan the selected module through every available job lens. Job selection happens after that scan; it is not a substitute for that scan.
+
 ## Available jobs
 
 - naming cleanup

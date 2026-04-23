@@ -6,6 +6,8 @@ Prevent the agent from repeatedly improving only familiar or easy files while un
 
 Use this reference in Step 1 to build the module inventory and in Step 2 to choose which module or module cluster receives the next deep-read iteration.
 
+Deep-read here does not mean generic reading. It means scanning the module through each available job lens so the agent can identify whether naming cleanup, simplification, module-boundary cleanup, logging alignment, test addition, or staged unlock work is justified.
+
 ## Module inventory
 
 List every meaningful in-scope module before completion. A module may be:
@@ -33,7 +35,7 @@ Exclude generated, vendored, lock, build-output, snapshot, fixture-only, or expl
 Use simple statuses so stopping conditions are auditable:
 
 - `unvisited`: inventoried but not deeply read yet.
-- `deep-read`: callers, callees, tests, logs, contracts, and core files were inspected with enough context to judge quality.
+- `deep-read`: callers, callees, tests, logs, contracts, core files, and all available job lenses were inspected with enough context to judge quality.
 - `refactored`: at least one behavior-neutral improvement landed for this module.
 - `validated-clear`: deep read found no actionable in-scope quality issue worth changing now.
 - `deferred`: an issue exists but is blocked, unsafe, speculative, approval-dependent, or requires macro-architecture/product scope.
@@ -68,7 +70,17 @@ A module iteration is not deep-read until the agent inspects:
 - configuration, persistence, and external-service contracts when relevant,
 - known TODOs, comments, or docs that describe current behavior.
 
+It also must inspect the module through each available job lens:
+
+- `naming cleanup`: are names hiding ownership, units, state, lifecycle, or intent?
+- `function simplification / extraction`: are there duplicated flows, hard-coded orchestration paths, or overly mixed functions?
+- `module-boundary cleanup`: are responsibilities mixed in ways that can be split safely?
+- `logging alignment`: are logs stale, misleading, or missing at important branch/outcome points?
+- `test addition`: are important behaviors, edges, or invariants weakly guarded?
+- `staged unlock work`: if the module is too coupled for direct cleanup, what is the next smaller unlock step?
+
 Do not mark a module `validated-clear` from a shallow file skim.
+Do not mark a module `validated-clear` until every available job lens has been checked and classified as one of: actionable now, unlock-first, deferred, excluded, or no meaningful issue found.
 
 ## Choosing the next module
 
@@ -77,9 +89,10 @@ After every iteration:
 1. Re-scan the module ledger.
 2. Prefer an `unvisited` module unless a just-touched module must be stabilized before moving on.
 3. Choose the easiest useful `unvisited` module that can be deeply read and improved or validated now.
-4. If the next unvisited module is high-risk and under-guarded, choose guardrail-building jobs first.
-5. If the next unvisited module is too coupled for direct cleanup, choose staged unlock work rather than skipping it.
-6. Return to the full-codebase scan after validation and update the ledger.
+4. Scan that module through every available job lens before deciding what "this round" means.
+5. If the next unvisited module is high-risk and under-guarded, choose guardrail-building jobs first.
+6. If the next unvisited module is too coupled for direct cleanup, choose staged unlock work rather than skipping it.
+7. Return to the full-codebase scan after validation and update the ledger.
 
 Revisiting a familiar module is valid only when:
 
@@ -104,7 +117,7 @@ Keep clusters bounded. Do not use clustering to claim full-repository coverage w
 At the end of each iteration, answer:
 
 - Which module or module cluster was deeply read?
-- Which jobs were selected and why?
+- Which job lenses were checked, and which jobs were selected and why?
 - What quality issue was fixed, or why is the module validated-clear?
 - Which guardrails prove behavior was preserved?
 - Which modules remain `unvisited`?
