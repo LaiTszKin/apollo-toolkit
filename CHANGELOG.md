@@ -5,6 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Changed
+- None yet.
+
+## [v3.1.7] - 2026-04-23
+
+### Changed
 - Enhance `iterative-code-quality` with module inventory and coverage-ledger guidance so agents start from the easiest useful modules, deeply read each in-scope module before completion, and return to scanning whenever unvisited modules remain.
 
 ## [v3.1.6] - 2026-04-23
