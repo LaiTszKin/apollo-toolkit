@@ -24,7 +24,7 @@ description: >-
 ## Standards
 
 - Evidence: Read repository docs, project constraints, source, tests, logs, build scripts, entrypoints, and nearby abstractions before editing; every refactor and every new test must be justified by code context.
-- Execution: Run a continuous three-step loop of full-codebase scan → choose this round's jobs and refactor → if and only if the latest full-codebase scan is clear, update docs and constraints; otherwise return to scanning immediately. Maintain a module inventory and coverage ledger so every in-scope module receives a job-oriented deep-read iteration before completion. Do not treat jobs as workflow steps. Do not produce a completion report while any known in-scope actionable issue or unvisited in-scope module remains.
+- Execution: Run a continuous three-step loop of full-codebase scan → choose this round's jobs and refactor → if and only if the latest full-codebase scan is clear, update docs and constraints; otherwise return to scanning immediately. Maintain a module inventory and coverage ledger so every in-scope module receives a job-oriented deep-read iteration before completion. Do not treat jobs as workflow steps. Do not produce a completion report while any known in-scope actionable issue or unvisited in-scope module remains, unless the remaining surface is explicitly classified with evidence as blocked, unsafe, user-owned active work, speculative, low-value, or approval-dependent.
 - Quality: Resolve as many inherited quality problems as safely possible without changing intended behavior or the system's macro architecture. Do not require pre-existing tests before every safe refactor; if an area is high-risk and weakly guarded, add the missing guardrails as part of the work instead of treating the area as untouchable.
 - Output: Return iteration-by-iteration decisions, selected jobs, module coverage status, changed files, behavior-preservation evidence, tests and guardrails added, validation results, and docs/constraint sync status only after the latest scan shows no remaining known actionable in-scope issue and no unvisited in-scope module.
 
@@ -52,6 +52,7 @@ For this skill, `macro architecture` means the system's top-level runtime shape 
 - Choose jobs only after the latest full-codebase scan. Jobs are optional execution directions, not ordered workflow steps.
 - Treat module scanning and job choice as one linked activity: inspect the selected module through every available job lens before deciding which jobs actually land in this round.
 - Select the smallest set of jobs that can safely improve the currently selected module or module cluster under current guardrails.
+- If the user has clearly indicated that a touched area is their active in-progress change, treat that area as blocked for this skill, record the evidence, and continue with other in-scope modules instead of modifying or debugging it.
 - Before choosing or deferring a refactor, explicitly assess refactor confidence as a combination of the agent's own ability to understand and complete the task, the objective safety net from tests and other guardrails, the clarity of rollback or repair paths, and the task's inherent difficulty. Do not treat difficulty alone as low confidence; when strong tests guard the behavior, use them to support bolder changes because failures can be driven back to green.
 - Prefer easy-first module ordering: start from low-risk, high-confidence modules when doing so builds context, tests, naming clarity, or seams that make harder modules safer later.
 - Do not keep revisiting familiar modules while other in-scope modules remain unvisited unless the familiar module blocks the next unvisited module's safe deep read.
@@ -89,6 +90,7 @@ Only enter this step when the latest full-codebase scan confirms there is no rem
 - Do not use one-off scripts to rewrite product code.
 - Do not stop early just because a file is large, central, or historically fragile; if a safe unlock step exists, that is the next job.
 - Do not stop before every in-scope module has been inventoried, deeply read, and either improved, validated as clear, or explicitly deferred/excluded with evidence.
+- Do not touch user-owned active edits; classify them as blocked with evidence and continue elsewhere.
 - Do not weaken tests to make a refactor pass; fix the real defect or update stale expectations to stable invariants.
 - Do not add style-only churn that does not improve naming, modularity, observability, reuse, or guardrail strength.
 - Do not add unreliable E2E coverage when a controlled integration or characterization test can prove the same risk more safely.

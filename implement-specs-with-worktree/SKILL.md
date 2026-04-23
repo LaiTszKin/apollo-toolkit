@@ -25,7 +25,7 @@ description: >-
 
 - Evidence: Read and understand the complete specs set before starting implementation, identify the authoritative parent branch that the worktree should inherit from, verify whether the requested scope is already implemented on that parent branch or current main working tree, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
 - Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, prefer direct `git` ref checks over brittle shell inference when deciding whether a branch or worktree already exists, and commit to a local branch when done.
-- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, avoid dragging unrelated sibling specs into the worktree just because they share a batch directory, and if branch/worktree creation reports ambiguous state re-check the actual git refs and worktree list before retrying.
+- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, avoid dragging unrelated sibling specs into the worktree just because they share a batch directory, revert unrelated formatter-only noise outside the spec-owned scope before committing, and if branch/worktree creation reports ambiguous state re-check the actual git refs and worktree list before retrying.
 - Output: Keep the worktree branch clean with only the intended implementation commits.
 
 ## Goal
@@ -149,6 +149,7 @@ After implementation and testing:
 - Treat the specs as the source of truth for scope — do not deviate without user approval.
 - When `coordination.md` exists, treat it as the source of truth for batch-level ownership and cutover direction.
 - Never remove a shared shim, rename a shared field, or rewrite a shared file outside the ownership map unless `coordination.md` explicitly allows that change or the user approves a coordination update first.
+- Revert formatter-only edits outside the owned spec scope before the final commit so the worktree stays reviewable and merge-safe.
 - Follow the testing standards from `enhance-existing-features` and `develop-new-features`.
 - Do not push to remote unless the user explicitly requests it.
 

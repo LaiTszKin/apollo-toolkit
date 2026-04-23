@@ -7,6 +7,12 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.2.1] - 2026-04-24
+
+### Changed
+- Tighten `iterative-code-quality` so remaining modules may be reported as complete only after they are explicitly classified with evidence, including user-owned active edits that must be left untouched during repository-wide cleanup.
+- Tighten `implement-specs-with-worktree` so formatter-only edits outside the owned spec scope must be reverted before the final worktree commit.
+
 ## [v3.2.0] - 2026-04-23
 
 ### Added
