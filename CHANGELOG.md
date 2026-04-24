@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - None yet.
 
+## [v3.2.2] - 2026-04-25
+
+### Changed
+- Tighten `implement-specs-with-worktree` so targeted Rust verification must avoid multi-filter `cargo test` invocations and rerun any zero-test selector before treating the worktree spec as validated.
+
 ## [v3.2.1] - 2026-04-24
 
 ### Changed

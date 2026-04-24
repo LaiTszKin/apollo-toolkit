@@ -25,7 +25,7 @@ description: >-
 
 - Evidence: Read and understand the complete specs set before starting implementation, identify the authoritative parent branch that the worktree should inherit from, verify whether the requested scope is already implemented on that parent branch or current main working tree, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
 - Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, prefer direct `git` ref checks over brittle shell inference when deciding whether a branch or worktree already exists, and commit to a local branch when done.
-- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, avoid dragging unrelated sibling specs into the worktree just because they share a batch directory, revert unrelated formatter-only noise outside the spec-owned scope before committing, and if branch/worktree creation reports ambiguous state re-check the actual git refs and worktree list before retrying.
+- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, avoid dragging unrelated sibling specs into the worktree just because they share a batch directory, revert unrelated formatter-only noise outside the spec-owned scope before committing, if branch/worktree creation reports ambiguous state re-check the actual git refs and worktree list before retrying, and when using targeted Rust `cargo test` selectors remember Cargo accepts only one positional test filter so each distinct selector needs its own confirmed command.
 - Output: Keep the worktree branch clean with only the intended implementation commits.
 
 ## Goal
@@ -109,6 +109,8 @@ Use branch naming from `references/branch-naming.md`.
   - E2E tests for key user-visible paths
   - Adversarial tests for abuse paths
 - Run relevant tests and fix failures.
+- When using targeted Rust `cargo test` commands, pass at most one positional test filter per invocation; if multiple selectors are needed, run separate commands or a broader confirmed selector.
+- Treat any targeted test command that executes zero tests as non-verification and rerun with a selector that proves the intended coverage actually ran.
 - Do not skip testing even for seemingly small changes.
 
 ### 5) Backfill completion status
