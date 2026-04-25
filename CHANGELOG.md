@@ -5,6 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Added
+- (None yet)
+
+## [v3.3.0] - 2026-04-26
+
+### Added
 - Add `apltk uninstall` command to remove all installed skills from all targets (or specific targets) via manifest-based cleanup.
 - Add symlink install mode (`--symlink`) so skills auto-update when `git pull` runs in `~/.apollo-toolkit`, removing the need to re-run the installer after patch updates.
 - Add `--copy` flag to explicitly select copy mode when symlink is not desired.
