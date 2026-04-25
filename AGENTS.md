@@ -4,8 +4,9 @@
 
 - This repository is a skill catalog: each top-level skill lives in its own directory and is installable when that directory contains `SKILL.md`.
 - Typical skill layout is lightweight and consistent: `SKILL.md`, `README.md`, `LICENSE`, plus optional `agents/`, `references/`, and `scripts/`.
-- The npm package exposes an `apollo-toolkit` CLI that stages a managed copy under `~/.apollo-toolkit` and copies each skill folder into selected target directories.
-- `scripts/install_skills.sh` and `scripts/install_skills.ps1` remain available for local/curl installs and mirror the managed-home copy behavior.
+- The npm package exposes an `apollo-toolkit` CLI that stages a managed copy under `~/.apollo-toolkit` and copies or symlinks each skill folder into selected target directories.
+- The installer writes a `.apollo-toolkit-manifest.json` per target directory to track installed skills, historical skill names, and install mode for future uninstall and deduplication.
+- `scripts/install_skills.sh` and `scripts/install_skills.ps1` remain available for local/curl installs and mirror the managed-home install behavior with symlink/copy choice and uninstall support.
 
 ## Core Business Flow
 
@@ -20,7 +21,9 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can research a topic deeply and produce evidence-based deliverables.
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.
-- Users can install Apollo Toolkit through npm or npx and interactively choose one or more target skill directories to populate with copied skills.
+- Users can install Apollo Toolkit through npm or npx and interactively choose one or more target skill directories to populate with copied or symlinked skills, with the option to include codex-exclusive skills in non-codex targets.
+- Users can uninstall all Apollo Toolkit-installed skills from all targets or specific targets via `apltk uninstall`.
+- Users can choose between symlink mode (auto-update via git pull) and copy mode (stable snapshot) with `--symlink` / `--copy` flags.
 - Users can run bundled helper tools through `apltk tools` and direct `apltk <tool>` commands for selected packaged skill scripts.
 - Users can design and implement new features through a spec-first workflow.
 - Users can generate shared feature planning artifacts for approval-gated workflows, including parallel multi-spec batches coordinated through one batch-level `coordination.md`.
@@ -72,7 +75,11 @@ This repository enables users to install and run a curated set of reusable agent
 - `python3 scripts/validate_skill_frontmatter.py` - 驗證所有頂層技能 `SKILL.md` 的 frontmatter。
 - `python3 scripts/validate_openai_agent_config.py` - 驗證所有技能 `agents/openai.yaml` 設定。
 - `./scripts/install_skills.sh codex` - 用本地安裝腳本把技能安裝到 Codex 目錄。
-- `./scripts/install_skills.sh all` - 用本地安裝腳本同步安裝到所有支援目標。
+- `./scripts/install_skills.sh codex --symlink` - 以 symlink 模式安裝（推薦）。
+- `./scripts/install_skills.sh all --copy` - 以複製模式安裝到所有支援目標。
+- `./scripts/install_skills.sh uninstall` - 從所有目標移除已安裝的技能。
+- `./scripts/install_skills.sh uninstall codex` - 只從 codex 目標移除。
+- `node bin/apollo-toolkit.js uninstall` - 透過 CLI 移除所有已安裝技能。
 
 ## Core Project Purpose
 

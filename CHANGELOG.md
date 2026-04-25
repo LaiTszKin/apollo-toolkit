@@ -4,8 +4,16 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
-### Changed
-- None yet.
+### Added
+- Add `apltk uninstall` command to remove all installed skills from all targets (or specific targets) via manifest-based cleanup.
+- Add symlink install mode (`--symlink`) so skills auto-update when `git pull` runs in `~/.apollo-toolkit`, removing the need to re-run the installer after patch updates.
+- Add `--copy` flag to explicitly select copy mode when symlink is not desired.
+- Add interactive prompt during install that explains symlink pros/cons and lets the user choose between symlink and copy mode.
+- Add interactive prompt to optionally install codex-exclusive skills into non-codex targets during global install.
+- Add `.apollo-toolkit-manifest.json` per target directory to track installed skills, historical skill names, and install mode for future uninstall and deduplication.
+- Add `listAllKnownSkillNames()` to combine current and historically-appeared skill names with automatic deduplication.
+- Add `uninstall` subcommand to `scripts/install_skills.sh` and `scripts/install_skills.ps1`.
+- Add `--symlink` / `--copy` flags to both shell and PowerShell install scripts.
 
 ## [v3.2.2] - 2026-04-25
 

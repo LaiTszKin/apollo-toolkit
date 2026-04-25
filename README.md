@@ -65,9 +65,26 @@ The interactive installer:
 - shows a branded `Apollo Toolkit` terminal welcome screen with a short staged reveal
 - installs a managed copy into `~/.apollo-toolkit`
 - lets you multi-select `codex`, `openclaw`, `trae`, `agents`, `claude-code`, or `all`
-- copies `~/.apollo-toolkit/<skill>` into each selected target
+- asks whether to install skills as **symlinks** (recommended) or **file copies**
+- lets you choose whether to include codex-exclusive skills in non-codex targets
+- copies or symlinks `~/.apollo-toolkit/<skill>` into each selected target
 - removes stale previously installed skill directories that existed in the previous installed version but no longer exist in the current package skill list
 - replaces legacy symlink-based installs created by older Apollo Toolkit installers with real copied directories
+- writes a manifest (`.apollo-toolkit-manifest.json`) per target for future uninstall and skill tracking
+
+### Symlink vs Copy
+
+| Mode | Pro | Con |
+| --- | --- | --- |
+| **Symlink** (recommended) | Auto-updates when you `git pull` in `~/.apollo-toolkit`; no need to re-run installer after patch updates | Changes pushed to the repo automatically reflect in your skills — you may receive updates you did not intend to accept |
+| **Copy** | Stable snapshot; won't change until you re-run the installer | Must manually re-run `apltk` after each toolkit update to get the latest skills |
+
+### Uninstall
+
+```bash
+apltk uninstall          # Remove all installed skills from all targets
+apltk uninstall codex    # Remove only from codex
+```
 
 ### Global install
 
@@ -98,6 +115,13 @@ npx @laitszkin/apollo-toolkit codex openclaw
 npx @laitszkin/apollo-toolkit all
 ```
 
+Add `--symlink` (recommended) or `--copy` to skip the interactive prompt:
+
+```bash
+npx @laitszkin/apollo-toolkit codex --symlink
+npx @laitszkin/apollo-toolkit all --copy
+```
+
 ### Optional overrides
 
 ```bash
@@ -121,24 +145,27 @@ Installers still live in `scripts/` for local repository usage and curl / iwr in
 ```bash
 ./scripts/install_skills.sh
 ./scripts/install_skills.sh codex
-./scripts/install_skills.sh openclaw
-./scripts/install_skills.sh trae
-./scripts/install_skills.sh agents
-./scripts/install_skills.sh all
+./scripts/install_skills.sh codex --symlink
+./scripts/install_skills.sh all --copy
+./scripts/install_skills.sh uninstall
+./scripts/install_skills.sh uninstall codex trae
 ```
 
 ```powershell
 ./scripts/install_skills.ps1
 ./scripts/install_skills.ps1 codex
-./scripts/install_skills.ps1 agents
-./scripts/install_skills.ps1 all
+./scripts/install_skills.ps1 agents --symlink
+./scripts/install_skills.ps1 all --copy
+./scripts/install_skills.ps1 uninstall
+./scripts/install_skills.ps1 uninstall codex trae
 ```
 
 ### Curl / iwr one-liners
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash
-curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash -s -- codex
+curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash -s -- codex --symlink
+curl -fsSL https://raw.githubusercontent.com/LaiTszKin/apollo-toolkit/main/scripts/install_skills.sh | bash -s -- uninstall
 ```
 
 ```powershell

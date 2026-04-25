@@ -1,6 +1,6 @@
 param(
   [Parameter(ValueFromRemainingArguments = $true)]
-  [string[]]$Modes
+  [string[]]$RawArgs
 )
 
 Set-StrictMode -Version Latest
@@ -9,7 +9,8 @@ $ErrorActionPreference = "Stop"
 function Show-Usage {
   @"
 Usage:
-  ./scripts/install_skills.ps1 [codex|openclaw|trae|agents|claude-code|all]...
+  ./scripts/install_skills.ps1 [install] [codex|openclaw|trae|agents|claude-code|all]...
+  ./scripts/install_skills.ps1 uninstall [codex|openclaw|trae|agents|claude-code|all]...
 
 Modes:
   codex       Copy skills into ~/.codex/skills (includes ./codex/ agent-specific skills)
@@ -18,6 +19,10 @@ Modes:
   agents      Copy skills into ~/.agents/skills (for agent-skill-compatible software)
   claude-code Copy skills into ~/.claude/skills
   all         Install all supported targets
+
+Options:
+  --symlink   Install skills as symlinks (recommended; auto-update via git pull)
+  --copy      Install skills as file copies (manual reinstall for updates)
 
 Optional environment overrides:
   CODEX_SKILLS_DIR         Override codex skills destination path
@@ -30,7 +35,8 @@ Optional environment overrides:
 "@
 }
 
-$ToolkitRepoUrl = if ($env:APOLLO_TOOLKIT_REPO_URL) { $env:APOLLO_TOOLKIT_REPO_URL } else { "https://github.com/LaiTszKin/apollo-toolkit.git" }
+$Script:ToolkitRepoUrl = if ($env:APOLLO_TOOLKIT_REPO_URL) { $env:APOLLO_TOOLKIT_REPO_URL } else { "https://github.com/LaiTszKin/apollo-toolkit.git" }
+$Script:ManifestFilename = ".apollo-toolkit-manifest.json"
 
 function Expand-UserPath {
   param([string]$Path)
@@ -51,7 +57,7 @@ function Expand-UserPath {
   return $Path
 }
 
-$ToolkitHome = if ($env:APOLLO_TOOLKIT_HOME) { Expand-UserPath $env:APOLLO_TOOLKIT_HOME } else { Join-Path $HOME ".apollo-toolkit" }
+$Script:ToolkitHome = if ($env:APOLLO_TOOLKIT_HOME) { Expand-UserPath $env:APOLLO_TOOLKIT_HOME } else { Join-Path $HOME ".apollo-toolkit" }
 
 function Show-Banner {
   @"
@@ -80,40 +86,43 @@ function Test-RepoRoot {
 }
 
 function Bootstrap-RepoIfNeeded {
-  if (Test-Path -LiteralPath (Join-Path $ToolkitHome ".git") -PathType Container) {
-    git -C $ToolkitHome pull --ff-only | Out-Null
+  if (Test-Path -LiteralPath (Join-Path $Script:ToolkitHome ".git") -PathType Container) {
+    git -C $Script:ToolkitHome pull --ff-only | Out-Null
   }
   else {
-    if (Test-Path -LiteralPath $ToolkitHome) {
-      Remove-Item -LiteralPath $ToolkitHome -Force -Recurse
+    if (Test-Path -LiteralPath $Script:ToolkitHome) {
+      Remove-Item -LiteralPath $Script:ToolkitHome -Force -Recurse
     }
-    git clone --depth 1 $ToolkitRepoUrl $ToolkitHome | Out-Null
+    git clone --depth 1 $Script:ToolkitRepoUrl $Script:ToolkitHome | Out-Null
   }
 }
 
-$scriptPath = $MyInvocation.MyCommand.Path
+$Script:LinkMode = ""
+$Script:ScriptPath = $MyInvocation.MyCommand.Path
 $candidateRepoRoot = $null
 
-if (-not [string]::IsNullOrWhiteSpace($scriptPath)) {
-  $scriptDir = Split-Path -Parent $scriptPath
+if (-not [string]::IsNullOrWhiteSpace($Script:ScriptPath)) {
+  $scriptDir = Split-Path -Parent $Script:ScriptPath
   $candidateRepoRoot = Split-Path -Parent $scriptDir
 }
 
 if (Test-RepoRoot -Path $candidateRepoRoot) {
-  $RepoRoot = $candidateRepoRoot
+  $Script:RepoRoot = $candidateRepoRoot
 }
 elseif (Test-RepoRoot -Path (Get-Location).Path) {
-  $RepoRoot = (Get-Location).Path
+  $Script:RepoRoot = (Get-Location).Path
 }
 else {
   Bootstrap-RepoIfNeeded
-  $RepoRoot = $ToolkitHome
+  $Script:RepoRoot = $Script:ToolkitHome
 }
+
+# ---- Skill collection ----
 
 function Get-SkillPathGroups {
   param([string[]]$SelectedModes)
 
-  $dirs = Get-ChildItem -Path $RepoRoot -Directory | Sort-Object Name
+  $dirs = Get-ChildItem -Path $Script:RepoRoot -Directory | Sort-Object Name
   $sharedSkills = @()
   $codexSkills = @()
 
@@ -123,9 +132,8 @@ function Get-SkillPathGroups {
     }
   }
 
-  # For codex mode, also include codex-specific skills
   if ($SelectedModes -contains "codex") {
-    $codexDir = Join-Path $RepoRoot "codex"
+    $codexDir = Join-Path $Script:RepoRoot "codex"
     if (Test-Path -LiteralPath $codexDir -PathType Container) {
       $codexDirs = Get-ChildItem -Path $codexDir -Directory | Sort-Object Name
       foreach ($dir in $codexDirs) {
@@ -137,14 +145,373 @@ function Get-SkillPathGroups {
   }
 
   if ($sharedSkills.Count -eq 0) {
-    throw "No skill folders found in: $RepoRoot"
+    throw "No skill folders found in: $($Script:RepoRoot)"
   }
 
   [PSCustomObject]@{
     Shared = $sharedSkills
-    Codex = $codexSkills
+    Codex  = $codexSkills
   }
 }
+
+function Get-SkillNames {
+  param([string[]]$Paths)
+
+  $names = @()
+  foreach ($p in $Paths) {
+    $names += Split-Path -Path $p -Leaf
+  }
+  return ($names | Sort-Object -Unique)
+}
+
+# ---- Manifest management ----
+
+function Read-ManifestSkills {
+  param([string]$TargetRoot)
+
+  $manifestPath = Join-Path $TargetRoot $Script:ManifestFilename
+  if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+    return @()
+  }
+
+  try {
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    $skills = @()
+    if ($manifest.historicalSkills) {
+      $skills += $manifest.historicalSkills
+    }
+    if ($manifest.skills) {
+      $skills += $manifest.skills
+    }
+    return ($skills | Sort-Object -Unique)
+  }
+  catch {
+    return @()
+  }
+}
+
+function Write-Manifest {
+  param(
+    [string]$TargetRoot,
+    [string]$Version,
+    [string]$LinkMode,
+    [string[]]$SkillNames
+  )
+
+  $manifestPath = Join-Path $TargetRoot $Script:ManifestFilename
+  $historicalSkills = @()
+  if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
+    $historicalSkills = Read-ManifestSkills -TargetRoot $TargetRoot
+  }
+
+  $merged = @()
+  $merged += $historicalSkills
+  $merged += $SkillNames
+  $allSkills = ($merged | Sort-Object -Unique)
+
+  $manifest = [PSCustomObject]@{
+    version          = $Version
+    installedAt      = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
+    linkMode         = $LinkMode
+    skills           = ($SkillNames | Sort-Object -Unique)
+    historicalSkills = $allSkills
+  }
+
+  New-Item -ItemType Directory -Path $TargetRoot -Force | Out-Null
+  $manifest | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+}
+
+# ---- Install operations ----
+
+function Copy-Skill {
+  param(
+    [string]$Source,
+    [string]$TargetRoot
+  )
+
+  $name = Split-Path -Path $Source -Leaf
+  $target = Join-Path $TargetRoot $name
+
+  New-Item -ItemType Directory -Path $TargetRoot -Force | Out-Null
+  Remove-PathForce -Target $target
+
+  Copy-Item -LiteralPath $Source -Destination $target -Recurse -Force
+  Write-Host "[copied] $Source -> $target"
+}
+
+function Symlink-Skill {
+  param(
+    [string]$Source,
+    [string]$TargetRoot
+  )
+
+  $name = Split-Path -Path $Source -Leaf
+  $target = Join-Path $TargetRoot $name
+
+  New-Item -ItemType Directory -Path $TargetRoot -Force | Out-Null
+  Remove-PathForce -Target $target
+
+  New-Item -ItemType SymbolicLink -Path $target -Target $Source -Force | Out-Null
+  Write-Host "[symlink] $Source -> $target"
+}
+
+function Do-Replace {
+  param(
+    [string]$Source,
+    [string]$TargetRoot
+  )
+
+  if ($Script:LinkMode -eq "symlink") {
+    Symlink-Skill -Source $Source -TargetRoot $TargetRoot
+  }
+  else {
+    Copy-Skill -Source $Source -TargetRoot $TargetRoot
+  }
+}
+
+function Remove-PathForce {
+  param([string]$Target)
+
+  if (Test-Path -LiteralPath $Target) {
+    Remove-Item -LiteralPath $Target -Force -Recurse
+  }
+}
+
+# ---- Uninstall operations ----
+
+function Uninstall-Target {
+  param(
+    [string]$TargetRoot,
+    [string]$TargetLabel
+  )
+
+  $manifestPath = Join-Path $TargetRoot $Script:ManifestFilename
+  if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+    Write-Host "[skip] No manifest found in: $TargetRoot"
+    return
+  }
+
+  $skills = Read-ManifestSkills -TargetRoot $TargetRoot
+  if ($skills.Count -eq 0) {
+    Write-Host "[skip] No skills in manifest: $TargetRoot"
+    Remove-Item -LiteralPath $manifestPath -Force -ErrorAction SilentlyContinue
+    return
+  }
+
+  Write-Host "Uninstalling from $($TargetLabel): $TargetRoot"
+  foreach ($name in $skills) {
+    $skillPath = Join-Path $TargetRoot $name
+    if (Test-Path -LiteralPath $skillPath) {
+      Remove-Item -LiteralPath $skillPath -Force -Recurse
+      Write-Host "  [removed] $skillPath"
+    }
+  }
+
+  Remove-Item -LiteralPath $manifestPath -Force -ErrorAction SilentlyContinue
+  Write-Host "  [removed manifest] $manifestPath"
+}
+
+function Invoke-Uninstall {
+  param([string[]]$SelectedModes)
+
+  if ($SelectedModes.Count -eq 0) {
+    $SelectedModes = @("codex", "openclaw", "trae", "agents", "claude-code")
+  }
+
+  Write-Host "Uninstalling Apollo Toolkit skills..."
+  Write-Host "Target modes: $($SelectedModes -join ', ')"
+  Write-Host ""
+
+  # Show all known skills
+  $skillGroups = Get-SkillPathGroups -SelectedModes $SelectedModes
+  $currentNames = Get-SkillNames -Paths ($skillGroups.Shared + $skillGroups.Codex)
+  $allNames = @()
+  $allNames += $currentNames
+
+  # Collect historical from manifests
+  $targetDirs = @()
+  foreach ($m in $SelectedModes) {
+    switch ($m) {
+      "codex" {
+        $d = if ($env:CODEX_SKILLS_DIR) { Expand-UserPath $env:CODEX_SKILLS_DIR } else { Join-Path $HOME ".codex/skills" }
+        $targetDirs += $d
+      }
+      "openclaw" {
+        $oh = if ($env:OPENCLAW_HOME) { Expand-UserPath $env:OPENCLAW_HOME } else { Join-Path $HOME ".openclaw" }
+        if (Test-Path -LiteralPath $oh) {
+          foreach ($ws in (Get-ChildItem -Path $oh -Directory -Filter "workspace*")) {
+            $targetDirs += (Join-Path $ws.FullName "skills")
+          }
+        }
+      }
+      "trae" {
+        $d = if ($env:TRAE_SKILLS_DIR) { Expand-UserPath $env:TRAE_SKILLS_DIR } else { Join-Path $HOME ".trae/skills" }
+        $targetDirs += $d
+      }
+      "agents" {
+        $d = if ($env:AGENTS_SKILLS_DIR) { Expand-UserPath $env:AGENTS_SKILLS_DIR } else { Join-Path $HOME ".agents/skills" }
+        $targetDirs += $d
+      }
+      "claude-code" {
+        $d = if ($env:CLAUDE_CODE_SKILLS_DIR) { Expand-UserPath $env:CLAUDE_CODE_SKILLS_DIR } else { Join-Path $HOME ".claude/skills" }
+        $targetDirs += $d
+      }
+    }
+  }
+
+  foreach ($td in $targetDirs) {
+    $allNames += (Read-ManifestSkills -TargetRoot $td)
+  }
+
+  $allKnown = ($allNames | Sort-Object -Unique)
+  Write-Host "All known skills (current + historical):"
+  foreach ($n in $allKnown) {
+    Write-Host "  - $n"
+  }
+  Write-Host ""
+
+  foreach ($m in $SelectedModes) {
+    switch ($m) {
+      "codex" {
+        $d = if ($env:CODEX_SKILLS_DIR) { Expand-UserPath $env:CODEX_SKILLS_DIR } else { Join-Path $HOME ".codex/skills" }
+        Uninstall-Target -TargetRoot $d -TargetLabel "codex"
+      }
+      "trae" {
+        $d = if ($env:TRAE_SKILLS_DIR) { Expand-UserPath $env:TRAE_SKILLS_DIR } else { Join-Path $HOME ".trae/skills" }
+        Uninstall-Target -TargetRoot $d -TargetLabel "trae"
+      }
+      "agents" {
+        $d = if ($env:AGENTS_SKILLS_DIR) { Expand-UserPath $env:AGENTS_SKILLS_DIR } else { Join-Path $HOME ".agents/skills" }
+        Uninstall-Target -TargetRoot $d -TargetLabel "agents"
+      }
+      "claude-code" {
+        $d = if ($env:CLAUDE_CODE_SKILLS_DIR) { Expand-UserPath $env:CLAUDE_CODE_SKILLS_DIR } else { Join-Path $HOME ".claude/skills" }
+        Uninstall-Target -TargetRoot $d -TargetLabel "claude-code"
+      }
+      "openclaw" {
+        $oh = if ($env:OPENCLAW_HOME) { Expand-UserPath $env:OPENCLAW_HOME } else { Join-Path $HOME ".openclaw" }
+        if (Test-Path -LiteralPath $oh) {
+          foreach ($ws in (Get-ChildItem -Path $oh -Directory -Filter "workspace*")) {
+            Uninstall-Target -TargetRoot (Join-Path $ws.FullName "skills") -TargetLabel "openclaw"
+          }
+        }
+      }
+    }
+  }
+
+  Write-Host "Done."
+}
+
+# ---- Install functions ----
+
+function Install-Codex {
+  param([string[]]$SkillPaths)
+
+  $target = if ($env:CODEX_SKILLS_DIR) {
+    Expand-UserPath $env:CODEX_SKILLS_DIR
+  }
+  else {
+    Join-Path $HOME ".codex/skills"
+  }
+
+  Write-Host "Installing to codex: $target (mode: $Script:LinkMode)"
+  $skillNames = @()
+  foreach ($src in $SkillPaths) {
+    Do-Replace -Source $src -TargetRoot $target
+    $skillNames += (Split-Path -Path $src -Leaf)
+  }
+  Write-Manifest -TargetRoot $target -Version $Script:Version -LinkMode $Script:LinkMode -SkillNames $skillNames
+}
+
+function Install-OpenClaw {
+  param([string[]]$SkillPaths)
+
+  $openclawHome = if ($env:OPENCLAW_HOME) {
+    Expand-UserPath $env:OPENCLAW_HOME
+  }
+  else {
+    Join-Path $HOME ".openclaw"
+  }
+
+  if (-not (Test-Path -LiteralPath $openclawHome -PathType Container)) {
+    throw "OpenClaw home not found: $openclawHome"
+  }
+
+  $workspaces = Get-ChildItem -Path $openclawHome -Directory -Filter "workspace*" | Sort-Object Name
+  if ($workspaces.Count -eq 0) {
+    throw "No workspace directories found under: $openclawHome"
+  }
+
+  foreach ($workspace in $workspaces) {
+    $skillsDir = Join-Path $workspace.FullName "skills"
+    Write-Host "Installing to openclaw workspace: $skillsDir (mode: $Script:LinkMode)"
+    $skillNames = @()
+    foreach ($src in $SkillPaths) {
+      Do-Replace -Source $src -TargetRoot $skillsDir
+      $skillNames += (Split-Path -Path $src -Leaf)
+    }
+    Write-Manifest -TargetRoot $skillsDir -Version $Script:Version -LinkMode $Script:LinkMode -SkillNames $skillNames
+  }
+}
+
+function Install-Trae {
+  param([string[]]$SkillPaths)
+
+  $target = if ($env:TRAE_SKILLS_DIR) {
+    Expand-UserPath $env:TRAE_SKILLS_DIR
+  }
+  else {
+    Join-Path $HOME ".trae/skills"
+  }
+
+  Write-Host "Installing to trae: $target (mode: $Script:LinkMode)"
+  $skillNames = @()
+  foreach ($src in $SkillPaths) {
+    Do-Replace -Source $src -TargetRoot $target
+    $skillNames += (Split-Path -Path $src -Leaf)
+  }
+  Write-Manifest -TargetRoot $target -Version $Script:Version -LinkMode $Script:LinkMode -SkillNames $skillNames
+}
+
+function Install-Agents {
+  param([string[]]$SkillPaths)
+
+  $target = if ($env:AGENTS_SKILLS_DIR) {
+    Expand-UserPath $env:AGENTS_SKILLS_DIR
+  }
+  else {
+    Join-Path $HOME ".agents/skills"
+  }
+
+  Write-Host "Installing to agents: $target (mode: $Script:LinkMode)"
+  $skillNames = @()
+  foreach ($src in $SkillPaths) {
+    Do-Replace -Source $src -TargetRoot $target
+    $skillNames += (Split-Path -Path $src -Leaf)
+  }
+  Write-Manifest -TargetRoot $target -Version $Script:Version -LinkMode $Script:LinkMode -SkillNames $skillNames
+}
+
+function Install-ClaudeCode {
+  param([string[]]$SkillPaths)
+
+  $target = if ($env:CLAUDE_CODE_SKILLS_DIR) {
+    Expand-UserPath $env:CLAUDE_CODE_SKILLS_DIR
+  }
+  else {
+    Join-Path $HOME ".claude/skills"
+  }
+
+  Write-Host "Installing to claude-code: $target (mode: $Script:LinkMode)"
+  $skillNames = @()
+  foreach ($src in $SkillPaths) {
+    Do-Replace -Source $src -TargetRoot $target
+    $skillNames += (Split-Path -Path $src -Leaf)
+  }
+  Write-Manifest -TargetRoot $target -Version $Script:Version -LinkMode $Script:LinkMode -SkillNames $skillNames
+}
+
+# ---- Mode management ----
 
 function Add-ModeOnce {
   param(
@@ -225,137 +592,150 @@ function Resolve-Modes {
   return $selected
 }
 
-function Remove-PathForce {
-  param([string]$Target)
-
-  if (Test-Path -LiteralPath $Target) {
-    Remove-Item -LiteralPath $Target -Force -Recurse
-  }
-}
-
-function Copy-Skill {
+function Read-YesNo {
   param(
-    [string]$Source,
-    [string]$TargetRoot
+    [string]$Prompt,
+    [bool]$DefaultYes = $true
   )
 
-  $name = Split-Path -Path $Source -Leaf
-  $target = Join-Path $TargetRoot $name
-
-  New-Item -ItemType Directory -Path $TargetRoot -Force | Out-Null
-  Remove-PathForce -Target $target
-
-  Copy-Item -LiteralPath $Source -Destination $target -Recurse -Force
-  Write-Host "[copied] $Source -> $target"
+  $hint = if ($DefaultYes) { "[Y/n]" } else { "[y/N]" }
+  $result = Read-Host "$Prompt $hint"
+  if ([string]::IsNullOrWhiteSpace($result)) {
+    return $DefaultYes
+  }
+  $trimmed = $result.Trim().ToLowerInvariant()
+  return ($trimmed -eq "y" -or $trimmed -eq "yes")
 }
 
-function Install-Codex {
-  param([string[]]$SkillPaths)
+function Prompt-LinkMode {
+  Write-Host ""
+  Write-Host "Symlink mode:"
+  Write-Host "  Pro: Skills auto-update when you 'git pull' in ~/.apollo-toolkit"
+  Write-Host "  Pro: No need to re-run installer after patch updates"
+  Write-Host "  Con: Changes pushed to the repo automatically reflect in your skills -"
+  Write-Host "       you may receive updates you did not intend to accept"
+  Write-Host ""
 
-  $target = if ($env:CODEX_SKILLS_DIR) {
-    Expand-UserPath $env:CODEX_SKILLS_DIR
+  if (Read-YesNo -Prompt "Install skills as symlinks (recommended)?" -DefaultYes $true) {
+    $Script:LinkMode = "symlink"
   }
   else {
-    Join-Path $HOME ".codex/skills"
+    $Script:LinkMode = "copy"
   }
-
-  Write-Host "Installing to codex: $target"
-  foreach ($src in $SkillPaths) {
-    Copy-Skill -Source $src -TargetRoot $target
-  }
+  Write-Host "Using: $Script:LinkMode"
 }
 
-function Install-OpenClaw {
-  param([string[]]$SkillPaths)
+function Prompt-IncludeExclusive {
+  param(
+    [string[]]$SelectedModes,
+    [string[]]$CodexSkillPaths
+  )
 
-  $openclawHome = if ($env:OPENCLAW_HOME) {
-    Expand-UserPath $env:OPENCLAW_HOME
-  }
-  else {
-    Join-Path $HOME ".openclaw"
-  }
-
-  if (-not (Test-Path -LiteralPath $openclawHome -PathType Container)) {
-    throw "OpenClaw home not found: $openclawHome"
+  if ($CodexSkillPaths.Count -eq 0) {
+    return
   }
 
-  $workspaces = Get-ChildItem -Path $openclawHome -Directory -Filter "workspace*" | Sort-Object Name
-  if ($workspaces.Count -eq 0) {
-    throw "No workspace directories found under: $openclawHome"
-  }
-
-  foreach ($workspace in $workspaces) {
-    $skillsDir = Join-Path $workspace.FullName "skills"
-    Write-Host "Installing to openclaw workspace: $skillsDir"
-    foreach ($src in $SkillPaths) {
-      Copy-Skill -Source $src -TargetRoot $skillsDir
+  $hasNonCodex = $false
+  foreach ($m in $SelectedModes) {
+    if ($m -ne "codex") {
+      $hasNonCodex = $true
+      break
     }
   }
+
+  if (-not $hasNonCodex) {
+    return
+  }
+
+  $codexOnlyNames = @()
+  foreach ($cp in $CodexSkillPaths) {
+    $codexOnlyNames += (Split-Path -Path $cp -Leaf)
+  }
+
+  Write-Host ""
+  Write-Host "Exclusive skills detected:"
+  Write-Host "  The following skills are exclusive to codex: $($codexOnlyNames -join ', ')"
+  Write-Host "  Your selected non-codex targets: $(($SelectedModes | Where-Object { $_ -ne 'codex' }) -join ', ')"
+
+  if (Read-YesNo -Prompt "Install codex-exclusive skills to non-codex targets as well?" -DefaultYes $false) {
+    return $true
+  }
+  return $false
 }
 
-function Install-Trae {
-  param([string[]]$SkillPaths)
-
-  $target = if ($env:TRAE_SKILLS_DIR) {
-    Expand-UserPath $env:TRAE_SKILLS_DIR
+# ---- Version detection ----
+$Script:Version = "unknown"
+$pkgJsonPath = Join-Path $Script:RepoRoot "package.json"
+if (Test-Path -LiteralPath $pkgJsonPath -PathType Leaf) {
+  try {
+    $pkg = Get-Content -LiteralPath $pkgJsonPath -Raw | ConvertFrom-Json
+    if ($pkg.version) {
+      $Script:Version = $pkg.version
+    }
   }
-  else {
-    Join-Path $HOME ".trae/skills"
-  }
+  catch { }
+}
 
-  Write-Host "Installing to trae: $target"
-  foreach ($src in $SkillPaths) {
-    Copy-Skill -Source $src -TargetRoot $target
+# ---- Main ----
+
+# Parse arguments
+$Args = @()
+$Command = "install"
+foreach ($arg in $RawArgs) {
+  switch ($arg) {
+    "-h" { Show-Usage; exit 0 }
+    "--help" { Show-Usage; exit 0 }
+    "--symlink" { $Script:LinkMode = "symlink" }
+    "--copy" { $Script:LinkMode = "copy" }
+    default { $Args += $arg }
   }
 }
 
-function Install-Agents {
-  param([string[]]$SkillPaths)
-
-  $target = if ($env:AGENTS_SKILLS_DIR) {
-    Expand-UserPath $env:AGENTS_SKILLS_DIR
-  }
-  else {
-    Join-Path $HOME ".agents/skills"
-  }
-
-  Write-Host "Installing to agents: $target"
-  foreach ($src in $SkillPaths) {
-    Copy-Skill -Source $src -TargetRoot $target
-  }
+if ($Args.Count -gt 0 -and $Args[0] -eq "uninstall") {
+  $Command = "uninstall"
+  $Args = $Args[1..($Args.Count - 1)]
+}
+elseif ($Args.Count -gt 0 -and $Args[0] -eq "install") {
+  $Args = $Args[1..($Args.Count - 1)]
 }
 
-function Install-ClaudeCode {
-  param([string[]]$SkillPaths)
+# Resolve modes
+$selectedModes = Resolve-Modes -Requested $Args
 
-  $target = if ($env:CLAUDE_CODE_SKILLS_DIR) {
-    Expand-UserPath $env:CLAUDE_CODE_SKILLS_DIR
-  }
-  else {
-    Join-Path $HOME ".claude/skills"
-  }
-
-  Write-Host "Installing to claude-code: $target"
-  foreach ($src in $SkillPaths) {
-    Copy-Skill -Source $src -TargetRoot $target
-  }
-}
-
-if ($Modes.Count -gt 0 -and ($Modes[0] -eq "-h" -or $Modes[0] -eq "--help")) {
-  Show-Usage
+if ($Command -eq "uninstall") {
+  Invoke-Uninstall -SelectedModes $selectedModes
   exit 0
 }
 
-$selectedModes = Resolve-Modes -Requested $Modes
+# Install flow
 $skillPathGroups = Get-SkillPathGroups -SelectedModes $selectedModes
+
+# Prompt for link mode if not set
+if ([string]::IsNullOrEmpty($Script:LinkMode)) {
+  Prompt-LinkMode
+}
+
+# Prompt for exclusive skills inclusion
+$includeExclusive = Prompt-IncludeExclusive -SelectedModes $selectedModes -CodexSkillPaths $skillPathGroups.Codex
+$effectiveShared = $skillPathGroups.Shared
+if ($includeExclusive) {
+  $effectiveShared += $skillPathGroups.Codex
+}
+
+# Summarize and install
+Write-Host ""
+Write-Host "Apollo Toolkit repo: $($Script:RepoRoot)"
+Write-Host "Install mode: $Script:LinkMode"
+Write-Host "Targets: $($selectedModes -join ', ')"
+Write-Host ""
 
 foreach ($mode in $selectedModes) {
   switch ($mode) {
-    "codex" { Install-Codex -SkillPaths ($skillPathGroups.Shared + $skillPathGroups.Codex) }
-    "openclaw" { Install-OpenClaw -SkillPaths $skillPathGroups.Shared }
-    "trae" { Install-Trae -SkillPaths $skillPathGroups.Shared }
-    "agents" { Install-Agents -SkillPaths $skillPathGroups.Shared }
-    "claude-code" { Install-ClaudeCode -SkillPaths $skillPathGroups.Shared }
+    "codex" { Install-Codex -SkillPaths ($effectiveShared + $skillPathGroups.Codex) }
+    "openclaw" { Install-OpenClaw -SkillPaths $effectiveShared }
+    "trae" { Install-Trae -SkillPaths $effectiveShared }
+    "agents" { Install-Agents -SkillPaths $effectiveShared }
+    "claude-code" { Install-ClaudeCode -SkillPaths $effectiveShared }
     default { throw "Unknown mode: $mode" }
   }
 }

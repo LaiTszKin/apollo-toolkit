@@ -4,8 +4,23 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 
-const { expandUserPath, installLinks, normalizeModes, syncToolkitHome } = require('../lib/installer');
-const { buildBanner, buildWelcomeScreen, promptForModes, run } = require('../lib/cli');
+const {
+  expandUserPath,
+  installLinks,
+  listAllKnownSkillNames,
+  normalizeModes,
+  readManifest,
+  syncToolkitHome,
+  uninstallSkills,
+  writeManifest,
+} = require('../lib/installer');
+const {
+  buildBanner,
+  buildWelcomeScreen,
+  parseArguments,
+  promptForModes,
+  run,
+} = require('../lib/cli');
 const { checkForPackageUpdate, compareVersions } = require('../lib/updater');
 
 async function createFixtureSource(rootDir) {
@@ -189,7 +204,7 @@ test('run installs toolkit home and copies skills into selected targets', async 
   await fs.writeFile(path.join(sourceRoot, 'codex', 'codex-only-skill', 'SKILL.md'), '# codex-only\n', 'utf8');
   await fs.mkdir(path.join(homeDir, '.openclaw', 'workspace1'), { recursive: true });
 
-  const exitCode = await run(['codex', 'openclaw'], {
+  const exitCode = await run(['codex', 'openclaw', '--copy'], {
     sourceRoot,
     env: {
       HOME: homeDir,
@@ -307,7 +322,7 @@ test('run installs claude-code target when requested', async () => {
   await fs.mkdir(sourceRoot, { recursive: true });
   await createFixtureSource(sourceRoot);
 
-  const exitCode = await run(['claude-code'], {
+  const exitCode = await run(['claude-code', '--copy'], {
     sourceRoot,
     env: {
       HOME: homeDir,
@@ -325,4 +340,244 @@ test('run installs claude-code target when requested', async () => {
     (await fs.lstat(path.join(homeDir, '.claude', 'skills', 'alpha-skill'))).isDirectory(),
     true,
   );
+});
+
+// ---- Manifest tests ----
+
+test('writeManifest and readManifest persist and restore skill tracking data', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-manifest-'));
+  const targetRoot = path.join(tempDir, 'skills');
+
+  await writeManifest(targetRoot, {
+    version: '3.0.0',
+    linkMode: 'symlink',
+    skills: ['alpha-skill', 'beta-skill'],
+    previousSkills: ['old-skill'],
+  });
+
+  const manifest = await readManifest(targetRoot);
+  assert.equal(manifest.version, '3.0.0');
+  assert.equal(manifest.linkMode, 'symlink');
+  assert.deepEqual(manifest.skills, ['alpha-skill', 'beta-skill']);
+  assert.deepEqual(manifest.historicalSkills, ['alpha-skill', 'beta-skill', 'old-skill']);
+  assert.ok(manifest.installedAt);
+});
+
+test('writeManifest carries forward historical skills from existing manifest', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-manifest-merge-'));
+  const targetRoot = path.join(tempDir, 'skills');
+
+  await writeManifest(targetRoot, {
+    version: '1.0.0',
+    linkMode: 'copy',
+    skills: ['skill-a'],
+    previousSkills: [],
+  });
+
+  await writeManifest(targetRoot, {
+    version: '2.0.0',
+    linkMode: 'symlink',
+    skills: ['skill-b'],
+    previousSkills: ['skill-a'],
+  });
+
+  const manifest = await readManifest(targetRoot);
+  assert.deepEqual(manifest.skills, ['skill-b']);
+  assert.deepEqual(manifest.historicalSkills, ['skill-a', 'skill-b']);
+});
+
+test('readManifest returns null for missing manifest', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-nomanifest-'));
+  const result = await readManifest(path.join(tempDir, 'nonexistent'));
+  assert.equal(result, null);
+});
+
+// ---- Uninstall tests ----
+
+test('uninstallSkills removes skills and manifests from all targets', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-uninstall-'));
+  const homeDir = path.join(tempDir, 'user-home');
+  const codexRoot = path.join(homeDir, '.codex', 'skills');
+  const traeRoot = path.join(homeDir, '.trae', 'skills');
+
+  await fs.mkdir(codexRoot, { recursive: true });
+  await fs.mkdir(traeRoot, { recursive: true });
+
+  // Create skill dirs and manifests
+  await fs.mkdir(path.join(codexRoot, 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(codexRoot, 'alpha-skill', 'dummy.txt'), 'data', 'utf8');
+  await fs.mkdir(path.join(codexRoot, 'beta-skill'), { recursive: true });
+
+  await fs.mkdir(path.join(traeRoot, 'alpha-skill'), { recursive: true });
+
+  await writeManifest(codexRoot, {
+    version: '1.0.0',
+    linkMode: 'copy',
+    skills: ['alpha-skill', 'beta-skill'],
+    previousSkills: [],
+  });
+  await writeManifest(traeRoot, {
+    version: '1.0.0',
+    linkMode: 'copy',
+    skills: ['alpha-skill'],
+    previousSkills: [],
+  });
+
+  const results = await uninstallSkills({
+    env: { HOME: homeDir },
+    modes: ['codex', 'trae'],
+  });
+
+  assert.equal(results.length, 2);
+
+  const codexResult = results.find((r) => r.target === 'Codex');
+  assert.deepEqual(codexResult.removedSkills.sort(), ['alpha-skill', 'beta-skill']);
+  const traeResult = results.find((r) => r.target === 'Trae');
+  assert.deepEqual(traeResult.removedSkills, ['alpha-skill']);
+
+  // Verify skills removed
+  await assert.rejects(fs.access(path.join(codexRoot, 'alpha-skill')));
+  await assert.rejects(fs.access(path.join(traeRoot, 'alpha-skill')));
+
+  // Verify manifests removed
+  await assert.rejects(fs.access(path.join(codexRoot, '.apollo-toolkit-manifest.json')));
+});
+
+test('uninstallSkills skips targets without manifests', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-uninstall-skip-'));
+  const homeDir = path.join(tempDir, 'user-home');
+  const codexRoot = path.join(homeDir, '.codex', 'skills');
+
+  await fs.mkdir(codexRoot, { recursive: true });
+
+  const results = await uninstallSkills({
+    env: { HOME: homeDir },
+    modes: ['codex'],
+  });
+
+  assert.equal(results.length, 0);
+});
+
+// ---- Symlink installation tests ----
+
+test('installLinks in symlink mode creates symlinks instead of copies', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-symlink-'));
+  const toolkitHome = path.join(tempDir, '.apollo-toolkit');
+  const codexRoot = path.join(tempDir, 'codex-skills');
+  const sourceSkill = path.join(toolkitHome, 'alpha-skill');
+
+  await fs.mkdir(sourceSkill, { recursive: true });
+  await fs.writeFile(path.join(sourceSkill, 'SKILL.md'), '# alpha\n', 'utf8');
+
+  await installLinks({
+    toolkitHome,
+    modes: ['codex'],
+    previousSkillNames: ['alpha-skill'],
+    linkMode: 'symlink',
+    env: {
+      HOME: tempDir,
+      CODEX_SKILLS_DIR: codexRoot,
+    },
+  });
+
+  const targetSkill = path.join(codexRoot, 'alpha-skill');
+  const stat = await fs.lstat(targetSkill);
+  assert.equal(stat.isSymbolicLink(), true);
+  assert.equal(await fs.readlink(targetSkill), sourceSkill);
+
+  // Manifest should record symlink mode
+  const manifest = await readManifest(codexRoot);
+  assert.equal(manifest.linkMode, 'symlink');
+});
+
+test('installLinks in copy mode copies files (not symlink)', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-copy-'));
+  const toolkitHome = path.join(tempDir, '.apollo-toolkit');
+  const codexRoot = path.join(tempDir, 'codex-skills');
+  const sourceSkill = path.join(toolkitHome, 'alpha-skill');
+
+  await fs.mkdir(sourceSkill, { recursive: true });
+  await fs.writeFile(path.join(sourceSkill, 'SKILL.md'), '# alpha\n', 'utf8');
+
+  await installLinks({
+    toolkitHome,
+    modes: ['codex'],
+    previousSkillNames: ['alpha-skill'],
+    linkMode: 'copy',
+    env: {
+      HOME: tempDir,
+      CODEX_SKILLS_DIR: codexRoot,
+    },
+  });
+
+  const targetSkill = path.join(codexRoot, 'alpha-skill');
+  const stat = await fs.lstat(targetSkill);
+  assert.equal(stat.isDirectory(), true);
+  assert.notEqual(stat.isSymbolicLink(), true);
+
+  const manifest = await readManifest(codexRoot);
+  assert.equal(manifest.linkMode, 'copy');
+});
+
+// ---- listAllKnownSkillNames tests ----
+
+test('listAllKnownSkillNames combines current and historical skills with dedup', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-allknown-'));
+  const toolkitHome = path.join(tempDir, '.apollo-toolkit');
+  const codexRoot = path.join(tempDir, 'codex-skills');
+
+  // Current skills in toolkit home
+  await fs.mkdir(path.join(toolkitHome, 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(path.join(toolkitHome, 'beta-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'beta-skill', 'SKILL.md'), '# beta\n', 'utf8');
+
+  // Manifest with historical skills (including an old one)
+  await fs.mkdir(codexRoot, { recursive: true });
+  await writeManifest(codexRoot, {
+    version: '1.0.0',
+    linkMode: 'copy',
+    skills: ['alpha-skill'],
+    previousSkills: ['old-skill', 'alpha-skill'],
+  });
+
+  const allNames = await listAllKnownSkillNames({
+    toolkitHome,
+    modes: ['codex'],
+    env: { HOME: tempDir, CODEX_SKILLS_DIR: codexRoot },
+  });
+
+  assert.deepEqual(allNames, ['alpha-skill', 'beta-skill', 'old-skill']);
+});
+
+// ---- CLI parseArguments tests ----
+
+test('parseArguments recognizes uninstall command', () => {
+  const result = parseArguments(['uninstall']);
+  assert.equal(result.command, 'uninstall');
+  assert.deepEqual(result.modes, []);
+});
+
+test('parseArguments recognizes uninstall command with modes', () => {
+  const result = parseArguments(['uninstall', 'codex', 'trae']);
+  assert.equal(result.command, 'uninstall');
+  assert.deepEqual(result.modes, ['codex', 'trae']);
+});
+
+test('parseArguments recognizes --symlink flag', () => {
+  const result = parseArguments(['codex', '--symlink']);
+  assert.equal(result.command, 'install');
+  assert.equal(result.linkMode, 'symlink');
+  assert.deepEqual(result.modes, ['codex']);
+});
+
+test('parseArguments recognizes --copy flag', () => {
+  const result = parseArguments(['agents', '--copy']);
+  assert.equal(result.linkMode, 'copy');
+  assert.deepEqual(result.modes, ['agents']);
+});
+
+test('parseArguments defaults linkMode to null (prompt)', () => {
+  const result = parseArguments(['codex']);
+  assert.equal(result.linkMode, null);
 });
