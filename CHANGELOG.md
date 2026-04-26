@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.3.3] - 2026-04-27
+
+### Changed
+- Require `review-change-set` after merge verification before `merge-changes-from-local-branches` can continue into archival or submission.
+
 ## [v3.3.2] - 2026-04-27
 
 ### Changed

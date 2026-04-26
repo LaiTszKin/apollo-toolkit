@@ -4,20 +4,22 @@ description: >-
   Read changes from local branches identified by branch name and merge them back
   into the current local branch. When conflicts arise, auto-resolve them by
   keeping correct functionality (preferring the more recent change on the same
-  line, or the change that preserves working behavior). Run `archive-specs`
-  after merge verification so completed plan sets are archived and durable
-  project docs are synchronized, then hand the current branch state to
-  `commit-and-push` so the final submit workflow commits and pushes on that same
-  local branch. Use when the user asks to consolidate local branch work, merge
-  named branches into the current branch, or prepare the current branch for
-  integration.
+  line, or the change that preserves working behavior). After merge verification,
+  require `review-change-set` to review the merged code and confirm it still
+  matches the active spec documents before any submission workflow continues.
+  Run `archive-specs` only after that review gate passes so completed plan sets
+  are archived and durable project docs are synchronized, then hand the current
+  branch state to `commit-and-push` so the final submit workflow commits and
+  pushes on that same local branch. Use when the user asks to consolidate local
+  branch work, merge named branches into the current branch, or prepare the
+  current branch for integration.
 ---
 
 # Merge Changes from Local Branches
 
 ## Dependencies
 
-- Required: `archive-specs` to archive completed plan sets and synchronize durable project docs after merge verification, and `commit-and-push` for the final current-branch submission flow.
+- Required: `review-change-set` to review the merged code and confirm spec alignment before submission, `archive-specs` to archive completed plan sets and synchronize durable project docs after the review gate passes, and `commit-and-push` for the final current-branch submission flow.
 - Conditional: none.
 - Optional: none.
 - Fallback: If git operations fail, stop and report the error.
@@ -25,7 +27,7 @@ description: >-
 ## Standards
 
 - Evidence: Inspect the original current branch, local branches, branch-name matches provided by the user or active spec names, actual conflicting files, and any active batch-spec `coordination.md` merge-order guidance before deciding what to merge.
-- Execution: Merge only the relevant named branches back into the original current branch, read any active batch-spec `coordination.md` and honor its documented merge order when present, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, verify the merged state, delete each successfully merged source branch and its detached worktree only after the merged result is confirmed, run `archive-specs` so completed plan sets are archived and durable docs are synchronized, then hand the final current-branch state to `commit-and-push` so changelog/readiness/commit/push work happens through the shared submission workflow on the same branch.
+- Execution: Merge only the relevant named branches back into the original current branch, read any active batch-spec `coordination.md` and honor its documented merge order when present, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, verify the merged state, run `review-change-set` to confirm the merged code still matches the active spec documents, delete each successfully merged source branch and its detached worktree only after the merged result is confirmed, run `archive-specs` only after the review gate passes so completed plan sets are archived and durable docs are synchronized, then hand the final current-branch state to `commit-and-push` so changelog/readiness/commit/push work happens through the shared submission workflow on the same branch.
 - Quality: Never use blanket timestamp rules or default `-X ours/theirs` conflict resolution as the primary merge strategy, never infer in-scope branches from ancestry heuristics when branch names already define the target set, and do not declare success until the final current-branch state has been checked, verified, and cleared for post-merge archival/doc-sync work.
 - Output: Produce a clean current branch with all relevant named-branch changes integrated and ready for the shared submit workflow.
 
@@ -116,9 +118,16 @@ For each in-scope named branch:
   ```
 - If verification fails, fix the merged state on the current branch before proceeding.
 
+### 4.5) Review the merged change set before submission
+
+- After merge verification passes, invoke `review-change-set` on the merged current branch.
+- Compare the merged code against the active spec documents and any relevant `docs/plans/` artifacts that governed the merge.
+- Do not proceed to archival or submission until the review returns no actionable findings and the merged state is confirmed to match the spec documents.
+- If review finds a problem or spec mismatch, fix the current branch, rerun verification, and review again before continuing.
+
 ### 5) Archive completed specs and sync durable project docs
 
-- After all in-scope merges succeed and the current-branch state has been verified, invoke `archive-specs`.
+- After all in-scope merges succeed, the current-branch state has been verified, and `review-change-set` has confirmed the merged code matches the spec documents, invoke `archive-specs`.
 - Let `archive-specs` convert and archive any completed `docs/plans/...` spec sets that now reflect the delivered outcome.
 - Let `archive-specs` synchronize durable project docs and `AGENTS.md` when the merged result changed operator workflows, repository guidance, or user-visible behavior.
 - Do not proceed to the final submission commit while required archival or documentation updates remain unfinished.
@@ -141,7 +150,7 @@ For each in-scope named branch:
   - the currently checked-out branch
   - branches that were skipped, failed to merge, or still need manual follow-up
 - If `git branch -d` refuses deletion because the branch is not actually merged, stop and report the branch instead of forcing deletion with `-D`.
-- Once merge verification plus archival/doc synchronization pass, invoke `commit-and-push` for the original current branch so the final submission flow owns:
+- Once merge verification, `review-change-set`, and archival/doc synchronization pass, invoke `commit-and-push` for the original current branch so the final submission flow owns:
   - `CHANGELOG.md` readiness
   - the final commit creation on the original current branch
   - the user-requested push on that same branch
