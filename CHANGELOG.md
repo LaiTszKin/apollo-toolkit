@@ -7,6 +7,17 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.3.1] - 2026-04-26
+
+### Added
+- Add an interactive `apltk uninstall` target selector so users can choose which agent skill directories to remove.
+- Add `apltk uninstall --yes` for non-interactive uninstall confirmation.
+
+### Fixed
+- Fix default `apltk uninstall` cleanup so a missing OpenClaw workspace no longer prevents uninstalling Codex, Trae, Agents, or Claude Code targets.
+- Remove manifest-tracked historical skills during CLI uninstall so renamed or removed skills do not remain behind.
+- Ignore unsafe manifest skill names during install and uninstall cleanup so removals remain scoped to direct child skill directories.
+
 ## [v3.3.0] - 2026-04-26
 
 ### Added

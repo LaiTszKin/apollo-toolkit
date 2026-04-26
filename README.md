@@ -82,9 +82,13 @@ The interactive installer:
 ### Uninstall
 
 ```bash
-apltk uninstall          # Remove all installed skills from all targets
-apltk uninstall codex    # Remove only from codex
+apltk uninstall                    # Choose which agent targets to uninstall
+apltk uninstall codex              # Remove only from codex
+apltk uninstall codex agents --yes # Non-interactive cleanup for selected targets
 ```
+
+The uninstall flow removes the manifest-tracked current and historical skill
+directories for the selected targets, then removes each target manifest.
 
 ### Global install
 

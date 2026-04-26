@@ -19,6 +19,7 @@ const {
   buildWelcomeScreen,
   parseArguments,
   promptForModes,
+  promptForUninstallModes,
   run,
 } = require('../lib/cli');
 const { checkForPackageUpdate, compareVersions } = require('../lib/updater');
@@ -86,6 +87,18 @@ test('buildWelcomeScreen shows branded setup overview', () => {
 test('promptForModes TTY error lists every supported target', async () => {
   await assert.rejects(
     promptForModes({
+      stdin: { isTTY: false },
+      stdout: { isTTY: false },
+      version: '2.0.0',
+      env: {},
+    }),
+    /`codex`, `openclaw`, `trae`, `agents`, `claude-code`, or `all`/,
+  );
+});
+
+test('promptForUninstallModes TTY error lists every supported target', async () => {
+  await assert.rejects(
+    promptForUninstallModes({
       stdin: { isTTY: false },
       stdout: { isTTY: false },
       version: '2.0.0',
@@ -283,6 +296,40 @@ test('installLinks removes stale skills that disappeared from the new version', 
   assert.equal((await fs.lstat(path.join(codexRoot, 'alpha-skill'))).isDirectory(), true);
 });
 
+test('installLinks ignores unsafe historical manifest names when removing stale skills', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-stale-unsafe-'));
+  const homeDir = path.join(tempDir, 'user-home');
+  const toolkitHome = path.join(tempDir, '.apollo-toolkit');
+  const codexRoot = path.join(homeDir, '.codex', 'skills');
+  const outsideSkill = path.join(homeDir, '.codex', 'outside-skill');
+
+  await fs.mkdir(path.join(toolkitHome, 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(codexRoot, { recursive: true });
+  await fs.mkdir(outsideSkill, { recursive: true });
+  await fs.writeFile(
+    path.join(codexRoot, '.apollo-toolkit-manifest.json'),
+    `${JSON.stringify({
+      version: '1.0.0',
+      linkMode: 'copy',
+      skills: ['alpha-skill'],
+      historicalSkills: ['../outside-skill'],
+    }, null, 2)}\n`,
+    'utf8',
+  );
+
+  await installLinks({
+    toolkitHome,
+    modes: ['codex'],
+    previousSkillNames: [],
+    env: {
+      HOME: homeDir,
+    },
+  });
+
+  assert.equal((await fs.lstat(outsideSkill)).isDirectory(), true);
+});
+
 test('installLinks replaces previously installed symlinks with copied skill directories', async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-legacy-link-'));
   const toolkitHome = path.join(tempDir, '.apollo-toolkit');
@@ -443,6 +490,130 @@ test('uninstallSkills removes skills and manifests from all targets', async () =
   await assert.rejects(fs.access(path.join(codexRoot, '.apollo-toolkit-manifest.json')));
 });
 
+test('uninstallSkills default uninstall skips missing OpenClaw and removes other manifests', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-uninstall-default-'));
+  const homeDir = path.join(tempDir, 'user-home');
+  const codexRoot = path.join(homeDir, '.codex', 'skills');
+  const agentsRoot = path.join(homeDir, '.agents', 'skills');
+
+  await fs.mkdir(path.join(codexRoot, 'alpha-skill'), { recursive: true });
+  await fs.mkdir(path.join(agentsRoot, 'beta-skill'), { recursive: true });
+
+  await writeManifest(codexRoot, {
+    version: '1.0.0',
+    linkMode: 'copy',
+    skills: ['alpha-skill'],
+    previousSkills: [],
+  });
+  await writeManifest(agentsRoot, {
+    version: '1.0.0',
+    linkMode: 'copy',
+    skills: ['beta-skill'],
+    previousSkills: [],
+  });
+
+  const results = await uninstallSkills({
+    env: { HOME: homeDir },
+  });
+
+  assert.deepEqual(results.map((result) => result.target).sort(), ['Agents', 'Codex']);
+  await assert.rejects(fs.access(path.join(codexRoot, 'alpha-skill')));
+  await assert.rejects(fs.access(path.join(agentsRoot, 'beta-skill')));
+  await assert.rejects(fs.access(path.join(codexRoot, '.apollo-toolkit-manifest.json')));
+  await assert.rejects(fs.access(path.join(agentsRoot, '.apollo-toolkit-manifest.json')));
+});
+
+test('uninstallSkills removes historical manifest skills', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-uninstall-history-'));
+  const homeDir = path.join(tempDir, 'user-home');
+  const codexRoot = path.join(homeDir, '.codex', 'skills');
+
+  await fs.mkdir(path.join(codexRoot, 'alpha-skill'), { recursive: true });
+  await fs.mkdir(path.join(codexRoot, 'old-skill'), { recursive: true });
+  await writeManifest(codexRoot, {
+    version: '1.0.0',
+    linkMode: 'copy',
+    skills: ['alpha-skill'],
+    previousSkills: ['old-skill'],
+  });
+
+  const results = await uninstallSkills({
+    env: { HOME: homeDir },
+    modes: ['codex'],
+  });
+
+  assert.deepEqual(results[0].removedSkills, ['alpha-skill', 'old-skill']);
+  await assert.rejects(fs.access(path.join(codexRoot, 'alpha-skill')));
+  await assert.rejects(fs.access(path.join(codexRoot, 'old-skill')));
+});
+
+test('uninstallSkills ignores unsafe manifest skill names', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-uninstall-unsafe-'));
+  const homeDir = path.join(tempDir, 'user-home');
+  const codexRoot = path.join(homeDir, '.codex', 'skills');
+  const outsideSkill = path.join(homeDir, '.codex', 'outside-skill');
+
+  await fs.mkdir(path.join(codexRoot, 'alpha-skill'), { recursive: true });
+  await fs.mkdir(outsideSkill, { recursive: true });
+  await fs.writeFile(
+    path.join(codexRoot, '.apollo-toolkit-manifest.json'),
+    `${JSON.stringify({
+      version: '1.0.0',
+      linkMode: 'copy',
+      skills: ['alpha-skill', '../outside-skill', '/tmp/not-a-skill'],
+      historicalSkills: ['..\\windows-outside'],
+    }, null, 2)}\n`,
+    'utf8',
+  );
+
+  const results = await uninstallSkills({
+    env: { HOME: homeDir },
+    modes: ['codex'],
+  });
+
+  assert.deepEqual(results[0].removedSkills, ['alpha-skill']);
+  await assert.rejects(fs.access(path.join(codexRoot, 'alpha-skill')));
+  assert.equal((await fs.lstat(outsideSkill)).isDirectory(), true);
+});
+
+test('run uninstall supports --yes with default all-target cleanup', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-run-uninstall-'));
+  const sourceRoot = path.join(tempDir, 'source');
+  const homeDir = path.join(tempDir, 'user-home');
+  const toolkitHome = path.join(homeDir, '.apollo-toolkit');
+  const codexRoot = path.join(homeDir, '.codex', 'skills');
+  const stdout = createMemoryStream();
+  const stderr = createMemoryStream();
+
+  await fs.mkdir(sourceRoot, { recursive: true });
+  await createFixtureSource(sourceRoot);
+  await fs.mkdir(path.join(toolkitHome, 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(path.join(codexRoot, 'alpha-skill'), { recursive: true });
+  await writeManifest(codexRoot, {
+    version: '1.0.0',
+    linkMode: 'copy',
+    skills: ['alpha-skill'],
+    previousSkills: [],
+  });
+
+  const exitCode = await run(['uninstall', '--yes'], {
+    sourceRoot,
+    env: {
+      HOME: homeDir,
+      APOLLO_TOOLKIT_HOME: toolkitHome,
+      APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
+    },
+    stdin: { isTTY: false },
+    stdout,
+    stderr,
+  });
+
+  assert.equal(exitCode, 0, stderr.toString());
+  assert.match(stdout.toString(), /Uninstall complete/);
+  await assert.rejects(fs.access(path.join(codexRoot, 'alpha-skill')));
+});
+
 test('uninstallSkills skips targets without manifests', async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-uninstall-skip-'));
   const homeDir = path.join(tempDir, 'user-home');
@@ -562,6 +733,14 @@ test('parseArguments recognizes uninstall command with modes', () => {
   const result = parseArguments(['uninstall', 'codex', 'trae']);
   assert.equal(result.command, 'uninstall');
   assert.deepEqual(result.modes, ['codex', 'trae']);
+});
+
+test('parseArguments recognizes uninstall --yes and --home', () => {
+  const result = parseArguments(['uninstall', 'codex', '--yes', '--home', '/tmp/apollo']);
+  assert.equal(result.command, 'uninstall');
+  assert.equal(result.assumeYes, true);
+  assert.equal(result.toolkitHome, '/tmp/apollo');
+  assert.deepEqual(result.modes, ['codex']);
 });
 
 test('parseArguments recognizes --symlink flag', () => {

@@ -22,7 +22,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can research the latest completed market week and produce a PDF watchlist of tradeable instruments for the coming week.
 - Users can turn a marked weekly finance PDF into a concise evidence-based financial event report.
 - Users can install Apollo Toolkit through npm or npx and interactively choose one or more target skill directories to populate with copied or symlinked skills, with the option to include codex-exclusive skills in non-codex targets.
-- Users can uninstall all Apollo Toolkit-installed skills from all targets or specific targets via `apltk uninstall`.
+- Users can uninstall Apollo Toolkit-installed skills through an interactive target selector or specific non-interactive targets via `apltk uninstall`.
 - Users can choose between symlink mode (auto-update via git pull) and copy mode (stable snapshot) with `--symlink` / `--copy` flags.
 - Users can run bundled helper tools through `apltk tools` and direct `apltk <tool>` commands for selected packaged skill scripts.
 - Users can design and implement new features through a spec-first workflow.
@@ -79,7 +79,8 @@ This repository enables users to install and run a curated set of reusable agent
 - `./scripts/install_skills.sh all --copy` - 以複製模式安裝到所有支援目標。
 - `./scripts/install_skills.sh uninstall` - 從所有目標移除已安裝的技能。
 - `./scripts/install_skills.sh uninstall codex` - 只從 codex 目標移除。
-- `node bin/apollo-toolkit.js uninstall` - 透過 CLI 移除所有已安裝技能。
+- `node bin/apollo-toolkit.js uninstall` - 透過 CLI 互動選擇要移除的 agent target 技能。
+- `node bin/apollo-toolkit.js uninstall codex --yes` - 以非互動方式移除指定 target 的已安裝技能。
 
 ## Core Project Purpose
 
