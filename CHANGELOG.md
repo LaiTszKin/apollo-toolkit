@@ -4,8 +4,8 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
-### Added
-- (None yet)
+### Changed
+- Tighten `version-release` so GitHub release prerelease state must come from explicit user intent or a verified repository convention, instead of being inferred from tag text such as `alpha-*`.
 
 ## [v3.3.1] - 2026-04-26
 
