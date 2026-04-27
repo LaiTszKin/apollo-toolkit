@@ -88,7 +88,7 @@ test('feature planning skills share test-case-strategy for test decisions', () =
   assert.match(unitReference, /Define the oracle from the spec, design, contract, official docs, or established intended behavior before implementation/i);
 
   assert.match(generateSpec, /Required: `test-case-strategy`/i);
-  assert.match(generateTasks, /Unit drift check: \[UT-xx target unit \+ oracle, or N\/A with reason\]/i);
+  assert.match(generateTasks, /Unit drift check: \[UT-xx target unit; expected result\/assertion, or N\/A with reason\]/i);
   assert.match(develop, /Required: `generate-spec`.*`test-case-strategy`/is);
   assert.match(enhance, /Required: `test-case-strategy`/i);
 });

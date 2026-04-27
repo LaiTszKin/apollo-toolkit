@@ -16,7 +16,7 @@ Out of scope: [files/modules/behaviors this task must not change]
   - Output: [specific code/doc/test artifact]
   - Done when: [observable completion condition]
   - Verify with: [focused command/check/manual inspection]
-  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
+  - Unit drift check: [UT-xx target unit; expected result/assertion, or N/A with reason]
   - Do not: [explicit implementation-drift guardrail]
 
 ## **Task 2: [Task Title]**
@@ -32,7 +32,7 @@ Out of scope: [files/modules/behaviors this task must not change]
   - Output: [specific code/doc/test artifact]
   - Done when: [observable completion condition]
   - Verify with: [focused command/check/manual inspection]
-  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
+  - Unit drift check: [UT-xx target unit; expected result/assertion, or N/A with reason]
   - Do not: [explicit implementation-drift guardrail]
 
 ## **Task 3: [Task Title]**
@@ -48,7 +48,7 @@ Out of scope: [files/modules/behaviors this task must not change]
   - Output: [specific code/doc/test artifact]
   - Done when: [observable completion condition]
   - Verify with: [focused command/check/manual inspection]
-  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
+  - Unit drift check: [UT-xx target unit; expected result/assertion, or N/A with reason]
   - Do not: [explicit implementation-drift guardrail]
 
 ## Notes

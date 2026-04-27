@@ -31,7 +31,7 @@
   - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
   - External dependency strategy: [none / mocked service states / near-real dependency]
   - Oracle/assertion focus: [exact output / persisted state / side effects / no partial write / compensation / emitted event / permission denial]
-  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
+  - Unit drift check: [UT-xx target unit; expected result/assertion, or N/A with reason]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
 
@@ -43,7 +43,7 @@
   - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
   - External dependency strategy: [none / mocked service states / near-real dependency]
   - Oracle/assertion focus: [exact output / persisted state / side effects / no partial write / compensation / emitted event / permission denial]
-  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
+  - Unit drift check: [UT-xx target unit; expected result/assertion, or N/A with reason]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
 
@@ -55,7 +55,7 @@
   - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
   - External dependency strategy: [none / mocked service states / near-real dependency]
   - Oracle/assertion focus: [exact output / persisted state / side effects / no partial write / compensation / emitted event / permission denial]
-  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
+  - Unit drift check: [UT-xx target unit; expected result/assertion, or N/A with reason]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
 

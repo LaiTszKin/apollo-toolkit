@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.4.1] - 2026-04-28
+
+### Changed
+- Clarify `generate-spec` unit drift check template fields so agents fill in expected results or assertions instead of the ambiguous `oracle` shorthand.
+
 ## [v3.4.0] - 2026-04-28
 
 ### Added
