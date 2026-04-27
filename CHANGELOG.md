@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.3.5] - 2026-04-28
+
+### Changed
+- Tighten `implement-specs-with-worktree` so parallel batch implementations must inspect active sibling worktrees before editing shared runtime, config, or contract boundaries that may already be in flight elsewhere.
+
 ## [v3.3.4] - 2026-04-27
 
 ### Changed
