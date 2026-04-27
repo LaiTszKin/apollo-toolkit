@@ -4,12 +4,13 @@ description: >-
   Read a specs planning set (spec.md, tasks.md, checklist.md, contract.md, design.md)
   from `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`
   plus parent `coordination.md` when present, and implement the approved tasks
-  within an isolated git worktree. Use when the user asks to implement from an
-  existing spec set, execute a spec plan, or work on a feature branch without
-  affecting the parent working tree. If not already in a worktree, create a new
-  worktree with a spec-named branch from the same parent branch as the worktree
-  base, implement all planned tasks, then commit the changes to that local
-  branch when complete.
+  within an isolated git worktree, with every code, test, and spec edit made
+  inside that worktree rather than the parent checkout. Use when the user asks
+  to implement from an existing spec set, execute a spec plan, or work on a
+  feature branch without affecting the parent working tree. If not already in a
+  worktree, create a new worktree with a spec-named branch from the same parent
+  branch as the worktree base, implement all planned tasks, then commit the
+  changes to that local branch when complete.
 ---
 
 # Implement Specs with Worktree
@@ -24,7 +25,7 @@ description: >-
 ## Standards
 
 - Evidence: Read and understand the complete specs set before starting implementation, identify the authoritative parent branch that the worktree should inherit from, verify whether the requested scope is already implemented on that parent branch or current main working tree, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
-- Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, prefer direct `git` ref checks over brittle shell inference when deciding whether a branch or worktree already exists, and commit to a local branch when done.
+- Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, prefer direct `git` ref checks over brittle shell inference when deciding whether a branch or worktree already exists, and commit to a local branch when done. Do not edit product files from the parent checkout; every implementation, test, and spec backfill change must happen inside the active worktree directory after verifying `git rev-parse --show-toplevel` and `pwd` point at the same worktree root.
 - Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, avoid dragging unrelated sibling specs into the worktree just because they share a batch directory, revert unrelated formatter-only noise outside the spec-owned scope before committing, if branch/worktree creation reports ambiguous state re-check the actual git refs and worktree list before retrying, and when using targeted Rust `cargo test` selectors remember Cargo accepts only one positional test filter so each distinct selector needs its own confirmed command.
 - Output: Keep the worktree branch clean with only the intended implementation commits.
 
@@ -59,6 +60,7 @@ Implement approved spec planning sets in an isolated git worktree, ensuring the 
 - Run `git worktree list` to see existing worktrees and branches.
 - Determine if the current session is already inside a worktree (check `git rev-parse --show-toplevel` and compare with `git worktree list`).
 - If the current worktree is missing the exact requested plan set, sync that plan into the worktree before coding and re-read the synced files there so implementation happens against the same plan snapshot that will be backfilled later.
+- Before making any edits, confirm the active shell is inside the intended worktree directory; if not, stop editing, create or enter the required worktree first, and only then continue.
 - Determine the authoritative parent branch for the new worktree:
   - if the current checkout already comes from a branch, reuse that branch as the base
   - if the current session is inside a detached worktree, identify the parent branch that owns that worktree before creating another branch from it
@@ -85,6 +87,7 @@ If not already in a worktree, or if the user explicitly requests a fresh worktre
   git worktree add ../<spec-name> <branch-name>
   ```
 - Move into the new worktree directory and begin work there.
+- Do not start editing until the shell is operating inside the new worktree directory and the worktree root has been verified.
 - When checking whether the target branch or worktree already exists, use direct git evidence instead of shell heuristics:
   ```bash
   git show-ref --verify --quiet refs/heads/<branch-name>
@@ -144,6 +147,7 @@ After implementation and testing:
 ## Working Rules
 
 - Always work in an isolated worktree to keep the parent checkout clean.
+- Treat the parent checkout as read-only for implementation work; use it only for inspection, worktree creation, or verification, never for file edits.
 - Treat an already-landed spec as complete work, not as a reason to recreate a duplicate worktree.
 - Keep the new branch based on the same parent branch as the worktree base; do not silently rebase the workflow onto a different branch.
 - Use the spec-set name as the canonical identifier for the branch and worktree unless the user explicitly asks for a different naming scheme.

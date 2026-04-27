@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.3.4] - 2026-04-27
+
+### Changed
+- Tighten `implement-specs-with-worktree` so the skill must verify it is operating inside the intended isolated worktree before any edits, and never mutate product files from the parent checkout.
+
 ## [v3.3.3] - 2026-04-27
 
 ### Changed
