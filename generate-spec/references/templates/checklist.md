@@ -12,6 +12,7 @@
 - Duplicate or remove decision-record blocks as needed; the final document should contain as many records as the real change requires.
 - Duplicate or remove completion-record blocks as needed; the final document should contain as many records as the real change requires.
 - Suggested test result values: `PASS / FAIL / BLOCKED / NOT RUN / N/A`.
+- Use `$test-case-strategy` to choose test levels, define meaningful oracles, and record unit drift checks for atomic tasks.
 - For business-logic changes, property-based coverage is required unless a concrete `N/A` reason is recorded.
 - Each checklist item should map to a distinct risk; avoid repeating shallow happy-path cases.
 
@@ -30,6 +31,7 @@
   - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
   - External dependency strategy: [none / mocked service states / near-real dependency]
   - Oracle/assertion focus: [exact output / persisted state / side effects / no partial write / compensation / emitted event / permission denial]
+  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
 
@@ -41,6 +43,7 @@
   - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
   - External dependency strategy: [none / mocked service states / near-real dependency]
   - Oracle/assertion focus: [exact output / persisted state / side effects / no partial write / compensation / emitted event / permission denial]
+  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
 
@@ -52,11 +55,13 @@
   - Property/matrix focus: [invariant / generated business input space / external state matrix / adversarial case]
   - External dependency strategy: [none / mocked service states / near-real dependency]
   - Oracle/assertion focus: [exact output / persisted state / side effects / no partial write / compensation / emitted event / permission denial]
+  - Unit drift check: [UT-xx target unit + oracle, or N/A with reason]
   - Test result: `PASS / FAIL / BLOCKED / NOT RUN / N/A`
   - Notes (optional): [risk, limitation, observation]
 
 ## Required Hardening Records
 - [ ] Regression tests are added/updated for bug-prone or high-risk behavior, or `N/A` is recorded with a concrete reason.
+- [ ] Focused unit drift checks are defined for non-trivial atomic implementation tasks, or `N/A` is recorded with the replacement verification and concrete reason.
 - [ ] Property-based coverage is added/updated for changed business logic, or `N/A` is recorded with a concrete reason.
 - [ ] External services in the business logic chain are mocked/faked for scenario testing, or `N/A` is recorded with a concrete reason.
 - [ ] Adversarial/penetration-style cases are added/updated for abuse paths and edge combinations, or `N/A` is recorded with a concrete reason.

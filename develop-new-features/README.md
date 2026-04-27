@@ -1,12 +1,12 @@
 # develop-new-features
 
-A spec-first feature development skill for new behavior and greenfield work. It delegates shared planning-doc generation to `generate-spec`, then implements the approved feature with risk-driven testing.
+A spec-first feature development skill for new behavior and greenfield work. It delegates shared planning-doc generation to `generate-spec`, uses `test-case-strategy` for risk-driven test selection, then implements the approved feature with focused validation.
 
 ## Key capabilities
 
 - Requires `generate-spec` before any implementation starts.
 - Treats `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` as approval-gated artifacts, not optional notes.
-- Covers unit, regression, property-based, integration, E2E, and adversarial testing based on actual risk.
+- Covers unit, regression, property-based, integration, E2E, adversarial, mock/fake, rollback, and unit drift-check testing based on actual risk through `test-case-strategy`.
 - Reuses existing architecture and avoids speculative expansion.
 - Backfills `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` after implementation and testing complete.
 - Once approval is granted and implementation starts, finishes all in-scope planned tasks and applicable checklist items before yielding unless the user defers work or an external blocker prevents safe completion.
@@ -18,13 +18,8 @@ A spec-first feature development skill for new behavior and greenfield work. It 
 ├── SKILL.md
 ├── README.md
 ├── LICENSE
-├── agents/
-│   └── openai.yaml
-└── references/
-    ├── testing-unit.md
-    ├── testing-property-based.md
-    ├── testing-integration.md
-    └── testing-e2e.md
+└── agents/
+    └── openai.yaml
 ```
 
 ## Workflow summary
@@ -38,17 +33,12 @@ A spec-first feature development skill for new behavior and greenfield work. It 
 
 ## Testing expectations
 
-- Unit: changed logic, boundaries, failure paths.
-- Regression: pin down bug-prone or high-risk behavior.
-- Property-based: required for business logic unless concrete `N/A` is recorded.
-- Integration: cover the user-critical logic chain.
-- E2E: cover the most important success and denial/failure paths when justified.
-- Adversarial: include abuse, malformed input, privilege, replay, concurrency, and edge-combination cases when relevant.
+- Use `test-case-strategy` to choose the smallest useful test level for each risk.
+- Define meaningful oracles before implementation.
+- Add focused unit drift checks for non-trivial atomic tasks when possible.
+- Record concrete `N/A` reasons when a test level is not suitable.
 
 ## References
 
 - Shared planning workflow: `generate-spec`
-- Unit testing guide: `references/testing-unit.md`
-- Property-based testing guide: `references/testing-property-based.md`
-- Integration testing guide: `references/testing-integration.md`
-- E2E testing guide: `references/testing-e2e.md`
+- Test selection and unit drift-check guide: `test-case-strategy`

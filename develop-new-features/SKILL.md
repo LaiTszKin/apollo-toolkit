@@ -2,8 +2,9 @@
 name: develop-new-features
 description: >-
   Spec-first feature development workflow for new behavior and greenfield
-  features. Depends on `generate-spec` for shared planning artifacts before
-  coding, then implements the approved feature with risk-driven test coverage.
+  features. Depends on `generate-spec` for shared planning artifacts and
+  `test-case-strategy` for risk-driven test selection before coding, then
+  implements the approved feature with focused validation.
   Use when users ask to design or implement new features, change product
   behavior, request a planning-first process, or ask for a greenfield feature.
   Once the approved spec set exists and implementation begins, complete all
@@ -20,16 +21,16 @@ description: >-
 
 ## Dependencies
 
-- Required: `generate-spec` for `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, clarification handling, approval gating, and completion-status backfill.
+- Required: `generate-spec` for `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, clarification handling, approval gating, and completion-status backfill; `test-case-strategy` for risk-driven test selection, meaningful oracle design, and unit drift checks.
 - Conditional: none.
 - Optional: none.
-- Fallback: If `generate-spec` is unavailable, stop and report the missing dependency.
+- Fallback: If `generate-spec` or `test-case-strategy` is unavailable, stop and report the missing dependency.
 
 ## Standards
 
 - Evidence: Review authoritative docs and the existing codebase before planning or implementation.
 - Execution: Use specs only for feature work that is genuinely multi-step, cross-surface, or higher risk; skip specs for obviously small/localized work and route that work to direct implementation or the appropriate maintenance skill instead.
-- Quality: Add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
+- Quality: Use `test-case-strategy` to add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
 - Output: Keep the approved planning artifacts and the final implementation aligned with actual completion results.
 
 ## Goal
@@ -93,21 +94,13 @@ Use a shared spec-generation workflow for non-trivial new feature work, then imp
 
 ### 5) Testing coverage (required)
 
-For every non-trivial change, evaluate all categories and add test cases or record justified `N/A`:
-- Start from a risk inventory, not from the happy path: assess misuse/abuse, authorization, invalid transitions, idempotency, replay/duplication, concurrency/races, data-integrity, and partial-failure/rollback risks.
-- Unit tests: changed logic, boundaries, failure paths, and exact error/side-effect expectations.
-- Regression tests: bug-prone or high-risk behavior that should never silently regress again.
-- Property-based tests: required for business-logic changes unless truly unsuitable; use them for invariants, generated business input spaces, state-machine/metamorphic checks when useful, and output expectation checks.
-- Integration tests: user-critical logic chain across modules/layers.
-- E2E tests: key user-visible path impacted by this change; prefer one minimal critical success path plus one highest-value denial/failure path when the risk warrants it.
-- Adversarial/penetration-style cases: abuse paths, malformed inputs, forged identities/privileges, invalid transitions, replay/duplication, stale/out-of-order events, toxic payload sizes, and risky edge combinations.
+Use `$test-case-strategy` for every non-trivial change.
 
-Rules:
-- If E2E is too costly or unstable, add stronger integration coverage for the same risk and record the reason in the checklist.
-- If property-based testing is not suitable, record `N/A` with a concrete reason.
-- For logic chains with external services, mock or fake those services unless the real contract itself is under test; simulate diverse external states and verify the business chain remains correct.
-- Where the feature can partially commit work, test rollback, compensation, or no-partial-write behavior explicitly.
-- Each test must assert a meaningful oracle: exact business output, persisted state, emitted side effects, or intentional lack of side effects. Avoid assertion-light smoke tests and snapshot-only coverage.
+- Start from risk inventory and requirement IDs, not from the happy path.
+- Define test oracles before implementation and map them to `spec.md`, `tasks.md`, and `checklist.md`.
+- For each atomic task that changes non-trivial local logic, define a focused unit drift check or record the smallest replacement verification with a concrete `N/A` reason.
+- Add unit, regression, property-based, integration, E2E, adversarial, mock/fake, rollback, or no-partial-write coverage only when the risk profile warrants it.
+- Each planned test must have a meaningful oracle: exact business output, persisted state, emitted side effects, or intentional lack of side effects.
 - Run relevant tests when possible and fix failures.
 
 ### 6) Completion updates
@@ -138,7 +131,4 @@ Rules:
 ## References
 
 - `$generate-spec`: shared planning and approval workflow.
-- `references/testing-unit.md`: unit testing principles.
-- `references/testing-property-based.md`: property-based testing principles.
-- `references/testing-integration.md`: integration testing principles.
-- `references/testing-e2e.md`: E2E decision and design principles.
+- `$test-case-strategy`: shared test selection, oracle design, and unit drift-check workflow.

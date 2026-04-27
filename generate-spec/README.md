@@ -1,6 +1,6 @@
 # generate-spec
 
-A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed `coordination.md` so other skills can reuse one consistent approval-gated spec workflow.
+A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed `coordination.md` so other skills can reuse one consistent approval-gated spec workflow with risk-driven test planning from `test-case-strategy`.
 
 ## Core capabilities
 
@@ -10,6 +10,7 @@ A shared planning skill for feature work. It centralizes creation and maintenanc
 - Requires clarification handling and explicit user approval before implementation starts.
 - Backfills task and checklist status after implementation and testing.
 - Keeps requirement, task, and test coverage mapping traceable.
+- Uses `test-case-strategy` to choose test levels, define meaningful oracles, and add focused unit drift checks to atomic implementation tasks.
 - Standardizes external dependency contracts in `contract.md` and architecture/design deltas in `design.md`.
 
 ## Repository layout
@@ -77,8 +78,8 @@ docs/plans/<today>/membership-cutover/
 ## Authoring rules
 
 - `spec.md`: use BDD keywords `GIVEN / WHEN / THEN / AND / Requirements`.
-- `tasks.md`: use `## **Task N: ...**`, `- N. [ ]`, and `- N.x [ ]`.
-- `checklist.md`: use `- [ ]` only, adapt items to real scope, and record actual results.
+- `tasks.md`: use `## **Task N: ...**` and atomic implementation queue items with allowed scope, output, completion condition, verification hook, and unit drift check.
+- `checklist.md`: use `- [ ]` only, adapt items to real scope, record actual results, and map behavior risks to test IDs plus oracles selected through `test-case-strategy`.
 - `contract.md`: when external dependencies materially shape the change, record their official-source-backed invocation surface, constraints, and caller obligations in the standard dependency-record format.
 - `design.md`: record the architecture/design delta in the standard format, including affected modules, flow, invariants, tradeoffs, and validation plan.
 - `coordination.md`: for multi-spec batches only, record shared preparation, ownership boundaries, replacement direction, file ownership guardrails, known collision candidates, pre-agreed edit rules for shared surfaces, shared API/schema freeze or additive-only rules, compatibility-shim retention rules, merge order, and cross-spec integration checkpoints, but never use it to make one spec depend on another spec's implementation before it can be completed.

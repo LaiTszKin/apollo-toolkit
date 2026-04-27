@@ -6,26 +6,26 @@ description: >-
   before coding. When specs are needed, use `generate-spec` for planning,
   clarification, approval, and backfill, and complete approved in-scope tasks
   before yielding unless scope changes or an external blocker prevents safe
-  completion. With or without specs, add and run relevant unit,
-  property-based, regression, integration, E2E, and adversarial tests as
-  applicable, use mocks for external services in logic chains, and verify
-  meaningful business outcomes instead of smoke-only success.
+  completion. With or without specs, use `test-case-strategy` to select and
+  run relevant unit, property-based, regression, integration, E2E, adversarial,
+  mock/fake, and drift-check coverage, and verify meaningful business outcomes
+  instead of smoke-only success.
 ---
 
 # Enhance Existing Features
 
 ## Dependencies
 
-- Required: `generate-spec` for shared planning docs when spec-trigger conditions are met.
-- Conditional: `recover-missing-plan` when the user points to a required `docs/plans/...` spec set that is missing, archived, or mismatched in the current workspace.
+- Required: `test-case-strategy` for risk-driven test selection, meaningful oracle design, and unit drift checks.
+- Conditional: `generate-spec` for shared planning docs when spec-trigger conditions are met; `recover-missing-plan` when the user points to a required `docs/plans/...` spec set that is missing, archived, or mismatched in the current workspace.
 - Optional: none.
-- Fallback: If specs are required and `generate-spec` is unavailable, stop and report the missing dependency.
+- Fallback: If `test-case-strategy` is unavailable, stop and report the missing dependency. If specs are required and `generate-spec` is unavailable, stop and report the missing dependency.
 
 ## Standards
 
 - Evidence: Explore the existing codebase first and verify the latest authoritative docs for the involved stack or integrations.
 - Execution: Decide whether specs are required from the actual change surface, run `generate-spec` when needed, then continue through implementation, testing, and backfill until the active scope is fully reconciled; when the user asks for a specific final behavior or architectural end state, do not substitute a preparatory or partial milestone unless the user explicitly re-scopes the request.
-- Quality: Add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
+- Quality: Use `test-case-strategy` to add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
 - Output: Keep implementation and any planning artifacts traceable, updated, and aligned with actual completion results.
 
 ## Overview
@@ -106,21 +106,13 @@ If not triggered:
 
 ### 5) Testing coverage (required with or without specs)
 
-For every non-trivial change, evaluate all categories and add test cases or record justified `N/A`:
-- Start from a risk inventory, not from the happy path: assess misuse/abuse, authorization, invalid transitions, idempotency, replay/duplication, concurrency/races, data-integrity, and partial-failure/rollback risks.
-- Unit tests: changed logic, boundaries, failure paths, and exact error/side-effect expectations.
-- Regression tests: bug-prone or high-risk behavior that should never silently regress again.
-- Property-based tests: required for business-logic changes unless truly unsuitable; use them for invariants, generated business input spaces, state-machine/metamorphic checks when useful, and output expectation checks.
-- Integration tests: user-critical logic chain across modules/layers.
-- E2E tests: key user-visible path impacted by this change; prefer one minimal critical success path plus one highest-value denial/failure path when the risk warrants it.
-- Adversarial/penetration-style cases: abuse paths, malformed inputs, forged identities/privileges, invalid transitions, replay/duplication, stale/out-of-order events, toxic payload sizes, and risky edge combinations.
+Use `$test-case-strategy` for every non-trivial change, even when specs are skipped.
 
-Rules:
-- If E2E is too costly or unstable, add stronger integration coverage for the same risk and record the reason.
-- If property-based testing is not suitable, record `N/A` with a concrete reason.
-- For logic chains with external services, mock or fake those services unless the real contract itself is under test; simulate diverse external states and verify the business chain remains correct.
-- Where the feature can partially commit work, test rollback, compensation, or no-partial-write behavior explicitly.
-- Each test must assert a meaningful oracle: exact business output, persisted state, emitted side effects, or intentional lack of side effects. Avoid assertion-light smoke tests and snapshot-only coverage.
+- Start from risk inventory and changed behavior, not from the happy path.
+- Define test oracles before implementation when the change is planned, and before finalizing tests when the change is discovered during brownfield exploration.
+- For each atomic task that changes non-trivial local logic, define a focused unit drift check or record the smallest replacement verification with a concrete `N/A` reason.
+- Add unit, regression, property-based, integration, E2E, adversarial, mock/fake, rollback, or no-partial-write coverage only when the risk profile warrants it.
+- Each planned test must have a meaningful oracle: exact business output, persisted state, emitted side effects, or intentional lack of side effects.
 - Run relevant tests when possible and fix failures.
 
 ### 6) Completion updates
@@ -152,7 +144,4 @@ Rules:
 ## References
 
 - `$generate-spec`: shared planning and approval workflow.
-- `references/unit-tests.md`: unit testing guidance.
-- `references/property-based-tests.md`: property-based testing guidance.
-- `references/integration-tests.md`: integration testing guidance.
-- `references/e2e-tests.md`: E2E decision and design guidance.
+- `$test-case-strategy`: shared test selection, oracle design, and unit drift-check workflow.

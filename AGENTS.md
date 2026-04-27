@@ -58,6 +58,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can add focused observability to opaque workflows through targeted logs, metrics, traces, and tests.
 - Users can iteratively improve repository code quality through behavior-neutral naming, simplification, module-boundary, logging, and test-coverage passes.
 - Users can iteratively improve repository performance through evidence-backed module scans, safe hot-path optimization, benchmark guardrails, batching, caching, allocation, concurrency, and repeated full-codebase stage gates.
+- Users can select risk-driven test levels and define unit drift checks through a shared testing strategy skill.
 - Users can build against Jupiter's official Solana swap, token, price, lending, trigger, recurring, and portfolio APIs with an evidence-based development guide.
 - Users can render and embed math formulas with KaTeX using official documentation-backed guidance and reusable rendering scripts.
 - Users can debug software systematically by reproducing causes, validating fixes, and testing outcomes.

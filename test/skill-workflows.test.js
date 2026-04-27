@@ -73,3 +73,22 @@ test('version-release requires version inspection and matching tag plus release'
   assert.match(agent, /read the current version plus existing tag\/release state/i);
   assert.match(agent, /publish the matching GitHub release before reporting success/i);
 });
+
+test('feature planning skills share test-case-strategy for test decisions', () => {
+  const strategy = read('test-case-strategy/SKILL.md');
+  const unitReference = read('test-case-strategy/references/unit-tests.md');
+  const generateSpec = read('generate-spec/SKILL.md');
+  const generateTasks = read('generate-spec/references/templates/tasks.md');
+  const develop = read('develop-new-features/SKILL.md');
+  const enhance = read('enhance-existing-features/SKILL.md');
+
+  assert.match(strategy, /unit drift checks/i);
+  assert.match(strategy, /Define the oracle before implementation/i);
+  assert.match(unitReference, /Unit drift check:/i);
+  assert.match(unitReference, /Define the oracle from the spec, design, contract, official docs, or established intended behavior before implementation/i);
+
+  assert.match(generateSpec, /Required: `test-case-strategy`/i);
+  assert.match(generateTasks, /Unit drift check: \[UT-xx target unit \+ oracle, or N\/A with reason\]/i);
+  assert.match(develop, /Required: `generate-spec`.*`test-case-strategy`/is);
+  assert.match(enhance, /Required: `test-case-strategy`/i);
+});

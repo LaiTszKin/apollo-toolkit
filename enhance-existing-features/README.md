@@ -1,13 +1,13 @@
 # enhance-existing-features
 
-A brownfield feature-extension skill: map dependencies first, decide whether shared specs are required, then implement the approved change with risk-driven hardening tests.
+A brownfield feature-extension skill: map dependencies first, decide whether shared specs are required, then use `test-case-strategy` to implement the change with risk-driven hardening tests and unit drift checks.
 
 ## Core capabilities
 
 - Explores dependencies and data flow before deciding how to change the system.
 - Uses `generate-spec` whenever the change is high-complexity, touches a critical module, or crosses module boundaries.
 - Requires explicit approval before coding when specs are generated.
-- Still requires meaningful tests even when specs are skipped.
+- Still requires meaningful tests even when specs are skipped, selected through `test-case-strategy`.
 - Keeps brownfield changes focused and traceable.
 - When specs exist and are approved, finishes all in-scope planned tasks and applicable checklist items before yielding unless the user defers work or an external blocker prevents safe completion.
 
@@ -18,13 +18,8 @@ A brownfield feature-extension skill: map dependencies first, decide whether sha
 ├── SKILL.md
 ├── README.md
 ├── LICENSE
-├── agents/
-│   └── openai.yaml
-└── references/
-    ├── unit-tests.md
-    ├── property-based-tests.md
-    ├── integration-tests.md
-    └── e2e-tests.md
+└── agents/
+    └── openai.yaml
 ```
 
 ## Workflow summary
@@ -38,19 +33,12 @@ A brownfield feature-extension skill: map dependencies first, decide whether sha
 
 ## Test requirements
 
-- Unit: changed logic, boundaries, failure paths.
-- Regression: bug-prone or high-risk behavior that must not silently return.
-- Property-based: mandatory for business logic unless concrete `N/A` is recorded.
-- Integration: user-critical logic chain across layers/modules.
-- E2E: affected key user-visible path when the risk justifies it.
-- Adversarial: abuse paths, malformed inputs, privilege issues, replay, concurrency, and edge combinations when relevant.
-
-If E2E is not feasible, replace it with stronger integration coverage and record the reason.
+- Use `test-case-strategy` to choose the smallest useful test level for each risk.
+- Define meaningful oracles before finalizing tests.
+- Add focused unit drift checks for non-trivial atomic tasks when possible.
+- Record concrete `N/A` reasons when a test level is not suitable.
 
 ## References
 
 - Shared planning workflow: `generate-spec`
-- Unit testing guide: `references/unit-tests.md`
-- Property-based testing guide: `references/property-based-tests.md`
-- Integration testing guide: `references/integration-tests.md`
-- E2E testing guide: `references/e2e-tests.md`
+- Test selection and unit drift-check guide: `test-case-strategy`

@@ -48,6 +48,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - solana-development
 - submission-readiness-check
 - systematic-debug
+- test-case-strategy
 - text-to-short-video
 - version-release
 - video-production

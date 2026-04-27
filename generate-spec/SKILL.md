@@ -1,22 +1,22 @@
 ---
 name: generate-spec
-description: Generate and maintain shared feature planning artifacts (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed `coordination.md`) from standard templates with clarification tracking, approval gating, and post-implementation backfill. Use when a workflow needs specs before coding, or when another skill needs to create/update planning docs under `docs/plans/{YYYY-MM-DD}/...`.
+description: Generate and maintain shared feature planning artifacts (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed `coordination.md`) from standard templates with clarification tracking, approval gating, unit drift-check planning, and post-implementation backfill. Use when a workflow needs specs before coding, or when another skill needs to create/update planning docs under `docs/plans/{YYYY-MM-DD}/...`.
 ---
 
 # Generate Spec
 
 ## Dependencies
 
-- Required: none.
+- Required: `test-case-strategy` for risk-driven test case selection, meaningful oracle design, and unit drift-check planning.
 - Conditional: none.
 - Optional: none.
-- Fallback: not applicable.
+- Fallback: If `test-case-strategy` is unavailable, stop and report the missing dependency instead of inventing test coverage heuristics locally.
 
 ## Standards
 
 - Evidence: Review the relevant code, configs, and authoritative docs before filling requirements or test plans; when external dependencies, libraries, frameworks, APIs, or platforms are involved, checking their official documentation is mandatory during spec creation.
 - Execution: Generate the planning files first, keep each spec set tightly scoped, split broader work into multiple independent spec sets when needed, ensure every batch spec is independently completable and truly parallel-implementable without depending on another spec set to land first, surface shared-file or shared-contract collision risks during planning, resolve those coordination rules before implementation starts, complete them with traceable requirements and risks, handle clarification updates, then wait for explicit approval before implementation.
-- Quality: Keep `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` synchronized, map each planned test to a concrete risk or requirement, and tailor the templates so only applicable items remain active.
+- Quality: Keep `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` synchronized, use `test-case-strategy` to map each planned test to a concrete risk or requirement, and tailor the templates so only applicable items remain active.
 - Output: Store planning artifacts under `docs/plans/{YYYY-MM-DD}/{change_name}/` for single-spec work, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` plus `coordination.md` for multi-spec parallel work whose member specs remain independently approvable, independently implementable, and ready for concurrent worktree execution with pre-agreed collision rules, and keep them concise, executable, and easy to update.
 
 ## Goal
@@ -78,8 +78,14 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 - Use `## **Task N: [Task Title]**` for each main task.
 - Describe each task's purpose and the related requirement IDs.
-- Use `- N. [ ]` for tasks and `- N.x [ ]` for subtasks.
+- Use `- N. [ ]` for atomic task items; use `- N.x [ ]` only when a task must be split into additional atomic subtasks.
+- Treat `tasks.md` as an implementation queue, not a high-level summary.
+- Make each checkbox atomic: one verb, one responsibility, one concrete output, and one verification hook.
+- For every task, include allowed scope, out-of-scope guardrails, requirement/design/contract inputs, expected output, completion condition, and verification hook.
+- If one task needs more than three files, more than one behavior slice, or an implementation decision not already captured in `design.md` or `contract.md`, split it before approval.
+- Use `$test-case-strategy` to define test IDs and unit drift checks for non-trivial local logic before implementation starts.
 - Include explicit tasks for testing, mocks/fakes, regression coverage, and adversarial or edge-case hardening when relevant.
+- Do not write vague tasks such as `Implement integration`, `Add tests`, or `Update docs`; replace them with task-local outputs, test IDs, and verification commands.
 
 ### 5) Fill `contract.md`
 
@@ -121,6 +127,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Treat the template as a starting point and adapt it to the actual scope.
 - Remove or rewrite template examples that are not part of the real plan instead of leaving them as fake work to be checked later.
 - Map observable behaviors to requirement IDs and real test case IDs.
+- Use `$test-case-strategy` to choose the smallest test level that proves each risk and to define meaningful oracles before implementation.
 - Record risk class, oracle/assertion focus, dependency strategy, and test results.
 - Property-based coverage is required for business-logic changes unless a concrete `N/A` reason is recorded.
 - For decision sections, create as many records as needed for distinct flows or risk slices; do not collapse unrelated decisions into one record.
@@ -152,6 +159,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 - By default, write planning docs in the user's language.
 - Keep requirement IDs, task IDs, and test IDs traceable across all three files.
+- Every non-trivial implementation task must have either a focused unit drift check, another concrete verification hook, or an explicit `N/A` reason.
 - Never allow one spec set to cover more than three modules.
 - When a request exceeds that scope, split it into independent, non-conflicting, non-dependent spec sets before approval.
 - For batch specs, independence is mandatory: each spec must describe a complete slice that can be implemented, tested, reviewed, and merged without waiting for another spec in the same batch.
@@ -169,6 +177,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 ## References
 
+- `$test-case-strategy`: shared test case selection, oracle design, and unit drift-check workflow.
 - `scripts/create-specs`: shared planning file generator, exposed as `apltk create-specs`.
 - `references/templates/spec.md`: BDD requirement template.
 - `references/templates/tasks.md`: task breakdown template.

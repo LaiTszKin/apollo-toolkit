@@ -7,6 +7,14 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.4.0] - 2026-04-28
+
+### Added
+- Add `test-case-strategy`, a shared skill for selecting risk-driven test levels, defining meaningful test oracles, and adding focused unit drift checks for atomic implementation tasks.
+
+### Changed
+- Make `generate-spec`, `develop-new-features`, and `enhance-existing-features` depend on `test-case-strategy` for test case selection, while tightening `tasks.md` into an atomic implementation queue with verification hooks.
+
 ## [v3.3.5] - 2026-04-28
 
 ### Changed
