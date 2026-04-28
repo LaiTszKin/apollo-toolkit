@@ -5,6 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Added
+- (None yet)
+
+## [v3.5.0] - 2026-04-28
+
+### Added
 - Add `implement-specs-with-subagents`, a coordinator skill that assigns each approved spec directory to an independent worktree-backed subagent with staggered starts and a maximum of four active implementation agents.
 
 ### Changed
