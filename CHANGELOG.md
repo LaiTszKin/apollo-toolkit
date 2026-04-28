@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- (None yet)
+
+## [v3.6.4] - 2026-04-29
+
 ### Changed
 - Simplify `generate-spec` tasks.md template with compact per-item format (inline file/change/outcome + Verify field), and strengthen SKILL.md §4 to require exact file path, modification, and verification step for every task item
 
