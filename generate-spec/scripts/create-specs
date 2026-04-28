@@ -14,6 +14,7 @@ TEMPLATE_FILENAMES = (
     "design.md",
 )
 COORDINATION_TEMPLATE = "coordination.md"
+PREPARATION_TEMPLATE = "preparation.md"
 PLACEHOLDERS = ("[Feature Name]", "[功能名稱]")
 
 
@@ -49,7 +50,8 @@ def main() -> int:
             "Create planning docs (spec.md, tasks.md, checklist.md, contract.md, design.md) "
             "from templates with folder format docs/plans/{date}/{change_name} "
             "or docs/plans/{date}/{batch_name}/{change_name}, including coordination "
-            "templates for truly parallel-safe batch specs."
+            "and optional preparation templates for batch specs that need shared "
+            "pre-work before parallel implementation."
         ),
     )
     parser.add_argument("feature_name", help="Display name used in generated documents")
@@ -76,6 +78,15 @@ def main() -> int:
             "When used with --batch-name, also create or update "
             "docs/plans/{date}/{batch_name}/coordination.md from the shared template "
             "for up-front ownership and collision coordination."
+        ),
+    )
+    parser.add_argument(
+        "--with-preparation",
+        action="store_true",
+        help=(
+            "When used with --batch-name, also create or update "
+            "docs/plans/{date}/{batch_name}/preparation.md from the shared template "
+            "for prerequisite work that must be completed before parallel implementation."
         ),
     )
     parser.add_argument(
@@ -110,6 +121,8 @@ def main() -> int:
     batch_name = args.batch_name.strip() if args.batch_name else None
     if args.with_coordination and not batch_name:
         raise SystemExit("--with-coordination requires --batch-name")
+    if args.with_preparation and not batch_name:
+        raise SystemExit("--with-preparation requires --batch-name")
 
     template_dir = Path(args.template_dir).expanduser().resolve()
     if not template_dir.exists() or not template_dir.is_dir():
@@ -120,6 +133,8 @@ def main() -> int:
     ]
     if args.with_coordination and not (template_dir / COORDINATION_TEMPLATE).exists():
         missing_templates.append(COORDINATION_TEMPLATE)
+    if args.with_preparation and not (template_dir / PREPARATION_TEMPLATE).exists():
+        missing_templates.append(PREPARATION_TEMPLATE)
     if missing_templates:
         missing = ", ".join(missing_templates)
         raise SystemExit(f"Missing template files in {template_dir}: {missing}")
@@ -133,6 +148,9 @@ def main() -> int:
     output_paths = [output_root / name for name in TEMPLATE_FILENAMES]
     coordination_path = (
         batch_root / COORDINATION_TEMPLATE if args.with_coordination and batch_root else None
+    )
+    preparation_path = (
+        batch_root / PREPARATION_TEMPLATE if args.with_preparation and batch_root else None
     )
     existing_files = [path for path in output_paths if path.exists()]
     if existing_files and not args.force:
@@ -171,10 +189,25 @@ def main() -> int:
             encoding="utf-8",
         )
 
+    if preparation_path and (args.force or not preparation_path.exists()):
+        preparation_template = template_dir / PREPARATION_TEMPLATE
+        preparation_path.write_text(
+            _render(
+                content=preparation_template.read_text(encoding="utf-8"),
+                today=today,
+                feature_name=feature_name,
+                change_name=change_name,
+                batch_name=batch_name,
+            ),
+            encoding="utf-8",
+        )
+
     for output_path in output_paths:
         print(output_path)
     if coordination_path:
         print(coordination_path)
+    if preparation_path:
+        print(preparation_path)
     return 0
 
 

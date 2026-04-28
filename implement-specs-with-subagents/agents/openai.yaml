@@ -1,4 +1,4 @@
 interface:
   display_name: "Implement Specs with Subagents"
   short_description: "Coordinate parallel spec worktree implementations"
-  default_prompt: "Use $implement-specs-with-subagents to assign each approved docs/plans spec directory to one independent subagent that uses $implement-specs-with-worktree, launch at most four implementation subagents at once with staggered starts, honor any requested model when supported, track each branch, commit, test result, and blocker, and report the batch ledger without merging or pushing unless explicitly requested."
+  default_prompt: "Use $implement-specs-with-subagents to read coordination.md and any preparation.md first, complete and commit explicitly documented prerequisite preparation on the working branch before delegation, then assign each approved docs/plans spec directory to one independent subagent that uses $implement-specs-with-worktree, launch at most four implementation subagents at once with staggered starts, honor any requested model when supported, track each branch, commit, test result, and blocker, and report the batch ledger without merging or pushing unless explicitly requested."

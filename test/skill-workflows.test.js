@@ -92,3 +92,17 @@ test('feature planning skills share test-case-strategy for test decisions', () =
   assert.match(develop, /Required: `generate-spec`.*`test-case-strategy`/is);
   assert.match(enhance, /Required: `test-case-strategy`/i);
 });
+
+test('preparation docs stay minimal and non-business', () => {
+  const generateSpec = read('generate-spec/SKILL.md');
+  const preparation = read('generate-spec/references/templates/preparation.md');
+  const coordination = read('generate-spec/references/templates/coordination.md');
+  const subagents = read('implement-specs-with-subagents/SKILL.md');
+
+  assert.match(generateSpec, /keep that preparation minimal and free of core business logic or target outcomes/i);
+  assert.match(generateSpec, /Exclude core business logic, target business outcomes, user-visible behavior changes/i);
+  assert.match(preparation, /smallest shared prerequisite state/i);
+  assert.match(preparation, /No core business logic or target outcome is implemented here/i);
+  assert.doesNotMatch(coordination, /Shared Baseline And Preparation Reference/i);
+  assert.match(subagents, /Complete and commit explicitly documented prerequisite preparation/i);
+});

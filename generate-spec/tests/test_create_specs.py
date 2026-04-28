@@ -64,7 +64,7 @@ class CreateSpecsTests(unittest.TestCase):
         self.assertIn("batch-safe-planner", rendered)
         self.assertIn("parallel-batch", rendered)
 
-    def test_main_creates_spec_files_and_coordination_file(self) -> None:
+    def test_main_creates_spec_files_and_shared_batch_files(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             template_dir = root / "templates"
@@ -80,6 +80,10 @@ class CreateSpecsTests(unittest.TestCase):
                 "coordination [YYYY-MM-DD] [Feature Name] [change_name] [batch_name]\n",
                 encoding="utf-8",
             )
+            (template_dir / MODULE.PREPARATION_TEMPLATE).write_text(
+                "preparation [YYYY-MM-DD] [Feature Name] [change_name] [batch_name]\n",
+                encoding="utf-8",
+            )
 
             argv = [
                 "create-specs",
@@ -87,6 +91,7 @@ class CreateSpecsTests(unittest.TestCase):
                 "--batch-name",
                 "parallel-batch",
                 "--with-coordination",
+                "--with-preparation",
                 "--output-dir",
                 str(output_dir),
                 "--template-dir",
@@ -110,6 +115,35 @@ class CreateSpecsTests(unittest.TestCase):
             coordination = output_dir / "2026-04-18" / "parallel-batch" / "coordination.md"
             self.assertTrue(coordination.is_file())
             self.assertIn(str(coordination), stdout.getvalue())
+            preparation = output_dir / "2026-04-18" / "parallel-batch" / "preparation.md"
+            self.assertTrue(preparation.is_file())
+            self.assertIn("preparation", preparation.read_text(encoding="utf-8"))
+            self.assertIn(str(preparation), stdout.getvalue())
+
+    def test_main_requires_batch_name_for_preparation_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            template_dir = Path(temp_dir) / "templates"
+            template_dir.mkdir(parents=True)
+            for name in MODULE.TEMPLATE_FILENAMES:
+                (template_dir / name).write_text("template\n", encoding="utf-8")
+            (template_dir / MODULE.PREPARATION_TEMPLATE).write_text(
+                "preparation\n",
+                encoding="utf-8",
+            )
+
+            argv = [
+                "create-specs",
+                "My Feature",
+                "--with-preparation",
+                "--template-dir",
+                str(template_dir),
+            ]
+
+            with patch.object(sys, "argv", argv):
+                with self.assertRaises(SystemExit) as context:
+                    MODULE.main()
+
+            self.assertIn("--with-preparation requires --batch-name", str(context.exception))
 
     def test_main_rejects_existing_files_without_force(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

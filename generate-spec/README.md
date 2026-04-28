@@ -1,11 +1,12 @@
 # generate-spec
 
-A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed `coordination.md` so other skills can reuse one consistent approval-gated spec workflow with risk-driven test planning from `test-case-strategy`.
+A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed shared `coordination.md` or `preparation.md` so other skills can reuse one consistent approval-gated spec workflow with risk-driven test planning from `test-case-strategy`.
 
 ## Core capabilities
 
 - Generates single-spec plans under `docs/plans/{YYYY-MM-DD}/{change_name}/`.
 - Generates multi-spec parallel batches under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with a shared `coordination.md`, while keeping every batch spec independently completable and safe to implement concurrently.
+- Optionally generates a batch-level `preparation.md` only when minimal non-business prerequisite work must land before specs can be implemented in parallel.
 - Uses shared templates so spec-first and brownfield workflows follow the same planning structure.
 - Requires clarification handling and explicit user approval before implementation starts.
 - Backfills task and checklist status after implementation and testing.
@@ -29,7 +30,8 @@ A shared planning skill for feature work. It centralizes creation and maintenanc
 │       ├── checklist.md
 │       ├── contract.md
 │       ├── design.md
-│       └── coordination.md
+│       ├── coordination.md
+│       └── preparation.md
 └── scripts/
     └── create-specs
 ```
@@ -64,6 +66,19 @@ apltk create-specs "Membership write path" \
   --output-dir "$WORKSPACE_ROOT/docs/plans"
 ```
 
+Parallel batch with prerequisite preparation:
+
+```bash
+apltk create-specs "Membership write path" \
+  --change-name membership-write-path \
+  --batch-name membership-cutover \
+  --with-coordination \
+  --with-preparation \
+  --output-dir "$WORKSPACE_ROOT/docs/plans"
+```
+
+Use `--with-preparation` only when shared prerequisite work is required before parallel implementation. That file must stay minimal and must not contain core business logic, target user behavior, or member-spec implementation tasks.
+
 ```text
 docs/plans/<today>/membership-cutover/
 ├── coordination.md
@@ -82,7 +97,8 @@ docs/plans/<today>/membership-cutover/
 - `checklist.md`: use `- [ ]` only, adapt items to real scope, record actual results, and map behavior risks to test IDs plus oracles selected through `test-case-strategy`.
 - `contract.md`: when external dependencies materially shape the change, record their official-source-backed invocation surface, constraints, and caller obligations in the standard dependency-record format.
 - `design.md`: record the architecture/design delta in the standard format, including affected modules, flow, invariants, tradeoffs, and validation plan.
-- `coordination.md`: for multi-spec batches only, record shared preparation, ownership boundaries, replacement direction, file ownership guardrails, known collision candidates, pre-agreed edit rules for shared surfaces, shared API/schema freeze or additive-only rules, compatibility-shim retention rules, merge order, and cross-spec integration checkpoints, but never use it to make one spec depend on another spec's implementation before it can be completed.
+- `coordination.md`: for multi-spec batches only, record ownership boundaries, replacement direction, file ownership guardrails, known collision candidates, pre-agreed edit rules for shared surfaces, shared API/schema freeze or additive-only rules, compatibility-shim retention rules, merge order, and cross-spec integration checkpoints, but never use it to make one spec depend on another spec's implementation before it can be completed.
+- `preparation.md`: optional batch-level prerequisite plan used only when specs cannot be made parallel-safe without prior shared work; keep it tasks-like, minimal, verified, and free of core business logic or target outcomes.
 - If clarification responses change the plan, update the docs and obtain approval again before coding.
 
 ## Notes

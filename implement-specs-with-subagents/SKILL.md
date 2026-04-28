@@ -5,9 +5,10 @@ description: >-
   each `docs/plans/.../<change_name>/` spec directory to a separate subagent that
   uses `implement-specs-with-worktree`. Use when a user asks to implement a
   multi-spec batch with subagents, parallel agents, delegated agents, or isolated
-  workers while keeping at most four implementation subagents active at once,
-  staggering starts to avoid rate-limit bursts, preserving independent subagent
-  contexts, and using the user's requested model when specified.
+  workers while completing any explicitly documented shared prerequisite work
+  before delegation, keeping at most four implementation subagents active at
+  once, staggering starts to avoid rate-limit bursts, preserving independent
+  subagent contexts, and using the user's requested model when specified.
 ---
 
 # Implement Specs with Subagents
@@ -21,9 +22,9 @@ description: >-
 
 ## Standards
 
-- Evidence: Read the batch-level `coordination.md` when present, enumerate the exact spec directories to implement, and verify each delegated spec has the required planning files before starting subagents.
-- Execution: Assign exactly one implementation subagent per spec directory, keep no more than four implementation subagents active at the same time, start subagents one at a time rather than in a burst, give each subagent an independent task-local context, and instruct every subagent to use `implement-specs-with-worktree` for its assigned spec.
-- Quality: Preserve spec ownership boundaries, avoid duplicate delegation for the same spec, track branch/worktree/commit/test outcomes for every subagent, and pause new launches when a shared blocker, collision, or rate-limit pressure appears.
+- Evidence: Read the batch-level `coordination.md` and `preparation.md` when present, enumerate the exact spec directories to implement, verify each delegated spec has the required planning files, and identify any explicit prerequisite notes before starting subagents.
+- Execution: Complete and commit explicitly documented prerequisite preparation on the working branch before delegation, then assign exactly one implementation subagent per spec directory, keep no more than four implementation subagents active at the same time, start subagents one at a time rather than in a burst, give each subagent an independent task-local context, and instruct every subagent to use `implement-specs-with-worktree` for its assigned spec.
+- Quality: Preserve spec ownership boundaries, avoid duplicate delegation for the same spec, ensure subagents branch from a baseline that includes prerequisite commits, track branch/worktree/commit/test outcomes for every subagent, and pause new launches when a shared blocker, collision, or rate-limit pressure appears.
 - Output: Return a concise implementation ledger covering each spec, its subagent result, worktree branch, commit or blocker, verification run, and any integration follow-up needed.
 
 ## Goal
@@ -36,6 +37,7 @@ Coordinate a multi-spec implementation batch safely by delegating each approved 
 
 - Locate the requested batch under `docs/plans/{YYYY-MM-DD}/{batch_name}/`.
 - Read `coordination.md` first when it exists.
+- Read `preparation.md` when it exists.
 - Enumerate only the spec directories that are in scope for this request.
 - For each spec directory, verify the presence of:
   - `spec.md`
@@ -45,6 +47,19 @@ Coordinate a multi-spec implementation batch safely by delegating each approved 
   - `design.md`
 - Do not delegate archived, sibling, or approximate specs unless the user explicitly includes them.
 - If `coordination.md` says the batch is not ready for parallel implementation, stop and report the blocking coordination item instead of spawning subagents.
+- If `preparation.md` exists, or if the in-scope spec documents explicitly state that prerequisite work must be completed before parallel implementation, treat that preparation as blocking before subagent launch.
+
+### 1.5) Complete documented prerequisite preparation
+
+- Use this step only when `preparation.md` exists or the specs clearly annotate required pre-work.
+- The coordinating agent owns the prerequisite work; do not delegate it to implementation subagents.
+- Read the preparation tasks, expected outputs, and verification hooks before editing.
+- Complete only the shared prerequisite scope that all specs must assume before parallel work starts.
+- Run the verification commands or checks listed for the preparation.
+- Commit the preparation to the working branch that future implementation worktrees or subagents will use as their base.
+- Record the preparation commit in the ledger.
+- Do not start implementation subagents until the preparation commit exists and the working branch is clean.
+- If preparation cannot be completed or verified, stop and report the blocker instead of launching subagents.
 
 ### 2) Build a delegation plan
 
@@ -58,6 +73,7 @@ Coordinate a multi-spec implementation batch safely by delegating each approved 
   - commit
   - tests
   - blockers
+- If preparation was completed, include the preparation commit that all subagents must treat as their base.
 - Determine the model policy before launch:
   - If the user specifies a model, use that model for the implementation subagents when the environment supports model selection.
   - If the user does not specify a model, let subagents use the same model or default model policy as the coordinating agent.
@@ -79,6 +95,7 @@ For each subagent, provide only task-local instructions:
 - Exact spec directory path.
 - Parent `coordination.md` path when present.
 - Requirement to use `implement-specs-with-worktree`.
+- Requirement to base work on the committed prerequisite-preparation branch state when preparation was performed.
 - Requirement to read the full spec bundle before editing.
 - Requirement to implement inside its own isolated worktree.
 - Requirement to run relevant tests.
@@ -107,11 +124,13 @@ Do not pass the coordinating agent's full reasoning, unrelated sibling specs, or
 ## Working Rules
 
 - One spec directory maps to one implementation subagent.
+- Explicitly documented prerequisite preparation is completed, verified, and committed by the coordinating agent before any implementation subagent starts.
 - Maximum active implementation subagents: four.
 - Subagents must be started gradually, not all at once.
 - Every subagent must have independent context scoped to its assigned spec.
 - Every implementation subagent must use `implement-specs-with-worktree`.
 - The coordinating agent owns scheduling, ledger tracking, and conflict escalation; implementation subagents own their assigned worktree commits.
+- The coordinating agent owns shared prerequisite commits; implementation subagents must not redo or overlap that preparation unless the preparation commit is missing or invalid.
 - User-specified subagent model choices should be honored when supported; otherwise inherit the coordinating agent's model/default model policy.
 - Do not use this skill for a single spec unless the user explicitly wants subagent delegation.
 
@@ -119,4 +138,5 @@ Do not pass the coordinating agent's full reasoning, unrelated sibling specs, or
 
 - `implement-specs-with-worktree`: required per-spec worktree implementation workflow.
 - `generate-spec`: clarification and planning repair workflow when a batch is not ready for parallel implementation.
+- `preparation.md`: optional batch-level prerequisite plan that must be completed before parallel subagent work starts.
 - `review-change-set`: optional post-implementation review workflow before merge or submission.

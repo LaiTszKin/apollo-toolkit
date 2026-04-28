@@ -3,9 +3,9 @@ name: implement-specs-with-worktree
 description: >-
   Read a specs planning set (spec.md, tasks.md, checklist.md, contract.md, design.md)
   from `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`
-  plus parent `coordination.md` when present, and implement the approved tasks
-  within an isolated git worktree, with every code, test, and spec edit made
-  inside that worktree rather than the parent checkout. Use when the user asks
+  plus parent `coordination.md` and `preparation.md` when present, and implement
+  the approved tasks within an isolated git worktree, with every code, test, and
+  spec edit made inside that worktree rather than the parent checkout. Use when the user asks
   to implement from an existing spec set, execute a spec plan, or work on a
   feature branch without affecting the parent working tree. If not already in a
   worktree, create a new worktree with a spec-named branch from the same parent
@@ -24,7 +24,7 @@ description: >-
 
 ## Standards
 
-- Evidence: Read and understand the complete specs set before starting implementation, identify the authoritative parent branch that the worktree should inherit from, verify whether the requested scope is already implemented on that parent branch or current main working tree, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
+- Evidence: Read and understand the complete specs set before starting implementation, including parent `coordination.md` and `preparation.md` when present, identify the authoritative parent branch that the worktree should inherit from, verify whether the requested scope is already implemented on that parent branch or current main working tree, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
 - Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, inspect sibling worktrees for the same batch before editing shared files when parallel implementations may already be active, prefer direct `git` ref checks over brittle shell inference when deciding whether a branch or worktree already exists, and commit to a local branch when done. Do not edit product files from the parent checkout; every implementation, test, and spec backfill change must happen inside the active worktree directory after verifying `git rev-parse --show-toplevel` and `pwd` point at the same worktree root.
 - Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, avoid dragging unrelated sibling specs into the worktree just because they share a batch directory, inspect overlapping runtime/config/shared touch points before diverging from another active sibling worktree in the same batch, revert unrelated formatter-only noise outside the spec-owned scope before committing, if branch/worktree creation reports ambiguous state re-check the actual git refs and worktree list before retrying, and when using targeted Rust `cargo test` selectors remember Cargo accepts only one positional test filter so each distinct selector needs its own confirmed command.
 - Output: Keep the worktree branch clean with only the intended implementation commits.
@@ -45,14 +45,15 @@ Implement approved spec planning sets in an isolated git worktree, ensuring the 
   - prefer the exact matching plan directory from the repository's authoritative branch or main working tree over archived, approximate, or sibling plan directories
   - if the plan lives under a batch directory, sync only the requested spec directory plus the shared `coordination.md` that governs it
   - do not copy neighboring sibling spec directories into the worktree unless the user explicitly expanded scope
-- When the plan sits under a batch directory, also read the sibling `coordination.md` before implementation.
+- When the plan sits under a batch directory, also read the sibling `coordination.md` and `preparation.md` before implementation when those files exist.
 - Read all five spec files:
   - `spec.md` — requirements and BDD behaviors
   - `tasks.md` — task breakdown
   - `checklist.md` — behavior-to-test alignment and completion tracking
   - `contract.md` — API/interface contracts
   - `design.md` — design decisions and architecture notes
-- If `coordination.md` exists in the parent batch directory, read it as the shared source of truth for ownership boundaries, shared preparation, replacement direction, merge order, and cross-spec integration checkpoints.
+- If `coordination.md` exists in the parent batch directory, read it as the shared source of truth for ownership boundaries, replacement direction, merge order, and cross-spec integration checkpoints.
+- If `preparation.md` exists in the parent batch directory, treat it as the already-completed prerequisite baseline for this spec; do not redo its tasks inside the member spec unless the preparation commit is missing or the document says the prerequisite remains blocked.
 - Understand the scope, requirements, and planned tasks before proceeding.
 
 ### 2) Check current worktree state
@@ -106,6 +107,7 @@ Use branch naming from `references/branch-naming.md`.
 - Explore the existing codebase relevant to the planned tasks.
 - Verify latest authoritative docs for involved stacks/integrations.
 - When `coordination.md` exists, respect its shared-field preparation, legacy-replacement direction, and allowed touch-point boundaries before editing.
+- When `preparation.md` exists, implement against its prepared baseline assumptions and avoid duplicating preparation tasks in the member spec.
 - Implement each task in `tasks.md` systematically.
 - When `coordination.md` defines file ownership guardrails, additive-only shared-contract rules, or compatibility-shim retention requirements, treat them as blocking execution constraints rather than optional guidance.
 - For each implemented change, add appropriate tests:
@@ -128,6 +130,7 @@ After implementation and testing:
 - Mark completed tasks in `tasks.md`.
 - Update `checklist.md` with test execution results, N/A reasons, and any scope adjustments.
 - If the shared implementation direction changed, update the parent `coordination.md` as well before finishing.
+- If preparation assumptions changed or were found missing, update `preparation.md` or stop for re-coordination instead of silently moving prerequisite work into the member spec.
 - Do not mark unused template examples or non-applicable items as complete.
 
 ### 6) Commit changes
@@ -158,6 +161,7 @@ After implementation and testing:
 - Complete all planned tasks before committing; do not stop with partial work.
 - Treat the specs as the source of truth for scope — do not deviate without user approval.
 - When `coordination.md` exists, treat it as the source of truth for batch-level ownership and cutover direction.
+- When `preparation.md` exists, treat it as a prerequisite baseline owned outside the member spec; do not duplicate or alter its tasks unless explicitly requested.
 - Never remove a shared shim, rename a shared field, or rewrite a shared file outside the ownership map unless `coordination.md` explicitly allows that change or the user approves a coordination update first.
 - Revert formatter-only edits outside the owned spec scope before the final commit so the worktree stays reviewable and merge-safe.
 - Follow the testing standards from `enhance-existing-features` and `develop-new-features`.

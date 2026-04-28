@@ -5,7 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Added
-- (None yet)
+- Add an optional `generate-spec` `preparation.md` template and `apltk create-specs --with-preparation` support for minimal non-business prerequisite work before parallel spec implementation.
+
+### Changed
+- Tighten `implement-specs-with-subagents` so the coordinating agent completes and commits documented prerequisite preparation before launching implementation subagents.
+- Keep `coordination.md` focused on ownership and collision rules by removing preparation-task fields from its template.
 
 ## [v3.6.0] - 2026-04-28
 

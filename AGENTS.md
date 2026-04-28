@@ -26,7 +26,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can choose between symlink mode (auto-update via git pull) and copy mode (stable snapshot) with `--symlink` / `--copy` flags.
 - Users can run bundled helper tools through `apltk tools` and direct `apltk <tool>` commands for selected packaged skill scripts.
 - Users can design and implement new features through a spec-first workflow.
-- Users can generate shared feature planning artifacts for approval-gated workflows, including parallel multi-spec batches coordinated through one batch-level `coordination.md`.
+- Users can generate shared feature planning artifacts for approval-gated workflows, including parallel multi-spec batches coordinated through `coordination.md` and, only when needed, minimal non-business prerequisite work in `preparation.md`.
 - Users can convert text or documents into audio files with subtitle timelines.
 - Users can turn lecture slides, past papers, and answer books into mock exams, worked solutions, study notes, or graded PDFs with KaTeX-rendered math.
 - Users can extend existing features in a brownfield codebase with required tests and approvals.
