@@ -7,7 +7,7 @@ description: Research the most important tradeable instruments to watch for the 
 
 ## Dependencies
 
-- Required: `pdf` for the final deliverable.
+- Required: `pdf` for the final deliverable, `cjk-pdf` for CJK font and PDF QA needs.
 - Conditional: none.
 - Optional: none.
 - Fallback: If `pdf` is unavailable, stop and report the missing dependency instead of inventing another export workflow.
@@ -123,18 +123,7 @@ Do not guess missing facts that materially change the report scope.
 - Start from `assets/weekly_market_report_template.md`.
 - Localize headings to the requested output language.
 - Default to Chinese if the user did not specify a language.
-- Use Chinese-compatible characters, punctuation, and fonts.
-- On macOS, do not assume a font family is available just because it worked elsewhere.
-- On macOS, prefer a locally verified CJK font in this order when the PDF workflow allows explicit font selection:
-  - `/System/Library/Fonts/Hiragino Sans GB.ttc`
-  - `/System/Library/Fonts/Supplemental/Songti.ttc`
-  - `/Library/Fonts/Arial Unicode.ttf`
-  - `/System/Library/Fonts/STHeiti Medium.ttc`
-  - `/System/Library/Fonts/STHeiti Light.ttc`
-- Do not hardcode fonts that are missing or known to render poorly on the current macOS host.
-- Do not assume `PingFang` exists on every macOS environment.
-- If the `pdf` skill already has a verified CJK-safe default on the current machine, reuse that default instead of overriding it.
-- Avoid emoji, decorative symbols, and unusual glyphs that often break in PDF rendering.
+Use $cjk-pdf for CJK font selection, content safety, visual QA, and temporary file cleanup.
 - Only include exact price levels, yields, or percentages when they were verified from current sources.
 
 ### 6) Render the final PDF

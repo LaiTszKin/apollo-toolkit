@@ -2,6 +2,16 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.7.0] - 2026-04-29
+
+### Added
+- Extract shared CJK PDF layout, merge-conflict-resolver, and common git-submission workflows into standalone reusable skills (`cjk-pdf`, `merge-conflict-resolver`)
+- Establish skill-dependency pattern: `implement-specs-with-worktree` depends on `implement-specs`; `version-release` depends on `commit-and-push`
+
+### Changed
+- Strip ~375 lines of verbosity across 32 skill files: remove empty Dependencies sections, merge redundant Overview paragraphs, deduplicate repeated principles in `generate-spec`, and consolidate `archive-specs` workflow steps
+- Extract inline output templates and issue schemas into skill-local reference files for `scheduled-runtime-health-check` and `open-github-issue`
+
 ## [Unreleased]
 
 ### Added

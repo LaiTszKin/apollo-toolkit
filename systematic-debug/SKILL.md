@@ -5,13 +5,6 @@ description: "Systematic debugging workflow for program issues: understand obser
 
 # Systematic Debug
 
-## Dependencies
-
-- Required: none.
-- Conditional: none.
-- Optional: none.
-- Fallback: not applicable.
-
 ## Standards
 
 - Evidence: Gather expected versus observed behavior from code and runtime facts before deciding on a cause, and when the issue involves a runtime pipeline or bounded run, anchor the investigation to one canonical artifact root or run directory instead of mixed terminal snippets from multiple runs; if generated reports or databases drift into an older run directory, capture that mismatch explicitly before treating any artifact as evidence.

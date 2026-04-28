@@ -19,10 +19,6 @@ description: Learn and evolve the local skill library from recent Codex conversa
 - Quality: Take no action when there are no recent sessions, avoid unrelated broad refactors, keep shared skills cross-project reusable, route project-specific tooling patterns into the relevant project's `~/.codex/skills/`, and validate every changed skill.
 - Output: Report the analyzed sessions, extracted lessons, created or updated skills, shared-vs-project-specific placement decisions, and the reasoning behind each decision.
 
-## Overview
-
-Extract recent conversations, identify reusable lessons, and convert those lessons into concrete skill updates.
-
 ## Required Resources
 
 - `scripts/extract_recent_conversations.py` for deterministic session extraction, exposed as `apltk extract-skill-conversations`.

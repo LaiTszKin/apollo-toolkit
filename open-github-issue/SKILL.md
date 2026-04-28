@@ -21,14 +21,7 @@ description: Publish structured GitHub issues across multiple issue categories w
 
 ## Overview
 
-Use this skill to publish structured GitHub issues deterministically across several common issue situations.
-
-It is designed to be reusable by other skills that already know the issue title and evidence, but need a consistent way to:
-
-- resolve the target repository,
-- localize the issue body,
-- publish with the preferred auth path,
-- and fall back to draft-only output without blocking the main workflow.
+Designed to be reusable by other skills that know the issue title and evidence but need a consistent publish path.
 
 ## Core principles
 
@@ -48,41 +41,7 @@ It is designed to be reusable by other skills that already know the issue title 
    - Otherwise resolve from current git `origin`.
 2. Normalize issue content
    - Require one title and an explicit `issue-type`.
-   - For `problem` issues, require these structured sections:
-     - `problem-description`
-     - `suspected-cause`
-     - `reproduction` (optional)
-   - Within `problem-description`, require a precise behavior diff:
-     - `Expected Behavior (BDD)`: `Given / When / Then` for what the program should do.
-     - `Current Behavior (BDD)`: `Given / When / Then` for what the program does now.
-     - `Behavior Gap`: a short explicit comparison of the observable difference and impact.
-     - Include the symptom, impact, and key evidence alongside the behavior diff; do not leave the mismatch implicit.
-   - For `feature` issues, require these structured sections:
-     - `proposal` (optional; defaults to title when omitted)
-     - `reason`
-     - `suggested-architecture`
-   - For `performance` issues, require:
-     - `problem-description`
-     - `impact`
-     - `evidence`
-     - `suggested-action`
-   - For `security` issues, require:
-     - `problem-description`
-     - `severity`
-     - `affected-scope`
-     - `impact`
-     - `evidence`
-     - `suggested-action`
-   - For `docs` issues, require:
-     - `problem-description`
-     - `evidence`
-     - `suggested-action`
-   - For `observability` issues, require:
-     - `problem-description`
-     - `impact`
-     - `evidence`
-     - `suggested-action`
-   - If reproduction is missing for a `problem` issue, insert the default non-reproducible note in the target issue language.
+   - See `references/issue-schemas.md` for the required fields per issue type.
 3. Detect issue language
    - Read the target repository README from GitHub.
    - If the README is Chinese, publish Chinese section titles; otherwise publish English section titles.

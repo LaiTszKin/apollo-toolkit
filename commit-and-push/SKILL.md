@@ -19,10 +19,6 @@ description: "Guide the agent to submit local changes with commit and push only 
 - Quality: Re-run relevant validation for runtime changes, preserve unrelated local work safely when branch switching or post-push local sync is required, do not bypass blocking readiness findings such as missing/stale `Unreleased` bullets or unsynchronized project docs, and never collapse intentionally separated commit scopes just because related unstaged changes are present.
 - Output: Produce a concise Conventional Commit, push it to the intended branch, and report any temporary stash/restore, commit-scope separation, or local branch sync that was required.
 
-## Overview
-
-Run a standardized commit-and-push workflow without release/version steps.
-
 ## References
 
 Load only when needed:

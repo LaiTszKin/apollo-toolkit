@@ -19,10 +19,6 @@ description: Discover reproducible edge-case risks in changed code or a selected
 - Quality: Separate confirmed findings from hypotheses and cover boundary, failure, stateful, and observability edge cases that matter to the scope.
 - Output: Return prioritized findings, edge-case evidence, risk assessment, hardening guidance, and residual risk only.
 
-## Overview
-
-Use this skill to discover edge-case failures and coverage gaps with evidence-first analysis. The goal is to surface reproducible findings, not to remediate them.
-
 ## Non-negotiable Boundaries
 
 - This skill is discovery-only: do not edit code, do not add or modify tests, and do not open PRs.

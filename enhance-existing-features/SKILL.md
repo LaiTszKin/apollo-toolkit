@@ -28,10 +28,6 @@ description: >-
 - Quality: Use `test-case-strategy` to add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
 - Output: Keep implementation and any planning artifacts traceable, updated, and aligned with actual completion results.
 
-## Overview
-
-Safely extend brownfield systems by exploring the existing codebase first, using the user's requested change plus discovered impact to decide whether specs are needed, then following a consistent implementation and testing workflow with minimal, well-validated changes.
-
 ## Workflow
 
 ### 1) Explore codebase first

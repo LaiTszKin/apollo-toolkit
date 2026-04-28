@@ -19,10 +19,6 @@ description: Resolve a GitHub issue in an existing repository and submit the fix
 - Quality: Treat localized bug fixes and narrow optimizations as direct implementation work unless the explored scope proves they need shared planning; finish tests, spec backfill, docs sync, and `AGENTS.md/CLAUDE.md` sync before handing off submission.
 - Output: Report the issue context, chosen workflow, implemented fix, validation evidence, and commit/push result.
 
-## Overview
-
-Use this skill for the recurring workflow where the user wants one GitHub issue taken from remote context through implementation and direct submission. Keep the workflow tight: fetch the issue faithfully, decide whether specs are necessary from the explored codebase, finish the fix with tests, then submit without PR or release steps.
-
 ## Workflow
 
 ### 1) Read the issue from the remote source first

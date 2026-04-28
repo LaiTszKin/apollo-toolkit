@@ -19,18 +19,6 @@ description: Repository-wide code review workflow that requires reading the full
 - Quality: Prefer root-cause findings over scattered symptoms, merge duplicates, and keep hypotheses out of published results.
 - Output: Return coverage, review tier reached, confirmed findings, publication status, and deferred lower-tier follow-up.
 
-## Overview
-
-Use this skill to review an entire repository before making judgments.
-
-The review order is strict:
-
-1. Architecture and system design
-2. Code quality and maintainability
-3. Edge cases and robustness gaps
-
-Only continue to the next level when the current level has no confirmed findings.
-
 ## Core rules
 
 - Read the full repository before judging any design or implementation choice.

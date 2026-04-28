@@ -19,10 +19,6 @@ description: "Research specific topics deeply and turn them into evidence-based 
 - Quality: Distinguish verified facts from analysis or inference and call out limitations, conflicts, or stale data explicitly.
 - Output: Deliver a polished research file with clear sections, citations, dates, and source links.
 
-## Overview
-
-Use this skill when a user needs topic research that goes beyond a quick answer and should end as a polished file deliverable.
-
 ## Required Workflow
 
 1. Understand the request

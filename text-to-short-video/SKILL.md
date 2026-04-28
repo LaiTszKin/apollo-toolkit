@@ -5,32 +5,12 @@ description: Generate 30-60 second short videos by directly calling an OpenAI-co
 
 # Text to Short Video
 
-## Dependencies
-
-- Required: none.
-- Conditional: none.
-- Optional: none.
-- Fallback: not applicable.
-
 ## Standards
 
 - Evidence: Use `roles.json` as the authoritative role source and collect only the minimal prompt, duration, and sizing inputs.
 - Execution: Stay API-only: resolve roles, build one prompt, submit the video job, poll until completion, and download one final MP4.
 - Quality: Keep duration in the 30-60 second range, preserve role identity fields, and do not route through storyboard or Remotion skills.
 - Output: Save the prompt package, API records, and final short-video artifacts under the project video workspace.
-
-## Overview
-
-This skill is **API-only**:
-
-1. Resolve role consistency from `roles.json`.
-2. Build one short-video prompt from text + roles.
-3. Call an OpenAI-compatible video generation API.
-4. Poll until the job is finished.
-5. Download one final MP4.
-6. Optionally run aspect-ratio/size post-processing.
-
-Do not use `openai-text-to-image-storyboard` or `remotion-best-practices` in this skill.
 
 ## Required Inputs
 

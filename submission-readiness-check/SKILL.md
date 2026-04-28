@@ -19,10 +19,6 @@ description: Prepare a repository for safe submission by synchronizing `CHANGELO
 - Quality: Treat missing or stale changelog entries as blocking issues for submit workflows, preserve unrelated pending `Unreleased` bullets, do not archive active plan sets that still track unfinished scope, and do not hand back a ready verdict until every conditional gate whose scenario is met has actually been completed.
 - Output: Return a ready-to-submit verdict with the synchronized files and any blocking items that must be fixed before the owning submit workflow continues.
 
-## Overview
-
-Use this skill as the shared finalization pass before repository submission workflows. It exists to prevent repeated omissions such as forgetting `CHANGELOG.md`, shipping stale project docs, or leaving completed plan sets unarchived.
-
 ## Workflow
 
 ### 1) Inventory the real submission surface

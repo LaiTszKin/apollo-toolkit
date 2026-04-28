@@ -7,7 +7,7 @@ description: Read a user-specified PDF that marks the week's key financial event
 
 ## Dependencies
 
-- Required: `pdf` to render the final report.
+- Required: `pdf` to render the final report, `cjk-pdf` for CJK font and PDF QA needs.
 - Conditional: `document-vision-reader` when the source PDF's highlighted markers are visible in layout but not recoverable from machine-readable text alone.
 - Optional: none.
 - Fallback: If source-PDF extraction through `pdf` is unavailable or fails on macOS, use the bundled `apltk extract-pdf-text-pdfkit` helper before giving up; only stop when neither `pdf` nor the local PDFKit fallback can recover the marked events, or when final PDF rendering itself cannot be completed.
@@ -18,10 +18,6 @@ description: Read a user-specified PDF that marks the week's key financial event
 - Execution: Read the PDF first, prefer `pdf` for extraction but fall back to the bundled macOS PDFKit extractor when local PDF tooling is missing, lock the research window, check for an existing report covering that same window before duplicating work, research each marked event, then hand the final briefing to `pdf` for rendering and QA with deterministic table-safe layout rules when needed; when a Codex automation prompt includes an explicit `Automation memory:` path, reuse that concrete path for run-memory notes instead of assuming `$CODEX_HOME` resolves in the shell.
 - Quality: Keep the report concise, Chinese-compatible, explicit about source-versus-breaking events, conflicts, uncertainty, PDF font safety, and long-text table legibility.
 - Output: Save only the final standardized PDF under the month folder using the financial-event-report naming scheme.
-
-## Overview
-
-Turn a marked weekly finance PDF into a short, evidence-based report that a user can read in a few minutes. The workflow starts from the user's source PDF, extracts the explicitly marked key events, validates each event with current reporting and primary sources, adds any material breaking financial developments, and delivers the final briefing as a Chinese-compatible PDF.
 
 ## Behavior Contract
 
@@ -147,20 +143,7 @@ apltk extract-pdf-text-pdfkit /absolute/path/to/source.pdf
 - The final PDF must support Chinese text cleanly.
 - Pass the font and rendering requirements to the `pdf` skill instead of implementing a separate export path here.
 - On macOS, require the `pdf` skill to verify the font path before rendering.
-- When the PDF workflow allows explicit font selection, ask the `pdf` skill to prefer a locally verified CJK font in this order:
-  - `/System/Library/Fonts/Hiragino Sans GB.ttc`
-  - `/System/Library/Fonts/Supplemental/Songti.ttc`
-  - `/Library/Fonts/Arial Unicode.ttf`
-  - `/System/Library/Fonts/STHeiti Medium.ttc`
-  - `/System/Library/Fonts/STHeiti Light.ttc`
-- Do not assume `PingFang` is available on every macOS host.
-- If the active `pdf` workflow already has a verified Chinese-safe default on the current machine, reuse that verified default instead of overriding it.
-- Avoid emoji and uncommon glyphs that often break during rendering.
-- When the report includes tables, timelines, or matrix-style summaries with long phrases:
-  - require wrapped paragraph cells rather than single-line text rendering
-  - require width-constrained columns and row heights that expand with content
-  - require padding and font sizes that keep dense Chinese text readable
-  - prefer a deterministic renderer script when the default markdown-to-PDF path cannot guarantee those layout rules
+Use $cjk-pdf for CJK font selection, content safety, visual QA, and temporary file cleanup. For tables with long phrases, require wrapped paragraph cells and width-constrained columns that expand with content.
 
 ### 7) Delegate rendering and PDF QA to the `pdf` skill
 

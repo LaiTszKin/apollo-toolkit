@@ -19,10 +19,6 @@ description: Maintain monthly multi-account bookkeeping ledgers in Excel. Use wh
 - Quality: Preserve existing naming, formulas, and reconciliation behavior, and record new chart rules or account metadata changes immediately.
 - Output: Report the updated workbook path, changed worksheets, account-registry changes, and chart-rule changes.
 
-## Overview
-
-Track user-named accounts through monthly Excel workbooks and keep the account registry plus chart rules consistent over time. Treat `ACCOUNT.md` as the source of truth for account identity and `CHART.md` as the source of truth for recurring chart and quantified-analysis rules.
-
 ## References
 
 Load these only when needed:

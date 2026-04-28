@@ -5,13 +5,6 @@ description: Select and design risk-driven test cases for agent implementation w
 
 # Test Case Strategy
 
-## Dependencies
-
-- Required: none.
-- Conditional: none.
-- Optional: none.
-- Fallback: not applicable.
-
 ## Standards
 
 - Evidence: Base every test decision on changed behavior, requirement IDs, risk class, dependency shape, and existing coverage; do not add tests only because a template lists them.

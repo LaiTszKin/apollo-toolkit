@@ -17,7 +17,7 @@ description: >-
 ## Dependencies
 
 - Required: `archive-specs` to archive completed plan sets and synchronize durable project docs after merge verification, and `commit-and-push` for the final current-branch submission flow.
-- Conditional: none.
+- Conditional: `merge-conflict-resolver` to resolve merge conflicts deterministically when conflicts arise.
 - Optional: none.
 - Fallback: If git operations fail, stop and report the error.
 
@@ -82,13 +82,7 @@ For each in-scope named branch:
    git merge <branch-name> --no-ff -m "Merge branch '<branch-name>' into <current-branch>"
    ```
 
-3. If conflicts occur, resolve them automatically using these rules:
-   - Read the conflict markers and both parent versions before editing.
-   - **Same line, different content**: keep the version that matches the intended post-merge behavior, not simply the newer edit.
-   - **File deleted in one branch, modified in another**: keep the version supported by current code references and tests; do not silently drop reachable code.
-   - **Both branches modified the same file differently**: preserve both changes when they are compatible; if they overlap, manually compose a merged result that keeps the verified logic from both sides.
-   - **Test files conflicting**: preserve coverage for both behaviors unless one assertion is now obsolete by verified implementation changes.
-   - Use `-X ours` / `-X theirs` only for a narrowly justified conflict after reading the actual content; never use those flags as the default merge strategy.
+3. If conflicts occur, use $merge-conflict-resolver to resolve them deterministically.
 
    After resolving files:
    ```bash
@@ -170,14 +164,4 @@ For each in-scope named branch:
 - Delete merged source branches and their detached worktrees only after the merge commit and verification both succeed.
 - When active batch specs provide merge-order guidance for in-scope named branches, follow that order unless new evidence proves the plan is stale or inapplicable; if so, stop and report the mismatch instead of silently overriding the batch plan.
 
-## Conflict Resolution Examples
-
-| Scenario | Resolution Strategy |
-|----------|---------------------|
-| Same line, both branches changed behavior | Read both code paths and compose the merged logic that preserves the verified invariant |
-| Same line, one branch is a bug fix and the other is a refactor | Keep the bug fix and reapply the compatible refactor structure manually if needed |
-| File deleted in branch, modified in current branch | Keep the version supported by current references/tests and remove only if the deletion is proven correct |
-| Both added same function differently | Keep both; rename if needed |
-| Config file conflict | Keep both values if non-overlapping |
-| Test file conflict | Keep both test cases |
-| package.json dependency conflict | Keep higher version if compatible |
+Resolve conflicts using $merge-conflict-resolver.

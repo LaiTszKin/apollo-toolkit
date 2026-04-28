@@ -5,13 +5,6 @@ description: Read and understand a software project, then generate or align proj
 
 # Align Project Documents
 
-## Dependencies
-
-- Required: none.
-- Conditional: none.
-- Optional: none.
-- Fallback: not applicable.
-
 ## Standards
 
 - Evidence: Treat source code, configuration, scripts, and tests as the source of truth.

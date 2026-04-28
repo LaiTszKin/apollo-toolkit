@@ -19,10 +19,6 @@ description: PR-focused workflow for open-source repositories. Use when the user
 - Quality: Target the upstream parent repository by default for forks, keep PR content in English unless requested otherwise, and exclude internal workflow details.
 - Output: Produce a review-ready PR body with motivation, engineering rationale, test commands, and any required issue linkage.
 
-## Overview
-
-Use this workflow to prepare open-source contributions and open review-ready pull requests with consistent branch naming and PR content quality.
-
 ## Scope Guardrails
 
 - This skill is for PR preparation and PR creation only.

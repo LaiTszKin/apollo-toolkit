@@ -19,10 +19,6 @@ description: Read and search remote GitHub issues via GitHub CLI (`gh`). Use whe
 - Quality: Keep the skill focused on issue discovery and retrieval only; do not embed any hardcoded fixing, branching, PR, or push workflow.
 - Output: Return candidate issues, selected issue details, comments summary, and any missing information needed before follow-up work.
 
-## Overview
-
-Use this skill to gather trustworthy GitHub issue context with `gh`: discover open or closed issues, narrow them with labels or search text, then inspect a chosen issue in detail before any separate planning or implementation workflow begins.
-
 ## Prerequisites
 
 - `gh` is installed and authenticated (`gh auth status`).

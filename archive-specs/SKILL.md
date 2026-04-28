@@ -9,8 +9,6 @@ description: Convert completed project plan sets into maintainable project docum
 
 - Required: `align-project-documents` to align repository docs with current code before archiving, and `maintain-project-constraints` to synchronize `AGENTS.md/CLAUDE.md` after the doc update.
 - Conditional: none.
-- Optional: none.
-- Fallback: not applicable.
 
 ## Standards
 
@@ -58,19 +56,10 @@ Convert completed planning artifacts into stable, standardized project documenta
   - `docs/architecture.md`
   - `docs/features.md`
   - `docs/developer-guide.md`
+- Ensure the categorized docs cover: installation and deployment, configuration, external services with required credentials and API key acquisition tutorials when applicable, architecture and module boundaries, feature introductions, and developer onboarding context.
 - If the repository already uses different doc paths, preserve the established locations only when the resulting documents still match the same categorized sections and remain easy to maintain.
 
-### 4) Fill the required documentation sections
-
-Ensure the split project docs cover all of the following:
-- how to install and deploy the project
-- how to configure the project
-- external services, required credentials, and API key acquisition tutorials when applicable
-- project architecture and key module boundaries
-- project feature introductions and user-facing flows
-- project context developers should understand before making changes
-
-### 5) Write the configuration and external-service guidance carefully
+### 4) Write the configuration and external-service guidance carefully
 
 - List each env var, config file, or secret only when supported by repository evidence.
 - For every external service, document:
@@ -81,7 +70,7 @@ Ensure the split project docs cover all of the following:
   - any safe-development notes such as sandbox/test-mode usage
 - If the repository does not show how to obtain a credential, say so explicitly and point to the service's official setup page rather than guessing steps.
 
-### 6) Keep README short and the doc set navigable
+### 5) Keep README short and the doc set navigable
 
 - `README.md` should stay short: project intro, quick install/deploy, major features, and key doc links.
 - `docs/README.md` should act as the reference list for the categorized docs.
@@ -89,7 +78,7 @@ Ensure the split project docs cover all of the following:
 - Remove template placeholders and stale planning language before finishing.
 - After the docs are aligned, run `maintain-project-constraints` whenever the documentation changes imply `AGENTS.md/CLAUDE.md` needs to reflect updated workflows, commands, or repository capabilities.
 
-### 7) Archive superseded spec files after successful conversion
+### 6) Archive superseded spec files after successful conversion
 
 - After the standardized project docs are complete and verified, archive the old source spec files that were converted.
 - Prefer moving the consumed `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when applicable their shared `coordination.md`, or the containing batch/spec plan directory, into a clearly marked archive path instead of leaving them mixed with active docs.

@@ -19,10 +19,6 @@ description: Review the current git change set from an unbiased reviewer perspec
 - Quality: Judge the change set as an outsider, keep only actionable findings, and avoid inventing concerns the security pass did not confirm.
 - Output: Return review scope, architecture findings, simplification findings, security cross-check results, and residual uncertainty.
 
-## Overview
-
-Use this skill to review the active git change set as an outsider, not as the original author. The goal is to find actionable abstraction and simplification opportunities with evidence, not to defend the current implementation.
-
 ## Non-negotiable Review Rules
 
 - Read the full active change set before judging any design choice.

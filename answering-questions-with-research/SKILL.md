@@ -5,13 +5,6 @@ description: This skill should be used when the user asks a question that needs 
 
 # Answering Questions With Research
 
-## Dependencies
-
-- Required: none.
-- Conditional: none.
-- Optional: none.
-- Fallback: not applicable.
-
 ## Standards
 
 - Evidence: Verify repository facts from local files first and confirm time-sensitive claims with current external sources.

@@ -21,12 +21,7 @@ description: Recover a missing or mismatched `docs/plans/...` plan set by verify
 
 ## Overview
 
-Use this skill when the user points to `docs/plans/{date}/{change}/...` or `docs/plans/{date}/{batch}/{change}/...` but the directory is missing, only `docs/plans/README.md` exists, the matching files were already archived, or the workspace is detached / incomplete and the plan evidence must be recovered before coding or archiving can proceed.
-
-Typical triggers:
-- The user references a specific `docs/plans/...` directory that is absent from the current worktree.
-- A feature workflow expects approved spec files, but the plan was archived, never checked out, or exists only in another branch/worktree.
-- An implementation task must continue from GitHub issue context because the original planning artifacts are missing.
+Recover a missing, archived, or mismatched plan set when the user references a `docs/plans/...` directory that does not exist in the current worktree.
 
 ## Workflow
 

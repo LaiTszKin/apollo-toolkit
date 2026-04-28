@@ -19,10 +19,6 @@ description: Comprehensive application log investigation workflow that reads log
 - Quality: Separate confirmed issues from hypotheses and include time-window, log, code, impact, and confidence evidence for each report.
 - Output: Return incident summary, confirmed issues, hypotheses, monitoring improvements, and publication status.
 
-## Overview
-
-Use this skill to analyze application logs systematically with the codebase and runtime context, then report confirmed issues with clear evidence, confidence, and next actions.
-
 ## Core principles
 
 - Prioritize evidence over assumptions; avoid speculative conclusions.
