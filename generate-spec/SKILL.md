@@ -86,16 +86,19 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 ### 4) Fill `tasks.md`
 
-- Use `## **Task N: [Task Title]**` for each main task.
-- Describe each task's purpose and the related requirement IDs.
+- Use `## **Task N: [Task Title]**` for each main task with `Purpose`, `Requirements`, `Scope`, and `Out of scope` guardrails.
 - Use `- N. [ ]` for atomic task items; use `- N.x [ ]` only when a task must be split into additional atomic subtasks.
 - Treat `tasks.md` as an implementation queue, not a high-level summary.
-- Make each checkbox atomic: one verb, one responsibility, one concrete output, and one verification hook.
-- For every task, include allowed scope, out-of-scope guardrails, requirement/design/contract inputs, expected output, completion condition, and verification hook.
+- **Every checkbox must specify three things: (a) the exact file path or function, (b) the specific modification to make, and (c) a concrete verification step.** These three are mandatory — no item may omit any of them.
+- Per-item format (compact template):
+  - `[file/function]` — `[specific modification; expected outcome]`
+  - `- Verify:` — focused command, test reference, or manual inspection
+- Do not add extra sub-fields beyond what the template provides; put all change detail in the inline description.
+- Make each checkbox atomic: one verb, one file/function, one change outcome, and one verification hook.
 - If one task needs more than three files, more than one behavior slice, or an implementation decision not already captured in `design.md` or `contract.md`, split it before approval.
 - Use `$test-case-strategy` to define test IDs and unit drift checks for non-trivial local logic before implementation starts.
 - Include explicit tasks for testing, mocks/fakes, regression coverage, and adversarial or edge-case hardening when relevant.
-- Do not write vague tasks such as `Implement integration`, `Add tests`, or `Update docs`; replace them with task-local outputs, test IDs, and verification commands.
+- Vague items such as `Implement integration`, `Add tests`, or `Update docs` are forbidden; replace them with specific file paths, concrete changes, and executable verification commands.
 
 ### 5) Fill `contract.md`
 
