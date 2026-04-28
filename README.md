@@ -23,6 +23,8 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - generate-spec
 - harden-app-security
 - implement-specs
+- implement-specs-with-subagents
+- implement-specs-with-worktree
 - improve-observability
 - iterative-code-performance
 - iterative-code-quality
@@ -196,6 +198,7 @@ The install commands below were checked with the Skills CLI unless otherwise not
 Compatibility note:
 
 - `generate-spec` is a local skill used by `develop-new-features` and `enhance-existing-features`, and it can produce either a single spec set under `docs/plans/{YYYY-MM-DD}/{change_name}/` or a coordinated parallel batch under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with shared `coordination.md`.
+- `implement-specs-with-subagents` coordinates one `implement-specs-with-worktree` subagent per spec directory for approved multi-spec batches, with staggered launches and a maximum of four active implementation subagents.
 - `recover-missing-plan` is a local skill used by `enhance-existing-features` and `ship-github-issue-fix` when a referenced `docs/plans/...` spec set is missing or archived.
 - `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the table.
 - `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.

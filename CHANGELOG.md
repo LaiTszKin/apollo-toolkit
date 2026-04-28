@@ -5,7 +5,10 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Added
-- (None yet)
+- Add `implement-specs-with-subagents`, a coordinator skill that assigns each approved spec directory to an independent worktree-backed subagent with staggered starts and a maximum of four active implementation agents.
+
+### Changed
+- Tighten `generate-spec` so current templates remain the binding format even when older project specs use different layouts.
 
 ## [v3.4.1] - 2026-04-28
 

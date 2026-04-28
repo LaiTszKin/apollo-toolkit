@@ -15,8 +15,8 @@ description: Generate and maintain shared feature planning artifacts (`spec.md`,
 ## Standards
 
 - Evidence: Review the relevant code, configs, and authoritative docs before filling requirements or test plans; when external dependencies, libraries, frameworks, APIs, or platforms are involved, checking their official documentation is mandatory during spec creation.
-- Execution: Generate the planning files first, keep each spec set tightly scoped, split broader work into multiple independent spec sets when needed, ensure every batch spec is independently completable and truly parallel-implementable without depending on another spec set to land first, surface shared-file or shared-contract collision risks during planning, resolve those coordination rules before implementation starts, complete them with traceable requirements and risks, handle clarification updates, then wait for explicit approval before implementation.
-- Quality: Keep `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` synchronized, use `test-case-strategy` to map each planned test to a concrete risk or requirement, and tailor the templates so only applicable items remain active.
+- Execution: Generate the planning files from this skill's current templates first, keep each spec set tightly scoped, split broader work into multiple independent spec sets when needed, ensure every batch spec is independently completable and truly parallel-implementable without depending on another spec set to land first, surface shared-file or shared-contract collision risks during planning, resolve those coordination rules before implementation starts, complete them with traceable requirements and risks, handle clarification updates, then wait for explicit approval before implementation.
+- Quality: Keep `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` synchronized, use `test-case-strategy` to map each planned test to a concrete risk or requirement, preserve the actual headings and field structure from this skill's templates, and tailor the templates so only applicable items remain active.
 - Output: Store planning artifacts under `docs/plans/{YYYY-MM-DD}/{change_name}/` for single-spec work, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` plus `coordination.md` for multi-spec parallel work whose member specs remain independently approvable, independently implementable, and ready for concurrent worktree execution with pre-agreed collision rules, and keep them concise, executable, and easy to update.
 
 ## Goal
@@ -36,6 +36,8 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Inspect existing `docs/plans/` directories before deciding whether to edit an existing plan set.
 - Reuse an existing plan set only when it clearly matches the same requested issue/change scope.
 - If the requested work is adjacent to, but not actually covered by, an existing plan set, create a new directory instead of overwriting the neighboring one.
+- Treat existing or archived project-local specs as scope evidence only, not as formatting authority.
+- Do not copy older spec layouts, condensed repo conventions, or neighboring plan structures when they differ from this skill's current templates.
 
 ### 2) Generate the planning files
 
@@ -63,6 +65,8 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
   - `references/templates/design.md`
 - Generate `references/templates/coordination.md` at the batch root when multiple spec sets are intentionally created for parallel implementation.
 - Save files under `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`.
+- After generation, fill the files in place without renaming, removing, or collapsing template headings unless a heading is explicitly template-only and not applicable to the real scope.
+- Before approval, compare the drafted files against the current template headings and required fields; fix any drift caused by following older project examples.
 
 ### 3) Fill `spec.md`
 
@@ -174,6 +178,8 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 - Use kebab-case for `change_name`; avoid spaces and special characters.
 - Path rule: `scripts/...` and `references/...` in this file always mean paths under the current skill folder, not the target project root.
 - Never overwrite a nearby issue's plan set just because the technical area overlaps; shared modules are not sufficient evidence that the scope is the same.
+- Template authority rule: the current `references/templates/*.md` files in this skill are the binding format for new or refreshed spec documents. Older `docs/plans/...` files may inform scope, terminology, and historical decisions, but they must not override the current template structure.
+- Before presenting specs for approval, run a template-drift pass: verify the expected template sections are present, remove stale placeholder examples, and ensure any removed section has a scope-based reason rather than being omitted because an older project spec omitted it.
 
 ## References
 
