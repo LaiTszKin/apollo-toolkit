@@ -4,6 +4,11 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- (None yet)
+
+## [v3.6.2] - 2026-04-28
+
 ### Changed
 - Normalize `AGENTS.md` references to `AGENTS.md/CLAUDE.md` across the skill catalog for CLAUDE.md awareness.
 
