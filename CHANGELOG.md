@@ -5,6 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Added
+- (None yet)
+
+## [v3.6.1] - 2026-04-28
+
+### Added
 - Add an optional `generate-spec` `preparation.md` template and `apltk create-specs --with-preparation` support for minimal non-business prerequisite work before parallel spec implementation.
 
 ### Changed
