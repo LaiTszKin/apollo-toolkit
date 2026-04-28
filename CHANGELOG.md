@@ -5,6 +5,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Added
+- (None yet)
+
+## [v3.6.0] - 2026-04-28
+
+### Added
 - Add `review-spec-related-changes`, a spec-compliance review skill that checks recent or named planning documents against implementation evidence and treats unmet business goals as the most severe findings before secondary edge-case, security, and code-review checks.
 
 ### Changed
