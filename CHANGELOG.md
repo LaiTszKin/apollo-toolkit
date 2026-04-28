@@ -5,7 +5,10 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Added
-- (None yet)
+- Add `review-spec-related-changes`, a spec-compliance review skill that checks recent or named planning documents against implementation evidence and treats unmet business goals as the most severe findings before secondary edge-case, security, and code-review checks.
+
+### Changed
+- Remove the post-merge code-review gate from `merge-changes-from-local-branches` so spec-related review now lives in the dedicated `review-spec-related-changes` skill.
 
 ## [v3.5.0] - 2026-04-28
 

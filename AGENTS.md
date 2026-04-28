@@ -52,6 +52,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can record multi-account spending and balance changes in monthly Excel ledgers with summary analytics and charts.
 - Users can recover missing or archived `docs/plans/...` spec sets from issue context, git history, and repository evidence before continuing feature work.
 - Users can review the current git change set from an unbiased reviewer perspective to find abstraction opportunities and simplification candidates.
+- Users can review recent or user-specified spec-backed changes against the governing planning documents, treating unmet business goals as the most severe findings before secondary edge-case, security, and code-review checks.
 - Users can process GitHub pull request review comments and resolve addressed threads.
 - Users can perform repository-wide code reviews and publish confirmed findings as GitHub issues.
 - Users can schedule a bounded project runtime window, stop it automatically, and analyze module health from captured logs.
