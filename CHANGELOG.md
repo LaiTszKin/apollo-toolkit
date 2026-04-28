@@ -7,6 +7,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.6.3] - 2026-04-28
+
+### Changed
+- Extend `implement-specs-with-subagents` with multi-phase execution: analyse spec dependencies from `coordination.md`, build phased delegation plans via topological sort, execute phases sequentially with parallel subagents per phase, and merge completed spec branches back via `merge-changes-from-local-branches` between phases.
+
 ## [v3.6.2] - 2026-04-28
 
 ### Changed
