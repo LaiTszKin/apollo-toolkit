@@ -7,6 +7,12 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.6.5] - 2026-04-29
+
+### Fixed
+- Synchronize `package-lock.json` version with release
+- Fix template assertion test to match the simplified tasks.md format
+
 ## [v3.6.4] - 2026-04-29
 
 ### Changed
