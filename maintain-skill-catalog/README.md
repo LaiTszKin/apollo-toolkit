@@ -6,7 +6,7 @@ Maintain a repository of installable skills by auditing skill definitions, depen
 
 - Scans top-level skills before adding or splitting new ones to avoid duplicate scope.
 - Audits standardized `## Dependencies` sections and separates vendored, local-only, external, and alias dependencies.
-- Syncs catalog docs such as `README.md` and `AGENTS.md` with actual skill capabilities.
+- Syncs catalog docs such as `README.md` and `AGENTS.md/CLAUDE.md` with actual skill capabilities.
 - Catches catalog-wide validation issues like missing `agents/openai.yaml` files or stale prompt references.
 - Encodes user corrections into durable catalog rules so the same classification mistakes do not repeat.
 

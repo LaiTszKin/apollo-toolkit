@@ -7,8 +7,8 @@ It guides the agent to:
 2. Classify user-facing functions into MVP / Important / Enhancement / Performance.
 3. Propose numbered feature recommendations with clear implementation direction.
 4. Publish accepted proposals through `open-github-issue` with reason and suggested architecture.
-5. Record accepted feature proposals in `AGENTS.md`.
-6. Remove implemented proposals from `AGENTS.md` after delivery.
+5. Record accepted feature proposals in `AGENTS.md/CLAUDE.md`.
+6. Remove implemented proposals from `AGENTS.md/CLAUDE.md` after delivery.
 
 ## Repository layout
 

@@ -119,7 +119,7 @@ For each in-scope named branch:
 
 - After all in-scope merges succeed and the current-branch state has been verified, invoke `archive-specs`.
 - Let `archive-specs` convert and archive any completed `docs/plans/...` spec sets that now reflect the delivered outcome.
-- Let `archive-specs` synchronize durable project docs and `AGENTS.md` when the merged result changed operator workflows, repository guidance, or user-visible behavior.
+- Let `archive-specs` synchronize durable project docs and `AGENTS.md/CLAUDE.md` when the merged result changed operator workflows, repository guidance, or user-visible behavior.
 - Do not proceed to the final submission commit while required archival or documentation updates remain unfinished.
 - If no completed spec sets or project-doc drift are present, record that evidence explicitly before moving on.
 

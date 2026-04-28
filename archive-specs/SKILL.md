@@ -7,7 +7,7 @@ description: Convert completed project plan sets into maintainable project docum
 
 ## Dependencies
 
-- Required: `align-project-documents` to align repository docs with current code before archiving, and `maintain-project-constraints` to synchronize `AGENTS.md` after the doc update.
+- Required: `align-project-documents` to align repository docs with current code before archiving, and `maintain-project-constraints` to synchronize `AGENTS.md/CLAUDE.md` after the doc update.
 - Conditional: none.
 - Optional: none.
 - Fallback: not applicable.
@@ -15,9 +15,9 @@ description: Convert completed project plan sets into maintainable project docum
 ## Standards
 
 - Evidence: Treat code, config, deployment files, and current spec files as evidence sources; never guess when a detail is missing.
-- Execution: Inventory all relevant specs first, reconcile them with the current repository, use `align-project-documents` to update durable project docs, use `maintain-project-constraints` to refresh `AGENTS.md` when repository guidance changed, then archive only the truly consumed planning artifacts.
+- Execution: Inventory all relevant specs first, reconcile them with the current repository, use `align-project-documents` to update durable project docs, use `maintain-project-constraints` to refresh `AGENTS.md/CLAUDE.md` when repository guidance changed, then archive only the truly consumed planning artifacts.
 - Quality: Prefer source-of-truth behavior over stale plan text, align existing docs to the same standard structure, and call out unknowns explicitly instead of inventing missing setup details.
-- Output: Produce synchronized durable docs (`README.md`, categorized project docs, and `AGENTS.md` when needed), then archive or remove superseded spec files after the conversion is complete.
+- Output: Produce synchronized durable docs (`README.md`, categorized project docs, and `AGENTS.md/CLAUDE.md` when needed), then archive or remove superseded spec files after the conversion is complete.
 
 ## Goal
 
@@ -87,7 +87,7 @@ Ensure the split project docs cover all of the following:
 - `docs/README.md` should act as the reference list for the categorized docs.
 - Each category doc should stay focused on one topic instead of acting like another monolithic handbook.
 - Remove template placeholders and stale planning language before finishing.
-- After the docs are aligned, run `maintain-project-constraints` whenever the documentation changes imply `AGENTS.md` needs to reflect updated workflows, commands, or repository capabilities.
+- After the docs are aligned, run `maintain-project-constraints` whenever the documentation changes imply `AGENTS.md/CLAUDE.md` needs to reflect updated workflows, commands, or repository capabilities.
 
 ### 7) Archive superseded spec files after successful conversion
 

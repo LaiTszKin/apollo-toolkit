@@ -87,7 +87,7 @@ Load only when needed:
    - Reset `Unreleased` to an empty placeholder after the version entry is created.
    - Remove duplicate section headers or bullets only when the move would otherwise create repeated content.
    - Update `README.md` only when behavior or usage changed.
-   - Update `AGENTS.md` only when agent workflow/rules changed.
+   - Update `AGENTS.md/CLAUDE.md` only when agent workflow/rules changed.
 8. Commit and tag
    - Create a release-oriented commit message (for example `chore(release): publish 2.12.1`) when applicable.
    - For new-version flows, create the version tag locally after commit.

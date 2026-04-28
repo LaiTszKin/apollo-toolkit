@@ -16,7 +16,7 @@ description: Resolve a GitHub issue in an existing repository and submit the fix
 
 - Evidence: Read the remote issue and the real implementation before deciding scope, process, or fixes.
 - Execution: Prefer the repo's existing issue-reading helpers, fall back to raw `gh issue` commands when helpers are missing, use spec planning only when the actual change surface justifies it, and push directly to the user-requested branch when submission is requested.
-- Quality: Treat localized bug fixes and narrow optimizations as direct implementation work unless the explored scope proves they need shared planning; finish tests, spec backfill, docs sync, and `AGENTS.md` sync before handing off submission.
+- Quality: Treat localized bug fixes and narrow optimizations as direct implementation work unless the explored scope proves they need shared planning; finish tests, spec backfill, docs sync, and `AGENTS.md/CLAUDE.md` sync before handing off submission.
 - Output: Report the issue context, chosen workflow, implemented fix, validation evidence, and commit/push result.
 
 ## Overview
@@ -54,7 +54,7 @@ Use this skill for the recurring workflow where the user wants one GitHub issue 
 
 - If the user asked to commit or push, hand off to `$commit-and-push`.
 - Preserve the user's explicit branch target; when the user says `push to main`, treat direct push to `main` as the default goal.
-- Before the final commit, ensure any required spec backfill, docs synchronization, and `AGENTS.md` alignment are completed.
+- Before the final commit, ensure any required spec backfill, docs synchronization, and `AGENTS.md/CLAUDE.md` alignment are completed.
 - Do not convert this flow into a PR workflow unless the user explicitly requests a PR.
 - Do not perform version bumps, tags, or GitHub Releases in this skill.
 

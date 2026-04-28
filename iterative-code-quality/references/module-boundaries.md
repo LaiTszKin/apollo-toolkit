@@ -80,4 +80,4 @@ After a split:
 - public entrypoints still call the same behavior,
 - tests cover moved logic and orchestration glue,
 - logs still carry the same correlation identifiers,
-- docs or `AGENTS.md` are updated only if the visible architecture or command surface changed.
+- docs or `AGENTS.md/CLAUDE.md` are updated only if the visible architecture or command surface changed.

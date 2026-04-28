@@ -29,7 +29,7 @@ Keep a skill repository coherent when many top-level skills evolve together.
 
 - List the tracked top-level skill directories and read the relevant `SKILL.md` files before deciding that a new skill is needed.
 - Check whether the requested workflow already exists under another name or can be handled by a focused update.
-- Read current `README.md`, `AGENTS.md`, validator scripts, and any existing dependency notes that may need synchronization.
+- Read current `README.md`, `AGENTS.md/CLAUDE.md/CLAUDE.md`, validator scripts, and any existing dependency notes that may need synchronization.
 - When the task involves external dependencies, inspect local installed skills under `~/.codex/skills` first to confirm the exact skill names.
 
 ### 2) Audit dependency declarations and shared conventions
@@ -48,7 +48,7 @@ Keep a skill repository coherent when many top-level skills evolve together.
 
 - Keep edits minimal and repo-wide only where necessary.
 - Update `README.md` skill lists and external dependency sections when the catalog actually changes.
-- Update `AGENTS.md` when the repository gains or loses a user-visible capability or a standing convention changes.
+- Update `AGENTS.md/CLAUDE.md` when the repository gains or loses a user-visible capability or a standing convention changes.
 - When creating a new shared skill, align naming, frontmatter, `agents/openai.yaml`, and any lightweight README with neighboring skills.
 - When a failure comes from validator drift or a metadata constraint that was not caught early, tighten the validator or CI path in the same change instead of only fixing the offending skill text.
 - Do not treat unpublished local skills as external dependencies just because they are not yet installed elsewhere.

@@ -1,6 +1,6 @@
 ---
 name: feature-propose
-description: Professional product-management workflow for proposing features from an existing codebase. Use when the user asks to understand an application, classify features from a user perspective into MVP/Important/Enhancement/Performance tiers, ask 3-5 clarifying questions when needed, propose numbered feature recommendations, publish accepted proposals through `open-github-issue`, record accepted items in AGENTS.md, and remove implemented items from AGENTS.md.
+description: Professional product-management workflow for proposing features from an existing codebase. Use when the user asks to understand an application, classify features from a user perspective into MVP/Important/Enhancement/Performance tiers, ask 3-5 clarifying questions when needed, propose numbered feature recommendations, publish accepted proposals through `open-github-issue`, record accepted items in AGENTS.md/CLAUDE.md, and remove implemented items from AGENTS.md/CLAUDE.md.
 ---
 
 # Feature Propose
@@ -10,7 +10,7 @@ description: Professional product-management workflow for proposing features fro
 - Required: none.
 - Conditional: `open-github-issue` for accepted features that should be published as GitHub issues.
 - Optional: none.
-- Fallback: If issue publication is skipped or unavailable, keep accepted proposals synchronized in `AGENTS.md` and report the publication state explicitly.
+- Fallback: If issue publication is skipped or unavailable, keep accepted proposals synchronized in `AGENTS.md/CLAUDE.md` and report the publication state explicitly.
 
 ## Standards
 
@@ -21,7 +21,7 @@ description: Professional product-management workflow for proposing features fro
 
 ## Overview
 
-Act as a professional PM: build a complete understanding of the current product from code, classify capabilities by user value, propose prioritized features, publish accepted proposals through `open-github-issue`, persist accepted proposals in `AGENTS.md`, and keep the list clean by removing implemented items.
+Act as a professional PM: build a complete understanding of the current product from code, classify capabilities by user value, propose prioritized features, publish accepted proposals through `open-github-issue`, persist accepted proposals in `AGENTS.md/CLAUDE.md`, and keep the list clean by removing implemented items.
 
 ## References
 
@@ -36,7 +36,7 @@ Load these references as needed during classification:
 
 ### 1) Explore the codebase before proposing anything
 
-- Read repo-level guidance first (`AGENTS.md`, `README`, major docs).
+- Read repo-level guidance first (`AGENTS.md/CLAUDE.md`, `README`, major docs).
 - Map architecture, entrypoints, user-facing flows, data models, and external integrations.
 - Identify implemented features, obvious gaps, and technical constraints from code and tests.
 - Summarize findings before moving to prioritization.
@@ -72,17 +72,17 @@ Load these references as needed during classification:
   - Acceptance criteria
 - Keep proposals focused and minimal; avoid over-engineering.
 
-### 5) Persist accepted features to AGENTS.md, publish them, and clean up after implementation
+### 5) Persist accepted features to AGENTS.md/CLAUDE.md, publish them, and clean up after implementation
 
 - Ask the user to accept/reject/edit features by number.
-- Once accepted, update repo-root `AGENTS.md` with a dedicated section:
+- Once accepted, update repo-root `AGENTS.md/CLAUDE.md` with a dedicated section:
   - `## Accepted Feature Proposals`
 - Append accepted features as a numbered list with:
   - Date (`YYYY-MM-DD`)
   - Type (`MVP`, `Important`, `Enhancement`, `Performance`)
   - Short feature statement
-- Preserve existing `AGENTS.md` content and style; do not rewrite unrelated sections.
-- If `AGENTS.md` does not exist, ask before creating it.
+- Preserve existing `AGENTS.md/CLAUDE.md` content and style; do not rewrite unrelated sections.
+- If `AGENTS.md/CLAUDE.md` does not exist, ask before creating it.
 - For each accepted feature, invoke `open-github-issue` exactly once with feature-proposal content.
 - Default to publishing accepted features unless the user explicitly says not to create GitHub issues.
 - Pass these fields to `open-github-issue`:
@@ -94,7 +94,7 @@ Load these references as needed during classification:
   - `repo`: target repository in `owner/repo` format when known
 - If invoking the publisher CLI directly, pass accepted proposal details through `apltk open-github-issue --payload-file <json>` or `@file` inputs rather than inline shell arguments so Markdown and code identifiers remain literal.
 - Reuse the returned `mode`, `issue_url`, and `publish_error` in the response.
-- After the related feature is implemented, remove that feature entry from `## Accepted Feature Proposals` in `AGENTS.md`.
+- After the related feature is implemented, remove that feature entry from `## Accepted Feature Proposals` in `AGENTS.md/CLAUDE.md`.
 - Remove only implemented items; keep unimplemented accepted items untouched.
 
 ## Output template

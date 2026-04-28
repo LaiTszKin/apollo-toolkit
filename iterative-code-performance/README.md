@@ -15,7 +15,7 @@ Improve an existing repository through a strict three-step loop of full-codebase
 - Introduces caching or memoization only when ownership, invalidation, size bounds, and failure behavior are clear.
 - Treats large coupled hot paths as staged unlock problems, not as automatic stop signals.
 - Re-scans the full repository after every iteration and repeats while any known in-scope actionable performance issue or unvisited in-scope module remains.
-- Synchronizes project docs and `AGENTS.md` through `align-project-documents` and `maintain-project-constraints` after implementation.
+- Synchronizes project docs and `AGENTS.md/CLAUDE.md` through `align-project-documents` and `maintain-project-constraints` after implementation.
 
 ## Repository structure
 

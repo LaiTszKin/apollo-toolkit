@@ -1,6 +1,6 @@
 ---
 name: submission-readiness-check
-description: Prepare a repository for safe submission by synchronizing `CHANGELOG.md`, project docs, `AGENTS.md`, and completed planning artifacts before commit, push, PR creation, or release. Use when a workflow is about to submit changes and must avoid missing finalization steps such as stale `Unreleased` notes, unarchived completed spec sets, or unsynchronized agent constraints.
+description: Prepare a repository for safe submission by synchronizing `CHANGELOG.md`, project docs, `AGENTS.md/CLAUDE.md`, and completed planning artifacts before commit, push, PR creation, or release. Use when a workflow is about to submit changes and must avoid missing finalization steps such as stale `Unreleased` notes, unarchived completed spec sets, or unsynchronized agent constraints.
 ---
 
 # Submission Readiness Check
@@ -15,7 +15,7 @@ description: Prepare a repository for safe submission by synchronizing `CHANGELO
 ## Standards
 
 - Evidence: Inspect the actual git diff, staged set, planning artifacts, `CHANGELOG.md`, and current project docs before declaring the repository ready to submit.
-- Execution: Decide whether the target flow is commit/push, PR, or release; normalize completed spec sets when appropriate; synchronize project docs plus `AGENTS.md`; then enforce changelog readiness before any commit, tag, push, PR creation, or release publishing step.
+- Execution: Decide whether the target flow is commit/push, PR, or release; normalize completed spec sets when appropriate; synchronize project docs plus `AGENTS.md/CLAUDE.md`; then enforce changelog readiness before any commit, tag, push, PR creation, or release publishing step.
 - Quality: Treat missing or stale changelog entries as blocking issues for submit workflows, preserve unrelated pending `Unreleased` bullets, do not archive active plan sets that still track unfinished scope, and do not hand back a ready verdict until every conditional gate whose scenario is met has actually been completed.
 - Output: Return a ready-to-submit verdict with the synchronized files and any blocking items that must be fixed before the owning submit workflow continues.
 
@@ -28,7 +28,7 @@ Use this skill as the shared finalization pass before repository submission work
 ### 1) Inventory the real submission surface
 
 - Read `git status -sb`, `git diff --stat`, and `git diff --cached --stat`.
-- Check whether the repository has root `CHANGELOG.md`, top-level `AGENTS.md`, and categorized project docs already in use.
+- Check whether the repository has root `CHANGELOG.md`, top-level `AGENTS.md/CLAUDE.md`, and categorized project docs already in use.
 - Inventory planning artifacts across the repository, not only staged files, so completed plan sets are not missed.
 - Classify the intended downstream flow:
   - `commit-push`
@@ -46,7 +46,7 @@ Use this skill as the shared finalization pass before repository submission work
 
 - Run `$align-project-documents` after spec conversion or doc inspection is complete.
 - Run `$maintain-project-constraints` immediately before the owning submission workflow mutates git history.
-- Apply the resulting doc and `AGENTS.md` updates when behavior, operator workflow, or standing project rules changed.
+- Apply the resulting doc and `AGENTS.md/CLAUDE.md` updates when behavior, operator workflow, or standing project rules changed.
 
 ### 4) Enforce changelog readiness
 
@@ -67,7 +67,7 @@ Use this skill as the shared finalization pass before repository submission work
 
 - Confirm which files were synchronized:
   - project docs
-  - `AGENTS.md`
+  - `AGENTS.md/CLAUDE.md`
   - `CHANGELOG.md`
   - archived plan sets
 - If anything remains unsynchronized, report it as a blocking item rather than letting the submit workflow continue optimistically.

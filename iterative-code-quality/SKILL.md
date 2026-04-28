@@ -38,7 +38,7 @@ For this skill, `macro architecture` means the system's top-level runtime shape 
 
 ### 1) Scan the repository
 
-- Read root guidance first: `AGENTS.md`, `README*`, package manifests, task runners, CI/test config, and major project docs.
+- Read root guidance first: `AGENTS.md/CLAUDE.md`, `README*`, package manifests, task runners, CI/test config, and major project docs.
 - Map runtime entrypoints, domain modules, external integrations, logging utilities, and current test surfaces.
 - Exclude generated, vendored, lock, build-output, fixture, or snapshot files unless evidence shows they are human-maintained source.
 - Build or refresh a concrete repository-wide backlog of known actionable quality issues.
@@ -80,7 +80,7 @@ Load references for this step only as needed:
 Only enter this step when the latest full-codebase scan confirms there is no remaining known actionable in-scope quality issue and every in-scope module has received a deep-read iteration, except items explicitly classified as blocked, unsafe, speculative, low-value, excluded, or approval-dependent.
 
 - Run `align-project-documents` when README, architecture notes, setup docs, debugging docs, or test guidance may have drifted.
-- Run `maintain-project-constraints` to verify `AGENTS.md` still matches the repository's real architecture, business flow, commands, and conventions.
+- Run `maintain-project-constraints` to verify `AGENTS.md/CLAUDE.md` still matches the repository's real architecture, business flow, commands, and conventions.
 - Update only the documentation and constraints that changed in reality because of the refactor.
 
 ## Hard Guardrails
@@ -108,5 +108,5 @@ Return:
 5. Business behavior preservation evidence.
 6. Tests or other guardrails added or updated, including property/integration/E2E `N/A` reasons where relevant.
 7. Validation commands and results.
-8. Documentation and `AGENTS.md` synchronization status.
+8. Documentation and `AGENTS.md/CLAUDE.md` synchronization status.
 9. Remaining blocked or approval-dependent items, if any.

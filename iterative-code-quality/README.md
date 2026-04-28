@@ -26,7 +26,7 @@ Improve an existing repository through a strict three-step loop of full-codebase
 - Repeats the pass cycle while any known in-scope actionable quality issue remains, and forbids a completion report until the latest scan is clear or remaining items are explicitly deferred with a valid reason.
 - Forbids completion while any in-scope module remains unvisited, even if already-read modules look clean.
 - Targets as many inherited repository quality problems as can be solved safely, and expects the guarded test surface to remain green after the refactor.
-- Synchronizes project docs and `AGENTS.md` through `align-project-documents` and `maintain-project-constraints` after implementation.
+- Synchronizes project docs and `AGENTS.md/CLAUDE.md` through `align-project-documents` and `maintain-project-constraints` after implementation.
 
 ## Repository structure
 

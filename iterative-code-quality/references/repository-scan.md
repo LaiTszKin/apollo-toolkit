@@ -6,7 +6,7 @@ Build a factual map before changing code, then choose the highest-value quality 
 
 ## Required scan
 
-- Read `AGENTS.md`, `README*`, project docs, manifests, task runners, CI configs, and test setup.
+- Read `AGENTS.md/CLAUDE.md`, `README*`, project docs, manifests, task runners, CI configs, and test setup.
 - List entrypoints: CLI commands, servers, workers, jobs, frontend routes, scripts, libraries, or public packages.
 - Identify core domain modules, external integrations, persistence boundaries, logging utilities, and test helpers.
 - Create a module inventory and coverage ledger using `references/module-coverage.md`.

@@ -56,7 +56,7 @@ Inspect the full known performance backlog for:
 - hot loops that still allocate avoidable objects,
 - concurrency changes that need backpressure or max-in-flight proof,
 - logs, metrics, traces, or benchmarks that now describe stale names or paths,
-- documentation or `AGENTS.md` drift.
+- documentation or `AGENTS.md/CLAUDE.md` drift.
 
 Then choose the next execution directions with these priorities:
 

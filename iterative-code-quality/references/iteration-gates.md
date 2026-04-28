@@ -53,7 +53,7 @@ Inspect the full known quality backlog for:
 - module boundaries that are still mixed,
 - logs that now use stale names,
 - tests that cover only the happy path,
-- documentation or `AGENTS.md` drift.
+- documentation or `AGENTS.md/CLAUDE.md` drift.
 
 Then choose the next execution directions with these priorities:
 

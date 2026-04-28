@@ -39,7 +39,7 @@ For this skill, `macro architecture` means the system's top-level runtime shape 
 
 ### 1) Scan the repository
 
-- Read root guidance first: `AGENTS.md`, `README*`, package manifests, task runners, CI/test config, benchmark tooling, profiler setup, and major project docs.
+- Read root guidance first: `AGENTS.md/CLAUDE.md`, `README*`, package manifests, task runners, CI/test config, benchmark tooling, profiler setup, and major project docs.
 - Map runtime entrypoints, domain modules, external integrations, persistence/query boundaries, queue or job workers, request paths, hot loops, and current performance guardrails.
 - Exclude generated, vendored, lock, build-output, fixture, snapshot, or minified files unless evidence shows they are human-maintained source.
 - Build or refresh a concrete repository-wide backlog of known actionable performance issues.
@@ -82,7 +82,7 @@ Load references for this step only as needed:
 Only enter this step when the latest full-codebase scan confirms there is no remaining known actionable in-scope performance issue and every in-scope module has received a deep-read iteration, except items explicitly classified as blocked, unsafe, speculative, low-value, excluded, approval-dependent, or requiring production-only measurement that is unavailable.
 
 - Run `align-project-documents` when README, architecture notes, setup docs, benchmark docs, performance budgets, operational docs, or test guidance may have drifted.
-- Run `maintain-project-constraints` to verify `AGENTS.md` still matches the repository's real architecture, business flow, commands, and conventions.
+- Run `maintain-project-constraints` to verify `AGENTS.md/CLAUDE.md` still matches the repository's real architecture, business flow, commands, and conventions.
 - Update only the documentation and constraints that changed in reality because of the optimization.
 
 ## Hard Guardrails
@@ -112,5 +112,5 @@ Return:
 6. Business behavior preservation evidence.
 7. Benchmarks, regression tests, or other guardrails added or updated, including property/integration/E2E/load-test `N/A` reasons where relevant.
 8. Validation commands and results.
-9. Documentation and `AGENTS.md` synchronization status.
+9. Documentation and `AGENTS.md/CLAUDE.md` synchronization status.
 10. Remaining blocked, production-measurement-only, or approval-dependent items, if any.

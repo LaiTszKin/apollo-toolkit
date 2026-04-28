@@ -1,6 +1,6 @@
 ---
 name: maintain-project-constraints
-description: Automatically create and maintain AGENTS.md so it stays aligned with the current repository architecture, core business flow, common commands, macro project purpose, and coding conventions. Use when AGENTS.md is missing or may be outdated after code changes.
+description: Automatically create and maintain AGENTS.md/CLAUDE.md so it stays aligned with the current repository architecture, core business flow, common commands, macro project purpose, and coding conventions. Use when AGENTS.md/CLAUDE.md is missing or may be outdated after code changes.
 ---
 
 # Maintain Project Constraints
@@ -15,26 +15,26 @@ description: Automatically create and maintain AGENTS.md so it stays aligned wit
 ## Standards
 
 - Evidence: Infer repository architecture, business flow, and conventions from current code and docs rather than assumptions.
-- Execution: Create or align `AGENTS.md` only after building a concrete inventory of implemented capabilities.
+- Execution: Create or align `AGENTS.md/CLAUDE.md` only after building a concrete inventory of implemented capabilities.
 - Quality: Keep every statement traceable, remove stale guidance, and ensure `Core business flow` stays exhaustive and concrete.
-- Output: Maintain a concise root-level `AGENTS.md` with the required sections, repository-specific wording, and a factual `Common Commands` section when the repository exposes stable command entry points.
+- Output: Maintain a concise root-level `AGENTS.md/CLAUDE.md` with the required sections, repository-specific wording, and a factual `Common Commands` section when the repository exposes stable command entry points.
 
 ## Goal
 
-Keep `AGENTS.md` accurate, actionable, and synchronized with the latest state of the repository.
+Keep `AGENTS.md/CLAUDE.md` accurate, actionable, and synchronized with the latest state of the repository.
 
 ## Trigger Conditions
 
 Invoke this skill when either condition is true:
 
-1. `AGENTS.md` does not exist and the user needs this repository to expose agent-facing guidance.
-2. `AGENTS.md` exists but may have drifted after code changes, refactors, or workflow updates.
+1. `AGENTS.md/CLAUDE.md` does not exist and the user needs this repository to expose agent-facing guidance.
+2. `AGENTS.md/CLAUDE.md` exists but may have drifted after code changes, refactors, or workflow updates.
 
-After completing any code modification task, proactively run this skill to verify `AGENTS.md` is still aligned, and update it if needed.
+After completing any code modification task, proactively run this skill to verify `AGENTS.md/CLAUDE.md` is still aligned, and update it if needed.
 
 ## Required Outputs
 
-`AGENTS.md` must include these sections (use concise, repository-specific content):
+`AGENTS.md/CLAUDE.md` must include these sections (use concise, repository-specific content):
 
 - Project architecture
 - Core business flow
@@ -88,7 +88,7 @@ This project enables users to manage and run reusable automation workflows.
 
 ### 1) Build factual understanding first
 
-- Confirm whether `AGENTS.md` exists.
+- Confirm whether `AGENTS.md/CLAUDE.md` exists.
 - Read the repository before writing:
   - root docs (`README`, contribution docs, design docs)
   - key source directories and entry points
@@ -100,11 +100,11 @@ This project enables users to manage and run reusable automation workflows.
 - Build a concrete inventory of all currently implemented capabilities before drafting `Core business flow`.
 - Build a separate inventory of stable, repository-specific commands before drafting `Common Commands`.
 
-### 2) Create AGENTS.md when missing
+### 2) Create AGENTS.md/CLAUDE.md when missing
 
-When `AGENTS.md` is absent:
+When `AGENTS.md/CLAUDE.md` is absent:
 
-- Create a new root-level `AGENTS.md`.
+- Create a new root-level `AGENTS.md/CLAUDE.md`.
 - Document architecture, business flow, purpose, and coding conventions from observed facts.
 - Write `Core project purpose` as the repository's macro intent, such as the problem it aims to solve or the outcome it exists to achieve, rather than as a feature list.
 - Document the repository's common commands from observed command entry points and docs.
@@ -112,9 +112,9 @@ When `AGENTS.md` is absent:
 - Write `Common commands` as short bullets in the style of ``- `command` — when to use it.``.
 - Keep language specific to this repository; avoid generic boilerplate.
 
-### 3) Align AGENTS.md when drift is detected
+### 3) Align AGENTS.md/CLAUDE.md when drift is detected
 
-When `AGENTS.md` exists but is outdated:
+When `AGENTS.md/CLAUDE.md` exists but is outdated:
 
 - Re-read changed or high-impact modules.
 - Update only sections that no longer match reality.
@@ -124,7 +124,7 @@ When `AGENTS.md` exists but is outdated:
 
 ### 4) Quality checks before finishing
 
-- Ensure every statement in `AGENTS.md` is traceable to current repository files.
+- Ensure every statement in `AGENTS.md/CLAUDE.md` is traceable to current repository files.
 - Remove stale paths, renamed components, and obsolete workflows.
 - Remove stale commands, flags, or task names that no longer exist.
 - Verify every command in `Common Commands` is either documented in repository docs or directly supported by the current codebase.

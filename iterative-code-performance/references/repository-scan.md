@@ -6,7 +6,7 @@ Build a factual performance map before changing code, then choose the highest-va
 
 ## Required scan
 
-- Read `AGENTS.md`, `README*`, project docs, manifests, task runners, CI configs, benchmark setup, profiler setup, and test setup.
+- Read `AGENTS.md/CLAUDE.md`, `README*`, project docs, manifests, task runners, CI configs, benchmark setup, profiler setup, and test setup.
 - List entrypoints: CLI commands, servers, workers, jobs, frontend routes, scripts, libraries, public packages, and scheduled tasks.
 - Identify core domain modules, persistence/query boundaries, external integrations, serialization/parsing paths, logging utilities, queues, caches, and test helpers.
 - Create a module inventory and coverage ledger using `references/module-coverage.md`.
