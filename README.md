@@ -49,6 +49,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - scheduled-runtime-health-check
 - shadow-api-model-research
 - solana-development
+- solve-issues-found-during-review
 - submission-readiness-check
 - systematic-debug
 - test-case-strategy

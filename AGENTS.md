@@ -58,6 +58,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can schedule a bounded project runtime window, stop it automatically, and analyze module health from captured logs.
 - Users can investigate gated or shadow LLM APIs by capturing real client request shapes, replaying verified traffic patterns, and attributing the likely underlying model through black-box fingerprinting.
 - Users can build and maintain Solana programs and Rust clients using official Solana development workflows.
+- Users can fix issues discovered during a review pass by processing findings from highest to lowest severity, with per-fix validation and full-scope re-validation.
 - Users can add focused observability to opaque workflows through targeted logs, metrics, traces, and tests.
 - Users can iteratively improve repository code quality through behavior-neutral naming, simplification, module-boundary, logging, and test-coverage passes.
 - Users can iteratively improve repository performance through evidence-backed module scans, safe hot-path optimization, benchmark guardrails, batching, caching, allocation, concurrency, and repeated full-codebase stage gates.
