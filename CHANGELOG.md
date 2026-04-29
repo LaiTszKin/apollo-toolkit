@@ -15,6 +15,11 @@ All notable changes to this repository are documented in this file.
 ## [Unreleased]
 
 ### Added
+- (None yet)
+
+## [v3.8.0] - 2026-04-30
+
+### Added
 - Add `solve-issues-found-during-review` skill: fix review findings from highest to lowest severity with per-fix validation and full-scope re-validation
 
 ## [v3.6.5] - 2026-04-29
