@@ -9,6 +9,7 @@ description: Fix issues discovered during a review pass (review-change-set, revi
 
 - Required: none. This skill reads issues from a review report that must already exist or be supplied by the caller.
 - Conditional: `review-change-set` for re-validation after fixes when the fix set is code-affecting; `systematic-debug` when a fix attempt encounters unexpected test or runtime failures.
+- Conditional: When parallel sub-agents are available, the capability to merge changes from independent workspaces and resolve inter-workspace conflicts after parallel fix work.
 - Optional: `discover-edge-cases` to confirm edge-case coverage after fixing; `harden-app-security` to confirm security fixes are effective.
 - Fallback: If a required re-validation dependency is unavailable after a code-affecting fix, run `git diff --stat` and relevant tests manually and report what was verified.
 
@@ -39,9 +40,52 @@ Group findings into ordered buckets:
 
 Within each bucket, order by the reviewer's stated priority. If the review does not assign severity, treat architecture/business-goal gaps as High and simplification/style suggestions as Low.
 
-### 3) Fix findings from highest severity to lowest
+### 3) Classify findings by module and business logic chain
 
-For each finding in priority order:
+Before fixing, group findings by:
+
+- **Module**: which subsystem, component, or layer each finding belongs to.
+- **Business logic chain**: findings along the same data flow, request path, or feature pipeline.
+
+This classification determines which findings can be fixed independently in parallel and which share dependencies that require coordinated treatment.
+
+### 4) Deploy parallel fix work (when sub-agent capability is available)
+
+If the runtime supports spawning sub-agents with isolated workspaces:
+
+**a. Assign each module group to a sub-agent**
+
+- Group findings by the classification above. Each independent module or business chain becomes a work package.
+- Assign each work package to a sub-agent, giving it the relevant findings, the affected file paths, and the original review context.
+- Each sub-agent works in its own isolated workspace with no risk of interfering with others.
+
+**b. Sub-agents fix and validate their assigned findings**
+
+Each sub-agent independently:
+
+- Reads its assigned findings and the affected code.
+- Applies the minimal fix for each finding in severity order within its scope.
+- Validates correctness (tests, reproduction steps, linting) before marking findings as resolved.
+- Reports back which findings were fixed, deferred, or could not be reproduced, along with a summary of changes.
+
+**c. Consolidate and resolve conflicts**
+
+After all sub-agents complete:
+
+- Merge changes from each isolated workspace back into the main workspace, one at a time.
+- If conflicts arise, resolve them by keeping both sides of the fix intent — do not discard either party's changes unless they are truly contradictory.
+- When two fixes touch the same code, prefer the more conservative change (less behavioral deviation) unless the review finding explicitly demands the more aggressive one.
+- If a conflict cannot be resolved without deviating from the original fix intent, flag it for manual review and move on.
+
+**d. Re-validate after consolidation**
+
+Run all relevant tests across the consolidated changes to confirm the merged result is correct.
+
+If the runtime does **not** support sub-agents with isolated workspaces, fall back to fixing findings sequentially in severity order as described in the next step.
+
+### 5) Fix findings sequentially (fallback when sub-agents are unavailable)
+
+For each finding in priority order, when parallel sub-agent capability is not available:
 
 **a. Understand the finding and the fix target**
 
@@ -65,7 +109,7 @@ For each finding in priority order:
 
 Proceed to the next finding. Do not skip severity levels: finish all Critical findings before starting High, etc.
 
-### 4) Re-validate the full scope
+### 6) Re-validate the full scope
 
 When all findings have been processed:
 
@@ -73,7 +117,7 @@ When all findings have been processed:
 - Run all relevant tests across the changed files.
 - Run `git diff --stat` to produce a summary of what changed.
 
-### 5) Report the result
+### 7) Report the result
 
 Return:
 
