@@ -12,6 +12,11 @@ All notable changes to this repository are documented in this file.
 - Strip ~375 lines of verbosity across 32 skill files: remove empty Dependencies sections, merge redundant Overview paragraphs, deduplicate repeated principles in `generate-spec`, and consolidate `archive-specs` workflow steps
 - Extract inline output templates and issue schemas into skill-local reference files for `scheduled-runtime-health-check` and `open-github-issue`
 
+## [v3.8.1] - 2026-05-01
+
+### Changed
+- Enhance `solve-issues-found-during-review` skill: add finding classification by module and business logic chain, parallel sub-agent deployment with isolated workspaces, and change consolidation with conflict resolution; fall back to sequential fixing when sub-agents are unavailable
+
 ## [Unreleased]
 
 ### Added
