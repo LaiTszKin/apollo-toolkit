@@ -17,6 +17,11 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - Enhance `solve-issues-found-during-review` skill: add finding classification by module and business logic chain, parallel sub-agent deployment with isolated workspaces, and change consolidation with conflict resolution; fall back to sequential fixing when sub-agents are unavailable
 
+## [v3.8.2] - 2026-05-02
+
+### Changed
+- Simplify `generate-spec` coordination.md to three sections (Business Goals, Design Principles, Spec Boundaries) and restructure preparation.md to follow tasks.md-style compact format
+
 ## [Unreleased]
 
 ### Added
