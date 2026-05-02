@@ -118,30 +118,30 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 - Create `coordination.md` only when one user request is intentionally split into multiple spec sets that may be implemented in parallel.
 - Place it at `docs/plans/{YYYY-MM-DD}/{batch_name}/coordination.md`.
-- Use it as the batch-level source of truth for shared preparation, ownership boundaries, merge order, and cross-spec constraints.
-- See Working Rules for the independence rule.
-- Record shared fields, shared contracts, or shared data-shape assumptions that multiple spec sets must align on.
-- Record whether the batch is ready for parallel implementation now; if not, point to `preparation.md` for executable prerequisite work or list coordination decisions that must still be settled.
-- When one spec set replaces or removes legacy behavior, state that direction explicitly so all worktrees implement toward the same target rather than preserving the old behavior accidentally.
-- Capture which spec set may touch which modules, which files require coordination, and whether any landing order or cutover sequence must be respected.
-- Treat `coordination.md` as a merge-conflict prevention contract, not just a planning summary.
-- Record the concrete file ownership map, forbidden touch points, and shared files that require explicit coordination before edits begin.
-- For every known collision candidate, record the conflict shape, the pre-agreed owner or additive-only edit rule, and the trigger that requires re-coordination before implementation continues.
-- For shared APIs, event schemas, config shapes, manifests, or artifact fields, record whether changes are additive-only during the batch and which spec set owns the canonical naming.
-- When temporary compatibility shims, adapters, or legacy bridges must survive until the whole batch lands, record that retention rule explicitly so one worktree does not remove a path another still depends on.
-- Record the post-merge integration checkpoints that must be re-verified after multiple worktrees land, especially when text merges may succeed while behavior still drifts.
-- If the batch still needs a recommended merge order, make that order operationally convenient rather than functionally required for any single spec to work correctly.
+- Use it as the batch-level source of truth organized in three sections: **Business Goals**, **Design Principles**, and **Spec Boundaries**.
 - Keep single-spec concerns in that spec's own `design.md`; reserve `coordination.md` for batch-wide rules only.
+- See Working Rules for the independence rule.
+
+**Business Goals** — Record the shared batch outcome, list the member spec sets, state parallel readiness, and note shared exclusions. If the batch is not ready, point to `preparation.md` or list blocking coordination items.
+
+**Design Principles** — Record the current baseline, shared invariants and constraints that every spec must preserve, legacy replacement direction, compatibility windows, and post-cutover cleanup. Keep these high-level and cross-cutting; leave per-spec design decisions in each `design.md`.
+
+**Spec Boundaries** — Split into two sub-sections:
+- **Ownership Map**: For each spec set, list its primary concern, allowed touch points, and forbidden touch points. This is the merge-conflict prevention contract.
+- **Collisions & Integration**: Record shared-file edit rules, API/schema freeze owners, compatibility shim retention rules, merge order, post-merge integration checkpoints, and the re-coordination trigger. Every known collision candidate must have a pre-agreed resolution.
 
 ### 6.6) Fill `preparation.md` only for prerequisite work
 
 - Create `preparation.md` only when multiple spec sets cannot be implemented safely in parallel until shared prerequisite work is completed first.
 - Place it at `docs/plans/{YYYY-MM-DD}/{batch_name}/preparation.md`.
 - Treat it as a pre-parallel implementation queue for the coordinating/main agent, not as another member spec.
-- Write it in a tasks-like style with atomic preparation items, explicit outputs, completion conditions, and verification hooks.
+- Follow a tasks.md-like structure with a **Preparation Goal** header, atomic preparation tasks, a **Validation** section, and a **Handoff** section.
+- In **Preparation Goal**, state why this prerequisite is necessary, confirm that no core business logic is implemented here, list which specs depend on it, and define when parallel work can start.
+- In each **Task P[N]**, use the same compact format as `tasks.md`: a one-line Purpose, Scope, and Out of scope guardrails, followed by atomic checkbox items with concrete file paths, modifications, and verification hooks.
 - Include only the smallest shared prerequisite work that every affected spec can assume after it lands.
 - Exclude core business logic, target business outcomes, user-visible behavior changes, and member-spec implementation guidance; those belong in normal spec files.
-- Include relevant validation work for the preparation itself.
+- In **Validation**, list the verification commands, expected results, and regression risks that prove the prepared baseline is ready.
+- In **Handoff**, record what member specs may assume, what they must not change, and the re-coordination rule if preparation changes later.
 - Remove overlapping instructions from member specs; specs must reference the prepared baseline as an assumption instead of repeating the setup tasks.
 - See Working Rules for the parallel-safety rule.
 
