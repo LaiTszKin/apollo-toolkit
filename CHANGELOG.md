@@ -22,6 +22,13 @@ All notable changes to this repository are documented in this file.
 ### Changed
 - Simplify `generate-spec` coordination.md to three sections (Business Goals, Design Principles, Spec Boundaries) and restructure preparation.md to follow tasks.md-style compact format
 
+## [v3.8.3] - 2026-05-03
+
+### Changed
+- Refactor `align-project-documents` to generate standardized `docs/features/` (BDD user-facing scenarios), `docs/architecture/` (macro-level design principles), and `docs/principles/` (code conventions and development constraints) instead of flexible Diataxis-based classification
+- Simplify `maintain-project-constraints` to produce `AGENTS.md`/`CLAUDE.md` with exactly three sections: Common Development Commands, Project Business Goals, and Project Documentation Index
+- Update `archive-specs` to delegate documentation generation to the refactored `align-project-documents` and constraint-file refresh to `maintain-project-constraints`; replace flat-category reference templates with the new three-category structure
+
 ## [Unreleased]
 
 ### Added
