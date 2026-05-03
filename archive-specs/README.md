@@ -1,13 +1,13 @@
 # archive-specs
 
-A documentation skill that converts completed spec files and batch-level coordination files into standardized project docs and archives the consumed planning files. It produces a concise `README.md` plus a categorized document set grounded in real repository evidence.
+A documentation skill that converts completed spec files and batch-level coordination files into the standardized project documentation structure and archives the consumed planning files. It delegates documentation generation to `align-project-documents` and constraint file refresh to `maintain-project-constraints`.
 
 ## Core capabilities
 
 - Scans `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and batch-level `coordination.md` collections as documentation input.
 - Reconciles spec claims against code, config, scripts, and deployment files.
-- Standardizes both new and existing project docs into topic-based files for setup, configuration, architecture, features, and developer onboarding.
-- Provides dedicated reference templates for the top-level README, the documentation index/reference list, and each category document.
+- Delegates to `align-project-documents` to generate standardized docs under `docs/features/` (BDD user-facing features), `docs/architecture/` (macro-level design principles), and `docs/principles/` (code conventions and constraints).
+- Delegates to `maintain-project-constraints` to refresh `AGENTS.md`/`CLAUDE.md` with business goals, common commands, and the project documentation index.
 - Archives superseded spec source files after a successful conversion, and deletes them only when the repository clearly does not need historical retention.
 - Preserves active batch coordination files until no remaining spec set still depends on their shared preparation or replacement direction.
 - Keeps unknown or unverifiable details explicit instead of guessing.
@@ -25,34 +25,21 @@ A documentation skill that converts completed spec files and batch-level coordin
     └── templates/
         ├── readme.md
         ├── docs-index.md
-        ├── getting-started.md
-        ├── configuration.md
-        ├── architecture.md
         ├── features.md
-        └── developer-guide.md
+        ├── architecture.md
+        └── principles.md
 ```
 
 ## Default outputs
 
-- `README.md`
-- `docs/README.md`
-- `docs/getting-started.md`
-- `docs/configuration.md`
-- `docs/architecture.md`
-- `docs/features.md`
-- `docs/developer-guide.md`
-
-## Required doc coverage
-
-- Installation and deployment
-- Configuration and environment variables
-- External services and API key acquisition/setup steps when applicable
-- Project architecture
-- Project feature introductions
-- Information developers should understand before changing the project
+- `docs/features/<category>.md` — BDD-described user-facing capabilities by functional category
+- `docs/architecture/<module>.md` — macro-level design principles by module
+- `docs/principles/<topic>.md` — code conventions and development constraints
+- `README.md` — concise project overview (kept short, links to docs/)
+- `AGENTS.md`/`CLAUDE.md` — business goals, common commands, and doc index (maintained by `maintain-project-constraints`)
 
 ## Notes
 
 - Prefer code, config, and deployment files over stale spec text when they disagree.
-- If the repository already has docs, rewrite them into the same categorized structure instead of leaving mixed documentation formats.
-- Keep `README.md` short and let `docs/README.md` act as the reference list for deeper topic docs.
+- If the repository already has docs, delegate to `align-project-documents` to rewrite them into the standardized structure.
+- Keep `README.md` short; the documentation index lives in `AGENTS.md`/`CLAUDE.md`.

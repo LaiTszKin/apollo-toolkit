@@ -1,25 +1,25 @@
-# Features
+# <功能類別名稱>
 
-## 1. Feature Summary
+[One-sentence summary of this functional category from a user perspective.]
 
-- Supported user workflows: [short list]
-- Primary entrypoints: [routes/pages/commands/jobs]
-- Notable limitations or guardrails: [if any]
+## <功能名稱>
 
-## 2. Feature Details
+- **Given** <前置條件>
+- **When** <使用者操作>
+- **Then** <預期結果>
 
-### [Feature or Workflow Name]
+## <功能名稱>
 
-- User value: [Why it matters]
-- Trigger or entrypoint: [route/command/page/job]
-- Core flow: [happy path summary]
-- Edge or failure notes: [important caveats]
-- Evidence: [spec/code/doc path]
+- **Given** <前置條件>
+- **When** <使用者操作>
+- **Then** <預期結果>
 
-### [Feature or Workflow Name]
+---
 
-- User value: [Why it matters]
-- Trigger or entrypoint: [route/command/page/job]
-- Core flow: [happy path summary]
-- Edge or failure notes: [important caveats]
-- Evidence: [spec/code/doc path]
+## Writing Rules
+
+- Describe behavior from a user's perspective; never mention file paths, function names, or database tables.
+- Use BDD phrasing: **Given** (precondition) → **When** (action) → **Then** (outcome).
+- Each file covers exactly one functional category (e.g., authentication, data export, notifications).
+- Group related features under descriptive subheadings.
+- Title the file with a term users would recognize, not a module name.

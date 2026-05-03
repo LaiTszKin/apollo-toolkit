@@ -1,6 +1,6 @@
 ---
 name: maintain-project-constraints
-description: Automatically create and maintain AGENTS.md/CLAUDE.md so it stays aligned with the current repository architecture, core business flow, common commands, macro project purpose, and coding conventions. Use when AGENTS.md/CLAUDE.md is missing or may be outdated after code changes.
+description: Create and maintain AGENTS.md/CLAUDE.md with the project's macro business goals, common development commands, and an index of all standardized project documentation under docs/. Use when AGENTS.md/CLAUDE.md is missing or may be outdated.
 ---
 
 # Maintain Project Constraints
@@ -14,130 +14,132 @@ description: Automatically create and maintain AGENTS.md/CLAUDE.md so it stays a
 
 ## Standards
 
-- Evidence: Infer repository architecture, business flow, and conventions from current code and docs rather than assumptions.
-- Execution: Create or align `AGENTS.md/CLAUDE.md` only after building a concrete inventory of implemented capabilities.
-- Quality: Keep every statement traceable, remove stale guidance, and ensure `Core business flow` stays exhaustive and concrete.
-- Output: Maintain a concise root-level `AGENTS.md/CLAUDE.md` with the required sections, repository-specific wording, and a factual `Common Commands` section when the repository exposes stable command entry points.
+- Evidence: Infer project business goals and common commands from current code, configuration, and existing project documentation — not assumptions.
+- Execution: Read the entire codebase or existing project docs before writing; create or update only after building a concrete inventory.
+- Quality: Remove stale commands, paths, and references; keep AGENTS.md/CLAUDE.md focused on the three required sections only.
+- Output: Maintain a concise root-level `AGENTS.md`/`CLAUDE.md` with common development commands, macro business goals, and a project documentation index.
 
 ## Goal
 
-Keep `AGENTS.md/CLAUDE.md` accurate, actionable, and synchronized with the latest state of the repository.
+Keep `AGENTS.md`/`CLAUDE.md` accurate and synchronized with the current state of the repository, focused on helping agents understand the project's purpose, navigate its documentation, and run common development tasks.
 
 ## Trigger Conditions
 
-Invoke this skill when either condition is true:
+Invoke this skill when:
 
-1. `AGENTS.md/CLAUDE.md` does not exist and the user needs this repository to expose agent-facing guidance.
-2. `AGENTS.md/CLAUDE.md` exists but may have drifted after code changes, refactors, or workflow updates.
+1. `AGENTS.md` or `CLAUDE.md` does not exist.
+2. `AGENTS.md` or `CLAUDE.md` exists but may have drifted after code changes, documentation updates, or workflow changes.
+3. After `align-project-documents` has updated the `docs/` structure and the document index needs to be refreshed.
 
-After completing any code modification task, proactively run this skill to verify `AGENTS.md/CLAUDE.md` is still aligned, and update it if needed.
+## Required Output Format
 
-## Required Outputs
+`AGENTS.md`/`CLAUDE.md` must contain exactly three sections:
 
-`AGENTS.md/CLAUDE.md` must include these sections (use concise, repository-specific content):
+### 1. Common Development Commands
 
-- Project architecture
-- Core business flow
-- Common commands
-- Core project purpose
-- Code style and coding conventions
+- Include only commands that are real, current, and useful in this repository.
+- Prefer repository-owned entry points: package scripts, CLIs, `bin/` programs, `scripts/`, `Makefile`, `justfile`, or equivalent task runners.
+- For each command, explain when to use it in one short phrase.
+- Prioritize commands that help an agent inspect, validate, build, test, or operate the repository.
+- Do not invent commands, aliases, flags, or task names not traceable to the repository.
 
-For the `Core project purpose` section, always use this format:
+### 2. Project Business Goals
 
-1. Describe the repository's macro purpose instead of repeating implemented features.
-2. State what broader problem the project is meant to solve or what outcome it aims to achieve.
-3. Prefer product- or business-level intent framing when applicable.
-4. Keep it concise, but make sure the purpose is understandable without reading the rest of the document.
+- Describe the project's macro business purpose: what problem it solves, what outcome it aims to achieve, who it serves.
+- Write at the product or business level, not at the implementation level.
+- Keep it concise but self-contained — a reader should understand why the project exists without reading other documents.
 
-For the `Common Commands` section, always use this format:
+### 3. Project Documentation Index
 
-1. Include only commands that are real, current, and useful in this repository.
-2. Prefer repository-owned entry points such as package scripts, CLIs, `bin/` programs, `scripts/`, `Makefile`, `justfile`, or other documented task runners.
-3. For each command, explain when to use it in one short phrase instead of listing bare commands with no context.
-4. Prioritize commands that help an agent inspect, validate, build, test, or operate repository-specific workflows.
-5. Do not invent commands, aliases, flags, or task names that are not traceable to the repository.
+- List all standardized project documentation files under `docs/`.
+- Organize by category: `docs/features/`, `docs/architecture/`, `docs/principles/`.
+- For each document, provide the file path and a one-line description of what it covers.
+- List any additional root-level documentation files (e.g., `README.md`, `CONTRIBUTING.md`, `SECURITY.md`).
 
-For the `Core business flow` section, always use this format:
-
-1. One short sentence that summarizes what the repository currently enables.
-2. An exhaustive unordered list of the repository's current existing functions/capabilities.
-3. Each bullet must be a short capability statement, preferably in the style of `- Users can ...` or the repository-equivalent actor phrasing.
-
-Example:
+### Template Example
 
 ```markdown
+## Common Development Commands
 
-## Common Commands
-
-- `npm test` — run the repository's automated test suite.
+- `npm test` — run the test suite.
+- `npm run build` — compile the project for production.
 - `apltk validate-skill-frontmatter` — validate every top-level `SKILL.md` frontmatter block.
-- `apltk validate-openai-agent-config` — validate every `agents/openai.yaml` interface config.
-- `apltk codex` — install the current toolkit into the local Codex skills directory.
 
-## Core Business Flow
+## Project Business Goals
 
 This project enables users to manage and run reusable automation workflows.
+It solves the problem of scattered, inconsistent automation scripts by providing a unified catalog of versioned, validated skills.
 
-- Users can create a workflow from a local template.
-- Users can update an existing workflow configuration.
-- Users can validate workflow inputs before execution.
-- Users can run the workflow and inspect the result.
+## Project Documentation Index
+
+### Features (`docs/features/`)
+
+- `docs/features/skill-management.md` — skill creation, editing, and lifecycle management
+- `docs/features/validation.md` — skill and configuration validation workflows
+
+### Architecture (`docs/architecture/`)
+
+- `docs/architecture/skill-system.md` — skill loading, resolution, and execution model
+- `docs/architecture/validation-pipeline.md` — validation pipeline design
+
+### Principles (`docs/principles/`)
+
+- `docs/principles/naming-conventions.md` — file and identifier naming rules
+- `docs/principles/dependency-management.md` — internal and external dependency rules
+
+### Root Documents
+
+- `README.md` — project overview and quick start
 ```
 
 ## Workflow
 
-### 1) Build factual understanding first
+### 1) Build factual understanding
 
-- Confirm whether `AGENTS.md/CLAUDE.md` exists.
-- Read the repository before writing:
-  - root docs (`README`, contribution docs, design docs)
-  - key source directories and entry points
-  - repository command surfaces such as `package.json`, `bin/`, `scripts/`, `Makefile`, `justfile`, or equivalent task runners
-  - user-facing features such as commands, routes, workflows, tasks, or installable modules
-  - representative modules that show coding patterns
-  - test directories and tooling/config files
-- Infer architecture and conventions from real code, not assumptions.
-- Build a concrete inventory of all currently implemented capabilities before drafting `Core business flow`.
-- Build a separate inventory of stable, repository-specific commands before drafting `Common Commands`.
+- Read the repository entry points, configuration, and command surfaces (`package.json`, `bin/`, `scripts/`, `Makefile`, etc.).
+- If standardized project documentation exists under `docs/`, read `docs/features/`, `docs/architecture/`, and `docs/principles/` to understand the documented capabilities and to build the index.
+- If `docs/` does not exist or is incomplete, read the source code directly to extract business goals and common commands.
+- Build a concrete inventory of:
+  - Every stable, repository-specific command.
+  - The project's macro business purpose (from docs, README, or inferred from the codebase's capabilities).
+  - Every file under `docs/` that should appear in the index.
 
-### 2) Create AGENTS.md/CLAUDE.md when missing
+### 2) Extract macro business goals
 
-When `AGENTS.md/CLAUDE.md` is absent:
+- Derive the project's business purpose from:
+  1. Existing documentation (`README.md`, `docs/features/`) if available.
+  2. The set of user-facing capabilities found in the codebase.
+- Write at the product level: what problem does this solve? who uses it? what outcome does it produce?
+- Do not restate implementation details or list features; the document index already points to feature docs.
 
-- Create a new root-level `AGENTS.md/CLAUDE.md`.
-- Document architecture, business flow, purpose, and coding conventions from observed facts.
-- Write `Core project purpose` as the repository's macro intent, such as the problem it aims to solve or the outcome it exists to achieve, rather than as a feature list.
-- Document the repository's common commands from observed command entry points and docs.
-- Write `Core business flow` as one summary sentence followed by unordered bullets that cover every current capability found in the repository.
-- Write `Common commands` as short bullets in the style of ``- `command` — when to use it.``.
-- Keep language specific to this repository; avoid generic boilerplate.
+### 3) Write or update AGENTS.md/CLAUDE.md
 
-### 3) Align AGENTS.md/CLAUDE.md when drift is detected
+- If `AGENTS.md` exists, update it. If `CLAUDE.md` exists, update it. If both exist, update both with identical content for the three sections.
+- If neither exists, check for the repository's convention and create the appropriate file.
+- Write only the three sections: Common Development Commands, Project Business Goals, Project Documentation Index.
+- Do not add architecture descriptions, code style guidance, business flows, or any content that belongs in `docs/`.
 
-When `AGENTS.md/CLAUDE.md` exists but is outdated:
+### 4) Maintain the project documentation index
 
-- Re-read changed or high-impact modules.
-- Update only sections that no longer match reality.
-- Expand or trim the `Core business flow` bullet list so it still covers all currently implemented capabilities.
-- Expand, trim, or replace the `Common Commands` list whenever command entry points or recommended workflows have changed.
-- Preserve correct existing content and structure where possible.
+- Enumerate every file under `docs/features/`, `docs/architecture/`, and `docs/principles/`.
+- For each file, write a one-line description of what it covers.
+- List root-level documentation files (`README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, etc.) that exist in the repository.
+- Keep the index synchronized with the actual files on disk; remove entries for deleted files and add entries for new files.
 
-### 4) Quality checks before finishing
+### 5) Quality checks before finishing
 
-- Ensure every statement in `AGENTS.md/CLAUDE.md` is traceable to current repository files.
-- Remove stale paths, renamed components, and obsolete workflows.
-- Remove stale commands, flags, or task names that no longer exist.
-- Verify every command in `Common Commands` is either documented in repository docs or directly supported by the current codebase.
-- Verify the `Core business flow` section includes a one-sentence summary plus unordered bullets for all currently existing capabilities; do not leave major functions unlisted.
-- Verify `Core project purpose` explains the repository's macro goal and does not merely restate the feature inventory.
-- Keep instructions concise, concrete, and operational for future agents.
+- Verify every command in Common Development Commands is traceable to a repository entry point.
+- Verify Project Business Goals describes the macro purpose, not a feature list.
+- Verify every file listed in the Documentation Index exists on disk.
+- Verify the index covers all files under `docs/features/`, `docs/architecture/`, and `docs/principles/`.
+- If both `AGENTS.md` and `CLAUDE.md` exist, verify their content is consistent.
+- Remove any sections beyond the three required ones.
 
 ## Writing Rules
 
-- Use clear headings and short bullet points.
-- Prefer repository terms already used in code/docs.
-- Do not include speculative architecture claims.
-- In `Core project purpose`, describe why the project exists at a macro level; for example, what user or business problem it solves, not a restatement of `Core business flow`.
-- In `Core business flow`, prefer many short bullets over a few vague bullets; when the product grows, add more bullets so the list remains exhaustive.
-- In `Common Commands`, prefer the smallest useful set of high-signal commands over an exhaustive dump of every helper script.
-- Keep the document focused on how agents should understand and operate in this project.
+- Keep the document concise and scannable.
+- Use the repository's own terminology.
+- Do not speculate about architecture or implementation details.
+- In Project Business Goals, describe the macro purpose; for example, the user or business problem the project solves.
+- In the Documentation Index, prefer descriptive one-line summaries over bare file paths.
+- When both `AGENTS.md` and `CLAUDE.md` exist, keep their content identical for the three sections.

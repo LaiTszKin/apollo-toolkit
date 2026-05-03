@@ -1,35 +1,35 @@
-# [Project Name] Documentation
+# [Project Name] Documentation Index
 
-## Start Here
+## Features (`docs/features/`)
 
-- Project overview: `README.md`
-- Setup and deployment: `docs/getting-started.md`
-- Configuration and external services: `docs/configuration.md`
-- Architecture: `docs/architecture.md`
-- Features and workflows: `docs/features.md`
-- Developer guide: `docs/developer-guide.md`
+User-facing capabilities described with BDD scenarios (Given/When/Then). Each file covers one functional category.
 
-## Document Guide
+| File | Category | Description |
+| --- | --- | --- |
+| `docs/features/[category].md` | [category name] | [One-line description] |
 
-### Getting Started
-- Audience: [operators / developers / both]
-- Covers: installation, prerequisites, local run, deployment flow
+## Architecture (`docs/architecture/`)
 
-### Configuration
-- Audience: [operators / developers / both]
-- Covers: env vars, config files, secrets, external services, API key setup
+Macro-level design principles organized by module or layer. Each principle is abstract enough to survive minor code changes.
 
-### Architecture
-- Audience: [developers / maintainers]
-- Covers: system boundaries, module responsibilities, data flow, key directories
+| File | Module | Description |
+| --- | --- | --- |
+| `docs/architecture/[module].md` | [module name] | [One-line description] |
 
-### Features
-- Audience: [users / support / developers]
-- Covers: major workflows, entrypoints, user value, important edge cases
+## Principles (`docs/principles/`)
 
-### Developer Guide
-- Audience: [developers / maintainers]
-- Covers: domain concepts, risk hotspots, testing expectations, debugging entrypoints
+Code style, naming conventions, and development constraints extracted from the codebase.
+
+| File | Topic | Description |
+| --- | --- | --- |
+| `docs/principles/[topic].md` | [topic name] | [One-line description] |
+
+## Root Documents
+
+- `README.md` — project overview and quick start
+- `CONTRIBUTING.md` — contribution workflow (if applicable)
+- `SECURITY.md` — vulnerability reporting (if applicable)
+- `CHANGELOG.md` — release history (if applicable)
 
 ## Reference List
 

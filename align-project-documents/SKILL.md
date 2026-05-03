@@ -1,152 +1,158 @@
 ---
 name: align-project-documents
-description: Read and understand a software project, then generate or align project documentation with the current codebase. Use when a user asks for project docs (usage, technical architecture, debugging flow, setup, operations) or asks to verify and sync existing documentation with real implementation.
+description: Read the entire codebase, then generate standardized project documentation under docs/features/, docs/architecture/, and docs/principles/ from code evidence. Remove old documentation that does not conform to the template structure, then refresh AGENTS.md/CLAUDE.md via maintain-project-constraints.
 ---
 
 # Align Project Documents
 
+## Dependencies
+
+- Required: `maintain-project-constraints` to refresh `AGENTS.md/CLAUDE.md` after documentation changes.
+- Conditional: none.
+- Optional: none.
+- Fallback: not applicable.
+
 ## Standards
 
-- Evidence: Treat source code, configuration, scripts, and tests as the source of truth.
-- Execution: Discover project facts before choosing generate mode or align mode.
-- Quality: Keep every non-trivial claim traceable, choose document categories based on actual content, and remove stale documentation instead of appending around it.
-- Output: Write newcomer-friendly docs with descriptive headings, runnable commands, and clear reader guidance.
+- Evidence: Treat source code, configuration, scripts, and tests as the sole source of truth.
+- Execution: Read the entire codebase before writing any documentation; ground every claim in concrete file paths.
+- Quality: Remove outdated documentation that does not conform to the template structure; never leave mixed documentation formats in place.
+- Output: Produce standardized, maintainable documentation organized into three categories: features, architecture, and principles.
 
 ## Goal
 
-Produce accurate, code-grounded project documentation that remains readable for people who do not yet understand the project, its domain, or the development workflow. Prefer evidence from source code, configs, scripts, and tests over assumptions.
+Generate a complete, code-grounded project documentation set under `docs/` that describes what the system does from a user perspective (features), how it is designed (architecture), and what conventions govern its code (principles).
+
+## Target Documentation Structure
+
+```
+docs/
+├── features/       — BDD-described user-facing capabilities, categorized by functional area
+├── architecture/   — macro-level design principles, organized by module or layer
+└── principles/     — code style, naming conventions, dependency management, and development constraints
+```
+
+### docs/features/
+
+- Describe what the system does from a user's perspective.
+- Never reference specific code paths, file names, or implementation details.
+- Use BDD (Behavior-Driven Development) phrasing: "Given ... When ... Then ...".
+- Group features by functional category; each category gets its own markdown file.
+- File titles must clearly convey which functional area or module they cover.
+
+Example feature description:
+
+```markdown
+# 用戶認證與授權
+
+## 登入
+
+- **Given** 用戶擁有有效的帳號密碼
+- **When** 用戶提交登入表單
+- **Then** 系統驗證憑證並返回存取令牌，用戶進入主頁面
+```
+
+### docs/architecture/
+
+- Extract macro-level design principles from the codebase.
+- Group principles by module or architectural layer; each module gets its own markdown file.
+- Every principle must be sufficiently abstract to avoid becoming stale after minor code changes.
+- Focus on module responsibilities, boundary rules, data flow direction, and integration contracts — not on specific implementation details.
+
+Example architecture principle:
+
+```markdown
+# API 層設計原則
+
+## 路由與處理器分離
+
+路由定義與請求處理邏輯存放在不同模組中。路由層只負責 URL 映射與中介軟體綁定，
+處理器層負責請求解析、業務邏輯調用與回應組裝。
+```
+
+### docs/principles/
+
+- Extract code style, naming conventions, and development constraints from the codebase.
+- Categorize into separate markdown files (e.g., naming conventions, dependency management, error handling patterns).
+- Each principle must be traceable to concrete examples in the codebase.
+
+Example principle:
+
+```markdown
+# 命名約定
+
+## 檔案命名
+
+- TypeScript 模組檔案使用 kebab-case：`user-service.ts`
+- React 元件檔案使用 PascalCase：`UserProfile.tsx`
+- 測試檔案與被測檔案同名，加上 `.test` 後綴：`user-service.test.ts`
+```
 
 ## Workflow
 
-### 1) Discover project facts first
+### 1) Read the entire codebase
 
-- Read key files before writing: `README*`, `package.json`/`pyproject.toml`/`go.mod`, lock files, CI configs, entrypoints, and test setup.
-- Inspect main runtime paths (API/server, worker, frontend, CLI, jobs) and dependency boundaries.
-- Build a factual map: startup commands, environment variables, request/data flow, major modules, external integrations, and observability points.
-- Record concrete evidence with file paths for every important claim.
-- Identify likely readers and their knowledge gaps: new developer, operator, support teammate, product stakeholder, or mixed audience.
-- Identify the actual reader tasks: understand the project, run locally, configure credentials, operate a workflow, debug failures, or change code safely.
+- Read every source file in the repository to build a complete mental model.
+- Pay special attention to:
+  - Entry points (CLI commands, server startup, job runners)
+  - Public-facing interfaces (API routes, CLI commands, UI pages)
+  - Module boundaries and dependency directions
+  - Configuration files, environment variables, and external service integrations
+  - Test files that document expected behavior
+- Record concrete file paths as evidence for every claim that will appear in documentation.
 
-### 2) Classify documentation by content, not by fixed headings
+### 2) Read existing project documentation as reference
 
-- Start from the repository's real content and the readers' jobs to be done.
-- Choose only the categories that are supported by evidence and useful to the target audience.
-- Use open source documentation conventions as the classification baseline instead of inventing project-local categories first.
-- Prefer the Diataxis content families for content classification: tutorial, how-to, reference, and explanation.
-- Map those content families onto common open source document types when appropriate: `README`, `CONTRIBUTING`, `SECURITY`, `CODE_OF_CONDUCT`, troubleshooting guides, glossary, and release/change documents.
-- Prefer descriptive, task-led headings such as `本地啟動 API 服務`, `設定 GitHub OAuth 憑證`, or `匯入任務卡住時如何排查`.
-- Do not force a fixed chapter list when the project does not need it.
-- Use `references/templates/category-based-project-docs-template.md` as the primary selection guide.
+- Enumerate all existing documentation files (`README.md`, `docs/**`, `CONTRIBUTING.md`, etc.).
+- Extract factual claims that can be cross-referenced with the codebase.
+- Note gaps where documentation is missing or outdated.
+- Treat existing docs as secondary sources; code is always the primary source of truth.
 
-Useful content categories include:
+### 3) Generate new documentation following the template structure
 
-- README or docs index for orientation
-- tutorial or getting-started guide for first success
-- how-to or runbook guides for real tasks
-- reference docs for configuration, commands, endpoints, and limits
-- explanation docs for architecture, concepts, and tradeoffs
-- CONTRIBUTING for contribution workflow
-- SECURITY for vulnerability reporting and support policy
-- CODE_OF_CONDUCT for community expectations
-- glossary, FAQ, decisions, or release notes when repository evidence shows they are needed
+- Create `docs/features/`, `docs/architecture/`, and `docs/principles/` directories if they do not exist.
+- For each category, classify findings from the codebase and write focused markdown files.
+- Titles must be descriptive and immediately tell the reader what the file covers.
+- Write in the user's language unless the repository clearly uses a different documentation language.
 
-### 3) Decide documentation mode
+**Features generation checklist:**
+- Identify all user-facing capabilities from routes, CLI commands, UI pages, and job outputs.
+- Group into functional categories (e.g., authentication, data export, notifications).
+- Write BDD scenarios for each feature using Given/When/Then.
+- Each file covers one functional category.
 
-- **Generate mode**: no usable docs exist, or user asks to create docs from scratch.
-- **Align mode**: existing docs exist and must be checked against implementation.
+**Architecture generation checklist:**
+- Identify major modules or layers from the codebase directory structure and import graph.
+- For each module, extract the design principles that govern its structure and boundaries.
+- Keep principles at the macro level; avoid principles that would need updating for minor code changes.
+- Each file covers one module or architectural layer.
 
-### 4) Generate mode output
+**Principles generation checklist:**
+- Identify recurring patterns in code style, naming, error handling, dependency management, and testing.
+- Categorize patterns into separate files (e.g., `coding-style.md`, `naming-conventions.md`, `dependency-management.md`).
+- Support each principle with a brief rationale traceable to the codebase.
 
-Create or update a minimal document set chosen from the content categories above. Do not require every project to have the same headings or files.
+### 4) Remove old documentation that does not conform
 
-At minimum, ensure the final output answers the questions that matter for the repository's real readers:
+- Scan `docs/` and the repository root for documentation files that do not fit the new structure.
+- Remove any documentation file whose content has been fully migrated into the new structure.
+- Keep only files that belong to the new structure or have not yet been migrated.
+- When in doubt, preserve the file and note it as a candidate for later migration.
 
-1. What is this project for?
-2. Who usually needs this document?
-3. How do I complete the most common task safely?
-4. What must I prepare before I start?
-5. What result should I expect if things are working?
-6. What usually goes wrong and how do I verify it?
-7. Where in the repository is the source of truth?
+### 5) Update AGENTS.md/CLAUDE.md via maintain-project-constraints
 
-Recommended output pattern:
-
-- A short root `README.md` or equivalent entry document for orientation.
-- One or more focused documents grouped by standard documentation type.
-- Optional runbooks for task-heavy or failure-heavy workflows.
-- Optional glossary/FAQ material only when the project actually contains domain complexity or repeated team confusion.
-- Separate contributor or community-governance docs only when the repository exposes those collaboration workflows.
-
-Writing rules:
-
-- Write what is true now, not what should be true.
-- Use concrete commands and paths from the repository.
-- Keep examples executable when possible.
-- Call out unknowns explicitly instead of guessing.
-- Explain why a file, service, command, or environment matters before telling the reader to use it.
-- Assume the reader may not understand local jargon, deployment assumptions, or the project's business terms.
-- Prefer task-oriented section titles over generic labels.
-- Keep different documentation intents separate: tutorials teach, how-to guides solve tasks, reference catalogs facts, and explanation pages provide understanding.
-
-### 5) Align mode output
-
-When docs already exist:
-
-1. Enumerate existing docs and their scope.
-2. Compare each claim against current code and scripts.
-3. Classify findings:
-   - **Accurate**
-   - **Outdated**
-   - **Missing**
-   - **Ambiguous**
-4. Update docs to match real behavior.
-5. Add a short "Documentation Delta" summary listing major corrections.
-6. Rewrite headings that are too generic or template-like so they reflect the real task or concept being documented.
-
-Alignment checklist:
-
-- Startup/install commands still work.
-- Directory/module names match current tree.
-- API/routes/events/messages match implementation.
-- Config keys and env vars match code usage.
-- Debug instructions reference real logs, metrics, and breakpoints.
-- Test commands and expected outputs are current.
-- Headings match actual content categories instead of forcing one universal structure.
-- Newcomers can infer what each document is for before reading the full content.
-- Document placement follows recognizable open source conventions whenever the repository scope justifies them.
-
-### 6) Newcomer-readability rules
-
-- Start each document by making the reader's situation explicit: who this is for, what they are trying to do, and when they should use this document.
-- When describing a task, include prerequisites, exact steps, expected signals, and common failure recovery.
-- When describing architecture, explain responsibilities and boundaries in plain language before diving into paths or modules.
-- When describing configuration or credentials, explain why each key or service exists and what breaks if it is missing.
-- When describing debugging, structure content around observable symptoms and verification paths, not abstract subsystem names.
-- If the repository contains specialist domain language, add a glossary or inline definitions instead of assuming prior knowledge.
+- After the new documentation is complete, invoke `maintain-project-constraints` to refresh `AGENTS.md/CLAUDE.md`.
+- `maintain-project-constraints` will read the codebase (or the newly generated docs), extract macro business goals, write them to `AGENTS.md`/`CLAUDE.md`, and maintain the project document index.
 
 ## Quality Gate (must pass before finishing)
 
-- Ensure every non-trivial statement is traceable to repository evidence.
-- Ensure usage and debug steps are reproducible from current code.
-- Ensure architecture description reflects actual module boundaries.
-- Ensure outdated statements are removed, not only appended.
-- Ensure document categories and headings are chosen because they fit the content, not because the template listed them.
-- Ensure a newcomer can identify the correct next step from the document without already knowing the codebase.
-- Ensure the chosen document types align with common open source practice so contributors can find information where they expect it.
-
-## Output Style
-
-- Write concise but high-context documentation for humans, not placeholder-driven template output.
-- Use headings, short bullets, tables, and runnable command snippets when they improve scanning.
-- Prefer direct language and avoid speculative wording.
-- Make headings descriptive enough that a reader can skim the table of contents and know which page or section to open.
+- Every feature description is written from a user perspective with no code references.
+- Every architecture principle is macro-level and resilient to minor code changes.
+- Every code principle is traceable to concrete examples in the codebase.
+- All generated files have descriptive, scannable titles.
+- No stale documentation remains that duplicates or contradicts the new structure.
+- `maintain-project-constraints` has been run and `AGENTS.md`/`CLAUDE.md` is up to date.
 
 ## Reference Template
 
-- `references/templates/category-based-project-docs-template.md`: category-based template and reusable section blocks for newcomer-friendly project documentation.
-
-## External Documentation Basis
-
-- Diataxis: use the tutorial / how-to / reference / explanation model as the primary content classification.
-- The Good Docs Project: use common open source template types such as README, quickstart, tutorial, how-to, troubleshooting, glossary, and style-oriented guidance as practical packaging patterns.
-- GitHub open source guidance: treat `README`, `CONTRIBUTING`, license, code of conduct, and security policy as common repository-level documents when the project has contributor-facing community workflows.
+- `references/templates/standardized-docs-template.md`: describes the three-category documentation structure, writing rules, and quality checklist for each category.

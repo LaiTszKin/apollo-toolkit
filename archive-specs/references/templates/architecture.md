@@ -1,29 +1,21 @@
-# Architecture
+# <模組／層名稱> 設計原則
 
-## 1. High-Level Structure
+[One-sentence summary of this module's role in the system.]
 
-- Entry points: [CLI/server/app/worker]
-- Major modules: [module names and responsibilities]
-- Data flow summary: [request/event/job flow]
-- Integration boundaries: [DB/API/queue/filesystem]
+## <原則標題>
 
-## 2. Directory Guide
+<原則描述：這條原則規範什麼、為什麼這樣設計、適用範圍>
 
-| Path | Responsibility |
-| --- | --- |
-| `[path]` | [What lives here] |
-| `[path]` | [What lives here] |
+## <原則標題>
 
-## 3. Key Flows
+<原則描述>
 
-### [Flow Name]
-- Trigger: [route/command/job]
-- Main steps: [step summary]
-- Dependencies: [internal/external]
-- Failure boundaries: [where failures surface]
+---
 
-## 4. Operational Notes
+## Writing Rules
 
-- State/storage model: [DB/files/cache/queue]
-- Concurrency or ordering concerns: [if any]
-- Observability entrypoints: [logs/metrics/traces/dashboards]
+- State design principles, not implementation details.
+- Keep each principle macro-level so it survives minor code changes.
+- Focus on: module responsibilities, boundary rules, data flow direction, and integration contracts.
+- Each file covers one module or architectural layer.
+- Before writing a principle, ask: "Would a refactor that renames files or extracts a helper violate this principle?" If yes, the principle is too specific.

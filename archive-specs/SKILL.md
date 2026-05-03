@@ -1,33 +1,33 @@
 ---
 name: archive-specs
-description: Convert completed project plan sets into maintainable project documentation and archive the consumed planning files. Use when users want to consolidate `spec.md`/`tasks.md`/`checklist.md`/`contract.md`/`design.md` and any batch-level `coordination.md` into evidence-backed docs covering installation and deployment, configuration, external service setup, architecture, feature introductions, and developer onboarding context.
+description: Convert completed project plan sets into maintainable project documentation and archive the consumed planning files. Use when users want to consolidate `spec.md`/`tasks.md`/`checklist.md`/`contract.md`/`design.md` and any batch-level `coordination.md` into the standardized docs/features/, docs/architecture/, docs/principles/ structure, then refresh AGENTS.md/CLAUDE.md via maintain-project-constraints.
 ---
 
 # Archive Specs
 
 ## Dependencies
 
-- Required: `align-project-documents` to align repository docs with current code before archiving, and `maintain-project-constraints` to synchronize `AGENTS.md/CLAUDE.md` after the doc update.
+- Required: `align-project-documents` to generate and align the standardized project documentation under `docs/features/`, `docs/architecture/`, and `docs/principles/`, and `maintain-project-constraints` to refresh `AGENTS.md`/`CLAUDE.md` with the updated business goals and documentation index after the doc update.
 - Conditional: none.
 
 ## Standards
 
 - Evidence: Treat code, config, deployment files, and current spec files as evidence sources; never guess when a detail is missing.
-- Execution: Inventory all relevant specs first, reconcile them with the current repository, use `align-project-documents` to update durable project docs, use `maintain-project-constraints` to refresh `AGENTS.md/CLAUDE.md` when repository guidance changed, then archive only the truly consumed planning artifacts.
-- Quality: Prefer source-of-truth behavior over stale plan text, align existing docs to the same standard structure, and call out unknowns explicitly instead of inventing missing setup details.
-- Output: Produce synchronized durable docs (`README.md`, categorized project docs, and `AGENTS.md/CLAUDE.md` when needed), then archive or remove superseded spec files after the conversion is complete.
+- Execution: Inventory all relevant specs first, reconcile them with the current repository, delegate documentation generation to `align-project-documents`, delegate `AGENTS.md`/`CLAUDE.md` refresh to `maintain-project-constraints`, then archive only the truly consumed planning artifacts.
+- Quality: Prefer source-of-truth behavior over stale plan text, align existing docs to the standardized three-category structure, and call out unknowns explicitly instead of inventing missing setup details.
+- Output: Produce synchronized standardized docs under `docs/features/`, `docs/architecture/`, and `docs/principles/`, a concise `README.md` when appropriate, and an up-to-date `AGENTS.md`/`CLAUDE.md`, then archive or remove superseded spec files after conversion is complete.
 
 ## Goal
 
-Convert completed planning artifacts into stable, standardized project documentation, then archive the consumed specs so active planning files stay separate from durable project docs.
+Convert completed planning artifacts into the standardized project documentation structure, refresh the project constraint files, then archive the consumed specs so active planning files stay separate from durable project docs.
 
 ## Workflow
 
 ### 1) Inventory documentation sources
 
 - Find all relevant planning files such as `docs/plans/**/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and any batch-level `coordination.md`.
-- Read existing `README*`, deployment scripts, manifests, env examples, infra files, CI configs, and representative source modules.
-- Build a source map for setup commands, environments, external services, module boundaries, and implemented features.
+- Read existing `README*`, `docs/**`, deployment scripts, manifests, env examples, infra files, CI configs, and representative source modules.
+- Build a source map for implemented features, module boundaries, external services, and configuration details.
 
 ### 2) Reconcile spec claims with the current repository
 
@@ -41,42 +41,22 @@ Convert completed planning artifacts into stable, standardized project documenta
 - Use `coordination.md` to understand shared preparation, ownership boundaries, legacy cutover direction, and which old features or paths were intentionally replaced across multiple spec sets.
 - Distinguish between completed scope that should become durable docs and still-active scope that remains planning material for follow-up work.
 
-### 3) Standardize existing project docs into categorized outputs
+### 3) Delegate documentation generation to align-project-documents
 
-- Hand the documentation rewrite/alignment work to `align-project-documents`; use the templates below only as the target shape and evidence checklist.
-- If the project already has `README.md`, handbooks, setup guides, architecture docs, or runbooks, rewrite or reorganize them so they follow this skill's standardized split-document structure instead of leaving mixed formats in place.
-- Use `references/templates/readme.md` for the concise project introduction.
-- Use `references/templates/docs-index.md` for the project documentation index and reference list.
-- Use the category templates to split content by topic so readers can open only what they need.
-- Default target outputs:
-  - `README.md`
-  - `docs/README.md`
-  - `docs/getting-started.md`
-  - `docs/configuration.md`
-  - `docs/architecture.md`
-  - `docs/features.md`
-  - `docs/developer-guide.md`
-- Ensure the categorized docs cover: installation and deployment, configuration, external services with required credentials and API key acquisition tutorials when applicable, architecture and module boundaries, feature introductions, and developer onboarding context.
-- If the repository already uses different doc paths, preserve the established locations only when the resulting documents still match the same categorized sections and remain easy to maintain.
+- Hand the full documentation rewrite/alignment work to `align-project-documents`.
+- `align-project-documents` will read the entire codebase, generate standardized documentation under `docs/features/` (BDD-described user-facing capabilities), `docs/architecture/` (macro-level design principles by module), and `docs/principles/` (code style, naming conventions, development constraints), and remove old non-conforming documentation.
+- Provide `align-project-documents` with the reconciled spec findings from step 2 as supplementary context.
 
-### 4) Write the configuration and external-service guidance carefully
+### 4) Refresh AGENTS.md/CLAUDE.md via maintain-project-constraints
 
-- List each env var, config file, or secret only when supported by repository evidence.
-- For every external service, document:
-  - why the service is needed
-  - which local config or env vars are required
-  - how to create or locate the credential
-  - where to place the credential locally or in deployment
-  - any safe-development notes such as sandbox/test-mode usage
-- If the repository does not show how to obtain a credential, say so explicitly and point to the service's official setup page rather than guessing steps.
+- After `align-project-documents` has completed the documentation update, invoke `maintain-project-constraints`.
+- `maintain-project-constraints` will read the updated `docs/` structure, extract macro business goals, inventory common development commands, build the project documentation index, and write or update `AGENTS.md`/`CLAUDE.md` with exactly three sections: Common Development Commands, Project Business Goals, and Project Documentation Index.
+- If both `AGENTS.md` and `CLAUDE.md` exist, `maintain-project-constraints` will keep their content consistent.
 
 ### 5) Keep README short and the doc set navigable
 
-- `README.md` should stay short: project intro, quick install/deploy, major features, and key doc links.
-- `docs/README.md` should act as the reference list for the categorized docs.
-- Each category doc should stay focused on one topic instead of acting like another monolithic handbook.
-- Remove template placeholders and stale planning language before finishing.
-- After the docs are aligned, run `maintain-project-constraints` whenever the documentation changes imply `AGENTS.md/CLAUDE.md` needs to reflect updated workflows, commands, or repository capabilities.
+- If `README.md` does not exist or is outdated, create or update it as a short project overview with a link to the documentation index in `AGENTS.md`/`CLAUDE.md`.
+- Do not duplicate content that belongs in `docs/`.
 
 ### 6) Archive superseded spec files after successful conversion
 
@@ -91,7 +71,6 @@ Convert completed planning artifacts into stable, standardized project documenta
 ## Working Rules
 
 - Prefer the user's language unless the repository clearly uses another documentation language.
-- Keep examples executable and commands copyable.
 - Do not copy speculative roadmap items from specs into the main docs as if they already exist.
 - When a section cannot be completed from evidence, keep an explicit `Unknown` or `TBD (missing repository evidence)` marker.
 - The final repository state should not keep both standardized docs and redundant active spec files for the same completed scope.
@@ -102,8 +81,6 @@ Convert completed planning artifacts into stable, standardized project documenta
 
 - `references/templates/readme.md`: concise project overview template.
 - `references/templates/docs-index.md`: categorized project-doc index and reference list template.
-- `references/templates/getting-started.md`: installation and deployment template.
-- `references/templates/configuration.md`: configuration and external-service template.
-- `references/templates/architecture.md`: architecture template.
-- `references/templates/features.md`: feature guide template.
-- `references/templates/developer-guide.md`: development onboarding template.
+- `references/templates/features.md`: template for `docs/features/` BDD-described feature documentation.
+- `references/templates/architecture.md`: template for `docs/architecture/` macro-level design principles.
+- `references/templates/principles.md`: template for `docs/principles/` code conventions and development constraints.

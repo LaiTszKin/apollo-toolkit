@@ -1,4 +1,4 @@
 interface:
   display_name: "Maintain Project Constraints"
-  short_description: "Automatically create and maintain AGENTS.md/CLAUDE.md so it stays aligned with the current repository architecture, core business flow, common commands, macro project purpose, and coding conventions. Use when AGENTS.md/CLAUDE.md is missing or may be outdated after code changes."
-  default_prompt: "Use $maintain-project-constraints to automatically create and maintain AGENTS.md/CLAUDE.md so it stays aligned with the current repository architecture, core business flow, common commands, macro project purpose, and coding conventions. Use when AGENTS.md/CLAUDE.md is missing or may be outdated after code changes."
+  short_description: "Create and maintain AGENTS.md/CLAUDE.md with business goals, common commands, and project doc index"
+  default_prompt: "Use $maintain-project-constraints to read the codebase or existing project docs, extract the project's macro business goals, inventory common development commands, enumerate all standardized docs under docs/features/, docs/architecture/, and docs/principles/, then write or update AGENTS.md/CLAUDE.md with exactly three sections: Common Development Commands, Project Business Goals, and Project Documentation Index. If both AGENTS.md and CLAUDE.md exist, keep their content consistent."
