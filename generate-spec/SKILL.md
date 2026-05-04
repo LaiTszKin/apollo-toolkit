@@ -29,8 +29,7 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 - Confirm the target workspace root, feature name, and a kebab-case `change_name`.
 - Review only the code, configuration, and external docs needed to understand the requested behavior.
-- If the change depends on frameworks, libraries, SDKs, APIs, CLIs, hosted services, or other external systems, find and read the relevant official documentation before drafting requirements.
-- Treat official documentation lookup as mandatory evidence gathering, not an optional refinement step.
+- **Official documentation lookup is mandatory** when the change depends on frameworks, libraries, SDKs, APIs, CLIs, hosted services, or other external systems. This is a required evidence-gathering step, not an optional refinement.
 - Use the official docs to verify expected behavior, supported constraints, configuration surface, integration contracts, and any implementation limits that should shape the spec.
 - Record the references that should appear in `spec.md` and the dependency evidence that should appear in `contract.md`.
 - Inspect existing `docs/plans/` directories before deciding whether to edit an existing plan set.
@@ -147,16 +146,15 @@ Own the shared planning-doc lifecycle for feature work so other skills can reuse
 
 ### 7) Fill `checklist.md`
 
-- Use checkbox format `- [ ]` for checklist items, except structured placeholder fields that are intentionally left for later fill-in.
-- Treat the template as a starting point and adapt it to the actual scope.
-- Remove or rewrite template examples that are not part of the real plan instead of leaving them as fake work to be checked later.
-- Map observable behaviors to requirement IDs and real test case IDs.
-- Use `$test-case-strategy` to choose the smallest test level that proves each risk and to define meaningful oracles before implementation.
-- Record risk class, oracle/assertion focus, dependency strategy, and test results.
-- Property-based coverage is required for business-logic changes unless a concrete `N/A` reason is recorded.
-- For decision sections, create as many records as needed for distinct flows or risk slices; do not collapse unrelated decisions into one record.
-- Within each decision record, keep only the selected strategy or clearly mark the non-selected path as `N/A`; never treat mutually exclusive choices inside one record as multiple completed outcomes.
-- For completion-summary sections, create as many completion records as needed for distinct flows, requirement groups, or workstreams; do not force the whole spec into a single completion line when different parts finish differently.
+- Use checkbox format `- [ ]` for checklist items.
+- Adapt the template to actual scope; remove inapplicable items.
+- Map observable behaviors to requirement IDs and test case IDs using `$test-case-strategy`.
+- Each Behavior-to-Test item: `[CL-xx]: [behavior] — R?.? → [Test IDs] — Result: [status]`.
+- Property-based coverage required for business-logic changes unless `N/A` with concrete reason.
+- Hardening items: keep as single-line checkboxes with `N/A` + reason when not applicable.
+- E2E/Integration decisions: one checkbox per decision with inline reason.
+- Execution summary: one checkbox per test category with status.
+- Completion records: one checkbox per flow/group with status and remaining items.
 
 ### 8) Process clarifications and approval
 

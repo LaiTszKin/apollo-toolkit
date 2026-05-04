@@ -34,6 +34,12 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.8.4] - 2026-05-04
+
+### Changed
+- Simplify `generate-spec` checklist template from 108 lines to 53 lines: consolidate multi-field behavior-to-test items into single-line checkboxes, flatten hardening records, and streamline E2E/integration decisions and completion records
+- Emphasize official documentation lookup as mandatory step in `generate-spec` workflow
+
 ## [v3.8.0] - 2026-04-30
 
 ### Added
