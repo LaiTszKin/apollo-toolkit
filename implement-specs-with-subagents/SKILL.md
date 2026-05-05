@@ -1,7 +1,7 @@
 ---
 name: implement-specs-with-subagents
 description: >-
-  Coordinator-only workflow for multispec batches: ingest `coordination.md`/`preparation.md`, run prerequisite work yourself, derive topological phases, launch ≤4 staggered **`implement-specs-with-worktree`** workers (one `{change}` each), **`merge-changes-from-local-branches`** after every phase succeeds, ledger every branch/test/merge—not for solo specs unless user explicitly insists on delegation overload.
+  Coordinator-only workflow for multispec batches: ingest `coordination.md`/`preparation.md`, run prerequisite work yourself, derive topological phases, launch ≤4 staggered **`implement-specs-with-worktree`** workers (one `{change}` each), **`merge-changes-from-local-branches`** after every phase succeeds, ledger every branch/test/merge—not for solo specs unless user explicitly insists on delegation overload. **Multi-phase: do not declare done until every non-blocked spec is merged across all phases** (or pipeline stopped on explicit blocker).
   Wrong tool for one directory without parallel mandate—pick **`implement-specs-with-worktree`** / **`implement-specs`** depending on isolation. Publication/versioning stays outside this orchestration layer unless another skill attaches.
   Ledger sample: `oauth-scope | phase=1 | merged | npm test ✅`. Burst-launching four agents simultaneously—disallowed pacing required…
 ---
@@ -25,12 +25,13 @@ description: >-
 - **MUST** cap **active** implementation subagents at **four**; **MUST** start them **one at a time** with confirmation each is running before the next start; **MUST** back off on rate limits (no burst launches). Four is a ceiling, not a quota.
 - **MUST** give each subagent only task-local context (repo root, exact spec path, `coordination.md` path if relevant, instruction to run `implement-specs-with-worktree`, baseline commit when preparation exists, requirement to read the full bundle before edits, worktree isolation, tests, backfill, local commit, and reporting branch/worktree/commit/tests/blockers). **MUST NOT** leak unrelated reasoning or other subagents’ private diffs unless resolving a concrete conflict.
 - After each phase: **MUST** merge every **completed** spec branch from that phase into the integration branch via `merge-changes-from-local-branches` before starting the next phase; **MUST** resolve conflicts using spec contracts as the correctness tie-breaker; **MUST** record merge result in the ledger; if merge is blocked, **MUST** stop the pipeline and report.
+- **Multi-phase completion**: When the planned ledger has **more than one** phase, **MUST** loop steps **5→6→7** until **every** in-scope spec is either **`merged`** on the integration branch or explicitly **`blocked`** with a documented stop (user abort, irresolvable conflict, failed dependency, etc.). **MUST NOT** yield, summarize as “phase complete”, or imply the batch is finished while **any** phase still has a successful, unmerged branch or **`pending`** / **`in_progress`** rows for specs that should run—unless the coordinating agent is halted by a preceding Non-negotiable blocker **and** that halt is stated plainly.
 - Model: If the user names a model, **MUST** use it for implementation subagents when the platform allows; if not supported, **MUST** state that fact and continue only if the default is acceptable to the user’s intent.
 
 ## Standards (summary)
 
 - **Evidence**: Batch read (`coordination.md`, `preparation.md`, every in-scope `spec.md` / `design.md`) before scheduling; ledger stays live.
-- **Execution**: Preparation → dependency graph → phased delegation with merge gates; never skip merges between dependent phases.
+- **Execution**: Preparation → dependency graph → **repeat** (run phase *k* → merge phase *k*) until all phases reconciled on the integration branch; never skip merges between dependent phases; **multi-phase ⇒ no early “done” narrative** until ledger proves full merge-set (or documented blockers).
 - **Quality**: No duplicate delegation; subagents base on the branch that already contains preparation (and prior phases); pause on shared file collisions, batch-wide defects, or rate-limit pressure.
 - **Output**: Concise ledger: per spec → phase, depends-on, subagent id/label, branch/worktree, commit or blocker, tests, merge status.
 
@@ -62,8 +63,10 @@ description: >-
    - **Pause →** Has **every** successful branch in this phase been merged into the **same** integration branch I will use to **start** phase *k+1*?
    - **Pause →** If a merge conflict touches a **contract** field, which spec’s `contract.md` / `design.md` is the tie-breaker I will apply?
 
-7. **Repeat** — Next phase starts only on the merged integration branch that includes all required predecessors.
+7. **Repeat until batch reconciled** — After step 6, if **any** later phase still has specs not yet run or not yet merged: **MUST** increment *k* and **return to step 5** on the **same** integration branch (now including phase *k* merges). Next phase starts only on that branch. **MUST NOT** end the coordinator run with a “wrapped up” message if the ledger still shows remaining phases or unmerged successful work. **Only** when every in-scope spec is **`merged`** or explicitly **`blocked`** may you treat implementation coordination as **complete** (then optional handoff to submit/review skills per user).
+   - **Pause →** How many phases remain after this merge—is the count **zero**? If not, **immediately** plan step 5 for *k+1*.
    - **Pause →** Before launching phase *k+1*, can I **name** the merge commit or branch state that contains **all** prerequisites for every spec in that phase?
+   - **Pause →** Can I cite **ledger lines** proving **merged** for every non-blocked spec in **every** phase?
 
 ## Out of scope
 

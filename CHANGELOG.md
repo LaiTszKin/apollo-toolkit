@@ -34,6 +34,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.9.1] - 2026-05-06
+
+### Changed
+- `implement-specs-with-subagents`: require full multi-phase reconciliation (repeat run/merge steps until every non-blocked in-scope spec is merged or explicitly blocked); forbid early completion narratives while later phases or unmerged successful branches remain.
+
 ## [v3.9.0] - 2026-05-05
 
 ### Changed
