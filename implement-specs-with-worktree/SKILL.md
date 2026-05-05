@@ -1,134 +1,85 @@
 ---
 name: implement-specs-with-worktree
 description: >-
-  Read a specs planning set (spec.md, tasks.md, checklist.md, contract.md, design.md)
-  from `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`
-  plus parent `coordination.md` and `preparation.md` when present, and implement
-  the approved tasks within an isolated git worktree, with every code, test, and
-  spec edit made inside that worktree rather than the parent checkout. Use when the user asks
-  to implement from an existing spec set, execute a spec plan, or work on a
-  feature branch without affecting the parent working tree. If not already in a
-  worktree, create a new worktree with a spec-named branch from the same parent
-  branch as the worktree base, implement all planned tasks, then commit the
-  changes to that local branch when complete.
+  Same contract as **`implement-specs`** but every write happens inside a dedicated `git worktree` + feature branch; verify `pwd` equals `git rev-parse --show-toplevel` before touching code; parent checkout remains read-only for deliverables; honor `preparation.md` baselines and sibling collision rules from `coordination.md`.
+  Pick when the user or batch workflow demands isolation (“don’t disturb my dirty main”, per-spec worker). Plain same-branch edits stay on **`implement-specs`** instead.
+  Good: commands show matching paths after `git worktree add ../oauth-scope feat/oauth-scope`. Bad: patching files under the primary checkout tree for implementation output.
 ---
 
 # Implement Specs with Worktree
 
 ## Dependencies
 
-- Required: `implement-specs`, `enhance-existing-features`, and `develop-new-features` for implementation standards.
+- Required: `implement-specs` for the shared discovery / implementation / backfill / commit / reporting lifecycle; `enhance-existing-features` and `develop-new-features` for implementation standards.
 - Conditional: `generate-spec` if spec files need clarification or updates.
-- Fallback: If `implement-specs`, `enhance-existing-features`, or `develop-new-features` is unavailable, stop and report the missing dependency.
+- Fallback: If any required dependency skill is unavailable, **MUST** stop and report it.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Read and understand the complete specs set before starting implementation, including parent `coordination.md` and `preparation.md` when present, identify the authoritative parent branch that the worktree should inherit from, verify whether the requested scope is already implemented on that parent branch or current main working tree, and when the requested plan path is missing from the current worktree verify where the authoritative copy actually lives before substituting any nearby spec.
-- Execution: Create or use an isolated worktree for implementation only when the requested spec still needs work, sync the exact approved plan set into that worktree when it is missing there, create the worktree branch from the same parent branch as the worktree base, use the spec-set name as the canonical branch/worktree name, inspect sibling worktrees for the same batch before editing shared files when parallel implementations may already be active, prefer direct `git` ref checks over brittle shell inference when deciding whether a branch or worktree already exists, and commit to a local branch when done. Do not edit product files from the parent checkout; every implementation, test, and spec backfill change must happen inside the active worktree directory after verifying `git rev-parse --show-toplevel` and `pwd` point at the same worktree root.
-- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, avoid dragging unrelated sibling specs into the worktree just because they share a batch directory, inspect overlapping runtime/config/shared touch points before diverging from another active sibling worktree in the same batch, revert unrelated formatter-only noise outside the spec-owned scope before committing, if branch/worktree creation reports ambiguous state re-check the actual git refs and worktree list before retrying, and when using targeted Rust `cargo test` selectors remember Cargo accepts only one positional test filter so each distinct selector needs its own confirmed command.
-- Output: Keep the worktree branch clean with only the intended implementation commits.
+- **MUST** perform every write (product code, tests, and spec-document backfill) inside the active worktree: after each `cd`, **MUST** confirm `pwd` equals `git rev-parse --show-toplevel` for that worktree before editing.
+- **MUST NOT** edit implementation files from the parent checkout except for creating or listing worktrees and read-only inspection; the parent checkout is write-prohibited for this spec’s deliverables.
+- **MUST** follow the **`implement-specs` Workflow** for discovery, implementation, backfill, commit discipline, and completion reporting—**except** that branch/worktree restrictions in `implement-specs` Non-negotiables are replaced by this skill’s worktree rules.
+- **MUST** create the implementation branch from the **same parent branch** the user/session identified as the baseline (often the branch that will receive the merge—not necessarily `main` unless that branch is verified as the base).
+- **MUST** use the spec directory name (`change_name`) as the canonical basename for the worktree path and branch stem; branch **`type`/name** must follow `references/branch-naming.md`.
+- **MUST** use `git show-ref` and `git worktree list --porcelain` (not shell guesses) when checking whether a branch or worktree already exists; if creation fails ambiguously, **MUST** re-query those commands before retrying.
+- When `preparation.md` exists: **MUST** treat it as an already-committed shared baseline for parallel work; **MUST NOT** redo its tasks inside the member spec unless the preparation commit is missing or the document states the prerequisite is still blocked. If baseline assumptions break, **MUST** update `preparation.md` or stop for coordination—**MUST NOT** silently move prerequisite work into the member spec.
+- **MUST** complete the same quality bar as `implement-specs`: all in-scope tasks, relevant tests, honest backfill, no sibling-spec scope creep, revert formatter-only noise outside owned files before commit.
+- **MUST NOT** `git push` unless the user explicitly asks.
+- For targeted Rust tests: **MUST** pass at most one positional `cargo test` filter per invocation; use separate commands or a broader confirmed filter when multiple selectors are needed.
 
-## Goal
+## Standards (summary)
 
-Implement approved spec planning sets in an isolated git worktree, ensuring the parent working tree is never interrupted by in-progress work.
+- **Evidence**: Read full spec set plus `coordination.md` and `preparation.md` when present; verify whether the spec is already implemented on the baseline before opening a new worktree; if the plan is missing in the worktree, sync the authoritative copy and re-read before coding.
+- **Execution**: Isolated worktree only; branch naming per `references/branch-naming.md`; check sibling worktrees before editing shared boundaries in a parallel batch.
+- **Quality**: Same as `implement-specs`, plus collision awareness with sibling worktrees per `coordination.md`.
+- **Output**: Clean local branch in the worktree with intended commits only; parent working tree unchanged by this implementation.
 
 ## Workflow
 
-### 1) Identify and read the specs set
+**Chain-of-thought:** Answer each **`Pause →`** question before leaving the phase; if any answer conflicts with Non-negotiables, fix state first (right directory, right root, right baseline).
 
-Use $implement-specs for the standard spec discovery and reading workflow.
+### A) Specs and baseline
 
-Additionally:
+- Run **`implement-specs` Workflow steps 1–2** in spirit: resolve paths, read all core files and `coordination.md`; run `git status` / `git worktree list` as needed. If the plan files are absent in the target worktree, sync them in, then re-read in that tree.
+- Read `preparation.md` when present; apply the Non-negotiable baseline rule above.
+  - **Pause →** Where will authoritative plan text live **for this session**—parent tree, worktree after sync—and have I opened that copy end-to-end?
+  - **Pause →** Does `coordination.md` / `preparation.md` imply **anything** I must not redo or must assume stable before coding?
 
-- When `preparation.md` exists in the parent batch directory, treat it as the already-completed prerequisite baseline for this spec; do not redo its tasks inside the member spec unless the preparation commit is missing or the document says the prerequisite remains blocked.
+### B) Worktree and branch
 
-### 2) Check current worktree state
+- If the requested scope is already implemented and verified on the baseline, **MUST** report `no-op` with evidence instead of creating duplicate work.
+- Otherwise: ensure the shell is in the correct worktree (create one if required):
+  - Derive `change_name`; branch pattern `<type>/<spec-name>` per `references/branch-naming.md`; worktree directory `../<spec-name>` (or an equivalent path the user approves).
+  - `git branch <branch-name> <parent-branch>` then `git worktree add <path> <branch-name>`; `cd` into it; verify `pwd` vs `git rev-parse --show-toplevel`.
+- Before editing shared modules in a batch, check `git worktree list --porcelain` and `coordination.md` for sibling ownership; read sibling diffs when the same file is touched.
+  - **Pause →** Why is **`parent-branch`** definitely the correct baseline—not an unexamined assumption that `main` is default?
+  - **Pause →** Could this work duplicate an **already-merged** implementation; what **evidence** (`git log`, tests, code search) did I use to rule that in or out?
+  - **Pause →** After `cd`, do `pwd` and `git rev-parse --show-toplevel` **match**; if not, why am I not stopping before any write?
+  - **Pause →** Which sibling worktree might already own the shared file I am about to touch, and did I inspect their diff?
 
-- Run `git worktree list` to see existing worktrees and branches.
-- Determine if the current session is already inside a worktree (check `git rev-parse --show-toplevel` and compare with `git worktree list`).
-- If the current worktree is missing the exact requested plan set, sync that plan into the worktree before coding and re-read the synced files there so implementation happens against the same plan snapshot that will be backfilled later.
-- Before making any edits, confirm the active shell is inside the intended worktree directory; if not, stop editing, create or enter the required worktree first, and only then continue.
-- Determine the authoritative parent branch for the new worktree:
-  - if the current checkout already comes from a branch, reuse that branch as the base
-  - if the current session is inside a detached worktree, identify the parent branch that owns that worktree before creating another branch from it
-  - do not default to `main` unless `main` is actually the parent branch of the worktree you are extending
-- Before creating a new worktree, inspect the parent branch and current main working tree for evidence that the requested spec is already implemented:
-  - search the codebase, tests, and recent git history for the exact feature boundary or cutover named by the spec
-  - if the requested plan is archived, treat that as a signal to verify whether the implementation already landed before starting any new branch
-  - when the requested behavior is already present and verified, report a `no-op` result with concrete evidence instead of recreating the same work in a fresh worktree
-- When the spec belongs to a parallel batch and other local worktrees for sibling specs already exist, inspect those sibling worktrees before editing any shared boundary module (for example shared runtime, config, or contract files):
-  - use `git worktree list --porcelain` plus the batch ownership map in `coordination.md` to identify likely sibling worktrees
-  - if a sibling worktree already touches the same shared file, read that diff first and either stay within your owned additive boundary or update the coordination evidence before proceeding
-  - do not assume coordination is collision-free just because the plan scopes differ at the directory level
+### C) Implement, backfill, commit, report
 
-### 3) Create a new worktree if needed
+- Execute **`implement-specs` Workflow steps 3–6** (implement, backfill, commit, report) **entirely from the worktree root**, applying `enhance-existing-features` / `develop-new-features` standards.
+- In the report, **MUST** include branch name, worktree path, commit hash, tests run, backfilled docs, and an explicit statement that the parent checkout was not modified for implementation files.
+  - **Pause →** Am I honoring **implement-specs** step 3–6 **constraints** literally while respecting that all writes happen **only** under this worktree root?
+  - **Pause →** If I used Rust `cargo test` filters, did I violate the **single positional filter** rule; how would I split the commands?
 
-If not already in a worktree, or if the user explicitly requests a fresh worktree, and the spec is not already implemented:
+## Sample hints
 
-- Derive the canonical spec name from the requested `change_name` directory.
-- Use that spec name as the shared branch/worktree identifier:
-  - branch name: `<type>/<spec-name>` following `references/branch-naming.md`
-  - worktree directory name: `<spec-name>`
-- Create a new branch for this implementation from the same parent branch identified in step 2:
+- **Root check** (must print the same path twice before edits):
   ```bash
-  git branch <branch-name> <parent-branch>
+  pwd && git rev-parse --show-toplevel
   ```
-- Add a new worktree:
+- **Skeleton commands** (`change_name` `oauth-scope`, parent `feature/x`, type `feat`):
   ```bash
-  git worktree add ../<spec-name> <branch-name>
+  git branch feat/oauth-scope feature/x
+  git worktree add ../oauth-scope feat/oauth-scope
+  cd ../oauth-scope
   ```
-- Move into the new worktree directory and begin work there.
-- Do not start editing until the shell is operating inside the new worktree directory and the worktree root has been verified.
-- When checking whether the target branch or worktree already exists, use direct git evidence instead of shell heuristics:
-  ```bash
-  git show-ref --verify --quiet refs/heads/<branch-name>
-  git worktree list --porcelain
-  ```
-- If branch creation or worktree creation fails in a way that leaves the state unclear, stop and re-read `git show-ref` plus `git worktree list --porcelain` before retrying; do not guess from wrapper output or compound shell conditionals.
-
-Use branch naming from `references/branch-naming.md`.
-
-### 4) Implement the planned tasks
-
-Use $implement-specs for the standard implementation workflow.
-
-Additionally:
-
-- When `preparation.md` exists, implement against its prepared baseline assumptions and avoid duplicating preparation tasks in the member spec.
-- When using targeted Rust `cargo test` commands, pass at most one positional test filter per invocation; if multiple selectors are needed, run separate commands or a broader confirmed selector.
-
-### 5) Backfill completion status
-
-Use $implement-specs for the standard backfill workflow.
-
-Additionally:
-
-- If preparation assumptions changed or were found missing, update `preparation.md` or stop for re-coordination instead of silently moving prerequisite work into the member spec.
-
-### 6) Commit changes
-
-Use $implement-specs for the standard commit workflow.
-
-### 7) Report completion
-
-See $implement-specs for the standard reporting format. Add the following context-specific details:
-
-- Note the spec-derived branch name and worktree location.
-- Confirm that the parent branch remains unaffected.
-
-## Working Rules
-
-- Always work in an isolated worktree to keep the parent checkout clean.
-- Treat the parent checkout as read-only for implementation work; use it only for inspection, worktree creation, or verification, never for file edits.
-- Treat an already-landed spec as complete work, not as a reason to recreate a duplicate worktree.
-- Keep the new branch based on the same parent branch as the worktree base; do not silently rebase the workflow onto a different branch.
-- Use the spec-set name as the canonical identifier for the branch and worktree unless the user explicitly asks for a different naming scheme.
-- When `preparation.md` exists, treat it as a prerequisite baseline owned outside the member spec; do not duplicate or alter its tasks unless explicitly requested.
-- Revert formatter-only edits outside the owned spec scope before the final commit so the worktree stays reviewable and merge-safe.
-- The shared working rules from $implement-specs also apply (complete all tasks, treat specs as truth, respect coordination.md, follow testing standards, no remote push unless asked).
+- **Cargo** (two filters ⇒ two commands): run `cargo test parser::` **and separately** `cargo test cache::`, not `cargo test parser:: cache::`.
 
 ## References
 
-- `references/branch-naming.md`: branch naming conventions
-- `enhance-existing-features`: implementation standards for brownfield work
-- `develop-new-features`: implementation standards for new feature work
+- `implement-specs`: shared lifecycle (read → implement → backfill → commit → report)
+- `references/branch-naming.md`: branch naming
+- `enhance-existing-features`, `develop-new-features`: implementation standards

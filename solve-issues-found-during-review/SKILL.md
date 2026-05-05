@@ -1,134 +1,74 @@
 ---
 name: solve-issues-found-during-review
-description: Fix issues discovered during a review pass (review-change-set, review-spec-related-changes, review-codebases, discover-edge-cases, harden-app-security, or any structured review), proceeding from the highest-severity finding down to the lowest, until all confirmed issues are resolved. Use when users ask to fix review findings, resolve review issues, implement review feedback on code, or address audit/security review findings.
+description: >-
+  Operate strictly from a structured review/issue list containing confirmed findings: close items in descending severity order (Critical before High/Medium/Low), land the smallest corrective diff per finding, run targeted validation after each fix before continuing, forbid speculative polish or unsolicited doc edits unless a finding explicitly requires them, and document Deferred or Could-not-reproduce outcomes with reproducible rationale.
+  Use when prompts reference concrete review outputs (“fix Bugbot findings”, “resolve security audit bullets”) accompanied by reproducible excerpts—STOP if only vague “there were issues yesterday” survives.
+  Bad pattern: refactoring modules while unresolved Critical SSRF persists… Good pattern: `HIGH SSRF src/net/client.rs…` patched, `cargo test net::fetch` green, hashes recorded…
 ---
 
 # Solve Issues Found During Review
 
 ## Dependencies
 
-- Required: none. This skill reads issues from a review report that must already exist or be supplied by the caller.
-- Conditional: `review-change-set` for re-validation after fixes when the fix set is code-affecting; `systematic-debug` when a fix attempt encounters unexpected test or runtime failures.
-- Conditional: When parallel sub-agents are available, the capability to merge changes from independent workspaces and resolve inter-workspace conflicts after parallel fix work.
-- Optional: `discover-edge-cases` to confirm edge-case coverage after fixing; `harden-app-security` to confirm security fixes are effective.
-- Fallback: If a required re-validation dependency is unavailable after a code-affecting fix, run `git diff --stat` and relevant tests manually and report what was verified.
+- Required: none (caller **MUST** supply an existing review report or reconstructable finding list).
+- Conditional: `review-change-set` for optional re-validation after **code-affecting** fixes; `systematic-debug` when a fix causes unexpected test or runtime failures.
+- Optional: `discover-edge-cases` / `harden-app-security` when the user or report demands post-fix confirmation on those dimensions.
+- Fallback: If `review-change-set` is unavailable after code fixes, **MUST** still verify via targeted tests and `git diff` (or equivalent) and **MUST** document exactly what was run.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Read the full review report and the affected code before implementing any fix. Every fix must be grounded in a confirmed finding from the review.
-- Execution: Fix issues in strict severity order (Critical → High → Medium → Low). After each fix, validate the change preserves correctness before moving to the next issue. Re-run the original review scope when all fixes are complete to confirm no regression and no remaining finding.
-- Quality: Fix only issues confirmed by the review report. Do not expand scope with speculative improvements, unrelated refactors, or style-only changes. Each fix must be minimal and targeted.
-- Output: Report which findings were fixed, how each was validated, any findings that could not be reproduced or fixed (with reasons), and the final re-validation result.
+- **MUST** read the **full** report and the affected code **before** editing. **MUST** tie every code change to a **confirmed** finding (explicit severity/title/evidence). **MUST NOT** fix speculative, hypothetical, or “nice-to-have” items unless the report elevated them to confirmed findings.
+- **MUST** process findings in strict severity order: complete **all** Critical before **any** High, then Medium, then Low—**MUST NOT** skip ahead for convenience. Within a tier, follow the reviewer’s stated ordering when present; if severities are missing, treat business-goal / correctness breaks as **High–Critical class** and cosmetic simplification as **Low**.
+- **MUST** validate after each finding’s fix (tests, repro steps, or agreed oracle) **before** starting the next finding at the same or lower priority. **MUST NOT** mark a finding fixed without passing validation.
+- **MUST** keep each fix **minimal** and scoped to the finding: **MUST NOT** bundle unrelated refactors, style sweeps, or scope expansion.
+- This skill **defaults to product code**; **MUST NOT** edit specs, docs, or `AGENTS.md`/`CLAUDE.md` unless the **finding text** explicitly requires it.
+- If a finding cannot be reproduced after investigation, **MUST** record `Could not reproduce` with evidence and **MUST** continue the queue without silently dropping the item.
+
+## Standards (summary)
+
+- **Evidence**: Confirmed finding → code path → minimal patch → validation artifact.
+- **Execution**: Order by severity; optional parallel module groups only when isolation is real; merge without losing fix intent.
+- **Quality**: No speculative hardening; conflicts resolved conservatively unless the finding demands an aggressive change.
+- **Output**: Per-finding status, validation proof, final re-validation summary, residual/deferred items with reasons.
 
 ## Workflow
 
-### 1) Read the review report
+**Chain-of-thought:** After **each** phase, **`Pause →`** guards against speculative fixes and order violations—answer them before edits or merges.
 
-- Read the review report or finding list that the user provides.
-- If the user did not provide a review report but says "fix the review findings", inspect current git state and recent review outputs to reconstruct the finding list.
-- If no review report can be found, stop and report that no review findings are available to act on.
-- Extract every confirmed finding with its severity, title, evidence (`path:line`), and reproduction evidence.
+### 1) Ingest findings
 
-### 2) Prioritize findings by severity
+Read the supplied report. If the user says “fix review findings” but attached nothing, reconstruct from git/recent outputs; if **no** reconstructable list exists, **MUST** stop and report. Extract each finding: severity, title, evidence (`path:line` or equivalent), reproduction notes.
+   - **Pause →** Can I attach **severity + excerpt + repro** per row—is anything still vague “looks bad”?
+   - **Pause →** Is this finding **explicitly confirmed** by the reviewer, or only a hypothesis I must shelve?
 
-Group findings into ordered buckets:
+### 2) Order and (optional) parallelize
 
-1. Critical
-2. High
-3. Medium
-4. Low
+Sort into Critical → High → Medium → Low. Optionally group by **module** or **business chain** for parallel work **only** if sub-agents with **isolated workspaces** exist and groups do not share half-applied state.
 
-Within each bucket, order by the reviewer's stated priority. If the review does not assign severity, treat architecture/business-goal gaps as High and simplification/style suggestions as Low.
+**Parallel path** — One package per independent group; each worker fixes its findings **in severity order locally**, validates, returns branch/diff + status. Merge packages one at a time; on conflict, preserve both fix intents; prefer the **more conservative** behavior unless the finding required aggressiveness; **MUST** flag unresolvable conflicts instead of silently dropping a fix. After merge, run consolidated tests.
 
-### 3) Classify findings by module and business logic chain
+**Serial path (default)** — For each finding in global severity order: read code and repro → apply minimal fix → validate (`systematic-debug` if failures are unclear) → record status → next finding.
+   - **Pause →** Am I respecting **tier closure**—no High work started until every Critical has a settled status (`Fixed`, `Deferred`, `Could not reproduce`)?
+   - **Pause →** If parallelizing: could two workers touch **overlapping** symbols or files midway through—if unsure, serialize.
 
-Before fixing, group findings by:
+### 3) Full-scope re-validation
 
-- **Module**: which subsystem, component, or layer each finding belongs to.
-- **Business logic chain**: findings along the same data flow, request path, or feature pipeline.
+After all findings are processed: run relevant tests over touched areas; if code changed and `review-change-set` is available, run it on the post-fix diff; capture `git diff --stat` (or equivalent). **MUST** confirm no confirmed finding remains open without a recorded reason (`Deferred`, `Could not reproduce`, etc.).
+   - **Pause →** Would the **same** reviewer still see **actionable proof** closed for each `Fixed`, or did I rationalize failures away?
+   - **Pause →** Did my consolidated diff sneak in **bonus** unrelated changes—if yes, peel them back?
 
-This classification determines which findings can be fixed independently in parallel and which share dependencies that require coordinated treatment.
+### 4) Report
 
-### 4) Deploy parallel fix work (when sub-agent capability is available)
-
-If the runtime supports spawning sub-agents with isolated workspaces:
-
-**a. Assign each module group to a sub-agent**
-
-- Group findings by the classification above. Each independent module or business chain becomes a work package.
-- Assign each work package to a sub-agent, giving it the relevant findings, the affected file paths, and the original review context.
-- Each sub-agent works in its own isolated workspace with no risk of interfering with others.
-
-**b. Sub-agents fix and validate their assigned findings**
-
-Each sub-agent independently:
-
-- Reads its assigned findings and the affected code.
-- Applies the minimal fix for each finding in severity order within its scope.
-- Validates correctness (tests, reproduction steps, linting) before marking findings as resolved.
-- Reports back which findings were fixed, deferred, or could not be reproduced, along with a summary of changes.
-
-**c. Consolidate and resolve conflicts**
-
-After all sub-agents complete:
-
-- Merge changes from each isolated workspace back into the main workspace, one at a time.
-- If conflicts arise, resolve them by keeping both sides of the fix intent — do not discard either party's changes unless they are truly contradictory.
-- When two fixes touch the same code, prefer the more conservative change (less behavioral deviation) unless the review finding explicitly demands the more aggressive one.
-- If a conflict cannot be resolved without deviating from the original fix intent, flag it for manual review and move on.
-
-**d. Re-validate after consolidation**
-
-Run all relevant tests across the consolidated changes to confirm the merged result is correct.
-
-If the runtime does **not** support sub-agents with isolated workspaces, fall back to fixing findings sequentially in severity order as described in the next step.
-
-### 5) Fix findings sequentially (fallback when sub-agents are unavailable)
-
-For each finding in priority order, when parallel sub-agent capability is not available:
-
-**a. Understand the finding and the fix target**
-
-- Read the affected code paths end-to-end.
-- Read the reviewer's reproduction evidence and hardening guidance.
-- Determine the minimal fix that resolves the finding without changing unrelated behavior.
-
-**b. Apply the fix**
-
-- Make the targeted code change.
-- Keep the fix scoped to the finding. Do not expand scope.
-
-**c. Validate the fix**
-
-- Run the most specific tests covering the changed code.
-- If tests fail, invoke `$systematic-debug` to resolve the failure before proceeding.
-- If the finding includes reproduction steps, verify the reproduction no longer triggers.
-- Only mark the finding as fixed when validation passes.
-
-**d. Track progress**
-
-Proceed to the next finding. Do not skip severity levels: finish all Critical findings before starting High, etc.
-
-### 6) Re-validate the full scope
-
-When all findings have been processed:
-
-- If the fix set is code-affecting, optionally run `$review-change-set` on the updated diff to confirm no new issues were introduced.
-- Run all relevant tests across the changed files.
-- Run `git diff --stat` to produce a summary of what changed.
-
-### 7) Report the result
-
-Return:
-
-1. Summary of all findings processed, grouped by severity.
-2. For each finding: status (`Fixed`, `Could not reproduce`, `Deferred`), path:line, and validation evidence.
-3. Final re-validation: new review result (if run), test results, and git change summary.
-4. Any residual findings that were deferred or could not be fixed, with reasons.
-5. Next steps: what the user should verify before merging (e.g., manual QA, integration tests, deployment review).
+Deliver: (1) Summary by severity. (2) Per finding: `Fixed` / `Could not reproduce` / `Deferred` + location + validation evidence. (3) Final re-validation (review tool result if any, tests, diff stat). (4) Residual/deferred with reasons. (5) User-facing next checks before merge (manual QA, integration, etc.).
+   - **Pause →** Could the user rerun **exactly one** cited command per `Fixed` to trust me—is that cited?
 
 ## Notes
 
-- This skill fixes code only. It does not update specs, documentation, or project constraints unless the review finding explicitly requires it.
-- If the original review report contained hypotheses or unconfirmed risks, leave those untouched — only confirmed findings are actionable.
-- When a finding cannot be reproduced after inspecting the code, report `Could not reproduce` and move to the next finding.
+- Hypotheses or “might be risky” lines in a report that were **not** confirmed as findings stay **out of scope** for fixes.
+
+## Sample hints
+
+- **Inbound finding slice** — `HIGH | SSRF via webhook URL | src/net/fetch.rs:112 | curl user-controlled URL without allowlist`.
+- **Serial flow** — fix `HIGH #1`, run `cargo test net_fetch` (or the project’s narrowest test), mark `Fixed` **only after green** → then proceed to `HIGH #2`; do **not** batch three HIGH fixes then test once unless a single coherent patch is unavoidable and validation still proves each finding closed.
+- **Status line**: `HIGH SSRF fetch · Fixed · fetch.rs:105-128 · Verified: cargo test net::fetch + manual blocklisted host`.
+- **`Could not reproduce`**: reviewer cited `middleware.ts:77` leak; current tree shows no such path/commit — note commit inspected and bail with evidence, do **not** invent a finding to satisfy the report.

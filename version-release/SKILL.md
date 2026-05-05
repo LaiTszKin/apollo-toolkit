@@ -1,27 +1,41 @@
 ---
 name: version-release
-description: "Guide the agent to prepare and publish a versioned release (version bump, changelog, tag, GitHub release, and push). Use only when users explicitly request version/tag/release work, including direct semver wording such as patch/minor/major updates. Depend directly on `archive-specs` when completed plan sets should become durable docs or when project docs need alignment, and let that skill own the downstream documentation synchronization work."
+description: >-
+  End-to-end semver delivery: prerequisites mirror **`commit-and-push`** gates (**`submission-readiness-check`**, reviews, changelog hygiene, optional `archive-specs`), derive next version/tag from tracked files plus explicit user semver words, relocate `CHANGELOG.md` Unreleased into dated release bump package/project metadata evenly commit tag push **`gh release create`** honoring prerelease/retarget rules verify remote refs **NEVER STOP at tag omitting GitHub release unless user waived publication**.
+  Keywords patch minor major release tag GH publish semver… misroute plain “push” absent release vocabulary **use commit-and-push**… BAD guessing version… GOOD inspect package.json+Cargo.toml… retarget prerelease relocate tag `--force-with-lease`… Unreleased emptiness ⇒ halt curated notes…
 ---
 
 # Version Release
 
 ## Dependencies
 
-- Required: `commit-and-push`, `submission-readiness-check` before version metadata edits, tagging, or release publication.
-- Conditional: `archive-specs` when completed plan sets should be converted or repository docs need alignment; `review-change-set` is required for code-affecting releases before metadata edits and the final commit; `discover-edge-cases` and `harden-app-security` are important review gates that remain conditional, but become required whenever the reviewed scope or risk profile warrants them.
+- Required: **`commit-and-push`** (shared inspect/classify/readiness/commit/push mechanics); **`submission-readiness-check`** **before** version files, tags, or publication mutate.
+- Conditional: **`archive-specs`** when specs/docs need alignment; **`review-change-set`** (+ **`discover-edge-cases`** / **`harden-app-security`** when risk triggers) on **code-affecting** release scope **before** version churn—blocking while findings open.
 - Optional: none.
-- Fallback: If a required release dependency is unavailable, stop and report the missing dependency.
+- Fallback: Missing required skill ⇒ stop and report.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Inspect the active change set, current version files, existing tag format, existing remote tags/releases, and root `CHANGELOG.md` `Unreleased` content before touching version files, tags, or release metadata.
-- Execution: Use this workflow only for explicit release intent, run the required quality gates when applicable, and treat every conditional gate whose scenario is met as blocking before versioning or publication; hand the repository to `submission-readiness-check` before versioning work, invoke `archive-specs` directly whenever completed plan sets should be converted or project docs need alignment, and if the worktree is already clean inspect the current version, local/remote tag state, and existing GitHub release state before deciding whether the request is already satisfied; decide whether the GitHub release is a prerelease only from explicit user instruction or explicit repository convention already documented in the request context, never from tag naming alone; when the user explicitly wants the same prerelease version to point at newer fixes, retarget the existing prerelease tag and GitHub release instead of inventing an extra version bump; when editing an existing GitHub prerelease during that retarget flow, use a GitHub-accepted release target such as the intended branch name if the tool or API rejects a raw commit SHA for `target_commitish`; otherwise cut the release directly from `CHANGELOG.md` `Unreleased`, update versions and docs, commit, tag, push, and publish the GitHub release with actual release tooling rather than PR-surrogate directives; run git mutations sequentially and verify both the branch tip and release tag exist remotely before publishing the GitHub release, and never treat UI git directives such as `::git-stage`, `::git-commit`, or `::git-push` as evidence that the release commit or tag already exists.
-- Quality: Never guess versions, align user-facing docs with actual code, do not bypass readiness blockers from `submission-readiness-check`, do not reconstruct release notes from `git diff` when curated changelog content already exists, and do not report release success until the commit, tag, and GitHub release all exist for the same version.
-- Output: Produce a versioned release commit and tag, publish a matching GitHub release, and keep changelog plus relevant repository documentation synchronized.
+- **ONLY** enter this workflow when release intent is **explicit** (semver bump wording, tag/release request, CI “publish release”—not a bare “push”). Else **`commit-and-push`** only.
+- **MUST NOT** guess versions—read workspace version files + user-stated bump; state **current → next** + exact **tag string** before editing.
+- **MUST NOT** publish if root **`CHANGELOG.md` `Unreleased`** is empty/has nothing to ship—stop or curate notes first.
+- **MUST** align all version-bearing files consistently; formatting-only deltas elsewhere.
+- **Tag format** (`v1.2.3` vs `1.2.3`) inferred from repo history—not invented per release ad hoc unless user dictates.
+- **GitHub Release**: prefer `gh release create` / repo tooling; **MUST NOT** substitute “opened PR URL” as release completion. Draft vs prerelease vs **latest** follows **explicit** user/repo convention—not tag shape alone.
+- **Prerelease retarget**: same version, **move** tag/release to new SHA when user asks; use force-with-lease **for tag only** as needed; if API rejects SHA for `target_commitish`, use branch identifier per GitHub rules.
+- **MUST** verify **remote** has commit + tag before calling release **done**; **MUST NOT** trust UI git shortcuts.
+- **Done** = version files + changelog section + **pushed** commit + **remote** tag + **published** GitHub release (unless user explicitly skips publication—then say so).
+
+**Repository regression checks:** Before creating release metadata, inspect existing local and remote tags plus any existing GitHub Release for the target version so duplicates are caught early. Do not continue until you can state the current version, the intended next version, and the exact tag name that will be created. **`review-change-set` is required for code-affecting releases**—run `review-change-set` for the same release scope before continuing; treat unresolved review findings as blocking. Any conditional gate whose trigger is confirmed by this classification becomes mandatory before version bumping, tagging, or release publication. Treat every scenario-matched gate as blocking before versioning or release publication. **`discover-edge-cases` and `harden-app-security` are important review gates**—when their scenario is met, treat them as blocking review gates, not optional polish. Never stop after the release commit or tag alone; creating the matching GitHub release is part of done criteria unless the user explicitly says to skip release publication.
+
+## Standards (summary)
+
+- **Evidence**: Version files, tags local/remote, `Unreleased`, existing GH releases.
+- **Execution**: Intent → gates (`commit-and-push` pattern) → semver → files → changelog move → commit/tag → push → GH release.
+- **Quality**: No duplicate releases; notes from curated changelog, not raw diff guesswork.
+- **Output**: Announced version, tag URL, release URL, automation status if any.
 
 ## References
-
-Load only when needed:
 
 - `references/semantic-versioning.md`
 - `references/commit-messages.md`
@@ -31,100 +45,50 @@ Load only when needed:
 
 ## Workflow
 
-### 1. Inspect Current Changes
+**Chain-of-thought:** Reuse **`commit-and-push`** for git inspection, classification, conditional reviews, **`submission-readiness-check`**, commit discipline, push verification—**do not duplicate** those rules here; **`Pause →`** applies to release-only decisions.
 
-Use $commit-and-push for the standard git state inspection workflow.
+### 1) Inspect git state
 
-### 2. Confirm Release Intent
+- Follow **`commit-and-push`** step 1 (status/diff/clean semantics).
 
-- Use this skill only when the user explicitly requests version/tag/release work.
-- Treat explicit semver-delivery wording such as `patch update`, `minor update`, `major update`, `patch release`, `bump the version`, or requests to trigger release-published automation as release intent even when the user does not separately say `make a release`.
-- If no release intent is present, use `commit-and-push` instead.
+### 2) Confirm release intent
 
-### 3. Classify Changes and Run Dependencies
+- Explicit semver/release language—or stop and use **`commit-and-push`**.
+   - **Pause →** Did the user only ask “commit”? If yes, **exit** this skill.
 
-Use $commit-and-push for the standard change classification and code-affecting dependency skills workflow.
+### 3) Gates before version churn
 
-Release-specific requirements:
-- For code-affecting changes, run `review-change-set` for the same release scope before continuing; treat unresolved review findings as blocking.
-- Run `discover-edge-cases` and `harden-app-security` for the same release scope when the reviewed risk profile or repository context says their coverage is needed; treat them as blocking review gates, not optional polish, whenever that condition is met.
-- Any conditional gate whose trigger is confirmed by this classification becomes mandatory before version bumping, tagging, or release publication, including review, spec archival, docs synchronization, and changelog readiness.
-- Consolidate all confirmed findings before continuing.
-- Resolve all confirmed findings before changing version files, tags, or release metadata.
+- Classify scope; code-affecting ⇒ `review-change-set` (+ conditional edge/security same as **`commit-and-push`**); **`submission-readiness-check`** (+ **`archive-specs`** when indicated). All blocking items closed.
+   - **Pause →** Am I versioning while `Unreleased`/readiness still wrong?
 
-### 4. Run Shared Submission Readiness
+### 4) Decide version & tag
 
-Use $commit-and-push for the standard submission readiness workflow.
+- Read files; inspect local/remote tags + existing GH release for collision; prerelease vs stable per user/doc; retarget flow leaves version unchanged.
+   - **Pause →** If tag+release already correct on intended SHA—report satisfied, duplicate nothing.
 
-### 5. Decide Version and Tag Format
+### 5) Bump files
 
-- Read existing version files (for example `project.toml`, `package.json`, or repo-specific version files).
-- Infer existing tag format (`vX.Y.Z` or `X.Y.Z`) from repository tags.
-- Inspect existing local and remote tags plus any existing GitHub Release for the target version before creating new release metadata, so duplicate or conflicting releases are caught early.
-- Determine release channel explicitly before publishing: if the user did not say `prerelease`, `draft`, `latest`, or an equivalent repository-specific release state, default to asking or to the repository's already-documented convention instead of inferring from the tag text.
-- If the user explicitly asks to keep the same prerelease version or to `repoint`, `retarget`, or `move` an existing prerelease after follow-up fixes, treat that as a retarget flow: keep the version unchanged, confirm the existing prerelease tag/release name, and plan to move that tag/release to the new commit instead of bumping semver.
-- If the requested version tag and matching published GitHub release already exist and point at the intended commit, report that the release is already complete instead of creating duplicate metadata.
-- If the user provides the target version, use it directly.
-- If it is missing, ask the user for the target version or semver bump type.
-- Provide recommendations only when explicitly requested.
-- Do not continue until you can state the current version, the intended next version, and the exact tag name that will be created.
-- For retarget flows, explicitly state that the intended next version stays unchanged and that the existing tag name will be moved to the new commit.
+- Every locator of version bumped consistently.
 
-### 6. Update Version Files
+### 6) Release docs
 
-- Update every detected version file consistently.
-- Preserve file formatting; change only version values.
+- Move **`Unreleased`** → new dated heading; reset `Unreleased` scaffold; **`README`** / **`AGENTS.md`**/`CLAUDE.md` only if behavior/agent workflow changed materially.
 
-### 7. Update Release Docs
+### 7) Commit & tag
 
-- Treat root `CHANGELOG.md` `Unreleased` as the canonical pending release content.
-- If `Unreleased` is empty, stop and report that there are no curated release notes to publish yet.
-- Create the new version entry by moving the current `Unreleased` sections under the selected version heading and release date.
-- Reset `Unreleased` to an empty placeholder after the version entry is created.
-- Remove duplicate section headers or bullets only when the move would otherwise create repeated content.
-- Update `README.md` only when behavior or usage changed.
-- Update `AGENTS.md/CLAUDE.md` only when agent workflow/rules changed.
+- Message e.g. `chore(release): publish X.Y.Z` per repo habit; tag after commit; retarget ⇒ move existing tag deliberately with hash discipline.
 
-### 8. Commit and Tag
+### 8) Push
 
-Use $commit-and-push for the standard commit mechanics workflow.
+- Push branch **and** tag; verify remote refs; retarget ⇒ `--force-with-lease` for tag only where appropriate, then verify.
 
-Release-specific commit and tag operations:
-- Create a release-oriented commit message (for example `chore(release): publish 2.12.1`) when applicable.
-- For new-version flows, create the version tag locally after commit.
-- For prerelease retarget flows, move the existing tag locally only after the new fix commit exists, and verify the target commit hash before rewriting the tag.
-- Re-read the version files after editing and before tagging to confirm they all match the intended release version.
+### 9) Publish GitHub Release
 
-### 9. Push
+- Create/update matching release body from changelog section; prerelease flag per explicit instruction; confirm non-draft unless automation needs draft—but user asked “publish” ⇒ actually publish.
+   - **Pause →** Can I paste **release URL** + prove tag points at **`HEAD`**?
 
-Use $commit-and-push for the standard push mechanics workflow.
+## Sample hints
 
-Release-specific push operations:
-- Push commit(s) and the release tag to the current branch before publishing the GitHub release when the hosting platform requires the tag to exist remotely.
-- For prerelease retarget flows, push the rewritten tag explicitly (for example `--force-with-lease` for the single tag only), then verify the remote tag hash matches local `HEAD` before touching the GitHub release.
-- After pushing, verify the release tag exists remotely via `git ls-remote --tags <remote> <tag>`.
-
-### 10. Publish the GitHub Release
-
-- Create a non-draft GitHub release that matches the pushed version tag.
-- Set the GitHub release's prerelease flag only when the user explicitly asked for a prerelease or an already-verified repository convention for this exact release channel requires it.
-- For prerelease retarget flows, update the existing GitHub prerelease so it points at the rewritten tag/commit and refresh its notes when the new fix changes the shipped behavior.
-- If the release tool rejects a raw commit SHA while updating `target_commitish`, retry with the authoritative branch name or another GitHub-accepted target identifier, then verify the published release now resolves to the rewritten tag.
-- Use the release notes from the new `CHANGELOG.md` entry unless the repository has a stronger established release-note source.
-- If the repository has publish automation triggered by `release.published`, ensure the GitHub release is actually published rather than left as a draft.
-- Prefer `gh release create <tag>` or the repository's existing release tool when available.
-- Do not use PR-opening tools, PR directives, or placeholder URLs as a substitute for actual release publication.
-- Confirm the GitHub release URL and any triggered publish workflow status in the final report.
-- Never stop after the release commit or tag alone; creating the matching GitHub release is part of done criteria unless the user explicitly says to skip release publication.
-
-## Notes
-
-- Never guess versions; always read from files and user intent.
-- Treat every scenario-matched gate as blocking before versioning or release publication, not as an optional reminder to maybe do later.
-- Never skip `review-change-set` for code-affecting releases, and do not continue to versioning work while confirmed review findings remain unresolved.
-- Never downgrade `discover-edge-cases` or `harden-app-security` to optional follow-up when the release risk says they apply.
-- Never claim a release is complete without checking the actual release version, creating the matching tag, and publishing the matching GitHub release.
-- Never treat a PR creation step, release-page URL guess, or tag-only push as evidence that the GitHub release exists.
-- Never treat `::git-stage`, `::git-commit`, `::git-push`, or similar UI helpers as proof that the release commit, pushed tag, or remote branch update actually happened.
-- If tests are required by repository conventions, run them before commit.
-- If a new branch is required, follow `references/branch-naming.md`.
+- **`Unreleased` empty** ⇒ cannot ship “2.5.0” with honest notes—curate first.
+- **Duplicate**: Tag `v2.5.0` exists on GH → **inspect SHA** before re-creating.
+- **Retarget**: User “move prerelease to latest fix”—**no** semver bump; rewrite tag carefully.

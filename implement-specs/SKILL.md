@@ -1,13 +1,9 @@
 ---
 name: implement-specs
 description: >-
-  Read a specs planning set (spec.md, tasks.md, checklist.md, contract.md, design.md)
-  from `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`
-  plus parent `coordination.md` when present, and implement the approved tasks
-  directly in the current checkout. Use when the user asks to implement from an
-  existing spec set, execute a spec plan, or complete approved planning work
-  without creating a new branch or isolated git worktree. Commit the completed
-  implementation to the current branch when done.
+  Land an approved `docs/plans/{YYYY-MM-DD}/{change}` (or batch member path) on the currently checked-out branch: read the full planning bundle + `coordination.md` when relevant, execute every in-scope `tasks.md` item, backfill honest checklist/spec state, commit locally—**do not** create branches/worktrees or push unless the user explicitly widens the request mid-thread.
+  Choose this for “implement on this branch” scenarios. If isolation is required use **`implement-specs-with-worktree`**; if multiple specs need delegated workers use **`implement-specs-with-subagents`**.
+  Good: stay on `feature/foo`, finish tasks, `git commit`. Bad: `git worktree add` purely to avoid dirty trees—wrong skill unless user re-scoped.
 ---
 
 # Implement Specs
@@ -17,58 +13,66 @@ description: >-
 - Required: `enhance-existing-features` and `develop-new-features` for implementation standards.
 - Conditional: `generate-spec` if spec files need clarification or updates; `recover-missing-plan` if the requested plan path is missing from the current checkout.
 - Optional: none.
-- Fallback: If `enhance-existing-features` or `develop-new-features` is unavailable, stop and report the missing dependency.
+- Fallback: If `enhance-existing-features` or `develop-new-features` is unavailable, **MUST** stop immediately and report the missing dependency. Do not improvise substitute standards.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Read and understand the complete specs set before starting implementation, and when the requested plan path is missing verify where the authoritative copy actually lives before substituting any nearby spec.
-- Execution: Work directly in the current checkout, do not create or switch branches, do not add git worktrees, follow the implementation standards from the dependent skills, and commit to the current branch when done.
-- Quality: Complete all planned tasks, run relevant tests, backfill the spec documents with actual completion status, and avoid dragging unrelated sibling specs into scope just because they share a batch directory.
-- Output: Leave the current branch with a focused implementation commit containing only the intended changes.
+- **MUST** read and understand the full in-scope planning set (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`) and the parent `coordination.md` when its path applies, **before** editing product code or tests for this spec.
+- **MUST NOT** create a branch, switch branches, or add or use a `git worktree` for this work unless the user explicitly changes the request in the same conversation.
+- **MUST** treat the approved `tasks.md` / contracts as the scope boundary: complete every item that is in scope for this request, run the relevant tests, and **MUST** backfill the planning documents with factual completion status (no aspirational checkboxes).
+- **MUST NOT** expand scope to unrelated sibling spec directories solely because they share a batch folder.
+- **MUST** commit the finished work to the **current** branch as a focused implementation commit (split only when an unavoidable checkpoint is required); the combined result **MUST** contain only the intended changes.
+- **MUST NOT** `git push`, tag, or perform release steps unless the user explicitly asks.
+- If the plan path is missing or ambiguous: **MUST** use `recover-missing-plan` or other verifiable repository evidence to locate the authoritative plan; **MUST NOT** substitute a nearby path by guess. After recovery, **MUST** re-read the recovered files before coding so implementation and backfill target the same snapshot.
 
-## Goal
+## Standards (summary)
 
-Implement approved spec planning sets directly in the current checkout when the user wants the work to land on the active branch instead of an isolated implementation branch.
+- **Evidence**: Same as Non-negotiables: no coding until the spec set is fully read; no guessed plan paths.
+- **Execution**: Current checkout only; dependent-skill standards apply to all implementation and testing steps.
+- **Quality**: All in-scope tasks done; tests executed; docs reflect reality; no scope creep into sibling specs.
+- **Output**: Current branch contains a clean, reviewable implementation of this spec only.
 
 ## Workflow
 
-### 1) Identify and read the specs set
+**Chain-of-thought:** Before advancing each numbered step, answer the **`Pause →`** questions (even if only internally). A “no” or “unknown” answer **MUST** be resolved or surfaced as a blocker before continuing.
 
-See `../references/implement-specs-common.md` for the standard spec discovery and reading workflow.
+1. **Locate and read** — Resolve `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`. Read the five core files; read parent `coordination.md` when present. Stay inside the directories the user asked for.
+   - **Pause →** Is this directory the **exact** scope the user asked for, verified by listing or viewing those five files—not a sibling “similar” folder?
+   - **Pause →** Have I explicitly linked each material requirement / task to evidence I understood (still no code edits)?
+   - **Pause →** If the path were missing or wrong, what **verifiable** step would locate the authoritative plan—and have I executed it?
 
-### 2) Check current branch state
+2. **Branch sanity** — Run `git status -sb`. Do not modify unrelated dirty files; surface blockers. Confirm the current branch is where this work should land.
+   - **Pause →** Would creating or switching branches or a worktree right now **violate** the Non-negotiables—and am I resisting that temptation?
+   - **Pause →** What dirty paths are **out of scope**, and how will I avoid touching them inadvertently?
+   - **Pause →** Is the integration target branch (where the user expects work) identical to what `git status -sb` shows?
 
-- Run `git status -sb` and identify the current branch.
-- Preserve unrelated user changes. If the checkout contains unrelated dirty files, avoid editing them and report any blockers before proceeding.
-- Confirm that the current branch is the intended destination for the implementation. Do not create, rename, or switch branches unless the user explicitly changes scope.
-- If the exact requested plan was recovered (e.g. via `recover-missing-plan`) into the current checkout, re-read the recovered files before coding so implementation and backfill use the same plan snapshot.
+3. **Implement** — Execute approved `tasks.md` per `enhance-existing-features` / `develop-new-features`. Run relevant tests.
+   - **Pause →** For the next task item, what is the **single** concrete change and its **single** primary verification—before I type code?
+   - **Pause →** Am I about to touch a file that belongs to a **sibling** spec or an unrelated module without an in-scope task line?
+   - **Pause →** After this chunk of work, which test command **proves** I did not break the contract’s stated behavior?
 
-### 3) Implement the planned tasks
+4. **Backfill** — Update `checklist.md` / `tasks.md` (and any other plan files your standards require) so completion status matches what you actually did.
+   - **Pause →** If I checked a box, can I point to **commit + test run** (or equivalent) that makes that check true—no wishful checking?
+   - **Pause →** Did any scope shrink or shift during implementation; if so, is the plan text updated **honestly**?
 
-See `../references/implement-specs-common.md` for the standard implementation workflow.
+5. **Commit** — Commit on the current branch; keep the diff limited to this spec’s intent.
+   - **Pause →** Does `git diff` show only this spec’s intended surface, or do I need to revert irrelevant noise first?
+   - **Pause →** Am I on the **same** branch I named in step 2, without a silent branch switch?
 
-### 4) Backfill completion status
+6. **Report** — State current branch, commit hash, tests run, and which plan files were backfilled.
+   - **Pause →** Would another engineer **reproduce** my conclusion from the branch name, commit hash, and test commands I listed alone?
 
-See `../references/implement-specs-common.md` for the standard backfill workflow.
+If this skill directory contains `references/implement-specs-common.md`, treat it as an optional extension to the steps above; if it is absent, the Workflow section here is authoritative.
 
-### 5) Commit changes
+## Sample hints
 
-See `../references/implement-specs-common.md` for the standard commit workflow.
-
-### 6) Report completion
-
-See `../references/implement-specs-common.md` for the standard reporting format. Add the following context-specific details:
-
-- Note the current branch and commit hash.
-- Confirm which tests ran and which planned documents were backfilled.
-
-## Working Rules
-
-- Always work in the current checkout; never create a branch or git worktree inside this skill unless the user explicitly changes the request.
-- The shared working rules in `../references/implement-specs-common.md` also apply (complete all tasks, treat specs as truth, respect coordination.md, follow testing standards, no remote push unless asked).
+- **Resolve path**: user says “implement `oauth-scope`”; read `docs/plans/2026-05-01/oauth-scope/` first, **not** a sibling folder like `docs/plans/2026-05-01/batch/oauth-scope/` unless that is where the five files actually live per user or manifest.
+- **Branch sanity excerpt**: expect `git status -sb` like `## feature/x …` plus a dirty `README.md` you do **not** own — leave that file untouched; implement only paths from `tasks.md`.
+- **Completion report sketch**: `Branch: feature/x · Commit: a1b2c3d · Tests: npm test -- lib/auth.test.js · Backfill: tasks.md (done), checklist.md (R1.3 → passed).`
+- **Anti-pattern**: `git checkout -b impl/oauth-scope` for this skill — **wrong** unless the user changed scope mid-conversation.
 
 ## References
 
-- `enhance-existing-features`: implementation standards for brownfield work
-- `develop-new-features`: implementation standards for new feature work
-- `recover-missing-plan`: recovery workflow for missing or mismatched spec sets
+- `enhance-existing-features`: brownfield implementation standards
+- `develop-new-features`: greenfield implementation standards
+- `recover-missing-plan`: missing or mismatched plan recovery

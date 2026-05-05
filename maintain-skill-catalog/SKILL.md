@@ -1,6 +1,9 @@
 ---
 name: maintain-skill-catalog
-description: Audit and maintain a repository of installable skills so the catalog stays internally consistent. Use when users ask to standardize `SKILL.md` structure across many skills, classify internal vs external skill dependencies, sync skill lists and external dependency docs, extract shared workflows into new skills, or fix catalog-wide validation/agent-config issues.
+description: >-
+  Maintain this SKILL catalog repo: reconcile `SKILL.md` frontmatter/`Dependencies`, `agents/openai.yaml`, README inventory, classify vendored vs external vs unpublished-local aliases, prefer extracting shared workflows over duplicating long prose, and always rerun `apltk validate-skill-frontmatter` plus `apltk validate-openai-agent-config` before finishing—never invent package names or installers for unverified deps.
+  Use when CI metadata breaks, users ask to “sync skills”, or dependency docs drift. Do not use for random application repos that are not this catalog layout.
+  Bad: marketing a `~/.claude` draft as an npm dependency… Good: label it “local optional” and link once in README instead of pasting the blurb into five skills…
 ---
 
 # Maintain Skill Catalog
@@ -9,60 +12,61 @@ description: Audit and maintain a repository of installable skills so the catalo
 
 - Required: none.
 - Conditional: `find-skills` when a dependency is external and the installation source is unknown.
-- Optional: `skill-creator` when splitting a repeated workflow into a new shared skill or significantly reshaping an existing skill.
-- Fallback: If an external dependency cannot be verified, leave it undocumented rather than guessing the package name or install command.
+- Optional: `skill-creator` when extracting a repeated workflow into a new shared skill or heavily reshaping a skill.
+- Fallback: If an external dependency cannot be verified, **MUST** document unknowns honestly—**MUST NOT** invent package names, install commands, or skill aliases.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Read the actual skill folders, validation scripts, repository docs, and local installed skill names before changing dependency classifications or catalog docs.
-- Execution: Audit first, classify findings, make focused catalog updates, then run the repo validators before finishing.
-- Quality: Avoid duplicate skills, avoid rewording behavior without checking the implementation, distinguish aliases or local unpublished skills from true external dependencies, and enforce the repository's current metadata constraints such as `SKILL.md` frontmatter validity, description-length limits, and synchronized agent configs.
-- Output: Leave the catalog with synchronized skill metadata, dependency documentation, and validation status.
+- **MUST** read actual skill directories, validator scripts (`scripts/validate_*.py`, CI), `README.md`, and `agents/openai.yaml` patterns **before** reclassifying dependencies or rewriting catalog prose.
+- **MUST** treat each skill’s `## Dependencies` block as authoritative for skill-to-skill references; reconcile docs to match folders, not the reverse by guess.
+- **MUST** classify each dependency edge as: vendored-in-repo · local unpublished (not advertised as external) · external-with-install-guidance · alias-only (explain, don’t duplicate as separate dep).
+- **MUST NOT** duplicate skills or paste long prose into README without verifying whether a narrower edit or extraction fixes the repetition.
+- **MUST NOT** advertise a colleague’s unpublished `~/.codex/skills/...` name as if it were an npm-installable artifact unless verified.
+- After metadata or agent-config edits, **MUST** run **`apltk validate-skill-frontmatter`** and **`apltk validate-openai-agent-config`** (or fail the session with explanation if CLI unavailable)—**MUST NOT** declare the catalog consistent while validators fail.
+- If validator failures reveal a **systemic** gap, **MUST** prefer tightening the validator/CI in the **same** change set when appropriate, not only patching one skill ad hoc.
 
-## Goal
+## Standards (summary)
 
-Keep a skill repository coherent when many top-level skills evolve together.
+- **Evidence**: Folders + scripts + frontmatter reality; optional `~/.codex/skills` spot-check for external names.
+- **Execution**: Inventory → classify → minimal focused edits → validate → report.
+- **Quality**: One skill one purpose; naming matches folder; agent configs synchronized.
+- **Output**: Updated lists/docs + green validators + explicit unknowns.
 
 ## Workflow
 
-### 1) Inventory the catalog before editing
+**Chain-of-thought:** Answer **`Pause →`** before moving to the next subsection; validator red **MUST** block “done.”
 
-- List the tracked top-level skill directories and read the relevant `SKILL.md` files before deciding that a new skill is needed.
-- Check whether the requested workflow already exists under another name or can be handled by a focused update.
-- Read current `README.md`, `AGENTS.md/CLAUDE.md/CLAUDE.md`, validator scripts, and any existing dependency notes that may need synchronization.
-- When the task involves external dependencies, inspect local installed skills under `~/.codex/skills` first to confirm the exact skill names.
+### 1) Inventory
 
-### 2) Audit dependency declarations and shared conventions
+- Enumerate top-level skill dirs (`SKILL.md` present); read touched `SKILL.md` files before inventing merges or new skills.
+- Read `README.md`, `AGENTS.md`/`CLAUDE.md`, and existing dependency notes.
+  - **Pause →** Is the requested change already satisfied by renaming or merging **existing** skill text instead of adding a sibling skill?
+  - **Pause →** Which validator script actually enforces description length and keys—did I open its source?
 
-- Use the standardized `## Dependencies` section as the source of truth for skill-to-skill relationships.
-- Read the current validator scripts before changing frontmatter-heavy files so metadata limits come from implementation rather than memory.
-- Classify each dependency as:
-  - vendored in this repository
-  - local/private skill that should not be documented as external
-  - external skill that needs install guidance
-  - alias/compatibility name that should be explained but not treated as a separate dependency
-- Verify exact external skill names before editing docs; do not invent pluralizations or package names.
-- If multiple skills repeat the same workflow, prefer extracting that shared portion into a dedicated skill instead of duplicating instructions.
+### 2) Audit dependencies and conventions
 
-### 3) Update catalog docs and skill metadata carefully
+- Align `## Dependencies` across skills with shared vocabulary (`Required` / `Conditional` / `Optional` / `Fallback`).
+- Exact external strings only—verify spelling/plural vs installed tree.
+- Repeated workflows ⇒ prefer **extract** to new skill (`skill-creator`) over copy-paste.
+  - **Pause →** Would classifying dep X as “external” confuse installers—could it actually be repo-vendored or optional?
 
-- Keep edits minimal and repo-wide only where necessary.
-- Update `README.md` skill lists and external dependency sections when the catalog actually changes.
-- Update `AGENTS.md/CLAUDE.md` when the repository gains or loses a user-visible capability or a standing convention changes.
-- When creating a new shared skill, align naming, frontmatter, `agents/openai.yaml`, and any lightweight README with neighboring skills.
-- When a failure comes from validator drift or a metadata constraint that was not caught early, tighten the validator or CI path in the same change instead of only fixing the offending skill text.
-- Do not treat unpublished local skills as external dependencies just because they are not yet installed elsewhere.
+### 3) Apply catalog edits
 
-### 4) Validate the catalog after changes
+- Minimal diffs; update `README` skill lists and external-dep sections **only when** inventory changed facts.
+- New shared skill: kebab-case folder = frontmatter `name`; add `agents/openai.yaml` following neighbors.
+  - **Pause →** Did I treat a **template** path under `references/` as a runtime skill—classification error?
 
-- Run:
-  - `apltk validate-skill-frontmatter`
-  - `apltk validate-openai-agent-config`
-- If the change touched installer or repo-discovery behavior, verify the relevant install scripts or discovery logic as well.
-- Resolve validation failures before finishing; missing `agents/openai.yaml`, stale prompt references, and mismatched skill names are catalog bugs, not follow-up work.
+### 4) Validate
 
-### 5) Record conclusions explicitly
+- Run `apltk validate-skill-frontmatter` and `apltk validate-openai-agent-config`. If installer/discovery scripts changed behavior, smoke the paths they document.
+  - **Pause →** Any skill missing `agents/openai.yaml` or stale tool names—still acceptable for this repo’s rules?
 
-- Summarize which skills were audited, which conventions were updated, and which dependencies were confirmed as external.
-- Call out any unresolved unknowns, such as an external dependency whose install source could not be verified.
-- When a user correction changes the catalog rules, encode that rule in the skill or repository docs so the same mistake does not recur.
+### 5) Report
+
+- Skills touched, conventions updated, external deps verified vs unknown; encode user-stated repo rules into skill or README so regressions recur less.
+
+## Sample hints
+
+- **Classification**: Skill A says `Conditional: Foo` but `Foo` lives only under `~/.claude/` unpublished → document as **local optional**, not “install Foo from npm.”
+- **Validator**: frontmatter `description` 1100 chars → expect **fail** if limit 1024—fix text, don’t disable check.
+- **Anti-pattern**: “We should mention skill X everywhere” → add **once** to README index + Dependencies of callers, not five duplicate paragraphs.

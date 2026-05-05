@@ -1,143 +1,77 @@
 ---
 name: enhance-existing-features
 description: >-
-  Extend brownfield features by exploring the codebase first, then deciding
-  whether shared planning docs (`spec.md`/`tasks.md`/`checklist.md`/`contract.md`/`design.md`) are required
-  before coding. When specs are needed, use `generate-spec` for planning,
-  clarification, approval, and backfill, and complete approved in-scope tasks
-  before yielding unless scope changes or an external blocker prevents safe
-  completion. With or without specs, use `test-case-strategy` to select and
-  run relevant unit, property-based, regression, integration, E2E, adversarial,
-  mock/fake, and drift-check coverage, and verify meaningful business outcomes
-  instead of smoke-only success.
+  Extend brownfield systems only after reading the real modules involved: choose **`generate-spec`**/`recover-missing-plan` when user-visible scope, ambiguity, coordination, or sensitive flows demand written approval; otherwise implement directly but still run **`test-case-strategy`** on every non-trivial delta (property/adversarial/integration as risk dictates) and never check off plans without commit+test evidence.
+  Use for backlog work that mutates production behavior; reroute pure regressions, copy/style-only tweaks, or single-pocket config nits that restore documented intent without new surface area.
+  Bad: multi-service permission change with zero spec… Good: contract captures external API limits + property tests cover invariants… Single-file pagination fix matching README → targeted regression only…
 ---
 
 # Enhance Existing Features
 
 ## Dependencies
 
-- Required: `test-case-strategy` for risk-driven test selection, meaningful oracle design, and unit drift checks.
-- Conditional: `generate-spec` for shared planning docs when spec-trigger conditions are met; `recover-missing-plan` when the user points to a required `docs/plans/...` spec set that is missing, archived, or mismatched in the current workspace.
+- Required: `test-case-strategy` for risk selection, oracles, drift checks.
+- Conditional: **`generate-spec`** when spec triggers below fire; **`recover-missing-plan`** when user-named `docs/plans/...` is missing/archived/mismatched.
 - Optional: none.
-- Fallback: If `test-case-strategy` is unavailable, stop and report the missing dependency. If specs are required and `generate-spec` is unavailable, stop and report the missing dependency.
+- Fallback: **`test-case-strategy`** unavailable ⇒ **stop**. Spec path required but **`generate-spec`** unavailable ⇒ **stop**.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Explore the existing codebase first and verify the latest authoritative docs for the involved stack or integrations.
-- Execution: Decide whether specs are required from the actual change surface, run `generate-spec` when needed, then continue through implementation, testing, and backfill until the active scope is fully reconciled; when the user asks for a specific final behavior or architectural end state, do not substitute a preparatory or partial milestone unless the user explicitly re-scopes the request.
-- Quality: Use `test-case-strategy` to add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
-- Output: Keep implementation and any planning artifacts traceable, updated, and aligned with actual completion results.
+- **MUST** explore relevant code (entrypoints, flows, integrations) **before** deciding process or editing—**MUST NOT** spec-dump or code-dump from titles alone.
+- Spec path **when** any: new/changed **user-visible** behavior (not mere restore of old intent); ambiguity needing approval; multi-module alignment; critical/sensitive/irreversible/migration risk; traceability materially reduces error.
+- **MUST NOT** open **`generate-spec`** for clearly tiny/localized work: pure regression to prior intent; polish-only UI copy/style; one-area config/constant/flag; narrow CRUD/validation tweak; internal refactor/observability **without** behavior change—**implement + `test-case-strategy` directly**.
+- If specs: **MUST** complete **`generate-spec`** lifecycle (approval before code; backfill after); **≤3 modules** per spec set—split independent non-dependent sets + batch `coordination.md` when coordinated parallelism; **MUST NOT** code pre-approval.
+- **MUST NOT** yield with approved in-scope **`tasks.md`/`checklist.md`** undone except user deferral or documented external blocker (record in plans).
+- **`test-case-strategy` required** for non-trivial deltas—property/adversarial/integration etc. per risk; meaningful oracles; drift check or explicit **`N/A`** with reason per non-trivial logic task.
+- External deps: **`contract.md`** records official-backed obligations when material.
+
+## Standards (summary)
+
+- **Evidence**: Code exploration + official docs/APIs where touched.
+- **Execution**: Explore → decide specs → docs/officials → implement → test → backfill/summary.
+- **Quality**: No speculative scope expansion; reuse patterns.
+- **Output**: Behavior matches ask; traceable tests; plans honest if specs used.
 
 ## Workflow
 
-### 1) Explore codebase first
+**Chain-of-thought:** **`Pause →`** after explorations and spec decision—wrong classification wastes days.
 
-- Read the relevant existing code before deciding process or editing anything.
-- Locate entrypoints, configuration, and primary data flow.
-- Trace module relationships (imports, call graph, shared models, side effects).
-- Identify integration points (DB, RPC, external APIs, queues, filesystems).
-- Identify user-critical logic chains affected by the change.
-- Summarize findings and the likely change surface before editing.
+### 1) Explore codebase
 
-### 2) Decide whether specs are required from the requested change
+- Map modules, integrations, blast radius.
+  - **Pause →** Can I state **one paragraph** concrete change surface before editing?
 
-Use the user's requested change together with the codebase exploration results to decide whether to generate specs.
+### 2) Decide specs
 
-Trigger specs when any of the following is true:
-- the change introduces new user-visible behavior, not just a bug fix restoring intended behavior
-- requirements are ambiguous enough that approval on written scope, tradeoffs, or edge cases is useful
-- multiple modules, layers, services, or teams must stay aligned
-- the change touches critical flows, sensitive data, permissions, money movement, migrations, or irreversible operations
-- the risk profile is high enough that explicit requirement-to-test traceability will materially reduce mistakes
+- Apply Non-negotiable triggers above; if doubt favors **implement-only** **only when** genuinely low-risk localized.
+- If specs: broken path ⇒ **`recover-missing-plan`** then **`generate-spec`** (templates, clarification loop, approval). Parallel batch rules per **`generate-spec`**. If **not** specs: complete step 2 with “no specs” rationale, then continue with steps 3–6 (still run official-doc pass when external surfaces change).
+  - **Pause →** Am I dodging specs just to avoid bureaucracy while scope is multi-team/critical?
 
-Do not generate specs when the work is clearly small and localized, such as:
-- bug fixes or regressions that restore already-intended behavior without changing product scope
-- pure frontend polish: copy tweaks, styling, spacing, alignment, responsive touch-ups, visual cleanup, or simple template/view wiring
-- small configuration, constant, dependency, content, or feature-flag updates confined to one area
-- straightforward CRUD field additions, validation message tweaks, or one-path handler adjustments with limited blast radius
-- refactors, renames, dead-code cleanup, or observability-only changes that do not alter user-visible behavior
+### 3) Authoritative docs
 
-When in doubt, prefer direct implementation for genuinely low-risk localized changes, and reserve specs for changes whose scope or risk would benefit from explicit approval artifacts.
+- Official docs / Context7 / web for libs used in change.
 
-If triggered:
-- If the user already points to a specific `docs/plans/...` path and that plan set is missing or mismatched in the current workspace, run `$recover-missing-plan` before deciding whether to continue implementation or backfill.
-- Run `$generate-spec` and follow its workflow completely.
-- Use it to create or update `docs/plans/{YYYY-MM-DD}/{change_name}/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`.
-- Keep each spec set scoped to at most three modules.
-- If the requested change would require edits across more than three modules, split it into multiple spec sets instead of drafting one large coupled plan.
-- Design the split spec sets so they are independently valid, do not conflict with each other, and do not require another spec set to land first.
-- When multiple spec sets are created for one coordinated change, place them under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` and maintain one batch-level `coordination.md` that records shared preparation, ownership boundaries, replacement direction, and merge order.
-- Ensure planned behaviors and edge cases cover external dependency states, abuse/adversarial paths, and any relevant authorization/idempotency/concurrency/data-integrity risks.
-- When external dependencies materially constrain the change, make sure `contract.md` captures their official-source-backed invocation surface, constraints, and caller obligations.
-- Make sure `design.md` captures the architecture/design delta, affected modules, control flow, and tradeoff decisions for the approved scope.
-- After implementation and testing, update the same plan set so `spec.md` reflects requirement completion status in addition to task and checklist progress.
-- If users answer clarification questions, update the planning docs and obtain explicit approval again before implementation.
-- Do not modify implementation code before approval.
-- Once approval is granted, do not stop with unchecked in-scope items remaining in `tasks.md` or applicable unchecked items in `checklist.md` unless the user explicitly defers them or an external blocker prevents safe completion.
+### 4) Implement
 
-If not triggered:
-- Continue directly with the same downstream workflow below.
+- Minimal diffs preserving behavior unless tasked otherwise; specs ⇒ every in-scope unchecked item delivered; intermediate milestones ≠ user’s final asked outcome unless rescoped.
 
-### 3) Verify latest authoritative docs
+### 5) Testing (always for non-trivial)
 
-- Identify the tech stack, libraries, and external dependencies involved.
-- Use official documentation as the source of truth.
-- Prefer Context7 for framework/library APIs; use web for latest official docs.
-- If required docs are private or missing, request access or user-provided references.
+- **`test-case-strategy`**: inventory risk → tests with oracles → run/fix.
 
-### 4) Implement the feature
+### 6) Completion
 
-- Reuse existing patterns and abstractions; avoid over-engineering.
-- Keep changes focused and minimal; preserve current behavior unless required.
-- Follow project conventions (naming, linting, formatting, configuration).
-- Update environment examples only when new inputs are required.
-- If specs exist, treat every unchecked in-scope task and applicable checklist item as part of the required deliverable for this run.
-- Do not stop after partial code changes, partial tests, or partial backfill when approved planned work remains.
-- Do not present an enabling first stage, temporary coalescing step, or other intermediate milestone as complete when the user asked for the final scoped behavior.
-- Only pause before completion if:
-  - the user changes scope or explicitly asks to stop
-  - new clarification requires plan updates and renewed approval
-  - an external blocker (missing credentials, unavailable dependency, access restriction, broken upstream system) prevents safe completion
-- When blocked, record the exact unfinished items and blocker in the spec set before yielding.
+- With specs: backfill **`spec.md`/`tasks.md`/`checklist.md`/`contract.md`/`design.md`** (+ **`coordination.md`** if batch truth moved). **`spec.md`** requirement status honest. Strip template noise / `N/A` properly.
+- Without specs: concise summary citing tests/results/`N/A` reasons.
 
-### 5) Testing coverage (required with or without specs)
+## Sample hints
 
-Use `$test-case-strategy` for every non-trivial change, even when specs are skipped.
-
-- Start from risk inventory and changed behavior, not from the happy path.
-- Define test oracles before implementation when the change is planned, and before finalizing tests when the change is discovered during brownfield exploration.
-- For each atomic task that changes non-trivial local logic, define a focused unit drift check or record the smallest replacement verification with a concrete `N/A` reason.
-- Add unit, regression, property-based, integration, E2E, adversarial, mock/fake, rollback, or no-partial-write coverage only when the risk profile warrants it.
-- Each planned test must have a meaningful oracle: exact business output, persisted state, emitted side effects, or intentional lack of side effects.
-- Run relevant tests when possible and fix failures.
-
-### 6) Completion updates
-
-- If specs were used, backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` through `$generate-spec` workflow based on actual completion and test outcomes.
-- If the change used a parallel batch, update `coordination.md` whenever shared preparation, legacy replacement direction, or merge constraints changed during execution.
-- In `spec.md`, mark each relevant requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
-- If specs were used, mark every completed task in `tasks.md`.
-- If specs were used, update only the applicable checklist items that correspond to real scope, chosen test strategy, and actual execution.
-- If specs were used, update `contract.md` so the documented dependency obligations and constraints match the implemented reality.
-- If specs were used, update `design.md` so the architecture/design record matches the delivered implementation.
-- Do not mark unused template examples, mutually exclusive alternatives, or non-applicable branches as completed.
-- Remove, rewrite, or leave `N/A` on starter-template items when they do not belong to the real change.
-- Explicitly label any still-applicable remaining item as deferred or blocked with the reason.
-- If specs were not used, provide a concise execution summary including test IDs/results, regression coverage, mock scenario coverage, adversarial coverage, and any `N/A` reasons.
-
-## Working Rules
-
-- Keep the solution minimal and executable.
-- Always decide the need for specs only after exploring the existing codebase.
-- When specs are used, keep each spec set limited to at most three modules; split broader work into independent, non-conflicting, non-dependent spec sets before approval.
-- When specs are split for parallel worktree implementation, keep batch-wide rules only in `coordination.md` rather than copying them into every spec-local `design.md`.
-- Maintain traceability between requirements, tasks, and tests when specs are present.
-- Treat checklists as living artifacts: adjust items to match real change scope.
-- Treat mutually exclusive template choices as a decision to record, not multiple boxes to finish.
-- Every planned test should justify a distinct risk; remove shallow duplicates that only prove the code "still runs".
-- If a spec set exists and approval has been granted, do not yield with unfinished in-scope tasks or checklist items unless the user approves a deferment or an external blocker makes completion impossible.
+- **Spec yes**: Adds new permission model affecting API+DB+UI—the blast radius crosses layers.
+- **Spec no**: Off-by-one in existing pagination restoring documented behavior—fix + regression test.
+- **Split**: Touches auth, billing, infra—**three plans** capped modules, **`coordination.md`** collision map.
 
 ## References
 
-- `$generate-spec`: shared planning and approval workflow.
-- `$test-case-strategy`: shared test selection, oracle design, and unit drift-check workflow.
+- **`generate-spec`**: planning/backfill lifecycle
+- **`test-case-strategy`**: tests + drift philosophy
+- **`recover-missing-plan`**: heal missing dirs

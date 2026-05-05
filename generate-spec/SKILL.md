@@ -1,215 +1,106 @@
 ---
 name: generate-spec
-description: Generate and maintain shared feature planning artifacts (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed shared `coordination.md` or `preparation.md`) from standard templates with clarification tracking, approval gating, unit drift-check planning, and post-implementation backfill. Use when a workflow needs specs before coding, or when another skill needs to create/update planning docs under `docs/plans/{YYYY-MM-DD}/...`.
+description: >-
+  Author planning trees under docs/plans: run `apltk create-specs`, hydrate templates (`spec/tasks/checklist/contract/design`; add `coordination.md`/`preparation.md` when parallel/prep dictates), cite official docs for every material external dependency, plan tests with **`test-case-strategy`**, and block product code changes until explicit user approval completes.
+  Use when drafting or refreshing specs before coding, restructuring multi-member batches, or recording clarifications—not when simply executing tasks from an approved plan (**`implement-specs*`** family instead).
+  Reject ALWAYS vague `tasks.md` lines missing file target + mutation + verifier; SPLIT work when scope exceeds three modules; never overwrite a neighboring `{change}` directory for a different issue.
+  Example bad: `- [ ] Add tests`… Example ok: `- [ ] src/auth/scope.rs — deny unknown scopes — Verify: cargo test scope::defaults`…
 ---
 
 # Generate Spec
 
 ## Dependencies
 
-- Required: `test-case-strategy` for risk-driven test case selection, meaningful oracle design, and unit drift-check planning.
+- Required: `test-case-strategy` for risk-driven test selection, oracles, and unit drift-check planning.
 - Conditional: none.
 - Optional: none.
-- Fallback: If `test-case-strategy` is unavailable, stop and report the missing dependency instead of inventing test coverage heuristics locally.
+- Fallback: If `test-case-strategy` is unavailable, **MUST** stop and report it. **MUST NOT** invent local coverage heuristics as a substitute.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Review the relevant code, configs, and authoritative docs before filling requirements or test plans; when external dependencies, libraries, frameworks, APIs, or platforms are involved, checking their official documentation is mandatory during spec creation.
-- Execution: Generate the planning files from this skill's current templates first. Follow the scoping, independence, and parallel-safety rules in Working Rules. Surface shared-file or shared-contract collision risks during planning and resolve coordination rules before implementation starts. Use `preparation.md` only when needed; keep that preparation minimal and free of core business logic or target outcomes (see Working Rules). Complete plans with traceable requirements and risks, handle clarification updates, then wait for explicit approval before implementation.
-- Quality: Keep `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and any shared batch docs synchronized, use `test-case-strategy` to map each planned test to a concrete risk or requirement, preserve the actual headings and field structure from this skill's templates, and tailor the templates so only applicable items remain active.
-- Output: Store planning artifacts under `docs/plans/{YYYY-MM-DD}/{change_name}/` for single-spec work, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` plus shared `coordination.md` for multi-spec parallel work. Add shared `preparation.md` at the batch root only when prerequisite work must land before member specs can run in parallel, and keep individual specs concise, executable, non-overlapping with that preparation, and easy to update.
+- **MUST** read relevant code, config, and authoritative external documentation before writing requirements, contracts, or test plans. When the change depends on frameworks, libraries, SDKs, APIs, CLIs, or hosted services, **MUST** consult **official** documentation during spec creation (required evidence step, not optional).
+- **MUST** generate new or refreshed files from this skill’s **`references/templates/*.md`** via `apltk create-specs` (paths `scripts/...` and `references/...` in this document are **under this skill folder**, not the target project). **MUST NOT** let older `docs/plans/...` layouts override current template headings or required fields; old plans are scope evidence only.
+- **MUST NOT** overwrite or repurpose a neighboring plan directory just because topics overlap; adjacent scope **MUST** get a new `change_name` unless it is the **same** issue/change.
+- **MUST** keep each spec set to **at most three modules** that will be touched. If broader, **MUST** split into multiple spec sets (each ≤3 modules), each independently valid; **MUST NOT** ship one oversized coupled plan.
+- **MUST** use batch-root `preparation.md` **only** for minimal shared prerequisite work that must land before parallel implementation; keep that preparation minimal and free of core business logic or target outcomes (see Working Rules). **`preparation.md` content boundary**: enabling scaffolds, shared fixtures, stubs, mechanical migrations, compatibility surfaces—**no** core business logic, **no** target user-visible outcomes (those stay in normal specs). Exclude core business logic, target business outcomes, user-visible behavior changes, and member-spec implementation guidance; those belong in normal spec files.
+- **`tasks.md` checklist items**: **every** `- [ ]` **MUST** specify (a) concrete file/function target, (b) specific modification and expected outcome, (c) a verification hook—**no** vague rows (`Implement integration`, `Add tests`). Forbidden vague items **MUST** be rewritten before approval.
+- **MUST** use `test-case-strategy` when planning non-trivial logic tests and checklist mapping (test IDs, drift checks). Every **non-trivial** `tasks.md` implementation item **MUST** name a focused unit drift check, another concrete verification hook, or **`N/A`** with a concrete reason.
+- **MUST NOT** modify implementation code before **explicit user approval** of the spec set. Clarifications **MUST** sync across affected files and **MUST** re-trigger approval. If scope becomes a **different issue**, **MUST** stop editing the old set and create a **new** `change_name`.
+- Write prose in the **user’s language** by default; keep requirement/task/test IDs traceable across `spec.md`, `tasks.md`, and `checklist.md`.
+- **MUST** use **kebab-case** `change_name`; **MUST NOT** use spaces or arbitrary special characters in names.
 
-## Goal
+## Standards (summary)
 
-Own the shared planning-doc lifecycle for feature work so other skills can reuse one consistent spec-generation workflow.
+- **Evidence**: Official docs when externally constrained; record cites in `spec.md` / `contract.md`.
+- **Execution**: Scaffold → fill templates in place → clarification loop → approval gate → (later) backfill after implementation.
+- **Quality**: Synchronized artifacts; applicable template sections only; realistic checklist vs boilerplate (add/remove by risk); finalized docs read as an approved plan, not a fully checked starter; `contract.md` standardized records or honest `None` with reason.
+- **Output**: `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`; batch root `coordination.md` when intentionally parallel; `preparation.md` only when prerequisite batch work is required first.
 
 ## Workflow
 
-### 1) Gather inputs and evidence
+**Chain-of-thought:** For every subsection **`N)`**, answer **`Pause →`** prompts before scaffolding or authoring the next subsection; unanswered external constraints or ambiguous scope mean **stop** or **loop** clarifications—not silent drafting.
 
-- Confirm the target workspace root, feature name, and a kebab-case `change_name`.
-- Review only the code, configuration, and external docs needed to understand the requested behavior.
-- **Official documentation lookup is mandatory** when the change depends on frameworks, libraries, SDKs, APIs, CLIs, hosted services, or other external systems. This is a required evidence-gathering step, not an optional refinement.
-- Use the official docs to verify expected behavior, supported constraints, configuration surface, integration contracts, and any implementation limits that should shape the spec.
-- Record the references that should appear in `spec.md` and the dependency evidence that should appear in `contract.md`.
-- Inspect existing `docs/plans/` directories before deciding whether to edit an existing plan set.
-- Reuse an existing plan set only when it clearly matches the same requested issue/change scope.
-- If the requested work is adjacent to, but not actually covered by, an existing plan set, create a new directory instead of overwriting the neighboring one.
-- Treat existing or archived project-local specs as scope evidence only, not as formatting authority.
-- Do not copy older spec layouts, condensed repo conventions, or neighboring plan structures when they differ from this skill's current templates.
+### 1) Inputs and evidence
 
-### 2) Generate the planning files
+Confirm workspace root, feature title, kebab-case `change_name`. Review minimal code/config. **Mandatory** official-doc pass when external systems apply; note sources for `spec.md` / `contract.md`. Inspect existing `docs/plans/`—reuse a set **only** when it matches **this** issue; otherwise create a new directory.
+   - **Pause →** Which **official** URLs or docs did I actually consult for each external dependency I plan to cite—URLs not opened are not citations?
+   - **Pause →** Is the user ask the **same** issue as an existing nearby plan—or only **adjacent**, requiring a **new** `change_name`?
+   - **Pause →** What is the smallest set of repo paths whose behavior I **must** read before writing requirements truthfully?
 
-- Resolve paths from this skill directory, not the target project directory.
-- Before generating files, identify the concrete modules that would be touched by the requested change.
-- Keep each spec set scoped to at most three modules.
-- If the requested work would span more than three modules, do not draft one oversized coupled plan.
-- Instead, split the work into multiple spec sets, each independently valid and each covering no more than three modules.
-- See Working Rules for the independence rule.
-- Use `preparation.md`, not individual spec files, when the only safe way to parallelize a batch is to land shared prerequisite work before any spec starts.
-- Keep `preparation.md` small: it may define enabling scaffolds, shared test fixtures, naming/contract stubs, mechanical migrations, or non-business compatibility surfaces. See Working Rules for the preparation.md rule.
-- Allow shared preparation only when it is completed before parallel implementation begins; do not hide required pre-work inside one member spec while other specs depend on it.
-- See Working Rules for the parallel-safety rule.
-- If two candidate spec sets would still need to edit the same non-additive surface, either merge them into one spec set, record a concrete ownership split plus additive-only rule that makes parallel work safe, or move the shared pre-work into `preparation.md` when the pre-work can be completed once before all specs.
-- Use:
-  - `WORKSPACE_ROOT=<target_project_root>`
-  - `apltk create-specs "<feature_name>" --change-name <kebab-case> --output-dir "$WORKSPACE_ROOT/docs/plans"`
-- For parallel multi-spec generation, also use:
-  - `--batch-name <kebab-case-batch-name>`
-  - `--with-coordination`
-- If and only if multiple spec sets cannot be made parallel-safe without prior shared work, also use:
-  - `--with-preparation`
-- Always generate:
-  - `references/templates/spec.md`
-  - `references/templates/tasks.md`
-  - `references/templates/checklist.md`
-  - `references/templates/contract.md`
-  - `references/templates/design.md`
-- Generate `references/templates/coordination.md` at the batch root when multiple spec sets are intentionally created for parallel implementation.
-- Generate `references/templates/preparation.md` at the batch root only when required prerequisite work must be completed before member specs can be parallel-implemented.
-- Save files under `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`.
-- After generation, fill the files in place without renaming, removing, or collapsing template headings unless a heading is explicitly template-only and not applicable to the real scope.
-- Before approval, compare the drafted files against the current template headings and required fields; fix any drift caused by following older project examples.
+### 2) Scaffold planning files
 
-### 3) Fill `spec.md`
+Identify concrete modules (≤3 per set; split if needed). Resolve shared collision: merge spec sets, additive-only ownership rules in `coordination.md`, or `preparation.md` when one-time shared prep is the only safe path.
 
-- Keep the goal and scope concrete.
-- Ensure the described scope and requirements do not contradict the relevant official documentation or integration contracts.
-- Write functional behaviors in BDD form with `GIVEN`, `WHEN`, `THEN`, `AND`, and `Requirements`.
-- Make each requirement testable.
-- Cover boundaries, authorization, external dependency states, abuse/adversarial paths, failure handling, and any relevant idempotency/concurrency/data-integrity risks.
-- Record the official-doc references actually used for the spec, especially for external dependency behavior and constraints.
-- If requirements are unclear, list 3-5 clarification questions; otherwise write `None`.
+Run from this skill’s context (templates resolved from this skill dir):
 
-### 4) Fill `tasks.md`
+```bash
+WORKSPACE_ROOT=<target_project_root>
+apltk create-specs "<feature_name>" --change-name <kebab-case> --output-dir "$WORKSPACE_ROOT/docs/plans"
+```
 
-- Use `## **Task N: [Task Title]**` for each main task with `Purpose`, `Requirements`, `Scope`, and `Out of scope` guardrails.
-- Use `- N. [ ]` for atomic task items; use `- N.x [ ]` only when a task must be split into additional atomic subtasks.
-- Treat `tasks.md` as an implementation queue, not a high-level summary.
-- **Every checkbox must specify three things: (a) the exact file path or function, (b) the specific modification to make, and (c) a concrete verification step.** These three are mandatory — no item may omit any of them.
-- Per-item format (compact template):
-  - `[file/function]` — `[specific modification; expected outcome]`
-  - `- Verify:` — focused command, test reference, or manual inspection
-- Do not add extra sub-fields beyond what the template provides; put all change detail in the inline description.
-- Make each checkbox atomic: one verb, one file/function, one change outcome, and one verification hook.
-- If one task needs more than three files, more than one behavior slice, or an implementation decision not already captured in `design.md` or `contract.md`, split it before approval.
-- Use `$test-case-strategy` to define test IDs and unit drift checks for non-trivial local logic before implementation starts.
-- Include explicit tasks for testing, mocks/fakes, regression coverage, and adversarial or edge-case hardening when relevant.
-- Vague items such as `Implement integration`, `Add tests`, or `Update docs` are forbidden; replace them with specific file paths, concrete changes, and executable verification commands.
+Multi-spec parallel batch: add `--batch-name <kebab-case>` and `--with-coordination`. **Only** if parallel safety needs prior shared work: add `--with-preparation`.
 
-### 5) Fill `contract.md`
+Always materialize: `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md` from `references/templates/`. Add `coordination.md` / `preparation.md` at batch root only when flags require. Save under `docs/plans/{YYYY-MM-DD}/...`. After generation, fill in place **without** removing template headings unless truly N/A (document reason). Run a **template-drift pass** before approval: sections present, placeholders removed or justified.
+   - **Pause →** List the **module names** (≤3) this spec set will touch; if more, where is my **split plan**?
+   - **Pause →** For every shared file two specs might touch, where is the **named** resolution in `coordination.md` or why is `preparation.md` required instead?
+   - **Pause →** Did I run `apltk create-specs` from the **skill** context so template paths resolve correctly?
 
-- When the change uses external dependencies, libraries, frameworks, SDKs, APIs, CLIs, hosted services, or other upstream systems, document each material dependency in a standardized dependency record.
-- For each dependency, capture the official source, the invocation surface, required inputs, expected outputs, supported behavior, limits, compatibility constraints, security/access requirements, failure contract, and caller obligations.
-- Record constraints and forbidden assumptions explicitly so later implementation and review do not rely on unstated expectations.
-- If no external dependency materially constrains the change, write `None` and a brief scope-based reason instead of inventing a fake dependency record.
+### 3) Author content (fill templates)
 
-### 6) Fill `design.md`
+- **`spec.md`**: Concrete scope; BDD (`GIVEN` / `WHEN` / `THEN` / `AND` / `Requirements`); testable requirements; boundaries, auth, failure, idempotency/concurrency/integrity where relevant; doc references; `3-5` clarification questions or `None`.
+- **`tasks.md`**: `## **Task N: [Title]**` with Purpose, Requirements, Scope, Out of scope; atomic `- N [ ]` lines obeying the triple requirement above; split tasks that exceed three files / multiple behavior slices / undocumented decisions; integrate `test-case-strategy` for test IDs and drift checks for non-trivial logic.
+- **`contract.md`**: One record per material external dependency (source, surface, I/O, limits, security, failures); else `None` + short reason—**no** fabricated deps.
+- **`design.md`**: Delta vs baseline; modules, responsibilities, flow, state, risks; cross-ref requirement IDs; parallel batch: pointer to `coordination.md`, assumptions for safe concurrency, **no** duplicating batch rules; with `preparation.md`, assume prep **done**—**do not** duplicate prep tasks.
+- **`coordination.md`** (batch root, parallel only): **Business Goals** (outcome, member specs, parallel readiness, exclusions, blockers → `preparation.md` or list); **Design Principles** (baseline, shared invariants, compat, cleanup—high level); **Spec Boundaries** → **Ownership Map** (allowed/forbidden touchpoints per spec) and **Collisions & Integration** (shared-file rules, freeze owners, merge order, checkpoints, re-coordination trigger)—**every** collision candidate **MUST** have a named resolution.
+- **`preparation.md`** (batch root, only if required): Preparation Goal (why, no core business logic, dependents, start condition); **Task P[N]** like `tasks.md` (atomic triple items); **Validation**; **Handoff** (assumptions, must-not-change, if prep changes later). Strip duplicate prep from member specs.
+- **`checklist.md`**: `- [ ]` adapted to scope; map behaviors to requirement/test IDs via `test-case-strategy`; behavior lines `[CL-xx]: … — R?.? → [Test IDs] — Result: …`; property-based logic **required** unless `N/A` + reason; honest execution/completion records—**no** checking unused examples or unchosen options.
+   - **Pause →** Pick one **random** `tasks.md` checkbox: does it still fail the triple rule (target, change, verify)—if yes, rewrite now?
+   - **Pause →** Does every **R** requirement ID I care about appear in `tasks.md` or `checklist.md` with a test or explicit `N/A`?
+   - **Pause →** For parallel batches, does `design.md` **avoid** duplicating what `coordination.md` already owns?
 
-- Write the architecture/design delta related to the current spec in a standardized format.
-- Identify the affected modules, current baseline, proposed architecture, component responsibilities, control flow, data/state impact, and risk/tradeoff decisions.
-- Cross-reference relevant requirement IDs from `spec.md` and any external dependency records from `contract.md`.
-- Make architecture boundaries, invariants, and rollback/fallback expectations explicit when they matter to safe implementation.
-- When the spec belongs to a parallel batch, add a short reference to the parent `coordination.md`, state the exact assumptions that let this spec be implemented in parallel, and keep `design.md` focused on the single-spec delta rather than duplicating cross-spec ownership rules.
-- When the batch uses `preparation.md`, write each spec's implementation guidance as if the preparation has already been completed and committed; do not duplicate preparation tasks, verification, or shared setup in member specs.
+### 4) Clarifications and approval
 
-### 6.5) Fill `coordination.md` for parallel multi-spec batches
+On answers: update clarification/approval section in `checklist.md` first, then any of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`; **MUST** obtain approval again after material edits. **MUST NOT** touch product code pre-approval.
+   - **Pause →** Am I about to “just fix a small bug” in product code before explicit approval—**why is that not a hard stop**?
+   - **Pause →** After the last edit, does the user still owe an **explicit** approval token, or did I assume silence means yes?
 
-- Create `coordination.md` only when one user request is intentionally split into multiple spec sets that may be implemented in parallel.
-- Place it at `docs/plans/{YYYY-MM-DD}/{batch_name}/coordination.md`.
-- Use it as the batch-level source of truth organized in three sections: **Business Goals**, **Design Principles**, and **Spec Boundaries**.
-- Keep single-spec concerns in that spec's own `design.md`; reserve `coordination.md` for batch-wide rules only.
-- See Working Rules for the independence rule.
+### 5) Backfill after implementation
 
-**Business Goals** — Record the shared batch outcome, list the member spec sets, state parallel readiness, and note shared exclusions. If the batch is not ready, point to `preparation.md` or list blocking coordination items.
+When implementation exists: mark `tasks.md`; sync `checklist.md` outcomes/`N/A`; fix `contract.md` / `design.md` if reality diverged; update `coordination.md` / `preparation.md` if ownership or prep status changed. Checklist complete **only** for work actually done or decisions actually taken; separate rows for divergent flows; remove stale placeholders.
+   - **Pause →** For each checked item, what **evidence** (commit, test log) would a reviewer use to agree it is true?
+   - **Pause →** Did implementation reality change **shared** ownership or prep assumptions—if so, which batch file records that?
 
-**Design Principles** — Record the current baseline, shared invariants and constraints that every spec must preserve, legacy replacement direction, compatibility windows, and post-cutover cleanup. Keep these high-level and cross-cutting; leave per-spec design decisions in each `design.md`.
+## Sample hints
 
-**Spec Boundaries** — Split into two sub-sections:
-- **Ownership Map**: For each spec set, list its primary concern, allowed touch points, and forbidden touch points. This is the merge-conflict prevention contract.
-- **Collisions & Integration**: Record shared-file edit rules, API/schema freeze owners, compatibility shim retention rules, merge order, post-merge integration checkpoints, and the re-coordination trigger. Every known collision candidate must have a pre-agreed resolution.
-
-### 6.6) Fill `preparation.md` only for prerequisite work
-
-- Create `preparation.md` only when multiple spec sets cannot be implemented safely in parallel until shared prerequisite work is completed first.
-- Place it at `docs/plans/{YYYY-MM-DD}/{batch_name}/preparation.md`.
-- Treat it as a pre-parallel implementation queue for the coordinating/main agent, not as another member spec.
-- Follow a tasks.md-like structure with a **Preparation Goal** header, atomic preparation tasks, a **Validation** section, and a **Handoff** section.
-- In **Preparation Goal**, state why this prerequisite is necessary, confirm that no core business logic is implemented here, list which specs depend on it, and define when parallel work can start.
-- In each **Task P[N]**, use the same compact format as `tasks.md`: a one-line Purpose, Scope, and Out of scope guardrails, followed by atomic checkbox items with concrete file paths, modifications, and verification hooks.
-- Include only the smallest shared prerequisite work that every affected spec can assume after it lands.
-- Exclude core business logic, target business outcomes, user-visible behavior changes, and member-spec implementation guidance; those belong in normal spec files.
-- In **Validation**, list the verification commands, expected results, and regression risks that prove the prepared baseline is ready.
-- In **Handoff**, record what member specs may assume, what they must not change, and the re-coordination rule if preparation changes later.
-- Remove overlapping instructions from member specs; specs must reference the prepared baseline as an assumption instead of repeating the setup tasks.
-- See Working Rules for the parallel-safety rule.
-
-### 7) Fill `checklist.md`
-
-- Use checkbox format `- [ ]` for checklist items.
-- Adapt the template to actual scope; remove inapplicable items.
-- Map observable behaviors to requirement IDs and test case IDs using `$test-case-strategy`.
-- Each Behavior-to-Test item: `[CL-xx]: [behavior] — R?.? → [Test IDs] — Result: [status]`.
-- Property-based coverage required for business-logic changes unless `N/A` with concrete reason.
-- Hardening items: keep as single-line checkboxes with `N/A` + reason when not applicable.
-- E2E/Integration decisions: one checkbox per decision with inline reason.
-- Execution summary: one checkbox per test category with status.
-- Completion records: one checkbox per flow/group with status and remaining items.
-
-### 8) Process clarifications and approval
-
-- When the user answers clarification questions, first update the clarification and approval section in `checklist.md`.
-- Review whether `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` must be updated.
-- After any clarification-driven update, obtain explicit approval on the updated spec set again.
-- Do not modify implementation code before approval.
-- When clarification reveals the work is a different issue or materially different scope than the current plan set, stop editing that plan set and generate a new one with a distinct `change_name`.
-
-### 9) Backfill after implementation and testing
-
-- Mark completed tasks in `tasks.md`.
-- Update `checklist.md` with real test outcomes, `N/A` reasons, and any scope adjustments.
-- Update `contract.md` when the final dependency usage, obligations, or verified constraints differ from the planning draft.
-- Update `design.md` when the approved architecture changes during implementation, and record the final chosen design rather than leaving stale placeholders.
-- Update `coordination.md` when shared ownership, replacement sequencing, or cross-spec preparation changed during implementation or merge planning.
-- Update `preparation.md` when prerequisite work was completed, verified, skipped with an approved reason, or changed during implementation.
-- Only mark checklist items complete when the work actually happened or the recorded decision actually applies.
-- Do not check off unused examples, placeholder rows, or non-selected decision options.
-- If different flows use different test strategies, preserve separate decision records in the final checklist instead of merging them into a misleading single summary.
-- If different parts of the approved scope have different completion states, preserve separate completion records in the final checklist instead of flattening them into one ambiguous status.
-- Remove stale placeholders or template-only guidance once the documents are finalized.
-
-## Working Rules
-
-- By default, write planning docs in the user's language.
-- Keep requirement IDs, task IDs, and test IDs traceable across all three files.
-- Every non-trivial implementation task must have either a focused unit drift check, another concrete verification hook, or an explicit `N/A` reason.
-- Never allow one spec set to cover more than three modules.
-- When a request exceeds that scope, split it into independent, non-conflicting, non-dependent spec sets before approval.
-- For batch specs, independence is mandatory: each spec must describe a complete slice that can be implemented, tested, reviewed, and merged without waiting for another spec in the same batch.
-- For batch specs, parallel readiness is also mandatory: each spec must be safe to implement concurrently after any approved `preparation.md` work is completed, with shared-file collisions and ownership rules settled in `coordination.md` before coding begins.
-- Use `preparation.md` sparingly: it is allowed only for explicit, minimal, non-business pre-parallel shared work, not for normal cross-spec coordination or member-spec implementation.
-- When multiple spec sets are created for one batch, keep their shared implementation direction in one `coordination.md` instead of duplicating cross-spec rules in every `design.md`.
-- When `preparation.md` exists, every member spec must avoid duplicating its tasks and must state its implementation assumptions against the post-preparation baseline.
-- For parallel worktree batches, make `coordination.md` specific enough that another engineer can tell which files they may edit, which shared contracts are frozen or additive-only, which shims must remain in place, and what combined behaviors need verification after merge.
-- Prefer realistic coverage over boilerplate: add or remove checklist items based on actual risk.
-- When external dependencies materially shape the change, `contract.md` is required and must capture the official-source-backed contract in the standardized record format.
-- `design.md` is required and must describe the architecture/design delta for the spec in the standardized format, even when the final design is intentionally minimal.
-- Finalized planning docs should read like the actual approved plan and execution record, not like a fully checked starter template.
-- If official documentation materially constrains implementation choices, reflect that constraint explicitly in the spec instead of leaving it implicit.
-- Use kebab-case for `change_name`; avoid spaces and special characters.
-- Path rule: `scripts/...` and `references/...` in this file always mean paths under the current skill folder, not the target project root.
-- Never overwrite a nearby issue's plan set just because the technical area overlaps; shared modules are not sufficient evidence that the scope is the same.
-- Template authority rule: the current `references/templates/*.md` files in this skill are the binding format for new or refreshed spec documents. Older `docs/plans/...` files may inform scope, terminology, and historical decisions, but they must not override the current template structure.
-- Before presenting specs for approval, run a template-drift pass: verify the expected template sections are present, remove stale placeholder examples, and ensure any removed section has a scope-based reason rather than being omitted because an older project spec omitted it.
+- **`tasks.md` line — bad**: `- [ ] Add tests` → **reject** (no path, change, verifier).
+- **`tasks.md` line — ok**:
+  `- [ ] src/auth/scope.rs — add deny-by-default matcher for unknown scopes · Verify: cargo test scope::defaults`
+- **Batch scaffold** (three member specs): `WORKSPACE_ROOT=... apltk create-specs "OAuth batch" --change-name oauth-api --batch-name oauth-may-batch --with-coordination --output-dir "$WORKSPACE_ROOT/docs/plans"` (then repeat or use generator rules for additional `change-name` dirs as your tooling permits).
+- **`checklist.md` behavior row sketch**: `[CL-01]: invalid token rejected — R2.1 → TU-Scope-01,TU-Scope-02 — Result: pending`
+- **Split-trigger**: change touches `src/auth/*`, `src/cli/*`, `src/db/*`, `infra/terraform/*` (four modules) ⇒ **minimum two spec sets**, not one.
 
 ## References
 
-- `$test-case-strategy`: shared test case selection, oracle design, and unit drift-check workflow.
-- `scripts/create-specs`: shared planning file generator, exposed as `apltk create-specs`.
-- `references/templates/spec.md`: BDD requirement template.
-- `references/templates/tasks.md`: task breakdown template.
-- `references/templates/checklist.md`: behavior-to-test alignment template.
-- `references/templates/contract.md`: external dependency contract template.
-- `references/templates/design.md`: architecture/design delta template.
-- `references/templates/coordination.md`: parallel batch coordination template.
-- `references/templates/preparation.md`: optional pre-parallel prerequisite work template.
+- `test-case-strategy`: test design and drift checks
+- `scripts/create-specs` / `apltk create-specs`: generator
+- `references/templates/spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, `coordination.md`, `preparation.md`: binding templates

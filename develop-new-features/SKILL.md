@@ -1,134 +1,74 @@
 ---
 name: develop-new-features
 description: >-
-  Spec-first feature development workflow for new behavior and greenfield
-  features. Depends on `generate-spec` for shared planning artifacts and
-  `test-case-strategy` for risk-driven test selection before coding, then
-  implements the approved feature with focused validation.
-  Use when users ask to design or implement new features, change product
-  behavior, request a planning-first process, or ask for a greenfield feature.
-  Once the approved spec set exists and implementation begins, complete all
-  planned tasks and applicable checklist items before yielding unless the user
-  changes scope or an external blocker prevents safe completion.
-  Tests must not stop at happy-path validation: for business-logic changes
-  require property-based testing unless explicitly `N/A` with reason, design
-  adversarial/regression/authorization/idempotency/concurrency coverage where
-  relevant, use mocks for external services in logic chains, and verify
-  meaningful business outcomes rather than smoke-only success.
+  Net-new or materially new product behavior: **`generate-spec`** is mandatory (clarify → approve → only then code) with **`test-case-strategy`** backing every serious logic change—property tests required unless documented `N/A`, add adversarial/auth/idempotency/concurrency/mocks for external services, cap each spec at three modules and split coordinated batches via `coordination.md`, finish every approved `tasks.md`/`checklist.md` item or document deferrals.
+  Use when users ask for “new feature”, “greenfield slice”, “plan-first delivery”. Reroute typo-only UI, bug restores, or internal refactors without product impact to **`enhance-existing-features`** / **`systematic-debug`**.
+  Bad: editing `src/api.ts` before approval exists… Good: spec records risk → tests map to requirement IDs… Typo fix in footer copy → wrong skill…
 ---
 
 # Develop New Features
 
 ## Dependencies
 
-- Required: `generate-spec` for `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, clarification handling, approval gating, and completion-status backfill; `test-case-strategy` for risk-driven test selection, meaningful oracle design, and unit drift checks.
+- Required: `generate-spec` for shared planning artifacts and `test-case-strategy` for risk-driven test selection, oracles, and unit drift checks before coding.
 - Conditional: none.
 - Optional: none.
-- Fallback: If `generate-spec` or `test-case-strategy` is unavailable, stop and report the missing dependency.
+- Fallback: **`generate-spec`** **or** **`test-case-strategy`** missing ⇒ **stop** (no improvised planning/tests).
 
-## Standards
+## Non-negotiables
 
-- Evidence: Review authoritative docs and the existing codebase before planning or implementation.
-- Execution: Use specs only for feature work that is genuinely multi-step, cross-surface, or higher risk; skip specs for obviously small/localized work and route that work to direct implementation or the appropriate maintenance skill instead.
-- Quality: Use `test-case-strategy` to add risk-based tests with property-based, regression, integration, E2E, adversarial, and rollback coverage when relevant.
-- Output: Keep the approved planning artifacts and the final implementation aligned with actual completion results.
+- This skill applies to **non-trivial new behavior / greenfield**. **MUST NOT** activate for: pure bug restore; style/copy-only tweaks; trivial one-pocket config/constants; internal-only refactors/no visible behavior—these routes belong to **`enhance-existing-features`**, **`systematic-debug`**, etc., **without** new specs here.
+- **When this skill applies**, **`generate-spec` is mandatory** before product code: create/update plans, BDD reqs, contracts, design, optional batch **`coordination.md`**, obtain **explicit approval**, then implement.
+- **≤3 modules** per spec set; wider work ⇒ multiple **independent** spec sets under batch + **`coordination.md`** (no hidden cross-deps).
+- **MUST NOT** modify product code **before** approval.
+- Post-approval: **all** in-scope **`tasks.md`/`checklist.md`** items complete unless deferral/blocker documented in artifacts.
+- **`test-case-strategy`**: risk-first; property-based logic **required** unless documented **`N/A`**; adversarial/auth/idempotency/concurrency where relevant; mocks for externals in logic chains; oracles tied to requirements.
+- Backfill all plan files + coordination when batch; no fake-completed template branches.
 
-## Goal
+## Standards (summary)
 
-Use a shared spec-generation workflow for non-trivial new feature work, then implement the approved behavior with strong test coverage and minimal rework.
+- **Evidence**: Official docs + repo architecture pass before plan lock.
+- **Execution**: Route-out trivial work → spec → implement → test → backfill.
+- **Quality**: Plans trace to tests; minimal speculative code.
+- **Output**: Approved scope shipped + honest plan status.
 
 ## Workflow
 
-### 1) Review authoritative docs first
+**Chain-of-thought:** If request is maintenance-sized, **`Pause →`** “Should I reroute?” before spending tokens on **`generate-spec`**.
 
-- Identify the stack, libraries, APIs, and external dependencies involved.
-- Use official documentation as the source of truth.
-- Prefer Context7 for framework/library APIs; use web for the latest official docs when needed.
-- Record only the references required for this feature.
+### 1) Docs & routing
 
-### 2) Run `$generate-spec`
+- Stack/deps discovery; verify using official sources.
+  - **Pause →** Is this truly greenfield/feature vs fix/polish—if latter, bail to other skill?
 
-- First decide whether the request truly belongs in this skill.
-- Do not use this skill or generate specs when the request is actually one of these:
-  - bug fixes or regressions that restore intended behavior without introducing new product behavior
-  - copy-only, styling-only, spacing-only, layout-only, or other purely presentational UI tweaks with localized impact
-  - simple configuration, constant, feature-flag, dependency, or content updates confined to one small area
-  - small refactors, naming cleanups, or internal code-health work with no externally visible behavior change
-  - narrowly scoped adjustments that touch only a few files/modules and do not require cross-team alignment or approval artifacts
-- In those cases, do not create planning docs; instead use the appropriate direct implementation workflow (for example `enhance-existing-features` for small brownfield adjustments or `systematic-debug` for bug fixes).
-- Specs are required when the request is truly a non-trivial new feature, product behavior change, or greenfield project that needs shared planning.
-- Treat each spec set as a narrowly scoped workstream that covers at most three modules.
-- If the requested change would require edits across more than three modules, do not force it into one oversized spec set.
-- Instead, split the work into multiple independent spec sets, each covering no more than three modules.
-- Define those spec sets so they do not conflict with each other and do not depend on another spec set being implemented first in order to be valid.
-- When multiple spec sets belong to one coordinated feature batch, place them under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` and create one shared `coordination.md` at the batch root for shared preparation, ownership boundaries, replacement direction, and merge order.
-- Follow `$generate-spec` completely for:
-  - generating `docs/plans/{YYYY-MM-DD}/{change_name}/...` for single-spec work, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/...` plus `coordination.md` for parallel batches
-  - filling BDD requirements and risk-driven test plans
-  - documenting external dependency contracts in `contract.md` when they materially constrain the feature
-  - documenting the architecture/design delta in `design.md`
-  - documenting shared preparation and implementation direction in `coordination.md` when multiple spec sets will be implemented in parallel
-  - handling clarification responses
-  - obtaining explicit approval before coding
-  - backfilling document status after implementation and testing, including requirement completion in `spec.md`
-- Do not modify product code before the approved spec set exists.
+### 2) `generate-spec`
 
-### 3) Explore architecture and reuse opportunities
+- Full workflow: dirs `docs/plans/{YYYY-MM-DD}/…`, batch/coord flags, clarification, **`MUST`** approval before code.
+  - **Pause →** Did I secretly start coding “just the types”—**hard violation**?
 
-- Trace entrypoints, module boundaries, data flow, and integration points relevant to the new behavior.
-- Identify reusable components, patterns, and configuration paths before adding new code.
-- Keep a concise map of likely files to modify so implementation stays scoped.
+### 3) Architecture map
 
-### 4) Implement after approval
+- Reuse seams; list likely files **after** approval to stay honest to plan.
 
-- Reuse existing patterns and abstractions when possible.
-- Keep changes focused and avoid speculative scope expansion.
-- Update environment examples only when new inputs are actually required.
-- Once approval is granted and implementation starts, treat every unchecked in-scope item in `tasks.md` and every applicable item in `checklist.md` as required work for this run.
-- Do not stop after a partial implementation, partial test pass, or partial doc backfill when work remains in the approved plan.
-- Only pause before completion if:
-  - the user changes scope or explicitly asks to stop
-  - a new clarification invalidates the approved plan and requires renewed approval
-  - an external blocker (missing credentials, unavailable dependency, access restriction, broken upstream system) prevents safe completion
-- When blocked, record the exact unfinished items and blocker in the plan artifacts before yielding.
+### 4) Implement (post-approval)
 
-### 5) Testing coverage (required)
+- Execute tasks/checklist exhaustively unless blocker recorded with user-visible deferrals.
 
-Use `$test-case-strategy` for every non-trivial change.
+### 5) Testing
 
-- Start from risk inventory and requirement IDs, not from the happy path.
-- Define test oracles before implementation and map them to `spec.md`, `tasks.md`, and `checklist.md`.
-- For each atomic task that changes non-trivial local logic, define a focused unit drift check or record the smallest replacement verification with a concrete `N/A` reason.
-- Add unit, regression, property-based, integration, E2E, adversarial, mock/fake, rollback, or no-partial-write coverage only when the risk profile warrants it.
-- Each planned test must have a meaningful oracle: exact business output, persisted state, emitted side effects, or intentional lack of side effects.
-- Run relevant tests when possible and fix failures.
+- **`test-case-strategy`** mapping requirement IDs ↔ tests; drift checks/`N/A` discipline; run and fix reds.
 
-### 6) Completion updates
+### 6) Completion
 
-- Backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` through `$generate-spec` workflow after implementation and testing.
-- If the feature used a parallel batch, also backfill `coordination.md` with any final shared preparation, cutover, or ownership changes that emerged during execution.
-- In `spec.md`, mark each approved requirement with its actual completion state, such as completed, partially completed, deferred, or not implemented, plus brief evidence or rationale where needed.
-- Mark every completed task in `tasks.md`.
-- In `checklist.md`, update only the items that are actually applicable to the approved scope and executed validation.
-- In `contract.md`, keep the final external dependency contract records aligned with the implementation and verified upstream constraints.
-- In `design.md`, keep the final architecture/design description aligned with the implementation that actually shipped.
-- Do not mark template alternatives, unused example rows, or non-applicable decision branches as completed just to make the file look fully checked.
-- Rewrite, remove, or leave `N/A` on template-only sections so the final checklist reflects the real work rather than the starter template.
-- Explicitly label any truly remaining applicable item as deferred or blocked with the reason.
-- Report the implemented scope, test execution, and any concrete `N/A` reasons.
+- Backfill **`generate-spec`**-style across **`spec/tasks/checklist/contract/design`** (+ **`coordination.md`**); requirement-level status in **`spec.md`**; strip template illusions; final report with scope + tests + `N/A`.
 
-## Working Rules
+## Sample hints
 
-- By default, write planning docs in the user's language.
-- Keep implementation traceable to approved requirement IDs and planned risks.
-- Keep each spec set limited to at most three modules; split larger changes into independent, non-conflicting, non-dependent spec sets before approval.
-- When multiple spec sets are used for one feature batch, keep cross-spec rules in `coordination.md` rather than repeating them in every `design.md`.
-- Prefer realism over rigid templates: add or remove test coverage only when the risk profile justifies it.
-- Every planned test should justify a distinct risk; remove shallow duplicates that only prove the code "still runs".
-- Treat starter template alternatives as mutually exclusive options, not as boxes that all need to be checked.
-- If a spec set exists and approval has been granted, do not yield with unfinished in-scope tasks or checklist items unless the user approves a deferment or an external blocker makes completion impossible.
+- **Wrong skill**: “Fix typo in footer string” ⇒ not here.
+- **Right skill**: “Add export-to-CSV for dashboard” ⇒ **`generate-spec`** then code + property tests on CSV invariants maybe.
+- **Split**: Touches CLI + server + terraform module boundaries—three modules cap ⇒ **two spec dirs** coordinated.
 
 ## References
 
-- `$generate-spec`: shared planning and approval workflow.
-- `$test-case-strategy`: shared test selection, oracle design, and unit drift-check workflow.
+- **`generate-spec`**: planning/backfill authority
+- **`test-case-strategy`**: breadth/depth of tests

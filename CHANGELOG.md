@@ -34,6 +34,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.9.0] - 2026-05-05
+
+### Changed
+- Refine agent-facing descriptions and workflow copy across planning, review, and submission skills (`commit-and-push`, `version-release`, `generate-spec`, `implement-specs*`, `develop-new-features`, `enhance-existing-features`, `review-spec-related-changes`, `solve-issues-found-during-review`, `maintain-skill-catalog`, `align-project-documents`, `maintain-project-constraints`); keep CI-visible contract wording aligned with `test/skill-workflows.test.js`.
+
 ## [v3.8.4] - 2026-05-04
 
 ### Changed

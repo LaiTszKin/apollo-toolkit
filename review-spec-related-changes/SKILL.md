@@ -1,110 +1,77 @@
 ---
 name: review-spec-related-changes
-description: Review recent or user-specified spec-related changes against the governing `docs/plans/...` spec documents, treat unmet business goals as the most severe findings, and then run code-practice cross-checks through `review-change-set`, `discover-edge-cases`, and `harden-app-security`. Use when users ask whether implemented work actually satisfies a spec, wants a spec compliance review, or asks to review changes related to recent or named planning documents.
+description: >-
+  Read-only spec compliance versus governing docs/plans: score each business-oriented requirement Met/Partial/Not-met using code/tests/commands—checked `tasks.md` boxes are never sufficient proof; ambiguity between two plausible plan roots halts execution; when runtime code exists, sequentially run **`review-change-set`**, **`discover-edge-cases`**, and **`harden-app-security`** on the same scoped diff afterward.
+  Use for questions like “does this PR satisfy coordination.md + spec.md R2?” or user pins a `{change}` folder.
+  Do not mutate repositories, reorder reports to bury missing goals, skip the tertiary review bundle on code-bearing diffs, or rely on intent without file evidence **BAD**, lead with refactor comments while R1 failing **FORBIDDEN**… GOOD pair every Not-met cite with `spec.md` ref + concrete path:test gap…
 ---
 
 # Review Spec Related Changes
 
 ## Dependencies
 
-- Required: `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting spec-related changes.
+- Required: `review-change-set`, `discover-edge-cases`, and `harden-app-security` whenever the scope includes **code-affecting** implementation to assess.
 - Conditional: none.
 - Optional: none.
-- Fallback: If any required review dependency is unavailable for a code-affecting scope, stop and report the missing dependency instead of returning a partial pass.
+- Fallback: If any required dependency is unavailable for a **code-affecting** review, **MUST** stop and report the gap. **MUST NOT** emit a “full pass” verdict without those three passes when code is in scope.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Read the governing spec documents, the related git changes, and the minimum implementation context before deciding whether the business goal was met.
-- Execution: Resolve the spec scope first, review business-goal completion before any secondary code-practice review, then run the required review skills on the same implementation scope.
-- Quality: Treat unmet or partially met business goals as the highest-severity findings, keep secondary edge-case/security/code-review findings outside the business-goal verdict, and avoid speculative issues that are not backed by code or spec evidence.
-- Output: Return a prioritized issue list with business-goal gaps first, followed by edge-case, security, and code-review findings, each tied to specific spec and code evidence.
+- **MUST NOT** edit implementation code, tests, or planning docs during this skill (read-only review).
+- **MUST NOT** archive specs, commit, push, tag, or release from this skill.
+- **MUST** resolve which spec set governs the change **before** concluding; if multiple candidates fit equally and cannot be disambiguated from repo evidence, **MUST** stop and report ambiguity—**MUST NOT** guess.
+- **MUST** classify each business goal / acceptance item as `Met`, `Partially met`, `Not met`, or `Deferred/N/A` **only** using verifiable evidence (code, tests, commands, traces)—checked boxes in `tasks.md` are **not** proof by themselves.
+- **MUST** treat **unmet or partially met required business goals** as **highest severity**. **MUST NOT** let edge-case, security, or style findings **outrank** those gaps in the reported order or implied priority.
+- **MUST** finish the business-goal verdict **before** invoking secondary skills; **MUST** still run `review-change-set`, `discover-edge-cases`, and `harden-app-security` on the **same** implementation scope when code is involved (after step 1 verdict is written).
+- **MUST NOT** rest conclusions on author intent, branch names, or chat memory unless **repository evidence** agrees.
+- Prefer **fewer confirmed findings** over broad speculation; unproven items belong under **Residual uncertainty**, not as faux defects.
 
-## Goal
+## Standards (summary)
 
-Determine whether the implementation actually satisfies the relevant planning documents, then separately assess whether the related code is safe, robust, and maintainable.
+- **Evidence**: Full read of governing docs + minimal code/diff context + spec-named verification commands when safe to run.
+- **Execution**: Scope resolution → business compliance → required secondary reviews → ordered report.
+- **Quality**: Business-first severity; secondary findings separated unless they also block an acceptance criterion.
+- **Output**: Ordered list: business gaps → edge cases → security → code review → passing summary → residual uncertainty.
 
-## Scope Resolution
+## Scope resolution
 
-### User-specified spec documents
+**Chain-of-thought:** Before **`Workflow`**, answer **`Pause →`** for the governing spec you will use; equally plausible paths without disambiguation ⇒ **stop**.
 
-- If the user names a spec directory or file, read every governing document in that spec set, including `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and batch-level `coordination.md` when present.
-- Treat the named spec documents as the authoritative business goal unless the repository contains a newer superseding plan that the user explicitly referenced.
-- Map the spec to implementation changes using task entries, owned files, git diff paths, branch names, commit messages, and code references from the spec.
+**User-named path** — Read `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and batch `coordination.md` when present unless the user narrowed the list. Treat as authoritative unless the user pointed at a **newer** superseding plan. Map implementation via tasks, owned paths, diff, branch, commits.
+   - **Pause →** Did the user give a **filesystem path** or only a nickname that could map to multiple `docs/plans/...` trees?
+   - **Pause →** For each major business verdict later, what **exact** spec heading or requirement ID will I cite?
 
-### Recent spec-related changes
-
-- If the user asks for recent spec-related review without naming a spec, inspect the current git state first:
-  ```bash
-  git status -sb
-  git diff --name-only
-  git diff --cached --name-only
-  ```
-- Look for changed or recently touched planning documents under `docs/plans/`, `docs/archive/plans/`, or the repository's documented planning location.
-- If no planning document changed, inspect recent commits and active plan directories to identify the most recent spec set that plausibly governs the current implementation.
-- If multiple candidate spec sets remain plausible and cannot be separated by changed files or branch names, stop and report the ambiguity instead of guessing.
+**User did not name a spec** — Inspect `git status -sb`, `git diff --name-only`, `git diff --cached --name-only`; search `docs/plans/`, `docs/archive/plans/`, or repo-documented plan dirs. If no plan file moved, infer from recent commits and plausible plan dirs; **if still ambiguous, stop** (see Non-negotiables).
+   - **Pause →** What **three** independent clues tie this implementation to **one** plan—not chat memory alone?
+   - **Pause →** If I withheld the conversation transcript, could another reviewer replicate my chosen spec folder from repo evidence?
 
 ## Workflow
 
-### 1) Build the spec baseline
+**Chain-of-thought:** Answer **`Pause →`** after **each** step before moving down the list or calling dependent skills.
 
-- Read the governing spec documents end-to-end.
-- Extract the concrete business goals, acceptance criteria, non-goals, deferred work, and explicit verification requirements.
-- Build a compact checklist of claims that can be proven or disproven from code, tests, docs, or command output.
-- Keep business goals separate from implementation-quality expectations. A clean implementation does not compensate for an unmet business requirement.
+1. **Spec baseline** — Read governing docs end-to-end. Extract goals, acceptance criteria, non-goals, deferrals, required verifications. Build a compact claim list provable from repo evidence. Keep “what the product must do” separate from “how clean the code is.”
+   - **Pause →** Which items are **mandatory** acceptance vs explicitly **out of scope** or deferred?
+   - **Pause →** What observable failure would make me change a `Met` to `Not met` for the top risk requirement?
 
-### 2) Map implementation evidence
+2. **Implementation evidence** — Read the relevant diff/staged/commits/files. Trace the minimum code path to validate claims. Run spec-named checks when available and safe.
+   - **Pause →** What is the **smallest** code path I have not yet read that could still falsify a `Met`?
+   - **Pause →** Am I about to score `Met` from **intent** or from **tests/commands** I actually ran or inspected?
 
-- Read the related diff, staged changes, commits, or changed files that correspond to the spec scope.
-- Follow the minimum dependency chain needed to understand whether the behavior is actually implemented.
-- Run or inspect the verification commands named by the spec when they are available and safe to run.
-- Mark each business goal as:
-  - `Met`: direct implementation and verification evidence exists.
-  - `Partially met`: some required behavior exists, but an acceptance criterion, integration path, or verification proof is missing.
-  - `Not met`: implementation evidence is absent or contradicts the spec.
-  - `Deferred/N/A`: the spec explicitly excludes or defers the item.
+3. **Business-goal verdict first** — Emit every `Not met` / `Partially met` **before** secondary findings, with **exact** spec cites and code/test evidence. While required goals stay failed, **MUST NOT** frame archival, release, or “done” narratives that imply compliance.
+   - **Pause →** If I sorted findings by “interesting” instead of business impact, which line would unfairly rise above a missing goal?
+   - **Pause →** For each `Partially met`, what single **missing proof** (test, wire-up, error path) am I naming explicitly?
 
-### 3) Review business-goal completion first
+4. **Secondary reviews (code-affecting)** — On the same scope: `review-change-set` (architecture/simplification), `discover-edge-cases` (reproducible edge/observability risks), `harden-app-security` (reproducible security). Keep outputs labeled so they do not read as business-goal substitutions.
+   - **Pause →** Does this secondary finding **force** a business re-score—if yes, did I revise step 3 before publishing?
+   - **Pause →** Is the diff scope identical to what I used for business mapping (no silent file creep)?
 
-- Report every `Not met` and `Partially met` business goal before secondary review findings.
-- Assign the highest severity to business-goal failures because they mean the delivered change does not satisfy the requested work.
-- Include exact spec evidence and code evidence for each gap.
-- Do not continue into archival, submission, or release recommendations while business-goal failures remain unresolved.
+5. **Final report (fixed order)** — (1) Business-goal failures (always top severity for required gaps). (2) Edge-case. (3) Security. (4) Code-review / maintainability. (5) Passing evidence for goals confirmed `Met`. (6) Residual uncertainty (skipped commands, unmapped spec text, unverifiable externals). If nothing actionable: state that explicitly **and** still cite docs and evidence reviewed.
+   - **Pause →** What commands or spec paragraphs remain **unverified**—are they all listed under residual uncertainty?
 
-### 4) Run secondary code-practice reviews
+## Sample hints
 
-After the business-goal pass is complete, invoke the required review skills on the same code-affecting scope:
-
-- Use `review-change-set` to identify architecture, abstraction, and simplification findings in the related diff.
-- Use `discover-edge-cases` to identify reproducible boundary, failure-path, state, and observability risks.
-- Use `harden-app-security` to identify reproducible vulnerabilities and adversarial trust-boundary failures.
-
-Keep these findings separate from the business-goal verdict unless the issue also prevents a required acceptance criterion from being satisfied.
-
-### 5) Produce the final review
-
-Return findings in this order:
-
-1. Business-goal failures
-   - Severity: always highest for unmet or partially met required goals.
-   - Include spec evidence, implementation evidence, and the missing acceptance criterion.
-2. Edge-case findings
-   - Include reproduction or concrete trigger evidence.
-3. Security findings
-   - Include exploit path, protected asset, and reproducibility evidence.
-4. Code-review findings
-   - Include architecture, abstraction, simplification, or maintainability evidence.
-5. Passing evidence
-   - Summarize the business goals that were confirmed met.
-6. Residual uncertainty
-   - List unverified checks, commands not run, ambiguous spec mappings, or external dependencies that could not be proven.
-
-If no actionable issue is found, state that no business-goal, edge-case, security, or code-review findings were identified, and still list the spec documents and verification evidence reviewed.
-
-## Working Rules
-
-- Do not edit code, tests, or specs during this review.
-- Do not archive specs, commit, push, tag, or release from this skill.
-- Do not let secondary code quality findings bury business-goal failures.
-- Do not treat checked tasks as proof by themselves; verify the implementation.
-- Do not infer success from author intent, branch names, or prior conversation context unless the repository evidence supports it.
-- Prefer fewer confirmed findings over broad speculative feedback.
+- **Business claim record**:
+  - `R3.2 refresh token rotation` → `Not met` — spec `spec.md` §3.2 requires one-time use; `src/auth/refresh.rs:40` still accepts same jti on replay; test `refresh_replay` not present.
+- **Wrong ordering** — starting with “nice simplification in `foo.ts`” while `R1.0` is unmet: **wrong**; lead with the `R1.0` gap.
+- **Tasks checked but behavior missing** — `tasks.md` shows `[x] implement rate limit` but no call site in `src/api/*` and no test: verdict stays **`Not met` / `Partially met`**, not `Met`.
+- **Ambiguous scope** — two directories `docs/plans/2026-05-01/foo/` and `…/batch-a/foo/` both plausible; **stop** with “need user to name path” instead of picking one.

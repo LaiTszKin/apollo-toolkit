@@ -1,184 +1,88 @@
 ---
 name: implement-specs-with-subagents
 description: >-
-  Coordinate parallel implementation of multiple approved spec sets by assigning
-  each `docs/plans/.../<change_name>/` spec directory to a separate subagent that
-  uses `implement-specs-with-worktree`. Supports multi-phase execution for
-  interdependent specs: analyse dependencies, implement base specs first, merge
-  back via `merge-changes-from-local-branches`, then implement dependent specs,
-  and finally submit with commit, push, and patch version bump. Use when a user
-  asks to implement a multi-spec batch with subagents, parallel agents, delegated
-  agents, or isolated workers while completing any explicitly documented shared
-  prerequisite work before delegation, keeping at most four implementation
-  subagents active at once, staggering starts to avoid rate-limit bursts,
-  preserving independent subagent contexts, and using the user's requested model
-  when specified.
+  Coordinator-only workflow for multispec batches: ingest `coordination.md`/`preparation.md`, run prerequisite work yourself, derive topological phases, launch ≤4 staggered **`implement-specs-with-worktree`** workers (one `{change}` each), **`merge-changes-from-local-branches`** after every phase succeeds, ledger every branch/test/merge—not for solo specs unless user explicitly insists on delegation overload.
+  Wrong tool for one directory without parallel mandate—pick **`implement-specs-with-worktree`** / **`implement-specs`** depending on isolation. Publication/versioning stays outside this orchestration layer unless another skill attaches.
+  Ledger sample: `oauth-scope | phase=1 | merged | npm test ✅`. Burst-launching four agents simultaneously—disallowed pacing required…
 ---
 
 # Implement Specs with Subagents (Multi-Phase)
 
 ## Dependencies
 
-- Required: `implement-specs-with-worktree` for each delegated spec implementation.
-- Required: `merge-changes-from-local-branches` for merging worktree branches back between phases.
-- Conditional: `generate-spec` if the batch needs clarification before implementation; `review-change-set` if the user asks for an integration review after subagents finish.
-- Optional: none.
-- Fallback: If the environment cannot start independent subagents, report that limitation and fall back only if the user explicitly approves serial `implement-specs-with-worktree` execution.
+- Required: `implement-specs-with-worktree` (every implementation subagent **MUST** follow this skill for its assigned directory); `merge-changes-from-local-branches` (phase integration **MUST NOT** skip this between phases).
+- Conditional: `generate-spec` if the batch is not implementation-ready; `review-change-set` only when the user asks for post-merge review.
+- Fallback: If independent subagents cannot run, **MUST** report that limitation. Serial `implement-specs-with-worktree` across specs is allowed **only** after the user explicitly approves that fallback.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Read the batch-level `coordination.md` and `preparation.md` when present, enumerate the exact spec directories to implement, verify each delegated spec has the required planning files, and identify any explicit prerequisite or dependency notes before starting subagents.
-- Execution: Complete and commit explicitly documented prerequisite preparation on the working branch before delegation. Analyse spec dependencies from `coordination.md` and spec docs to build a multi-phase plan. For each phase, assign exactly one implementation subagent per spec directory, keep no more than four implementation subagents active at the same time, start subagents one at a time rather than in a burst, give each subagent an independent task-local context, and instruct every subagent to use `implement-specs-with-worktree` for its assigned spec. After each phase completes, use `merge-changes-from-local-branches` to merge all phase branches back before launching the next phase.
-- Quality: Preserve spec ownership boundaries, avoid duplicate delegation for the same spec, ensure subagents branch from a baseline that includes prerequisite commits, track branch/worktree/commit/test outcomes for every subagent, and pause new launches when a shared blocker, collision, or rate-limit pressure appears.
-- Output: Return a concise implementation ledger covering each spec, its subagent result, worktree branch, commit or blocker, verification run, and the merge outcome.
+- **MUST NOT** delegate until `coordination.md`, when present, explicitly allows parallel implementation—or when absent, until you have verified no contradiction to parallel work.
+- **MUST** enumerate exact in-scope spec directories **before** any subagent starts; **MUST NOT** delegate archived, sibling, or “nearest guess” directories unless the user explicitly includes them.
+- **MUST** verify each delegated directory contains `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` before launch.
+- **MUST** complete, verify, and **commit** documented shared preparation on the integration branch **before** any implementation subagent starts when `preparation.md` exists or specs mandate pre-work; the coordinating agent **MUST NOT** delegate that preparation. Subagents **MUST NOT** start until this branch is clean at the preparation commit (or there is no required preparation).
+- **MUST** build a directed dependency graph from `coordination.md` plus each spec’s `spec.md` / `design.md` (edges: *provider spec must merge before consumer spec*). **MUST** partition specs into phases by topological **layers**: Phase 1 = specs with **no** in-batch prerequisites; for *k* ≥ 2, Phase *k* = specs whose in-batch prerequisites all appear in phases before *k*. **MUST NOT** start phase *k* until phase *k − 1* is fully merged into the integration branch (or you have an explicit user override). If the graph has a cycle, **MUST** stop and report it.
+- **MUST** assign **exactly one** spec directory per implementation subagent; **MUST NOT** assign multiple directories to one implementation subagent.
+- **MUST** cap **active** implementation subagents at **four**; **MUST** start them **one at a time** with confirmation each is running before the next start; **MUST** back off on rate limits (no burst launches). Four is a ceiling, not a quota.
+- **MUST** give each subagent only task-local context (repo root, exact spec path, `coordination.md` path if relevant, instruction to run `implement-specs-with-worktree`, baseline commit when preparation exists, requirement to read the full bundle before edits, worktree isolation, tests, backfill, local commit, and reporting branch/worktree/commit/tests/blockers). **MUST NOT** leak unrelated reasoning or other subagents’ private diffs unless resolving a concrete conflict.
+- After each phase: **MUST** merge every **completed** spec branch from that phase into the integration branch via `merge-changes-from-local-branches` before starting the next phase; **MUST** resolve conflicts using spec contracts as the correctness tie-breaker; **MUST** record merge result in the ledger; if merge is blocked, **MUST** stop the pipeline and report.
+- Model: If the user names a model, **MUST** use it for implementation subagents when the platform allows; if not supported, **MUST** state that fact and continue only if the default is acceptable to the user’s intent.
 
-## Goal
+## Standards (summary)
 
-Coordinate a multi-spec implementation batch safely by delegating each approved spec set to an isolated subagent-backed worktree implementation, handling interdependent specs through phased execution.
+- **Evidence**: Batch read (`coordination.md`, `preparation.md`, every in-scope `spec.md` / `design.md`) before scheduling; ledger stays live.
+- **Execution**: Preparation → dependency graph → phased delegation with merge gates; never skip merges between dependent phases.
+- **Quality**: No duplicate delegation; subagents base on the branch that already contains preparation (and prior phases); pause on shared file collisions, batch-wide defects, or rate-limit pressure.
+- **Output**: Concise ledger: per spec → phase, depends-on, subagent id/label, branch/worktree, commit or blocker, tests, merge status.
 
 ## Workflow
 
-### 1) Identify the batch and implementation queue
+**Chain-of-thought:** After **each** numbered step below, briefly answer **`Pause →`** items; escalate to halt or revise the plan whenever the answer violates Non-negotiables or exposes a blocker.
 
-- Locate the requested batch under `docs/plans/{YYYY-MM-DD}/{batch_name}/`.
-- Read `coordination.md` first when it exists.
-- Read `preparation.md` when it exists.
-- Enumerate only the spec directories that are in scope for this request.
-- For each spec directory, verify the presence of:
-  - `spec.md`
-  - `tasks.md`
-  - `checklist.md`
-  - `contract.md`
-  - `design.md`
-- Do not delegate archived, sibling, or approximate specs unless the user explicitly includes them.
-- If `coordination.md` says the batch is not ready for parallel implementation, stop and report the blocking coordination item instead of spawning subagents.
-- If `preparation.md` exists, or if the in-scope spec documents explicitly state that prerequisite work must be completed before parallel implementation, treat that preparation as blocking before subagent launch.
+1. **Batch intake** — Resolve `docs/plans/{YYYY-MM-DD}/{batch_name}/`. Read `coordination.md` (first) and `preparation.md` when present. List only in-scope spec directories; verify the five required files each. If coordination blocks parallel work, **stop** and report. If preparation is required, go to step 2; else go to step 3.
+   - **Pause →** Can I quote **verbatim** why each enumerated directory is in scope—not “probably related”?
+   - **Pause →** What **exact sentence** from `coordination.md` gates parallel readiness, if any—or what absence did I infer from—and is that justified?
 
-### 1.5) Complete documented prerequisite preparation
+2. **Preparation (blocking when required)** — Coordinating agent executes shared prep only: read tasks/outputs/verification hooks, satisfy scope, run listed checks, **commit** on the integration branch, record prep commit hash in ledger, leave working tree clean. If prep fails, **stop** (no subagents).
+   - **Pause →** Am I silently delegating preparation to a **subagent** when the coordinating agent owns it—is that happening?
+   - **Pause →** What **commit hash** and **clean-tree** confirmation will subagents inherit as baseline?
 
-- Use this step only when `preparation.md` exists or the specs clearly annotate required pre-work.
-- The coordinating agent owns the prerequisite work; do not delegate it to implementation subagents.
-- Read the preparation tasks, expected outputs, and verification hooks before editing.
-- Complete only the shared prerequisite scope that all specs must assume before parallel work starts.
-- Run the verification commands or checks listed for the preparation.
-- Commit the preparation to the working branch that future implementation worktrees or subagents will use as their base.
-- Record the preparation commit in the ledger.
-- Do not start implementation subagents until the preparation commit exists and the working branch is clean.
-- If preparation cannot be completed or verified, stop and report the blocker instead of launching subagents.
+3. **Dependency graph** — Extract ordering obligations; assign each spec a phase index via topological layering. Persist `depends-on` / `depended-by` in the ledger. Cycles ⇒ **stop**.
+   - **Pause →** For each edge (A must land before B), what **sentence** from spec/design/coordination supports it?
+   - **Pause →** If I flattened phases wrong, which later spec would start **without** its merged predecessor—how do I detect that now?
 
-### 2) Analyse spec dependencies
+4. **Plan launches** — For each phase, queue one item per spec. Ledger fields: phase, paths, deps, planned branch/worktree basename, status (`pending` / `in_progress` / `merged` / `blocked`), commit, tests, blockers, prep-commit baseline note. Fix model policy per Non-negotiables.
+   - **Pause →** Is there **exactly one** spec directory per queued subagent—never two in one prompt?
+   - **Pause →** What will I **repeat** in every subagent envelope so they cannot “improvise” the wrong skill or wrong path?
 
-- Read each in-scope spec's `spec.md` and `design.md` to identify explicit references to other in-scope specs.
-- Read `coordination.md` for any documented dependency ordering between specs (e.g. "spec A must be implemented before spec B").
-- For each spec dependency found, determine which specs are **base specs** (depended upon by others) and which are **dependent specs** (depend on base specs).
-- If a spec both depends on others and is depended upon, it belongs to its own middle phase.
-- If no dependencies exist between any specs, all specs can run in a single parallel phase.
-- Build a dependency graph and record it in the ledger:
-  - spec path
-  - phase number (starting from 1)
-  - depends-on (list of spec paths)
-  - depended-by (list of spec paths)
-- If the dependency graph contains a cycle, stop and report the cycle instead of proceeding.
+5. **Run phase *k*** — Start ≤4 subagents sequentially with task-local payloads (see Non-negotiables). Monitor ledger; pause new launches on shared blockers; on conflicting edits to shared files, resolve ownership using `coordination.md` before more launches; if one spec fails and others depend on it, **MUST NOT** start those dependents until resolved; batch-wide planning failure ⇒ stop all scheduling.
+   - **Pause →** How many subagents are **active** right now vs the cap of four; did I start the last one only **after** the previous was confirmed running?
+   - **Pause →** Did two running subagents report **overlapping** paths; if yes, did I stop launching until ownership is clear?
 
-### 3) Build a multi-phase delegation plan
+6. **Merge phase *k*** — When every item in phase *k* is **done or explicitly blocked**, merge **each successful** branch via `merge-changes-from-local-branches`; rerun critical tests if your standards say so; update ledger. Merge failure ⇒ **stop** before phase *k+1*.
+   - **Pause →** Has **every** successful branch in this phase been merged into the **same** integration branch I will use to **start** phase *k+1*?
+   - **Pause →** If a merge conflict touches a **contract** field, which spec’s `contract.md` / `design.md` is the tie-breaker I will apply?
 
-- Group specs into ordered phases based on the dependency graph (topological sort order):
-  - **Phase 1**: Base specs with no in-batch dependencies (depended upon by others).
-  - **Phase N**: Specs whose dependencies are all satisfied by earlier phases.
-  - **Final Phase**: Specs with no dependents (leaf specs).
-- Each phase must have all its dependencies satisfied by earlier phases before it can start.
-- Within each phase, specs are independent and can run in parallel.
-- Create one queue item per spec directory per phase.
-- Assign one subagent to one spec only; never ask one subagent to implement multiple spec directories.
-- Keep a visible ledger with:
-  - spec path
-  - phase number
-  - depends-on
-  - intended branch/worktree name if known
-  - assigned subagent
-  - status (pending / in-progress / merged / blocked)
-  - commit
-  - tests
-  - blockers
-- If preparation was completed, include the preparation commit that all subagents must treat as their base.
-- Determine the model policy before launch:
-  - If the user specifies a model, use that model for the implementation subagents when the environment supports model selection.
-  - If the user does not specify a model, let subagents use the same model or default model policy as the coordinating agent.
-  - If the environment does not expose model selection, state that the requested model cannot be enforced and continue only when the platform's default subagent model is acceptable.
+7. **Repeat** — Next phase starts only on the merged integration branch that includes all required predecessors.
+   - **Pause →** Before launching phase *k+1*, can I **name** the merge commit or branch state that contains **all** prerequisites for every spec in that phase?
 
-### 4) Execute phases sequentially
+## Out of scope
 
-For each phase in order (Phase 1, Phase 2, ... Final Phase):
+- **MUST NOT** use this skill for a single spec unless the user explicitly requests subagent delegation.
 
-#### 4.1) Launch subagents for this phase
+**Repository regression check:** The coordinating agent must complete and commit explicitly documented prerequisite preparation on the integration branch before launching implementation subagents when `preparation.md` or equivalent mandates it.
 
-- Maintain a maximum of four active implementation subagents at any time.
-- Start subagents independently and one at a time.
-- After each start, confirm that the subagent was accepted or is running before starting the next one.
-- If a start fails due to throttling, rate limits, capacity, or platform pressure, wait before retrying and do not start additional subagents during the cooldown.
-- Prefer steady scheduling over maximum burst parallelism; four is the ceiling, not a target that must always be filled.
+## Sample hints
 
-#### 4.2) Give each subagent independent context
-
-For each subagent, provide only task-local instructions:
-
-- Repository root.
-- Exact spec directory path.
-- Parent `coordination.md` path when present.
-- Requirement to use `implement-specs-with-worktree`.
-- Requirement to base work on the committed prerequisite-preparation branch state when preparation was performed.
-- Requirement to read the full spec bundle before editing.
-- Requirement to implement inside its own isolated worktree.
-- Requirement to run relevant tests.
-- Requirement to backfill the spec documents after implementation.
-- Requirement to commit locally unless the user explicitly changes the completion boundary.
-- Requirement to report branch, worktree path, commit hash, tests, and blockers.
-
-Do not pass the coordinating agent's full reasoning, unrelated sibling specs, or other subagents' private work unless a concrete coordination conflict requires it.
-
-#### 4.3) Monitor and coordinate
-
-- While subagents run, track completions and blockers in the ledger.
-- When one subagent finishes, record its branch, worktree path, commit, verification results, and changed ownership boundaries.
-- Start the next queued spec for this phase only when the active count drops below four and no shared blocker is unresolved.
-- If two subagents report overlapping edits to a shared file or contract, pause new launches, inspect the conflict against `coordination.md`, and resolve the ownership question before continuing.
-- If a subagent fails for a spec-local issue, keep other independent subagents in the same phase running, but do not launch additional work that depends on the failed scope.
-- If failures indicate a batch-wide planning defect, stop scheduling new subagents and report the defect.
-- If all specs in the current phase are completed (or blocked), proceed to the merge step.
-
-#### 4.4) Merge phase branches back
-
-- After all subagents in the current phase complete, use `merge-changes-from-local-branches` to merge each completed spec's worktree branch back into the current working branch.
-- For each successful spec in the phase:
-  - Identify the branch name from the ledger.
-  - Merge the branch using `merge-changes-from-local-branches`.
-  - Resolve any merge conflicts that arise, prioritising correctness from the spec contracts.
-  - Verify the working branch is clean and tests still pass after merging.
-- Record the merge outcome in the ledger (success / conflicts / blockers).
-- If a merge fails and cannot be resolved, stop and report the merge blocker before proceeding to the next phase.
-- Once merged, the current working branch now includes all changes from this phase, making them available as a baseline for dependent specs in later phases.
-
-## Working Rules
-
-- One spec directory maps to one implementation subagent.
-- Explicitly documented prerequisite preparation is completed, verified, and committed by the coordinating agent before any implementation subagent starts.
-- Spec dependencies are analysed before delegation to determine phase ordering.
-- Phases execute sequentially; within a phase, specs are independent and run in parallel.
-- Maximum active implementation subagents per phase: four.
-- Subagents must be started gradually, not all at once.
-- Every subagent must have independent context scoped to its assigned spec.
-- Every implementation subagent must use `implement-specs-with-worktree`.
-- After each phase, `merge-changes-from-local-branches` merges all completed spec branches back into the working branch.
-- The coordinating agent owns scheduling, ledger tracking, dependency analysis, inter-phase merging, and conflict escalation; implementation subagents own their assigned worktree commits.
-- The coordinating agent owns shared prerequisite commits; implementation subagents must not redo or overlap that preparation unless the preparation commit is missing or invalid.
-- User-specified subagent model choices should be honored when supported; otherwise inherit the coordinating agent's model/default model policy.
-- Do not use this skill for a single spec unless the user explicitly wants subagent delegation.
+- **Ledger row (one line per spec)**:
+  `oauth-scope | phase=1 | depends-on: — | branch feat/oauth-scope | status merged | tests: npm test ✓`
+- **Subagent envelope (minimal)** — repo root `/repo`; spec `/repo/docs/plans/2026-05-01/batch-a/oauth-scope/`; instruction: run skill **`implement-specs-with-worktree`** on that path only; baseline `prep_sha=deadbeef` when preparation landed; reply with branch, `worktree path`, commit, tests.
+- **Tiny dependency graph**: `api-layer` blocks `cli-wrapper` ⇒ Phase 1: `{ api-layer }`, Phase 2: `{ cli-wrapper }`. Independent specs share a phase layer (e.g. both in Phase 1) **only** if neither lists the other as prerequisite in spec/design/coordination.
+- **Launch cadence**: with cap 4, acceptable active counts over time: `1 → 2 → 3 → 4 → (finish one) → 4`; **not** spawn 4 in one burst with no pacing.
 
 ## References
 
-- `implement-specs-with-worktree`: required per-spec worktree implementation workflow.
-- `merge-changes-from-local-branches`: required for merging worktree branches back between phases.
-- `generate-spec`: clarification and planning repair workflow when a batch is not ready for parallel implementation.
-- `preparation.md`: optional batch-level prerequisite plan that must be completed before parallel subagent work starts.
-- `coordination.md`: batch-level coordination plan that may contain dependency ordering information.
-- `review-change-set`: optional post-implementation review workflow before final submission.
+- `implement-specs-with-worktree`: per-spec execution environment
+- `merge-changes-from-local-branches`: phase merge integration (and downstream submit flow when that skill is invoked)
+- `generate-spec`: repair planning when the batch is not ready
+- `coordination.md`, `preparation.md`: batch-level ordering and prerequisites
+- `review-change-set`: optional post-merge review
