@@ -11,9 +11,9 @@ description: >-
 ## Dependencies
 
 - Required: `test-case-strategy` for risk selection, oracles, drift checks.
-- Conditional: **`generate-spec`** when spec triggers below fire; **`recover-missing-plan`** when user-named `docs/plans/...` is missing/archived/mismatched.
+- Conditional: **`generate-spec`** when spec triggers below fire; **`recover-missing-plan`** when user-named `docs/plans/...` is missing/archived/mismatched; **`commit-and-push`** when the user requests **git commit** and/or **push** to persist completed work—**MUST** delegate final submission to **`commit-and-push`** (often via **`implement-specs`** / **`implement-specs-with-worktree`** when a spec path is active).
 - Optional: none.
-- Fallback: **`test-case-strategy`** unavailable ⇒ **stop**. Spec path required but **`generate-spec`** unavailable ⇒ **stop**.
+- Fallback: **`test-case-strategy`** unavailable ⇒ **stop**. Spec path required but **`generate-spec`** unavailable ⇒ **stop**. If the user requested **commit/push** and **`commit-and-push`** is unavailable, **MUST** stop and report.
 
 ## Non-negotiables
 

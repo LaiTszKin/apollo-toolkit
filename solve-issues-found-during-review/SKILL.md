@@ -11,9 +11,9 @@ description: >-
 ## Dependencies
 
 - Required: none (caller **MUST** supply an existing review report or reconstructable finding list).
-- Conditional: `review-change-set` for optional re-validation after **code-affecting** fixes; `systematic-debug` when a fix causes unexpected test or runtime failures.
-- Optional: `discover-edge-cases` / `harden-app-security` when the user or report demands post-fix confirmation on those dimensions.
-- Fallback: If `review-change-set` is unavailable after code fixes, **MUST** still verify via targeted tests and `git diff` (or equivalent) and **MUST** document exactly what was run.
+- Conditional: `review-change-set` for optional re-validation after **code-affecting** fixes; `systematic-debug` when a fix causes unexpected test or runtime failures; **`commit-and-push`** when the user requests **git commit** and/or **push** to persist fixes—**MUST** hand off that leg to **`commit-and-push`** (not bare `git commit` / ungated push).
+- Optional: `discover-edge-cases` / `discover-security-issues` when the user or report demands post-fix confirmation on those dimensions.
+- Fallback: If `review-change-set` is unavailable after code fixes, **MUST** still verify via targeted tests and `git diff` (or equivalent) and **MUST** document exactly what was run. If the user requested **commit/push** and **`commit-and-push`** is unavailable, **MUST** stop and report.
 
 ## Non-negotiables
 

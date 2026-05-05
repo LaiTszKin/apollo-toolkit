@@ -9,7 +9,7 @@ This skill:
 1. Resolves the governing `docs/plans/...` spec scope from user input or recent repository changes.
 2. Checks whether each business goal and acceptance criterion is actually implemented.
 3. Treats unmet business goals as the most severe review findings.
-4. Runs secondary code-practice review through `review-change-set`, `discover-edge-cases`, and `harden-app-security` for code-affecting scopes.
+4. Runs secondary code-practice review through `review-change-set`, `discover-edge-cases`, and `discover-security-issues` for code-affecting scopes.
 5. Reports business-goal gaps separately from edge-case, security, and maintainability findings.
 
 ## When to use

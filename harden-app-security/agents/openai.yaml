@@ -1,4 +1,0 @@
-interface:
-  display_name: "Harden App Security"
-  short_description: "Adversarial vulnerability discovery across agent, finance, and software systems"
-  default_prompt: "Use $harden-app-security to run a discovery-only adversarial audit. Reproduce exploitable vulnerabilities with concrete evidence and severity prioritization across agent-system, financial-program, and software-system scopes (including SQL injection and common web flaws). Do not apply code fixes or PR actions."

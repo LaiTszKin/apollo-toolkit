@@ -1,6 +1,8 @@
 ---
 name: review-change-set
-description: Review the current git change set from an unbiased reviewer perspective, identify architecture-level abstraction opportunities and code simplification candidates, and challenge security assumptions through harden-app-security. Use when users ask for a diff review, refactor review, abstraction review, simplification review, or a pre-commit/pre-PR second opinion on current changes.
+description: >-
+  Unbiased **git diff** review: architecture (boundaries, duplication, ownership) then simplification (real deletes/flattening, not churn)—discard conversation bias. Code-affecting changes **MUST** cross-check with **`discover-security-issues`**; integrate only **confirmed** findings—no invented CWE drama.
+  Use for pre-commit/pre-PR review, refactor/abstraction second opinion, “review my branch” **STOP** greenfield feature design from scratch—use planning skills… BAD style-only nits… GOOD evidence + named abstraction target…
 ---
 
 # Review Change Set
@@ -8,92 +10,75 @@ description: Review the current git change set from an unbiased reviewer perspec
 ## Dependencies
 
 - Required: none.
-- Conditional: `harden-app-security` for code-affecting changes before finalizing review conclusions.
+- Conditional: **`discover-security-issues`** for **code-affecting** changes before final conclusions.
 - Optional: none.
-- Fallback: If the required security cross-check is unavailable for a code-affecting scope, stop and report the missing dependency.
+- Fallback: If the security cross-check is **required** but unavailable, **MUST** stop and report.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Read the full active diff plus the minimum dependency chain needed to understand the changed behavior.
-- Execution: Review architecture first, then simplification opportunities, then integrate confirmed security findings.
-- Quality: Judge the change set as an outsider, keep only actionable findings, and avoid inventing concerns the security pass did not confirm.
-- Output: Return review scope, architecture findings, simplification findings, security cross-check results, and residual uncertainty.
+- Read the **full** active change set (staged **and** unstaged when both exist—label which finding hits which).
+- **MUST** discard authorship bias; burden of proof on the code.
+- Prefer **architecture** and **maintainability** over style-only.
+- Abstraction only when it cuts duplication, clarifies ownership, or stabilizes boundaries.
+- Simplification only when behavior-preserving and genuinely simpler—**MUST NOT** shuffle complexity.
+- **MUST** invoke **`discover-security-issues`** on code-affecting scope; **MUST NOT** fabricate security issues not confirmed by that pass.
 
-## Non-negotiable Review Rules
+## Standards (summary)
 
-- Read the full active change set before judging any design choice.
-- Discard authorship bias completely, including changes written earlier in the same conversation by this agent.
-- Judge the diff from a reviewer perspective: the burden of proof is on the code, not on the author's intent.
-- Prefer architecture and maintainability findings over style-only feedback.
-- Recommend abstraction only when it reduces duplication, clarifies ownership, or stabilizes boundaries.
-- Recommend simplification only when it preserves behavior while reducing complexity or ambiguity.
+- **Evidence**: Full diff + minimum context reads to understand behavior.
+- **Execution**: Git state → baseline → architecture → simplification → security integration → report.
+- **Quality**: Actionable, outsider perspective; clear merge of confirmed security results.
+- **Output**: Scope, architecture findings, simplification findings, security cross-check summary, residual uncertainty.
 
 ## Workflow
 
-### 1) Inspect the active git state
+**Chain-of-thought:** **`Pause →`** after each block—no verdicts from partial file reads.
 
-- Run `git status -sb`, `git diff --stat`, and `git diff --cached --stat`.
-- If both staged and unstaged changes exist, review both and label which findings apply to each surface.
-- If there is no active diff, report `No active git change set to review` and stop.
+### 1) Inspect git state
 
-### 2) Build a factual baseline
+- `git status -sb`, `git diff --stat`, `git diff --cached --stat`; cover staged vs unstaged explicitly.
+- No diff → `No active git change set to review` and stop.
+   - **Pause →** Am I about to review **only** unstaged while staged also ships?
 
-- Read every changed file end-to-end.
-- Read the minimum dependency chain needed to understand new helpers, moved logic, interfaces, and callers.
-- Reconstruct actual behavior from code, tests, configuration, and executable evidence only.
-- Ignore earlier planning context unless it is explicitly encoded in the repository.
+### 2) Baseline
 
-### 3) Review architecture first
+- Read every changed file E2E; pull in minimal callers/callees/config to interpret moves and interfaces.
+- Behavior from **code, tests, config, execution**—not from chat memory.
+   - **Pause →** Can I quote **one concrete behavior** change this diff introduces—not intent?
 
-Check whether the diff introduces or preserves problems such as:
+### 3) Architecture first
 
-- duplicated workflows that should live behind one module or helper,
-- cross-layer leakage or ownership confusion,
-- helper placement that hides domain boundaries,
-- repeated condition trees or mapping logic that should be centralized,
-- unstable interfaces or parameter shapes that should be normalized.
+Flag only if evidence-backed: duplicated workflows, cross-layer leakage, wrong helper ownership, repeated condition trees, unstable interfaces.
+Each finding **MUST** name abstraction target **and** why current shape is weaker.
+   - **Pause →** Is this “different style” or a real **boundary** problem?
 
-Keep only findings that name the proposed abstraction target and explain why the current structure is weaker.
+### 4) Simplification second
 
-### 4) Review simplification opportunities second
+Redundant branches/wrappers, deep nesting, duplicated validation, oversize functions, dead compat—**only** if it truly reduces complexity.
+   - **Pause →** Would this refactor just **move** lines between files?
 
-Check whether the diff can be simplified through:
+### 5) Security cross-check
 
-- removing redundant branches, wrappers, or state,
-- flattening deeply nested control flow,
-- collapsing duplicated validation or conversion logic,
-- shrinking overly broad functions into clearer units,
-- deleting dead or no-longer-needed compatibility paths.
+- Run **`discover-security-issues`** on the **same** code-affecting scope.
+- Merge **confirmed** findings that affect safety of this structure; omit unconfirmed noise.
+   - **Pause →** Did I cite **their** severity + repro—or paraphrase fear?
 
-Do not recommend refactors that merely move complexity around.
+### 6) Report
 
-### 5) Run the security cross-check
+1. **Scope** — staged/unstaged; extra context paths read.
+2. **Architecture** — title, evidence (`path:line`), candidate, why weaker.
+3. **Simplification** — title, evidence, candidate, benefit.
+4. **Security cross-check** — confirmed items reused from **`discover-security-issues`**, relevance to this diff.
+5. **Residual uncertainty** — hypotheses / follow-up checks.
 
-- Invoke `harden-app-security` on the same code-affecting scope.
-- Integrate confirmed security findings into the final review when they materially affect the safety of the proposed structure.
-- Do not invent security concerns that the dependency did not confirm.
+If nothing actionable: `No actionable abstraction or simplification finding identified` (security section still reflects cross-check outcome).
 
-### 6) Report only actionable review output
+## Sample hints
 
-Deliver:
+- **Staged only**: User ran `git add -p` → findings tagged **staged** vs **unstaged** separately.
+- **Rename-heavy**: Read old→new path mapping before calling “duplication.”
+- **Tiny diff**: One-file guard clause → architecture section may be empty; security pass still runs if code-affecting.
 
-1. Review scope
-   - staged / unstaged coverage
-   - additional files read for context
-2. Architecture findings
-   - title
-   - evidence (`path:line`)
-   - abstraction candidate
-   - why the current design is weaker
-3. Simplification findings
-   - title
-   - evidence (`path:line`)
-   - simplification candidate
-   - expected benefit
-4. Security cross-check
-   - confirmed findings reused from `harden-app-security`
-   - reason they matter to this diff review
-5. Residual uncertainty
-   - hypotheses or follow-up checks that were not confirmed
+## References
 
-If no actionable issue is found, report `No actionable abstraction or simplification finding identified`.
+- **`discover-security-issues`**: confirmed adversarial findings for code-affecting scope.

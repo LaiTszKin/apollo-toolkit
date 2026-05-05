@@ -34,7 +34,7 @@ When the release includes code changes, `review-change-set` is still a condition
 
 Apply the same rule to every other conditional gate: if its scenario is met during release classification, it becomes blocking before version bumping, tagging, or release publication.
 
-That includes risk-driven review gates such as `discover-edge-cases` and `harden-app-security` whenever the release surface makes them applicable.
+That includes risk-driven review gates such as `discover-edge-cases` and `discover-security-issues` whenever the release surface makes them applicable.
 
 Do not report release completion after only bumping versions or pushing a commit: the matching tag and GitHub release are part of done criteria unless the user explicitly says to skip publication.
 

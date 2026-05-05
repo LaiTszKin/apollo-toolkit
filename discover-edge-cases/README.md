@@ -11,7 +11,7 @@ It does not write tests, patch code, or open PRs.
 It follows a strict workflow:
 1. Detect whether `git diff` exists.
 2. Inspect only changed files plus minimal dependencies, or perform a full-project scan when no diff exists.
-3. Run `harden-app-security` as an adversarial dependency for code-affecting scope.
+3. Run `discover-security-issues` as an adversarial dependency for code-affecting scope.
 4. Probe the highest-risk edge cases and gather concrete evidence.
 5. Reproduce confirmed issues at least twice and check nearby variants.
 6. Prioritize confirmed findings and report hardening guidance only.
@@ -31,7 +31,7 @@ Use this skill when a task asks you to:
 - Treat prior authorship as irrelevant; even code written earlier in the same conversation must be challenged like third-party code.
 - Decisions must be evidence-based; speculative ideas stay marked as hypotheses.
 - Keep only reproducible findings with exact evidence.
-- Run `harden-app-security` as a required adversarial cross-check for code-affecting scope.
+- Run `discover-security-issues` as a required adversarial cross-check for code-affecting scope.
 - Report recommended fixes and test ideas, but do not implement them in this skill.
 
 ## External API requirements

@@ -11,9 +11,9 @@ description: >-
 ## Dependencies
 
 - Required: `generate-spec` for shared planning artifacts and `test-case-strategy` for risk-driven test selection, oracles, and unit drift checks before coding.
-- Conditional: none.
+- Conditional: **`commit-and-push`** when the user requests **git commit** and/or **push** after delivery—**MUST** delegate final submission to **`commit-and-push`** (implementation detail: often via **`implement-specs`**, which already requires it).
 - Optional: none.
-- Fallback: **`generate-spec`** **or** **`test-case-strategy`** missing ⇒ **stop** (no improvised planning/tests).
+- Fallback: **`generate-spec`** **or** **`test-case-strategy`** missing ⇒ **stop** (no improvised planning/tests). If the user requested **commit/push** and **`commit-and-push`** is unavailable, **MUST** stop and report.
 
 ## Non-negotiables
 

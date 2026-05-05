@@ -10,7 +10,7 @@ description: >-
 
 ## Dependencies
 
-- Required: `implement-specs-with-worktree` (every implementation subagent **MUST** follow this skill for its assigned directory); `merge-changes-from-local-branches` (phase integration **MUST NOT** skip this between phases).
+- Required: `implement-specs-with-worktree` (every implementation subagent **MUST** follow this skill for its assigned directory); `merge-changes-from-local-branches` (phase integration **MUST NOT** skip this between phases); **`commit-and-push`** (integration-branch **preparation** commits and **any** post-merge submission the user expects on that branch—**MUST NOT** bypass for bare `git commit` / ungated push when this skill owns the branch).
 - Conditional: `generate-spec` if the batch is not implementation-ready; `review-change-set` only when the user asks for post-merge review.
 - Fallback: If independent subagents cannot run, **MUST** report that limitation. Serial `implement-specs-with-worktree` across specs is allowed **only** after the user explicitly approves that fallback.
 
@@ -19,7 +19,7 @@ description: >-
 - **MUST NOT** delegate until `coordination.md`, when present, explicitly allows parallel implementation—or when absent, until you have verified no contradiction to parallel work.
 - **MUST** enumerate exact in-scope spec directories **before** any subagent starts; **MUST NOT** delegate archived, sibling, or “nearest guess” directories unless the user explicitly includes them.
 - **MUST** verify each delegated directory contains `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` before launch.
-- **MUST** complete, verify, and **commit** documented shared preparation on the integration branch **before** any implementation subagent starts when `preparation.md` exists or specs mandate pre-work; the coordinating agent **MUST NOT** delegate that preparation. Subagents **MUST NOT** start until this branch is clean at the preparation commit (or there is no required preparation).
+- **MUST** complete, verify, and **finalize** documented shared preparation on the integration branch **through `commit-and-push`** before any implementation subagent starts when `preparation.md` exists or specs mandate pre-work; the coordinating agent **MUST NOT** delegate that preparation. Subagents **MUST NOT** start until this branch is clean at the preparation commit (or there is no required preparation).
 - **MUST** build a directed dependency graph from `coordination.md` plus each spec’s `spec.md` / `design.md` (edges: *provider spec must merge before consumer spec*). **MUST** partition specs into phases by topological **layers**: Phase 1 = specs with **no** in-batch prerequisites; for *k* ≥ 2, Phase *k* = specs whose in-batch prerequisites all appear in phases before *k*. **MUST NOT** start phase *k* until phase *k − 1* is fully merged into the integration branch (or you have an explicit user override). If the graph has a cycle, **MUST** stop and report it.
 - **MUST** assign **exactly one** spec directory per implementation subagent; **MUST NOT** assign multiple directories to one implementation subagent.
 - **MUST** cap **active** implementation subagents at **four**; **MUST** start them **one at a time** with confirmation each is running before the next start; **MUST** back off on rate limits (no burst launches). Four is a ceiling, not a quota.
@@ -43,7 +43,7 @@ description: >-
    - **Pause →** Can I quote **verbatim** why each enumerated directory is in scope—not “probably related”?
    - **Pause →** What **exact sentence** from `coordination.md` gates parallel readiness, if any—or what absence did I infer from—and is that justified?
 
-2. **Preparation (blocking when required)** — Coordinating agent executes shared prep only: read tasks/outputs/verification hooks, satisfy scope, run listed checks, **commit** on the integration branch, record prep commit hash in ledger, leave working tree clean. If prep fails, **stop** (no subagents).
+2. **Preparation (blocking when required)** — Coordinating agent executes shared prep only: read tasks/outputs/verification hooks, satisfy scope, run listed checks, **finalize on the integration branch through `commit-and-push`** (push only if the user requested remote update), record prep commit hash in ledger, leave working tree clean. If prep fails, **stop** (no subagents).
    - **Pause →** Am I silently delegating preparation to a **subagent** when the coordinating agent owns it—is that happening?
    - **Pause →** What **commit hash** and **clean-tree** confirmation will subagents inherit as baseline?
 

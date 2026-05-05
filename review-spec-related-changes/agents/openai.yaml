@@ -1,4 +1,4 @@
 interface:
   display_name: "Review Spec Related Changes"
   short_description: "Review spec-backed changes for business-goal completion and secondary code-practice risks"
-  default_prompt: "Use $review-spec-related-changes to resolve the recent or user-specified spec documents, verify each business goal and acceptance criterion against the related implementation evidence, treat unmet business goals as the most severe findings, and then run $review-change-set, $discover-edge-cases, and $harden-app-security on the same code-affecting scope for secondary code-practice review."
+  default_prompt: "Use $review-spec-related-changes to resolve the recent or user-specified spec documents, verify each business goal and acceptance criterion against the related implementation evidence, treat unmet business goals as the most severe findings, and then run $review-change-set, $discover-edge-cases, and $discover-security-issues on the same code-affecting scope for secondary code-practice review."

@@ -21,7 +21,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - financial-research
 - read-github-issue
 - generate-spec
-- harden-app-security
+- discover-security-issues
 - implement-specs
 - implement-specs-with-subagents
 - implement-specs-with-worktree
@@ -204,7 +204,7 @@ Compatibility note:
 - `recover-missing-plan` is a local skill used by `enhance-existing-features` and `ship-github-issue-fix` when a referenced `docs/plans/...` spec set is missing or archived.
 - `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the table.
 - `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.
-- `review-spec-related-changes` is a local skill that depends on `review-change-set`, `discover-edge-cases`, and `harden-app-security` for secondary code-practice checks after business-goal completion is reviewed against the governing specs.
+- `review-spec-related-changes` is a local skill that depends on `review-change-set`, `discover-edge-cases`, and `discover-security-issues` for secondary code-practice checks after business-goal completion is reviewed against the governing specs.
 
 ## Release publishing
 

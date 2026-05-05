@@ -8,14 +8,14 @@ description: Resolve git merge conflicts using deterministic rules that preserve
 ## Dependencies
 
 - Required: none.
-- Conditional: none.
+- Conditional: **`commit-and-push`** when the user expects the resolved tree to be **committed** or **pushed**—**MUST** run that skill for the submission leg instead of bare `git commit` / ad-hoc push when readiness gates apply.
 - Optional: none.
-- Fallback: not applicable.
+- Fallback: If a **gated** submission was requested but **`commit-and-push`** is unavailable, **MUST** stop and report.
 
 ## Standards
 
 - Evidence: Read both parent versions from conflict markers before resolving.
-- Execution: Read conflicts → apply scenario rules → verify with tests → recommit.
+- Execution: Read conflicts → apply scenario rules → verify with tests → recommit via **`commit-and-push`** when persisting to git.
 - Quality: Prefer preserving functionality over keeping either branch's exact changes.
 - Output: Return resolved files with passing verification.
 

@@ -7,15 +7,15 @@ description: PR-focused workflow for open-source repositories. Use when the user
 
 ## Dependencies
 
-- Required: none.
+- Required: **`commit-and-push`** before publishing the contribution branch (any remaining changes **MUST** be committed/readiness-checked through that skill; **push** only when the user requested remote update—then continue to PR steps).
 - Conditional: `discover-edge-cases` and `code-simplifier` for code-affecting PRs before opening the PR.
 - Optional: none.
-- Fallback: If a required code-affecting dependency is unavailable, stop and report the missing dependency instead of bypassing the quality gate.
+- Fallback: If **`commit-and-push`** or a **required** code-affecting dependency is unavailable, stop and report the missing dependency instead of bypassing the quality gate.
 
 ## Standards
 
 - Evidence: Assume implementation is already prepared, then verify PR scope, repository constraints, and validation commands from the actual change set.
-- Execution: Create a compliant `codex/{change_type}/{changes}` branch, run the required quality gates for code changes, then draft and open the PR.
+- Execution: Create a compliant branch, run **`commit-and-push`** when the working tree still needs a gated commit, run dependent skills for code changes, then draft and open the PR.
 - Quality: Target the upstream parent repository by default for forks, keep PR content in English unless requested otherwise, and exclude internal workflow details.
 - Output: Produce a review-ready PR body with motivation, engineering rationale, test commands, and any required issue linkage.
 
@@ -47,7 +47,12 @@ Example:
 git checkout -b codex/fix/add-rate-limit-retry
 ```
 
-### 3) Run dependent skills for code-affecting changes
+### 3) Record changes with `commit-and-push`
+
+- If `git status` shows uncommitted work on the PR branch, run **`commit-and-push`** through commit (and **push** when the user explicitly asked to publish the branch remotely) before PR creation—**MUST NOT** bypass readiness/review gates that skill applies.
+- If the tree is already clean with commits present, skip only after confirming there is nothing left to stage.
+
+### 4) Run dependent skills for code-affecting changes
 
 - If the PR includes code changes, run `discover-edge-cases` first to discover unresolved edge-case risks.
 - Resolve any confirmed findings before continuing.
@@ -56,14 +61,14 @@ git checkout -b codex/fix/add-rate-limit-retry
 - Use these skills as internal quality gates only; do not include skill/tool names in PR content.
 - If the PR has no code changes, explicitly note that these two skills were not required in internal notes only.
 
-### 4) Verify existing changes (no feature implementation in this skill)
+### 5) Verify existing changes (no feature implementation in this skill)
 
 - Assume code/documentation changes are already prepared before entering this workflow.
 - Do not add new feature implementation in this skill.
 - After the dependent skills step (when required), run relevant checks (lint/test/build) based on repository conventions.
 - Record exact test commands and outcomes for PR content.
 
-### 5) Prepare PR content (show draft only on request)
+### 6) Prepare PR content (show draft only on request)
 
 - Draft the PR title and full PR body before creating the PR.
 - Keep PR content strictly about the PR itself (motivation, changes, rationale, tests).
@@ -72,7 +77,7 @@ git checkout -b codex/fix/add-rate-limit-retry
 - Show the draft only when the user explicitly asks to review it before creating the PR.
 - If the user asks for draft edits, revise accordingly and get final confirmation before creating the PR.
 
-### 6) Open the PR
+### 7) Open the PR
 
 - Prefer `gh pr create` to open the PR.
 - If the repository is a fork, target the upstream parent repository by default (for example `gh pr create --repo <upstream-owner>/<upstream-repo> --head <fork-owner>:<branch>`).

@@ -10,7 +10,7 @@ This skill:
 2. Rejects authorship bias, including confidence in code written earlier in the same conversation.
 3. Looks for architecture-level abstraction opportunities.
 4. Looks for code that can be simplified without changing behavior.
-5. Runs `harden-app-security` as a required adversarial cross-check for code-affecting changes.
+5. Runs `discover-security-issues` as a required adversarial cross-check for code-affecting changes.
 
 ## When to use
 
@@ -27,7 +27,7 @@ Use this skill when the task asks you to:
 - Treat recent edits as untrusted until evidence proves otherwise.
 - Prefer fewer, stronger findings over broad speculative advice.
 - Focus on architecture and simplification, not cosmetic style feedback.
-- Reuse confirmed security findings from `harden-app-security` instead of hand-waving about risk.
+- Reuse confirmed security findings from `discover-security-issues` instead of hand-waving about risk.
 
 ## Example
 
@@ -44,7 +44,7 @@ Expected behavior:
 - changed files are read before conclusions,
 - findings cite exact evidence,
 - architecture issues are prioritized over style comments,
-- security-sensitive changes are cross-checked through `harden-app-security`.
+- security-sensitive changes are cross-checked through `discover-security-issues`.
 
 ## References
 

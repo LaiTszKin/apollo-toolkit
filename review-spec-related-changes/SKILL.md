@@ -1,7 +1,7 @@
 ---
 name: review-spec-related-changes
 description: >-
-  Read-only spec compliance versus governing docs/plans: score each business-oriented requirement Met/Partial/Not-met using code/tests/commands—checked `tasks.md` boxes are never sufficient proof; ambiguity between two plausible plan roots halts execution; when runtime code exists, sequentially run **`review-change-set`**, **`discover-edge-cases`**, and **`harden-app-security`** on the same scoped diff afterward.
+  Read-only spec compliance versus governing docs/plans: score each business-oriented requirement Met/Partial/Not-met using code/tests/commands—checked `tasks.md` boxes are never sufficient proof; ambiguity between two plausible plan roots halts execution; when runtime code exists, sequentially run **`review-change-set`**, **`discover-edge-cases`**, and **`discover-security-issues`** on the same scoped diff afterward.
   Use for questions like “does this PR satisfy coordination.md + spec.md R2?” or user pins a `{change}` folder.
   Do not mutate repositories, reorder reports to bury missing goals, skip the tertiary review bundle on code-bearing diffs, or rely on intent without file evidence **BAD**, lead with refactor comments while R1 failing **FORBIDDEN**… GOOD pair every Not-met cite with `spec.md` ref + concrete path:test gap…
 ---
@@ -10,7 +10,7 @@ description: >-
 
 ## Dependencies
 
-- Required: `review-change-set`, `discover-edge-cases`, and `harden-app-security` whenever the scope includes **code-affecting** implementation to assess.
+- Required: `review-change-set`, `discover-edge-cases`, and `discover-security-issues` whenever the scope includes **code-affecting** implementation to assess.
 - Conditional: none.
 - Optional: none.
 - Fallback: If any required dependency is unavailable for a **code-affecting** review, **MUST** stop and report the gap. **MUST NOT** emit a “full pass” verdict without those three passes when code is in scope.
@@ -22,7 +22,7 @@ description: >-
 - **MUST** resolve which spec set governs the change **before** concluding; if multiple candidates fit equally and cannot be disambiguated from repo evidence, **MUST** stop and report ambiguity—**MUST NOT** guess.
 - **MUST** classify each business goal / acceptance item as `Met`, `Partially met`, `Not met`, or `Deferred/N/A` **only** using verifiable evidence (code, tests, commands, traces)—checked boxes in `tasks.md` are **not** proof by themselves.
 - **MUST** treat **unmet or partially met required business goals** as **highest severity**. **MUST NOT** let edge-case, security, or style findings **outrank** those gaps in the reported order or implied priority.
-- **MUST** finish the business-goal verdict **before** invoking secondary skills; **MUST** still run `review-change-set`, `discover-edge-cases`, and `harden-app-security` on the **same** implementation scope when code is involved (after step 1 verdict is written).
+- **MUST** finish the business-goal verdict **before** invoking secondary skills; **MUST** still run `review-change-set`, `discover-edge-cases`, and `discover-security-issues` on the **same** implementation scope when code is involved (after step 1 verdict is written).
 - **MUST NOT** rest conclusions on author intent, branch names, or chat memory unless **repository evidence** agrees.
 - Prefer **fewer confirmed findings** over broad speculation; unproven items belong under **Residual uncertainty**, not as faux defects.
 
@@ -61,7 +61,7 @@ description: >-
    - **Pause →** If I sorted findings by “interesting” instead of business impact, which line would unfairly rise above a missing goal?
    - **Pause →** For each `Partially met`, what single **missing proof** (test, wire-up, error path) am I naming explicitly?
 
-4. **Secondary reviews (code-affecting)** — On the same scope: `review-change-set` (architecture/simplification), `discover-edge-cases` (reproducible edge/observability risks), `harden-app-security` (reproducible security). Keep outputs labeled so they do not read as business-goal substitutions.
+4. **Secondary reviews (code-affecting)** — On the same scope: `review-change-set` (architecture/simplification), `discover-edge-cases` (reproducible edge/observability risks), `discover-security-issues` (reproducible security). Keep outputs labeled so they do not read as business-goal substitutions.
    - **Pause →** Does this secondary finding **force** a business re-score—if yes, did I revise step 3 before publishing?
    - **Pause →** Is the diff scope identical to what I used for business mapping (no silent file creep)?
 

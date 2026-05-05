@@ -1,7 +1,7 @@
 ---
 name: commit-and-push
 description: >-
-  Commit and push only (no semver): inspect staged vs unstaged, classify scopes, run mandated reviews (`review-change-set`, conditional `discover-edge-cases`/`harden-app-security`), **`submission-readiness-check`** BEFORE final commit honoring `CHANGELOG.md` Unreleased + `archive-specs` redirections, preserve intentional staging splits, forbid UI git stubs, VERIFY remote hashes post-push **`version-release` elsewhere**.
+  Commit and push only (no semver): inspect staged vs unstaged, classify scopes, run mandated reviews (`review-change-set`, conditional `discover-edge-cases`/`discover-security-issues`), **`submission-readiness-check`** BEFORE final commit honoring `CHANGELOG.md` Unreleased + `archive-specs` redirections, preserve intentional staging splits, forbid UI git stubs, VERIFY remote hashes post-push **`version-release` elsewhere**.
   Use for “please commit”, “submit”, “push branch” lacking explicit semver/tag language **STOP** tagging here… BAD skip readiness red… GOOD staged subset untouched unrelated dirty files changelog mirrors diff… hashes `git rev-parse HEAD` versus upstream… archive specs before commit flagged…
 ---
 
@@ -10,7 +10,7 @@ description: >-
 ## Dependencies
 
 - Required: **`submission-readiness-check`** immediately before the **final** commit.
-- Conditional: **`archive-specs`** when readiness (or completed specs) requires doc conversion or categorized `docs/` alignment; **`review-change-set`** for every **code-affecting** scope; **`discover-edge-cases`** and **`harden-app-security`** become **required** when classification/risk indicates (same scope)—treat as blocking, not polish.
+- Conditional: **`archive-specs`** when readiness (or completed specs) requires doc conversion or categorized `docs/` alignment; **`review-change-set`** for every **code-affecting** scope; **`discover-edge-cases`** and **`discover-security-issues`** become **required** when classification/risk indicates (same scope)—treat as blocking, not polish.
 - Optional: none.
 - Fallback: Any **required** dependency unavailable ⇒ **MUST** stop and report—**MUST NOT** “light” commit.
 
@@ -18,7 +18,7 @@ description: >-
 
 - **MUST** use real `git` mutations (`git add`, `git commit`, `git push`, `git stash`, etc.); **MUST NOT** treat UI tokens (`::git-commit`, IDE buttons) as proof of history.
 - **MUST** run **`submission-readiness-check`** before final commit; unresolved readiness (e.g. stale/missing `CHANGELOG.md` **Unreleased**, doc drift) **blocks** commit.
-- Code-affecting: **`review-change-set` MANDATORY**; unresolved confirmed findings **block**. When risk profile matches, **`discover-edge-cases`** / **`harden-app-security`** equally blocking.
+- Code-affecting: **`review-change-set` MANDATORY**; unresolved confirmed findings **block**. When risk profile matches, **`discover-edge-cases`** / **`discover-security-issues`** equally blocking.
 - **`archive-specs`**: when readiness says convert/archive or `docs/` mismatch—**MUST** run **before** final commit, not as a vague follow-up.
 - **MUST** reconcile **staged vs unstaged** with user intent—**MUST NOT** broaden scope by auto-staging unrelated files when user staged a subset.
 - **`CHANGELOG.md` `Unreleased`**: for code-affecting or user-visible docs, **MUST** reflect this change before commit; reopen diff after edits to match commit scope.
@@ -27,14 +27,14 @@ description: >-
 - **MUST NOT** run version bump, tag, or GitHub release (**use `version-release`**).
 - Clean worktree requests: **MUST** inspect `HEAD`, upstream, last commit—**MUST NOT** fabricate “pushed” when already satisfied or impossible.
 
-**Repository regression checks (verbatim requirements):** Treat root `CHANGELOG.md` `Unreleased` coverage as mandatory for code-affecting or user-visible changes. Re-open the final `CHANGELOG.md` diff after readiness updates. **`review-change-set` is required for code-affecting changes**; Run `review-change-set` for every code-affecting change before continuing; treat unresolved review findings as blocking. Any conditional gate whose trigger is confirmed by this classification becomes mandatory before commit. Treat every scenario-matched gate as blocking before commit. **`discover-edge-cases` and `harden-app-security` are important review gates**—when their scenario is met, treat them as blocking review gates, not optional polish.
+**Repository regression checks (verbatim requirements):** Treat root `CHANGELOG.md` `Unreleased` coverage as mandatory for code-affecting or user-visible changes. Re-open the final `CHANGELOG.md` diff after readiness updates. **`review-change-set` is required for code-affecting changes**; Run `review-change-set` for every code-affecting change before continuing; treat unresolved review findings as blocking. Any conditional gate whose trigger is confirmed by this classification becomes mandatory before commit. Treat every scenario-matched gate as blocking before commit. **`discover-edge-cases` and `discover-security-issues` are important review gates**—when their scenario is met, treat them as blocking review gates, not optional polish.
 
 ## Standards (summary)
 
 - **Evidence**: `git status`/`diff`; classification drives gates; changelog diff matches commit.
 - **Execution**: Inspect → classify → (deps) → readiness → commit → push verify.
 - **Quality**: No gate bypass; sequential git ops; preserve intentional commit boundaries.
-- **Output**: Conventional commit message + confirmed remote + note stash/scope if any.
+- **Output**: Conventional commit message + confirmed remote **when push ran** + note stash/scope if any.
 
 ## References
 
@@ -54,15 +54,16 @@ description: >-
 3. **Branch target** — Honor user branch; if switch needed, protect unrelated changes; cherry-pick/replay off wrong branch safely; worktree cases: identify authoritative target **before** replay.
    - **Pause →** Am I about to merge noise because diff > issue scope—should I stop and narrow first?
 
-4. **Code-affecting gates** — `review-change-set` always; add `discover-edge-cases` / `harden-app-security` when risk/trigger says so; fix or document blockers; re-test material logic.
+4. **Code-affecting gates** — `review-change-set` always; add `discover-edge-cases` / `discover-security-issues` when risk/trigger says so; fix or document blockers; re-test material logic.
 
 5. **Readiness** — Run **`submission-readiness-check`**; if it routes to **`archive-specs`**, run that **now**; fix `Unreleased` bullets; recheck changelog vs staged intent.
    - **Pause →** Could I commit while readiness still red—**why not**?
 
 6. **Commit** — Respect staging; separate commits if user asked; Conventional message per `references/commit-messages.md`.
 
-7. **Push** — Sequential; verify remote hash; sync local branch after if user asked; worktree cleanup **only after** target branch verified good.
-   - **Pause →** What two hashes prove remote == local?
+7. **Push** — **Only** when the user requested remote update (`push`, `publish`, PR branch sync, explicit upstream publish, or equivalent). If the user asked **only** for a **local** commit with **no** remote publish in this thread, finish after step 6, state local `HEAD`, and **do not** push.
+   - **Pause →** Did the user **explicitly** ask to update a remote, or only to record commits locally?
+   - **Pause →** What two hashes prove remote == local when push **did** run?
 
 ## Sample hints
 

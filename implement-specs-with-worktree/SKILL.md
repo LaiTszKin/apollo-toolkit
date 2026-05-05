@@ -10,7 +10,7 @@ description: >-
 
 ## Dependencies
 
-- Required: `implement-specs` for the shared discovery / implementation / backfill / commit / reporting lifecycle; `enhance-existing-features` and `develop-new-features` for implementation standards.
+- Required: `implement-specs` for the shared discovery / implementation / backfill / **submit** / reporting lifecycle; **`commit-and-push`** for the **final** implementation commit (and push when the user explicitly requests remote update); `enhance-existing-features` and `develop-new-features` for implementation standards.
 - Conditional: `generate-spec` if spec files need clarification or updates.
 - Fallback: If any required dependency skill is unavailable, **MUST** stop and report it.
 
@@ -24,7 +24,7 @@ description: >-
 - **MUST** use `git show-ref` and `git worktree list --porcelain` (not shell guesses) when checking whether a branch or worktree already exists; if creation fails ambiguously, **MUST** re-query those commands before retrying.
 - When `preparation.md` exists: **MUST** treat it as an already-committed shared baseline for parallel work; **MUST NOT** redo its tasks inside the member spec unless the preparation commit is missing or the document states the prerequisite is still blocked. If baseline assumptions break, **MUST** update `preparation.md` or stop for coordination—**MUST NOT** silently move prerequisite work into the member spec.
 - **MUST** complete the same quality bar as `implement-specs`: all in-scope tasks, relevant tests, honest backfill, no sibling-spec scope creep, revert formatter-only noise outside owned files before commit.
-- **MUST NOT** `git push` unless the user explicitly asks.
+- **MUST NOT** `git push` **outside** **`commit-and-push`** unless the user explicitly requests remote update through that workflow (or a release/PR skill the user named).
 - For targeted Rust tests: **MUST** pass at most one positional `cargo test` filter per invocation; use separate commands or a broader confirmed filter when multiple selectors are needed.
 
 ## Standards (summary)
@@ -59,7 +59,7 @@ description: >-
 
 ### C) Implement, backfill, commit, report
 
-- Execute **`implement-specs` Workflow steps 3–6** (implement, backfill, commit, report) **entirely from the worktree root**, applying `enhance-existing-features` / `develop-new-features` standards.
+- Execute **`implement-specs` Workflow steps 3–6** (implement, backfill, **submit via `commit-and-push`**, report) **entirely from the worktree root**, applying `enhance-existing-features` / `develop-new-features` standards.
 - In the report, **MUST** include branch name, worktree path, commit hash, tests run, backfilled docs, and an explicit statement that the parent checkout was not modified for implementation files.
   - **Pause →** Am I honoring **implement-specs** step 3–6 **constraints** literally while respecting that all writes happen **only** under this worktree root?
   - **Pause →** If I used Rust `cargo test` filters, did I violate the **single positional filter** rule; how would I split the commands?
@@ -80,6 +80,6 @@ description: >-
 
 ## References
 
-- `implement-specs`: shared lifecycle (read → implement → backfill → commit → report)
+- `implement-specs`: shared lifecycle (read → implement → backfill → **`commit-and-push`** → report)
 - `references/branch-naming.md`: branch naming
 - `enhance-existing-features`, `develop-new-features`: implementation standards

@@ -34,6 +34,13 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.9.2] - 2026-05-06
+
+### Changed
+- Rename skill `harden-app-security` → `discover-security-issues` and realign catalog references, agent prompts, and `test/skill-workflows.test.js`.
+- Refactor `discover-edge-cases`, `discover-security-issues`, and `review-change-set` for clearer dependencies, workflows, and agent-facing copy.
+- Standardize git submission: skills that record or publish changes now depend on **`commit-and-push`** (`implement-specs*`, `implement-specs-with-subagents`, `merge-conflict-resolver` when committing, `open-source-pr-workflow`, `resolve-review-comments`, `solve-issues-found-during-review`, `develop-new-features`, `enhance-existing-features`); **`commit-and-push`** runs **push** only when the user explicitly requests a remote update.
+
 ## [v3.9.1] - 2026-05-06
 
 ### Changed

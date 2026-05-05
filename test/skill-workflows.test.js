@@ -55,12 +55,12 @@ test('risk-driven edge and security reviews are blocking when applicable', () =>
   const commitAgent = read('commit-and-push/agents/openai.yaml');
   const releaseAgent = read('version-release/agents/openai.yaml');
 
-  assert.match(commitSkill, /`discover-edge-cases` and `harden-app-security` are important review gates/i);
+  assert.match(commitSkill, /`discover-edge-cases` and `discover-security-issues` are important review gates/i);
   assert.match(commitSkill, /treat them as blocking review gates, not optional polish/i);
-  assert.match(releaseSkill, /`discover-edge-cases` and `harden-app-security` are important review gates/i);
+  assert.match(releaseSkill, /`discover-edge-cases` and `discover-security-issues` are important review gates/i);
   assert.match(releaseSkill, /treat them as blocking review gates, not optional polish/i);
-  assert.match(commitAgent, /run \$discover-edge-cases and \$harden-app-security as blocking gates too/i);
-  assert.match(releaseAgent, /run \$discover-edge-cases and \$harden-app-security as blocking gates too/i);
+  assert.match(commitAgent, /run \$discover-edge-cases and \$discover-security-issues as blocking gates too/i);
+  assert.match(releaseAgent, /run \$discover-edge-cases and \$discover-security-issues as blocking gates too/i);
 });
 
 test('version-release requires version inspection and matching tag plus release', () => {

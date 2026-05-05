@@ -1,6 +1,8 @@
 ---
 name: discover-edge-cases
-description: Discover reproducible edge-case risks in changed code or a selected codebase scope, prove them with concrete evidence, and report prioritized findings without modifying implementation. Use when users ask to find edge cases, assess hardening gaps, or validate that unusual inputs and error paths are covered.
+description: >-
+  Diff-first (or full-repo) discovery of **reproducible** edge-case risks: boundaries, null/empty, failure paths, concurrency, observability; evidence via code/tests/runtime—**no edits, no new tests, no PRs**. For code-affecting scope, cross-check with **`discover-security-issues`** before final report.
+  Use for edge-case review, hardening gaps, unusual inputs/error paths, pre-merge risk pass **STOP** implementation or “just fix it here”… BAD unproven alarm list… GOOD path:line + double repro…
 ---
 
 # Discover Edge Cases
@@ -8,113 +10,82 @@ description: Discover reproducible edge-case risks in changed code or a selected
 ## Dependencies
 
 - Required: none.
-- Conditional: `harden-app-security` for code-affecting scopes before finalizing the report.
+- Conditional: **`discover-security-issues`** on **code-affecting** scope before finalizing the report (adversarial security pass).
 - Optional: none.
-- Fallback: If the required security cross-check is unavailable for a code-affecting scope, stop and report the missing dependency.
+- Fallback: If that security cross-check is **required** but unavailable, **MUST** stop and report the missing dependency.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Keep only reproducible findings backed by code, tests, runtime output, or direct reproduction steps.
-- Execution: Determine scope first, run focused probes, confirm reproducibility, then report findings without remediation.
-- Quality: Separate confirmed findings from hypotheses and cover boundary, failure, stateful, and observability edge cases that matter to the scope.
-- Output: Return prioritized findings, edge-case evidence, risk assessment, hardening guidance, and residual risk only.
+- **Discovery-only**: **MUST NOT** edit code, add/modify tests, or open PRs.
+- **MUST** keep only **reproducible** findings; label guesses as **hypotheses**.
+- **MUST** reproduce each **confirmed** issue **at least twice** (same trigger); vary neighbors (empty vs null, malformed vs wrong-type).
+- **MUST** discard authorship bias—including code from earlier in the conversation.
+- If remediation is requested: finish this pass first; hand off **confirmed** items to an implementation workflow.
 
-## Non-negotiable Boundaries
+## Standards (summary)
 
-- This skill is discovery-only: do not edit code, do not add or modify tests, and do not open PRs.
-- Keep only reproducible findings with clear evidence.
-- Mark unverified ideas as hypotheses and separate them from confirmed findings.
-- If the task also requires remediation, finish this discovery pass first, then hand off confirmed findings to another implementation workflow.
-- Discard authorship bias completely: treat code written earlier in the conversation or by this agent as untrusted until evidence proves otherwise.
+- **Evidence**: `path:line`, commands/inputs, test output, or runtime symptoms—no intent-only claims.
+- **Execution**: Scope → baseline read → focused probes (2–5 high-impact) → validate → prioritize → report.
+- **Quality**: Prefer fewer strong findings; flag data integrity, silent failure, retry storms, cross-module propagation.
+- **Output**: Prioritized findings, reproduction, risk, hardening **advice**, residual risk/hypotheses.
 
 ## Workflow
 
-### 1) Determine scan scope (required)
+**Chain-of-thought:** Answer **`Pause →`** each step; if scope is wrong, fix before probing.
 
-- Run `git diff --name-only` first.
-- If diff exists: inspect only changed files plus the minimum dependency chain required to validate suspected edge cases.
-- If no diff exists: scan the full project, prioritizing core domain logic, external API boundaries, stateful workflows, and concurrency-sensitive modules.
-- If no actionable issue is found, report `No actionable edge-case finding identified` and stop.
+### 1) Determine scan scope
 
-### 2) Build a factual baseline
+- `git diff --name-only` first.
+- **With diff**: changed files + minimum dependency chain to validate suspected edges.
+- **No diff**: whole project, prioritizing domain logic, external boundaries, stateful/concurrent modules.
+- If nothing actionable after honest pass: report `No actionable edge-case finding identified` and stop.
+   - **Pause →** Can I name the **smallest file set** I must read—not the whole monorepo by default?
 
-- Read the relevant code paths end-to-end before judging behavior.
-- Re-derive behavior from code, tests, runtime output, and reproduced inputs only; ignore prior intent, authorship, or confidence from earlier turns.
-- Clarify input/output contracts: types, valid ranges, null handling, ordering assumptions, retry/error behavior, and state transitions.
-- Run existing tests or a minimal reproduction when needed to confirm actual vs expected behavior.
-- Record exact evidence with file references (`path:line`) and observable symptoms.
+### 2) Build factual baseline
 
-### 3) Execute focused edge-case probes
+- Read end-to-end before judging; derive behavior from code, tests, runtime only.
+- Clarify contracts: types, ranges, null, ordering, retries, state transitions.
+   - **Pause →** What did I **execute** (test/command) vs only read?
 
-Prioritize 2-5 high-risk cases directly tied to the selected scope:
+### 3) Focused probes (prioritize 2–5)
 
-- Empty collections / empty strings / None / null
-- Boundary values: 0, 1, -1, max/min limits, overflow
-- Duplicate, ordering, sorting, or deduplication assumptions
-- Exception paths: external dependency failure, timeout, retry, or partial data missing
-- Invalid formats: malformed strings, invalid date/timezone, or unexpected types
-- Concurrency/reentrancy: repeated calls, state contamination, or race windows
-- Architecture-level edge cases: backpressure, resource exhaustion, timeout propagation, or partial commit/rollback behavior
+Target high-risk patterns tied to scope:
 
-For broader coverage, load references as needed:
+- Empty/null/malformed/unexpected types; boundaries (0, 1, min/max, overflow); duplicates/order.
+- Dependency failure: timeout, partial data, retry loops; invalid formats.
+- Concurrency/reentrancy; architecture edges: backpressure, exhaustion, partial commit/rollback.
+- **HTTP/API** (if in scope): 429/500 behavior; logging with status/id/retry/latency (no silent fails).
 
-- `references/architecture-edge-cases.md`
-- `references/code-edge-cases.md`
-
-#### External API checks
-
-If the scope includes external API calls, validate:
-
-- observable health/availability handling,
-- degradation behavior for at least HTTP 429 and 500,
-- actionable error logging (status code, request id, retry count, latency) to avoid silent failures.
+Load as needed: `references/architecture-edge-cases.md`, `references/code-edge-cases.md`.
+   - **Pause →** Would **discover-security-issues** flag this sink if it is auth/input injection—did I schedule that pass for code changes?
 
 ### 4) Confirm reproducibility
 
-- Reproduce each confirmed issue at least twice through the same trigger path.
-- For high-risk findings, try nearby variants such as boundary neighbors, empty vs null, malformed vs well-typed invalid input, repeated calls, and stale ordering.
-- Capture the exact command, request, or input together with the observed failure or missing protection.
-- Keep unverified ideas as hypotheses only.
+- Two passes per confirmed issue; note variants tried; keep unconfirmed as hypotheses.
 
-### 5) Prioritize confirmed findings
+### 5) Prioritize
 
-- Rank findings by user impact, exploitability or frequency, and blast radius.
-- Call out data-integrity, state corruption, silent failure, retry storm, and cross-module propagation risks explicitly.
-- Prefer fewer, stronger findings over many speculative ones.
+- User impact, frequency/exploitability, blast radius; call out integrity, state corruption, silent failure.
 
-### 6) Report findings only
+### 6) Security cross-check (code-affecting)
 
-Deliver:
+- Run **`discover-security-issues`** on the **same** scope; integrate **confirmed** security items (do not duplicate as edge trivia unless distinct).
 
-1. Findings (highest risk first)
-   - Title and severity/priority
-   - Evidence (`path:line`)
-   - Reproduction steps or triggering input
-   - Broken expectation/invariant
-2. Edge-case evidence
-   - Preconditions
-   - Observed behavior
-   - Reproducibility notes and nearby variant results
-3. Risk assessment
-   - Impact, likelihood, and scope
-   - Why this matters in system context
-4. Hardening guidance (advice only)
-   - Recommended fix direction
-   - Suggested test coverage to add during remediation
-5. Residual risk
-   - Hypotheses, unknowns, and next validation ideas
+### 7) Report only
 
-## Minimum Coverage
+Deliver: (1) Findings—title, severity, evidence, repro, broken invariant; (2) Edge evidence—preconditions, observation, variants; (3) Risk—impact/likelihood/scope; (4) Hardening guidance (advisory); (5) Residual risk—hypotheses, next checks.
 
-Apply all relevant checks for the selected scope:
+## Minimum coverage (apply what fits scope)
 
-- Input validation: empty/null/malformed/unexpected-type handling
-- Boundary behavior: zero/one/min/max/overflow/ordering edges
-- Failure behavior: timeout, retry, partial dependency failure, degraded mode
-- Stateful behavior: idempotency, replay, concurrency, rollback, duplicate processing
-- Observability: actionable errors and logging for failures that would otherwise be silent
+- Input validation; boundary behavior; failure/degraded modes; state/idempotency/concurrency/rollback; actionable observability.
 
-## Resources
+## Sample hints
 
-- `references/architecture-edge-cases.md`: cross-module/system-level edge-case checklist.
-- `references/code-edge-cases.md`: code-level input, boundary, and error-path checklist.
+- **Diff**: One new parser → empty string + max length + malformed delimiter **before** “maybe SQL.”
+- **No diff**: Start at payment/state machine module—highest consequence.
+- **Handoff**: Five confirmed edges → remediation skill gets **numbered list + repro**—not this skill patching.
+
+## References
+
+- `references/architecture-edge-cases.md` — system-level checklist.
+- `references/code-edge-cases.md` — code-level input/error/concurrency checklist.
