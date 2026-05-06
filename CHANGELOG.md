@@ -34,6 +34,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.9.3] - 2026-05-07
+
+### Changed
+- `solve-issues-found-during-review`: add explicit completion criteria (spec conformance plus full closure of security, edge-case, and related ancillary review streams), tighten dependencies and closing report gates.
+
 ## [v3.9.2] - 2026-05-06
 
 ### Changed

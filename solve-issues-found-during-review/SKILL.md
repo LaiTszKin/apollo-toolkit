@@ -1,9 +1,9 @@
 ---
 name: solve-issues-found-during-review
 description: >-
-  Operate strictly from a structured review/issue list containing confirmed findings: close items in descending severity order (Critical before High/Medium/Low), land the smallest corrective diff per finding, run targeted validation after each fix before continuing, forbid speculative polish or unsolicited doc edits unless a finding explicitly requires them, and document Deferred or Could-not-reproduce outcomes with reproducible rationale.
-  Use when prompts reference concrete review outputs (“fix Bugbot findings”, “resolve security audit bullets”) accompanied by reproducible excerpts—STOP if only vague “there were issues yesterday” survives.
-  Bad pattern: refactoring modules while unresolved Critical SSRF persists… Good pattern: `HIGH SSRF src/net/client.rs…` patched, `cargo test net::fetch` green, hashes recorded…
+  From a confirmed finding list: fix in severity order (Critical→Low) with minimal patches, validate after each item, forbid speculative polish; document Deferred/CNR with evidence.
+  Done only when code matches governing specs/plans where they apply and security, edge-case, and other inbound review findings are fixed/verified with nothing material open.
+  Use for concrete review excerpts; STOP if vague. Bad: refactor while Critical SSRF open. Good: minimal patch, tests green, evidence cited.
 ---
 
 # Solve Issues Found During Review
@@ -11,8 +11,8 @@ description: >-
 ## Dependencies
 
 - Required: none (caller **MUST** supply an existing review report or reconstructable finding list).
-- Conditional: `review-change-set` for optional re-validation after **code-affecting** fixes; `systematic-debug` when a fix causes unexpected test or runtime failures; **`commit-and-push`** when the user requests **git commit** and/or **push** to persist fixes—**MUST** hand off that leg to **`commit-and-push`** (not bare `git commit` / ungated push).
-- Optional: `discover-edge-cases` / `discover-security-issues` when the user or report demands post-fix confirmation on those dimensions.
+- Conditional: `review-spec-related-changes` when governing `docs/plans/...`, `spec.md`, `tasks.md`, contracts, or checklists bind the changed behavior—**MUST** satisfy **Completion criteria** §1 before declaring done; `review-change-set` for optional re-validation after **code-affecting** fixes; `systematic-debug` when a fix causes unexpected test or runtime failures; **`commit-and-push`** when the user requests **git commit** and/or **push** to persist fixes—**MUST** hand off that leg to **`commit-and-push`** (not bare `git commit` / ungated push).
+- Conditional (completion gate): **`discover-security-issues`** / **`discover-edge-cases`** when the inbound material includes security or edge-case findings, or when completion requires proving those dimensions clean—rerun or equivalent scoped proof **MUST** show no remaining confirmed in-scope issue (see **Completion criteria** §2).
 - Fallback: If `review-change-set` is unavailable after code fixes, **MUST** still verify via targeted tests and `git diff` (or equivalent) and **MUST** document exactly what was run. If the user requested **commit/push** and **`commit-and-push`** is unavailable, **MUST** stop and report.
 
 ## Non-negotiables
@@ -24,12 +24,21 @@ description: >-
 - This skill **defaults to product code**; **MUST NOT** edit specs, docs, or `AGENTS.md`/`CLAUDE.md` unless the **finding text** explicitly requires it.
 - If a finding cannot be reproduced after investigation, **MUST** record `Could not reproduce` with evidence and **MUST** continue the queue without silently dropping the item.
 
+## Completion criteria
+
+Declare this workflow **finished** only when **both** clauses below hold. Partial closure of the finding queue is insufficient.
+
+1. **Specification conformance**: Every behavior touched by fixes **MUST** match the authoritative specification documents (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, governing `docs/plans/{change}` prose, plus any checklist items the caller names). **MUST** run **`review-spec-related-changes`** (or an equivalent checklist walk tied to cited requirement IDs plus tests/commands) whenever such docs exist or the user points at a plan path; cite **Met** (or repaired **Partial**) outcomes with file/test evidence in the closing report. If the caller asserts **no** binding spec for the scope, **MUST** state that assumption explicitly and anchor compliance to the issue/report text plus passing validation—**MUST NOT** silently invent spec obligations.
+2. **Ancillary reviews fully cleared**: Confirmed findings from **security audits**, **edge-case / hardening reviews**, and any other labeled review streams in the inbound package **MUST** reach **`Fixed`** (or documented **`Could not reproduce`** with reproducible rationale) **with** reruns or scoped proofs that show no remaining reproducible exploit or edge-case failure **in scope**. **MUST NOT** declare completion while Critical / High-class security issues or correctness-class edge regressions remain open. **`Deferred`** is incompatible with declaring completion unless the caller explicitly rescopes (“out of this pass”) **in writing** in the conversation; otherwise **MUST** keep working or stop with a blocker report listing what still fails completion §2.
+
+`Could not reproduce` on a formerly cited line **counts** toward §2 cleared **only if** investigation evidence excludes stale reports; if reproducibility disagrees between spec §1 and a security/edge claim, **priority is correctness and safety**: resolve the conflict before completion.
+
 ## Standards (summary)
 
-- **Evidence**: Confirmed finding → code path → minimal patch → validation artifact.
-- **Execution**: Order by severity; optional parallel module groups only when isolation is real; merge without losing fix intent.
+- **Evidence**: Confirmed finding → code path → minimal patch → validation artifact; closure adds spec traceability and ancillary-review clean signal.
+- **Execution**: Order by severity; optional parallel module groups only when isolation is real; merge without losing fix intent; completion gates §1–§2 after the queue settles.
 - **Quality**: No speculative hardening; conflicts resolved conservatively unless the finding demands an aggressive change.
-- **Output**: Per-finding status, validation proof, final re-validation summary, residual/deferred items with reasons.
+- **Output**: Per-finding status, validation proof, **completion-criteria checklist** (spec + ancillary reviews), final re-validation summary, residual/blockers only when completion is explicitly waived by caller rescope.
 
 ## Workflow
 
@@ -54,13 +63,16 @@ Sort into Critical → High → Medium → Low. Optionally group by **module** o
 ### 3) Full-scope re-validation
 
 After all findings are processed: run relevant tests over touched areas; if code changed and `review-change-set` is available, run it on the post-fix diff; capture `git diff --stat` (or equivalent). **MUST** confirm no confirmed finding remains open without a recorded reason (`Deferred`, `Could not reproduce`, etc.).
+**Before** declaring the engagement complete: apply **Completion criteria**—**(§1)** spec/plan conformance evidence (`review-spec-related-changes` or equivalent cited requirement IDs + commands); **(§2)** reruns or scoped proofs so security / edge-case (and sibling) confirmed issues are **`Fixed`** or evidenced `Could not reproduce`, with nothing Critical/High-class left open unless the caller explicitly rescopes.
    - **Pause →** Would the **same** reviewer still see **actionable proof** closed for each `Fixed`, or did I rationalize failures away?
    - **Pause →** Did my consolidated diff sneak in **bonus** unrelated changes—if yes, peel them back?
+   - **Pause →** Would **§1 + §2** pass an external spot-check—is spec coverage documented and ancillary dimensions clean?
 
 ### 4) Report
 
-Deliver: (1) Summary by severity. (2) Per finding: `Fixed` / `Could not reproduce` / `Deferred` + location + validation evidence. (3) Final re-validation (review tool result if any, tests, diff stat). (4) Residual/deferred with reasons. (5) User-facing next checks before merge (manual QA, integration, etc.).
+Deliver: (1) Summary by severity. (2) Per finding: `Fixed` / `Could not reproduce` / `Deferred` + location + validation evidence. (3) **Completion criteria block**: §1 spec conformance (tool or checklist + requirement IDs + commands); §2 security/edge-case (and other ancillary) closure with rerun evidence or explicit caller rescope for any intentional exception. (4) Final re-validation (review tool result if any, tests, diff stat). (5) Residual/deferred with reasons—if present, state whether completion was declared or blocked. (6) User-facing next checks before merge (manual QA, integration, etc.).
    - **Pause →** Could the user rerun **exactly one** cited command per `Fixed` to trust me—is that cited?
+   - **Pause →** Does the report prove **§1 + §2** without hand-waving?
 
 ## Notes
 
