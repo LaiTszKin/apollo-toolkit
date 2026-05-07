@@ -34,6 +34,11 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.9.4] - 2026-05-07
+
+### Changed
+- `implement-specs`, `implement-specs-with-worktree`, `implement-specs-with-subagents`: require full execution of every in-scope `tasks.md` line with no workload exemption; treat complete `checklist.md` wrap-up / acceptance / closing obligations as a hard gate before the spec may be considered done or merged (coordinators must not merge partial checklist closure); tighten workflow Pause prompts and agent-facing descriptions accordingly.
+
 ## [v3.9.3] - 2026-05-07
 
 ### Changed

@@ -1,7 +1,7 @@
 ---
 name: implement-specs-with-worktree
 description: >-
-  Same contract as **`implement-specs`** but every write happens inside a dedicated `git worktree` + feature branch; verify `pwd` equals `git rev-parse --show-toplevel` before touching code; parent checkout remains read-only for deliverables; honor `preparation.md` baselines and sibling collision rules from `coordination.md`.
+  Same contract as **`implement-specs`**—including **complete execution of every `tasks.md` line and every `checklist.md` wrap-up / acceptance obligation regardless of workload**—but every write happens inside a dedicated `git worktree` + feature branch; verify `pwd` equals `git rev-parse --show-toplevel` before touching code; parent checkout remains read-only for deliverables; honor `preparation.md` baselines and sibling collision rules from `coordination.md`.
   Pick when the user or batch workflow demands isolation (“don’t disturb my dirty main”, per-spec worker). Plain same-branch edits stay on **`implement-specs`** instead.
   Good: commands show matching paths after `git worktree add ../oauth-scope feat/oauth-scope`. Bad: patching files under the primary checkout tree for implementation output.
 ---
@@ -23,7 +23,9 @@ description: >-
 - **MUST** use the spec directory name (`change_name`) as the canonical basename for the worktree path and branch stem; branch **`type`/name** must follow `references/branch-naming.md`.
 - **MUST** use `git show-ref` and `git worktree list --porcelain` (not shell guesses) when checking whether a branch or worktree already exists; if creation fails ambiguously, **MUST** re-query those commands before retrying.
 - When `preparation.md` exists: **MUST** treat it as an already-committed shared baseline for parallel work; **MUST NOT** redo its tasks inside the member spec unless the preparation commit is missing or the document states the prerequisite is still blocked. If baseline assumptions break, **MUST** update `preparation.md` or stop for coordination—**MUST NOT** silently move prerequisite work into the member spec.
-- **MUST** complete the same quality bar as `implement-specs`: all in-scope tasks, relevant tests, honest backfill, no sibling-spec scope creep, revert formatter-only noise outside owned files before commit.
+- **`tasks.md` completeness (hard stop)**: **MUST** satisfy the **`implement-specs` Non-negotiable** on **`tasks.md`**: execute **every** actionable line in the in-scope `tasks.md`, with **no** early exit for workload, duration, or breadth; partial task lists are **not** a mergeable or committable state. If a line cannot be met under contracts, **MUST** halt with evidence and resolve the plan through approved planning updates before claiming completion.
+- **`checklist.md` wrap-up / acceptance (hard stop for “spec complete”)**: **MUST** satisfy the **`implement-specs` Non-negotiable** on **`checklist.md`**: the spec is **not** **complete** and **must not** be merged or treated as finished until **all** checklist-defined wrap-up, acceptance, and closing obligations for the change are **done** and honestly recorded—**no** workload exemption.
+- **MUST** complete the same quality bar as `implement-specs`: on top of full `tasks.md` and **complete checklist wrap-up**, relevant tests, honest backfill, no sibling-spec scope creep, revert formatter-only noise outside owned files before commit.
 - **MUST NOT** `git push` **outside** **`commit-and-push`** unless the user explicitly requests remote update through that workflow (or a release/PR skill the user named).
 - For targeted Rust tests: **MUST** pass at most one positional `cargo test` filter per invocation; use separate commands or a broader confirmed filter when multiple selectors are needed.
 
@@ -31,7 +33,7 @@ description: >-
 
 - **Evidence**: Read full spec set plus `coordination.md` and `preparation.md` when present; verify whether the spec is already implemented on the baseline before opening a new worktree; if the plan is missing in the worktree, sync the authoritative copy and re-read before coding.
 - **Execution**: Isolated worktree only; branch naming per `references/branch-naming.md`; check sibling worktrees before editing shared boundaries in a parallel batch.
-- **Quality**: Same as `implement-specs`, plus collision awareness with sibling worktrees per `coordination.md`.
+- **Quality**: Same as `implement-specs` (including **all** `tasks.md` items **and** **all** `checklist.md` wrap-up obligations—no workload excuse), plus collision awareness with sibling worktrees per `coordination.md`.
 - **Output**: Clean local branch in the worktree with intended commits only; parent working tree unchanged by this implementation.
 
 ## Workflow
@@ -59,7 +61,7 @@ description: >-
 
 ### C) Implement, backfill, commit, report
 
-- Execute **`implement-specs` Workflow steps 3–6** (implement, backfill, **submit via `commit-and-push`**, report) **entirely from the worktree root**, applying `enhance-existing-features` / `develop-new-features` standards.
+- Execute **`implement-specs` Workflow steps 3–6** (implement—including **full** `tasks.md` and checklist-backed work per Non-negotiables—backfill—including **complete** `checklist.md` wrap-up before submit—**submit via `commit-and-push`**, report) **entirely from the worktree root**, applying `enhance-existing-features` / `develop-new-features` standards.
 - In the report, **MUST** include branch name, worktree path, commit hash, tests run, backfilled docs, and an explicit statement that the parent checkout was not modified for implementation files.
   - **Pause →** Am I honoring **implement-specs** step 3–6 **constraints** literally while respecting that all writes happen **only** under this worktree root?
   - **Pause →** If I used Rust `cargo test` filters, did I violate the **single positional filter** rule; how would I split the commands?
