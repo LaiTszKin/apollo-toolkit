@@ -76,13 +76,13 @@ description: >-
 
 **Repository regression check:** The coordinating agent must complete and commit explicitly documented prerequisite preparation on the integration branch before launching implementation subagents when `preparation.md` or equivalent mandates it.
 
-## Sample hints
+## Sample hints (subagent scheduling)
 
-- **Ledger row (one line per spec)**:
-  `oauth-scope | phase=1 | depends-on: — | branch feat/oauth-scope | status merged | tests: npm test ✓`
-- **Subagent envelope (minimal)** — repo root `/repo`; spec `/repo/docs/plans/2026-05-01/batch-a/oauth-scope/`; instruction: run skill **`implement-specs-with-worktree`** on that path only; **mandate: complete every line in that directory’s `tasks.md` and every `checklist.md` wrap-up / acceptance item**; baseline `prep_sha=deadbeef` when preparation landed; reply with branch, `worktree path`, commit, tests, and confirmation that **no** applicable `tasks.md` items **or** checklist closing obligations remain open.
-- **Tiny dependency graph**: `api-layer` blocks `cli-wrapper` ⇒ Phase 1: `{ api-layer }`, Phase 2: `{ cli-wrapper }`. Independent specs share a phase layer (e.g. both in Phase 1) **only** if neither lists the other as prerequisite in spec/design/coordination.
-- **Launch cadence**: with cap 4, acceptable active counts over time: `1 → 2 → 3 → 4 → (finish one) → 4`; **not** spawn 4 in one burst with no pacing.
+- **Parallel batch (four independent specs)** — The batch contains **four** member directories and `coordination.md` allows parallel implementation with **no** in-batch prerequisites. Treat them as **one phase**: assign **exactly one** spec per subagent, start up to **four** **`implement-specs-with-worktree`** workers **staggered** (never burst—Non-negotiables), each finishing **all** of its directory’s **`tasks.md`** and **`checklist.md`** before reporting success; when **every** branch in the phase is green, run **`merge-changes-from-local-branches`** to bring **all four** into the integration branch **before** declaring the batch done or starting a follow-on phase.
+
+- **Preparation plus A → {B, C}** — Specs **A**, **B**, and **C** share a batch with **`preparation.md`**; `coordination.md` / design shows **B** and **C** depend on merged work from **A**. Coordinating agent: (1) complete **preparation** on the integration branch and **`commit-and-push`** (push only if the user asked); (2) **Phase 1**: launch **one** subagent for **A** only; **`merge-changes-from-local-branches`** for **A** when it passes; (3) **Phase 2**: launch **two** subagents for **B** and **C** from the branch that already contains **A**’s merge, still staggering starts; (4) merge **B** and **C** when both finish. **MUST NOT** start **B** or **C** until **A** is merged into the baseline they branch from.
+
+- **Ledger reminder** — One row per spec remains mandatory (`phase`, `depends-on`, branch/worktree, `merged` / `blocked`, tests); see Non-negotiables for full fields.
 
 ## References
 

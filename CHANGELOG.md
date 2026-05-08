@@ -34,6 +34,13 @@ All notable changes to this repository are documented in this file.
 ### Added
 - (None yet)
 
+## [v3.9.5] - 2026-05-08
+
+### Changed
+- `implement-specs`: document read order (spec → design → contract → checklist → tasks), evidence-backed plan resolution, sequential multi-directory execution per `coordination.md`; drop `enhance-existing-features` / `develop-new-features` dependencies; trim frontmatter description; sync agent prompt.
+- `implement-specs-with-worktree`: align with updated `implement-specs` contract and dependencies; trim description; sync agent prompt.
+- `implement-specs-with-subagents`: replace sample hints with subagent scheduling examples (parallel four-spec batch vs preparation plus A → {B, C}).
+
 ## [v3.9.4] - 2026-05-07
 
 ### Changed

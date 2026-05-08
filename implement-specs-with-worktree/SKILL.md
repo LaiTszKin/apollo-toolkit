@@ -1,16 +1,14 @@
 ---
 name: implement-specs-with-worktree
 description: >-
-  Same contract as **`implement-specs`**—including **complete execution of every `tasks.md` line and every `checklist.md` wrap-up / acceptance obligation regardless of workload**—but every write happens inside a dedicated `git worktree` + feature branch; verify `pwd` equals `git rev-parse --show-toplevel` before touching code; parent checkout remains read-only for deliverables; honor `preparation.md` baselines and sibling collision rules from `coordination.md`.
-  Pick when the user or batch workflow demands isolation (“don’t disturb my dirty main”, per-spec worker). Plain same-branch edits stay on **`implement-specs`** instead.
-  Good: commands show matching paths after `git worktree add ../oauth-scope feat/oauth-scope`. Bad: patching files under the primary checkout tree for implementation output.
+  Like **`implement-specs`** (same read order, full `tasks.md`/`checklist.md`, sequential multi-spec per `coordination.md`) but all writes in a dedicated worktree+feature branch; `pwd` must match `git rev-parse --show-toplevel`; parent checkout read-only for deliverables; honor `preparation.md` and `coordination.md` collision rules. Use when isolation is required; otherwise **`implement-specs`**.
 ---
 
 # Implement Specs with Worktree
 
 ## Dependencies
 
-- Required: `implement-specs` for the shared discovery / implementation / backfill / **submit** / reporting lifecycle; **`commit-and-push`** for the **final** implementation commit (and push when the user explicitly requests remote update); `enhance-existing-features` and `develop-new-features` for implementation standards.
+- Required: `implement-specs` for the shared discovery / implementation / backfill / **submit** / reporting lifecycle; **`commit-and-push`** for the **final** implementation commit (and push when the user explicitly requests remote update).
 - Conditional: `generate-spec` if spec files need clarification or updates.
 - Fallback: If any required dependency skill is unavailable, **MUST** stop and report it.
 
@@ -61,7 +59,7 @@ description: >-
 
 ### C) Implement, backfill, commit, report
 
-- Execute **`implement-specs` Workflow steps 3–6** (implement—including **full** `tasks.md` and checklist-backed work per Non-negotiables—backfill—including **complete** `checklist.md` wrap-up before submit—**submit via `commit-and-push`**, report) **entirely from the worktree root**, applying `enhance-existing-features` / `develop-new-features` standards.
+- Execute **`implement-specs` Workflow steps 3–6** (implement—including **full** `tasks.md` and checklist-backed work per Non-negotiables—backfill—including **complete** `checklist.md` wrap-up before submit—**submit via `commit-and-push`**, report) **entirely from the worktree root**, honoring the same **`spec.md` / `design.md` / `contract.md` / `checklist.md` / `tasks.md`** read-and-execute rules as **`implement-specs`** (including **one directory at a time** to completion when the request spans multiple member specs on the same integration cadence—typically **one worktree lifecycle per directory** unless the user batches otherwise).
 - In the report, **MUST** include branch name, worktree path, commit hash, tests run, backfilled docs, and an explicit statement that the parent checkout was not modified for implementation files.
   - **Pause →** Am I honoring **implement-specs** step 3–6 **constraints** literally while respecting that all writes happen **only** under this worktree root?
   - **Pause →** If I used Rust `cargo test` filters, did I violate the **single positional filter** rule; how would I split the commands?
@@ -82,6 +80,5 @@ description: >-
 
 ## References
 
-- `implement-specs`: shared lifecycle (read → implement → backfill → **`commit-and-push`** → report)
+- `implement-specs`: shared lifecycle (locate → read bundle in order → implement → backfill → **`commit-and-push`** → report)
 - `references/branch-naming.md`: branch naming
-- `enhance-existing-features`, `develop-new-features`: implementation standards
