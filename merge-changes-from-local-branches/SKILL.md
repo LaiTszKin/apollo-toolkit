@@ -1,167 +1,114 @@
 ---
 name: merge-changes-from-local-branches
 description: >-
-  Read changes from local branches identified by branch name and merge them back
-  into the current local branch. When conflicts arise, auto-resolve them by
-  keeping correct functionality (preferring the more recent change on the same
-  line, or the change that preserves working behavior). After merge verification,
-  run `archive-specs` so completed plan sets are archived and durable project
-  docs are synchronized, then hand the current branch state to `commit-and-push`
-  so the final submit workflow commits and pushes on that same local branch.
-  Use when the user asks to consolidate local branch work, merge named branches
-  into the current branch, or prepare the current branch for integration.
+  Read changes from local branches identified by branch name and merge them back into the current local branch. Resolve conflicts by composing correct behavior (prefer the more recent change on the same line or the variant that preserves working behavior), using **`merge-conflict-resolver`** when needed. Verify after merges; remove successfully merged source branches and detached worktrees only after merge + verification succeed. Finalize through **`commit-and-push`** for submission-readiness gates and the **final local commit** on the same branch—**do not** push unless the user explicitly requested remote update in this thread (**`commit-and-push`** step 7). **Does not** run **`archive-specs`** as part of this skill.
+  Use when consolidating named local branch work into the current branch or preparing integration on that branch.
 ---
 
 # Merge Changes from Local Branches
 
 ## Dependencies
 
-- Required: `archive-specs` to archive completed plan sets and synchronize durable project docs after merge verification, and `commit-and-push` for the final current-branch submission flow.
-- Conditional: `merge-conflict-resolver` to resolve merge conflicts deterministically when conflicts arise.
+- Required: **`commit-and-push`** for submission-readiness, mandated reviews, and the **final** commit on the original current branch (push **only** when the user explicitly asked for remote update in this thread—otherwise stop after commit).
+- Conditional: **`merge-conflict-resolver`** when merge conflicts require deterministic resolution.
 - Optional: none.
-- Fallback: If git operations fail, stop and report the error.
+- Fallback: If **`commit-and-push`** is unavailable, **MUST** stop and report—**MUST NOT** improvise readiness or use a bare `git commit` shortcut. If git merge operations fail irreparably, stop and report.
 
-## Standards
+## Non-negotiables
 
-- Evidence: Inspect the original current branch, local branches, branch-name matches provided by the user or active spec names, actual conflicting files, and any active batch-spec `coordination.md` merge-order guidance before deciding what to merge.
-- Execution: Merge only the relevant named branches back into the original current branch, read any active batch-spec `coordination.md` and honor its documented merge order when present, resolve conflicts by reading both sides and editing the merged result to preserve shipped behavior, verify the merged state, delete each successfully merged source branch and its detached worktree only after the merged result is confirmed, run `archive-specs` after merge verification so completed plan sets are archived and durable docs are synchronized, then hand the final current-branch state to `commit-and-push` so changelog/readiness/commit/push work happens through the shared submission workflow on the same branch.
-- Quality: Never use blanket timestamp rules or default `-X ours/theirs` conflict resolution as the primary merge strategy, never infer in-scope branches from ancestry heuristics when branch names already define the target set, and do not declare success until the final current-branch state has been checked, verified, and cleared for post-merge archival/doc-sync work.
-- Output: Produce a clean current branch with all relevant named-branch changes integrated and ready for the shared submit workflow.
+- **MUST** treat the branch that was current at workflow start as the **authoritative merge target** for the whole workflow; **MUST NOT** silently switch the destination to **`main`** or another branch unless the user explicitly rescopes.
+- **MUST** determine in-scope branches from **explicit branch names** the user gives **or** from unambiguous mappings from active spec / `coordination.md` context—**MUST NOT** infer the merge set from ancestry heuristics alone when names already define intent.
+- **MUST** read active batch **`coordination.md`** when present and honor a documented **`Merge order` / landing order**; if multiple batches conflict or branch-to-spec mapping is ambiguous, **MUST** stop and report instead of guessing order.
+- **MUST** resolve conflicts by reading both sides and editing merged results that preserve shipped behavior—**MUST NOT** rely on blanket **`-X ours` / `-X theirs`** or timestamp guesses as the primary strategy.
+- **`archive-specs`**: **MUST NOT** invoke **`archive-specs`** from this skill. Any archival or doc-sync routing belongs to **`commit-and-push`** (via **`submission-readiness-check`**) when that workflow’s gates require it—not a separate mandated step immediately after merges here.
+- **MUST** verify the merged tree (targeted checks after conflictful merges; broader **`npm test` / equivalent** when the repo provides a standard command) before deleting source branches or handing off to **`commit-and-push`**.
+- **MUST NOT** **`git push`**, tag, or release **from this skill**; **`commit-and-push`** owns push **only** when the user explicitly requested remote publication in this thread (**same rule as **`commit-and-push`** step 7**).
+- **MUST** finalize through **`commit-and-push`** after staging the post-merge intent—**MUST NOT** bypass **`submission-readiness-check`** / mandated gates with a stray local commit path.
+- **MUST NOT** force-delete merged branches (**`-D`**) when **`-d`** refuses; **MUST** stop and report branches that are not actually merged into the target.
 
-## Goal
+## Standards (summary)
 
-Consolidate the intended named local branches back into the original current branch with automatic conflict resolution that preserves correct functionality.
+- **Evidence**: `git branch`, `git log` / diff stats vs current branch, conflict file contents, `coordination.md` merge order when present.
+- **Execution**: Inventory → clean target branch → sequential merges → verify → prune merged branches/worktrees → **`commit-and-push`** through local commit (push only if user asked).
+- **Quality**: Scope strictly to named / mapped branches; no unrelated branch sweeps; no push-by-default from this workflow.
+- **Output**: Integrated current branch ready for **`commit-and-push`**; concise report of merged/skipped branches, conflicts resolved, verification commands.
 
 ## Workflow
 
+**Chain-of-thought:** Before each numbered step, answer the **`Pause →`** prompts. Validator or verification red **blocks** advancing to pruning or **`commit-and-push`**.
+
 ### 1) Inventory the current branch and in-scope named branches
 
-- Run `git branch` to list all local branches.
-- Check the current branch with `git branch --show-current` and capture `git status -sb`.
-- Inspect active planning artifacts under `docs/plans/` and look for batch roots that still contain live spec sets plus a `coordination.md`.
-- When an active batch is present, read its `coordination.md` before deciding merge order.
-- Treat the original current branch as the authoritative merge target for the whole workflow; do not silently switch that target to `main`.
-- Determine the in-scope branches directly from branch names:
-  - prefer the exact branch names the user provided
-  - otherwise map active spec-set names or documented merge-order entries to branch names
-  - otherwise stop and report the missing branch-name target instead of inferring from ancestry
-- Accept a branch as in scope only when its branch name can be matched unambiguously to the requested merge set; skip unrelated local branches.
-- Compare each in-scope candidate branch against the current branch with `git log --oneline <current-branch>..<candidate>`, `git diff --stat <current-branch>...<candidate>`, or equivalent evidence so empty or already-merged branches are skipped.
-- For each branch, note:
-  - Branch name
-  - How the branch name was matched to the requested merge set
-  - Commits ahead of the current branch
-  - Last commit message (via `git log -1 --oneline`)
+- Run `git branch`; capture `git branch --show-current` and `git status -sb`.
+- Inspect `docs/plans/` for active batch roots that include **`coordination.md`**; read merge-order guidance **before** choosing sequence.
+- Build the merge set from **user branch names**, else from unambiguous spec-name / **`coordination.md`** mappings—if a required name cannot be matched, stop and report.
+- For each candidate: `git log --oneline <current>..<candidate>` and `git diff --stat <current>...<candidate>` (or equivalent); skip empty / already-up-to-date branches and record why.
+- Per branch, note: name, match rationale, commits ahead, `git log -1 --oneline`.
+  - **Pause →** Is every in-scope branch matched **unambiguously**, not by “probably related” ancestry?
+  - **Pause →** If **`coordination.md`** gives a merge order, does my sequence match it literally?
 
 ### 1.5) Resolve merge order from active batch specs
 
-- Treat active batch specs as authoritative merge-order guidance when they include a concrete `Merge order / landing order` entry in `coordination.md`.
-- Map branch names to the corresponding spec sets or worktrees using the batch folder names, spec-set names, and documented merge-order entries; do not guess when the mapping is ambiguous.
-- Merge only the in-scope named branches in the documented order when that order is explicit.
-- If multiple active batches exist, reconcile their merge-order guidance before merging; if the orders conflict or the branch-to-spec mapping is unclear, stop and report the ambiguity instead of choosing an arbitrary sequence.
-- If no active batch spec provides an explicit merge order, fall back to the requested branch-name list and merge the relevant branches sequentially in that explicit name order.
+- When **`coordination.md`** defines **`Merge order` / landing order**, merge **only** in that order after mapping branch names to specs/worktrees without guessing.
+- When multiple active batches disagree or mapping is unclear, stop and report.
+- When no explicit order exists, use the user’s branch list order sequentially.
+  - **Pause →** Would merging in a different order violate a written batch plan?
 
 ### 2) Ensure clean state on the original current branch
 
-- Check `git status` on the original current branch.
-- If the current branch has uncommitted changes that are unrelated to the merge request, stop and report them instead of stashing automatically.
-- Never change the authoritative target branch unless the user explicitly asks for a different destination.
-- Only proceed once you can state which branch or branches actually need to be merged.
+- Inspect `git status`. If unrelated uncommitted changes block a safe merge, stop and report—**MUST NOT** stash or discard without user direction.
+  - **Pause →** Am I still on the **same** authoritative target branch I started with?
 
 ### 3) Merge branches sequentially in the resolved order
 
-For each in-scope named branch:
+For each in-scope branch:
 
-1. Check out the original current branch:
-   ```bash
-   git checkout <current-branch>
-   ```
-
-2. Merge the branch:
-   ```bash
-   git merge <branch-name> --no-ff -m "Merge branch '<branch-name>' into <current-branch>"
-   ```
-
-3. If conflicts occur, use $merge-conflict-resolver to resolve them deterministically.
-
-   After resolving files:
-   ```bash
-   git add <resolved-files>
-   ```
-
-4. If auto-resolution is ambiguous, prefer the change that:
-   - Does not break existing tests
-   - Preserves the documented feature intent
-   - Aligns with the code currently shipped on the source branch
-   - Minimizes hidden semantic drift between the merged modules
-
-5. Complete the merge:
-   ```bash
-   git commit -m "Merge branch '<branch-name>' into <current-branch>"
-   ```
+1. `git checkout <current-branch>`
+2. `git merge <branch-name> --no-ff -m "Merge branch '<branch-name>' into <current-branch>"`
+3. On conflicts: use **`merge-conflict-resolver`**; then `git add` resolved paths.
+4. If resolution is ambiguous, prefer behavior that preserves tests, documented intent, and minimal semantic drift.
+5. Complete the merge commit if Git did not auto-complete.
 
 ### 4) Verify merged state
 
-- After each conflictful merge, run the most relevant targeted tests or build checks for the files that changed.
-- After all merges complete, run the repository's broader validation command when one exists:
-  ```bash
-  npm test  # or yarn test, cargo test, etc.
-  ```
-- If verification fails, fix the merged state on the current branch before proceeding.
+- After conflictful merges, run the most relevant targeted tests or builds for touched areas.
+- After all merges, run the repo’s usual validation (`npm test`, `cargo test`, etc.) when applicable.
+  - **Pause →** Did verification fail? **MUST** fix on the current branch before pruning or **`commit-and-push`**—**do not** hide red tests behind a merge report.
 
-### 5) Archive completed specs and sync durable project docs
+### 5) Prune merged sources (after verified success only)
 
-- After all in-scope merges succeed and the current-branch state has been verified, invoke `archive-specs`.
-- Let `archive-specs` convert and archive any completed `docs/plans/...` spec sets that now reflect the delivered outcome.
-- Let `archive-specs` synchronize durable project docs and `AGENTS.md/CLAUDE.md` when the merged result changed operator workflows, repository guidance, or user-visible behavior.
-- Do not proceed to the final submission commit while required archival or documentation updates remain unfinished.
-- If no completed spec sets or project-doc drift are present, record that evidence explicitly before moving on.
+- `git worktree list`; remove worktrees for successfully merged branches when safe.
+- `git branch -d <branch-name>` only for verified merges; refuse **`-D`** when **`-d`** fails—report instead.
+- **Never** delete the original target branch, the checked-out branch, or branches that failed / were skipped.
 
-### 6) Hand off the merged result for shared submission handling
+### 6) Submit via **`commit-and-push`** (local commit; push optional)
 
-- After a source branch has been merged successfully and the merged current-branch state has been verified, remove the source branch worktree if one exists:
-  ```bash
-  git worktree list
-  git worktree remove <worktree-path>
-  ```
-- Delete only branches that were merged successfully:
-  ```bash
-  git branch -d <branch-name>
-  ```
-- If a branch still has an attached worktree, remove the worktree before deleting the branch.
-- Never delete:
-  - the original current branch
-  - the currently checked-out branch
-  - branches that were skipped, failed to merge, or still need manual follow-up
-- If `git branch -d` refuses deletion because the branch is not actually merged, stop and report the branch instead of forcing deletion with `-D`.
-- Once merge verification and archival/doc synchronization pass, invoke `commit-and-push` for the original current branch so the final submission flow owns:
-  - `CHANGELOG.md` readiness
-  - the final commit creation on the original current branch
-  - the user-requested push on that same branch
-- Do not duplicate commit-message or changelog-readiness logic inside this skill; post-merge archival must flow through `archive-specs`.
-- If a follow-up fix is required after verification or archival/doc sync, make that fix on the original current branch before handing off to `commit-and-push`.
+- Stage the post-merge / fix-up intent per user scope.
+- Run **`commit-and-push`** through **commit**: inspect, classify gates, mandated reviews where applicable, **`submission-readiness-check`**, then commit with conventional message—**omit push** unless the user explicitly requested remote update in this thread ( **`commit-and-push`** step **7**).
+- **MUST NOT** reintroduce **`archive-specs`** as a sibling step controlled by **this** skill; if **`submission-readiness-check`** routes archival work, **`commit-and-push`** owns that decision.
+  - **Pause →** Am I about to push without an explicit user request for remote publication?
+  - **Pause →** Does `git diff --cached` match intended merge scope—no stray unrelated paths?
 
-### 7) Report completion
+### 7) Report
 
-- List all named branches that were merged.
-- List any branches intentionally skipped because they were already merged, empty, or out of scope.
-- Confirm the original current branch is updated with all merged changes.
-- Note any conflicts that were resolved and the rationale.
-- Report the verification commands that were run.
-- Report whether `archive-specs` updated durable docs or found no archival/doc-sync work to do.
-- Confirm whether the workflow stopped at the local commit boundary or continued into a remote push because the user explicitly requested it.
+- List merged vs skipped branches and why.
+- Current branch name; confirmation merges landed on original target.
+- Conflicts resolved and brief rationale.
+- Verification commands executed.
+- State whether completion stopped at **local HEAD** (**no push**) or included push per explicit user ask.
+
+## Sample hints
+
+- **Skip**: candidate shows no commits ahead of current—record “already merged / empty”.
+- **`coordination.md`**: landing order **`api-layer`** then **`cli-wrapper`** ⇒ merge matching branches in that sequence even if creation dates differ.
+- **`commit-and-push` without push**: user said “merge and commit locally”—run **`commit-and-push`** gates and commit; report `HEAD` hash; **no** **`git push`**.
 
 ## Working Rules
 
-- Never force-push; use only merge or rebase with merge.
-- Prefer preserving functionality over keeping either branch's exact changes.
-- Do not push to remote from this skill directly; let `commit-and-push` own any later publish step only when the user explicitly requests it.
-- Never merge unrelated or ambiguously matched branches into the current branch; merge only branches whose names are explicitly requested or can be matched unambiguously from the active spec context.
-- If a branch contains no meaningful changes (empty merge), skip it.
-- Keep the current branch history clean and readable.
-- If a branch's merge breaks tests, resolve the conflict differently before committing.
-- Do not stash or discard unrelated work automatically; stop when the working tree state makes the merge ambiguous.
-- Delete merged source branches and their detached worktrees only after the merge commit and verification both succeed.
-- When active batch specs provide merge-order guidance for in-scope named branches, follow that order unless new evidence proves the plan is stale or inapplicable; if so, stop and report the mismatch instead of silently overriding the batch plan.
+- Never force-push from this workflow.
+- Preserve functionality over winning either branch’s raw diff verbatim.
+- Do not merge ambiguously matched or unrelated branches.
+- Do not delete merged sources until merge commit **and** verification succeed.
+- When batch merge-order documentation applies, follow it unless you stop with evidence it is stale.
 
-Resolve conflicts using $merge-conflict-resolver.
+Resolve conflicts using **`merge-conflict-resolver`**.

@@ -10,6 +10,12 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.9.7] - 2026-05-09
+
+### Changed
+
+- `merge-changes-from-local-branches`: restructure like `generate-spec` / `implement-specs` (Non-negotiables, Pause prompts, sample hints); drop mandatory `archive-specs` post-merge step; finalize via `commit-and-push` with local commit by default (push only when the user explicitly requests remote update); sync OpenAI agent `default_prompt`.
+
 ## [v3.9.6] - 2026-05-09
 
 ### Changed
