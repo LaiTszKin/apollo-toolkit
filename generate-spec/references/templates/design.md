@@ -4,65 +4,80 @@
 - Feature: [Feature Name]
 - Change Name: [change_name]
 
-## Design Goal
-[Describe the architecture/design objective for this spec change.]
+> **Purpose:** **High-level architectural context for `tasks.md`**—structure, coupling, sequencing intent—not a second implementation list. Requirement intent stays in `spec.md`; **documented vendor truth** stays in **`contract.md`**. **`tasks.md` owns** every runnable step (paths, edits, verifies).
+>
+> **Do not duplicate `tasks.md`:** no checkbox-style chores, no per-file implementation lines, no verifiers—the executable queue exists only under **`tasks.md`**. Optional **`INT-###`** labels are **coarse anchors** that task rows cite for traceability.
+>
+> **Audience:** Humans/agents authoring **`tasks.md`**, and implementers needing **mental model before** ticking task boxes—not a standalone execution script.
 
-## Change Summary
-- Requested change: [one sentence]
-- Existing baseline: [current architecture or behavior relevant to the change]
-- Proposed design delta: [what will change structurally]
+## Traceability
 
-## Scope Mapping
-- Spec requirements covered: [R?.?]
-- Affected modules: [module/file/service list]
-- External contracts involved: [dependency names from `contract.md`, or `None`]
-- Coordination reference: [`../coordination.md` or `None`]
-- Parallel implementation assumption: [why this spec can be implemented concurrently, or `None` for single-spec work]
+|                             |                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| Requirement IDs             | [R?.?]                                                                      |
+| In-scope modules (≤3)       | [paths / services]                                                           |
+| External systems touched    | [names only—full truth in **`contract.md`**, or `None`]                      |
+| Batch coordination          | [`../coordination.md` or `None`]                                            |
 
-## Current Architecture
-[Describe the relevant current components, data flow, control flow, and boundaries.]
+## Target vs baseline
 
-## Proposed Architecture
-[Describe the new or updated structure, ownership boundaries, and interaction flow.]
+|                       | Baseline (today) | Target (after this change) |
+| --------------------- | ---------------- | --------------------------- |
+| Structure / ownership | […]              | […]                         |
 
-## Component Changes
+## Boundaries
 
-### Component 1: [Name]
-- Responsibility: [what this component owns after the change]
-- Inputs: [events, params, payloads, config]
-- Outputs: [return values, writes, emitted events, calls]
-- Dependencies: [internal modules and external contracts]
-- Invariants: [business or technical rules that must hold]
+- Entry surface(s): [HTTP · CLI · job · subscriber · FFI — whichever applies]
+- Trust boundary crossed: [`None` / brief]
+- Outside → inside (one line): `[Actor]` → `[our entry]` → `[…]` (vendor touchpoints **`contract.md` only`)
 
-### Component 2: [Name]
-- Responsibility: [what this component owns after the change]
-- Inputs: [events, params, payloads, config]
-- Outputs: [return values, writes, emitted events, calls]
-- Dependencies: [internal modules and external contracts]
-- Invariants: [business or technical rules that must hold]
+## Modules (nouns only)
 
-## Sequence / Control Flow
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
+| Module key | Responsibility (one sentence) | Owned artifacts (types, tables, queues) |
+| ---------- | ---------------------------- | ---------------------------------------- |
+| `[key]`    | […]                          | [none / list]                             |
 
-## Data / State Impact
-- Created or updated data: [schemas, fields, caches, files, queues, config]
-- Consistency rules: [ordering, transactionality, idempotency, deduplication]
-- Migration / rollout needs: [if none, write `None`]
+---
 
-## Risk and Tradeoffs
-- Key risks: [failure, concurrency, authorization, partial-write, dependency risk]
-- Rejected alternatives: [alternative + why it was not chosen]
-- Operational constraints: [performance, quota, observability, deployment coupling]
-- Cross-spec collision notes: [known shared-file/shared-contract collision avoided by ownership rules, or `None`]
+## Interaction anchors (`INT-###`)
 
-## Validation Plan
-- Tests: [UT / PBT / IT / E2E / adversarial]
-- Contract checks: [how `contract.md` constraints will be validated]
-- Rollback / fallback: [how to contain or reverse impact]
+**Grain:** **Above `tasks.md`**. One anchor ≈ a **meaningful handshake** between module keys—not one checkbox. Several task lines may realize a single `INT-###`.
 
-## Open Questions
-[Write `None` if the design is settled.]
-- [Question 1]
-- [Question 2]
+| ID        | Intent (when this coupling matters) | Caller → Callee | Coupling kind (route pattern · RPC · event · sync call—**name/pattern**, not file path) | Information / state crossing (summary) | Failure / propagation expectation (summary) |
+| --------- | ------------------------------------ | --------------- | ---------------------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------- |
+| `INT-001` | […]                                  | `A` → `B`       | […]                                                                                      | […]                                    | […]                                         |
+
+**Ordering / concurrency (design-level):** [parallelism rules, critical sections, or `None`—still no file-level steps]
+
+## Requirement linkage (coarse ordering)
+
+Maps **which `R` clusters** depend on **which anchor order**. **`tasks.md` decomposes** into concrete steps.
+
+### [Scenario / `R?.?` cluster]
+
+- Anchor order hint: `INT-…` → `INT-…` → …
+- Narrative glue (≤3 bullets): [why this order; what must not reorder]
+
+[`None` if one anchor suffices—say so]
+
+## Data & persistence (design-level)
+
+| Resource                      | Typical readers/writers (module keys) | Consistency expectation (ordering, idempotency) |
+| ----------------------------- | ------------------------------------- | ------------------------------------------------ |
+| [store · schema · queue …] | […]                                   | […]                                             |
+
+## Invariants (system-level)
+
+| Invariant | What breaks it architecturally           | Symptoms if violated |
+| --------- | ---------------------------------------- | -------------------- |
+| […]       | [coupling mistake / wrong owner / …]     | […]                  |
+
+## Tradeoffs inherited by implementation
+
+| Decision | Rejected alternative | Locks in (for **`tasks.md`**) |
+| -------- | -------------------- | ---------------------------- |
+| […]      | […]                  | […]                           |
+
+## Batch-only
+
+[`None` \| single line: responsibilities **not** in this spec → see **`coordination.md`**]

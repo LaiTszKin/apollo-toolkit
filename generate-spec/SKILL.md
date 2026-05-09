@@ -33,7 +33,7 @@ description: >-
 
 - **Evidence**: Official docs when externally constrained; record cites in `spec.md` / `contract.md`.
 - **Execution**: Scaffold → fill templates in place → clarification loop → approval gate → (later) backfill after implementation.
-- **Quality**: Synchronized artifacts; applicable template sections only; realistic checklist vs boilerplate (add/remove by risk); finalized docs read as an approved plan, not a fully checked starter; `contract.md` standardized records or honest `None` with reason.
+- **Quality**: Synchronized artifacts; **`tasks.md`** is unique runnable granularity; **`design.md`/`contract.md`** constrain and orient without mirroring checklist rows—**`TBD`/honest `None`** when facts missing.
 - **Output**: `docs/plans/{YYYY-MM-DD}/{change_name}/` or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/`; batch root `coordination.md` when intentionally parallel; `preparation.md` only when prerequisite batch work is required first.
 
 ## Workflow
@@ -60,7 +60,7 @@ apltk create-specs "<feature_name>" --change-name <kebab-case> --output-dir "$WO
 
 Multi-spec parallel batch: add `--batch-name <kebab-case>` and `--with-coordination`. **Only** if parallel safety needs prior shared work: add `--with-preparation`.
 
-Always materialize: `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md` from `references/templates/`. Add `coordination.md` / `preparation.md` at batch root only when flags require. Save under `docs/plans/{YYYY-MM-DD}/...`. After generation, fill in place **without** removing template headings unless truly N/A (document reason). Run a **template-drift pass** before approval: sections present, placeholders removed or justified.
+Always materialize: `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md` from `references/templates/`. Add `coordination.md` / `preparation.md` at batch root only when flags require. Save under `docs/plans/{YYYY-MM-DD}/...`. After generation, fill in place **without** stripping section headings unless truly N/A (document inline); drop unused repeatable blocks (extra component or dependency stubs). Run a **template-drift pass** before approval: required fields covered, placeholders removed or justified.
    - **Pause →** List the **module names** (≤3) this spec set will touch; if more, where is my **split plan**?
    - **Pause →** For every shared file two specs might touch, where is the **named** resolution in `coordination.md` or why is `preparation.md` required instead?
    - **Pause →** Did I run `apltk create-specs` from the **skill** context so template paths resolve correctly?
@@ -68,15 +68,16 @@ Always materialize: `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `desig
 ### 3) Author content (fill templates)
 
 - **`spec.md`**: Concrete scope; BDD (`GIVEN` / `WHEN` / `THEN` / `AND` / `Requirements`); testable requirements; boundaries, auth, failure, idempotency/concurrency/integrity where relevant; doc references; `3-5` clarification questions or `None`.
-- **`tasks.md`**: `## **Task N: [Title]**` with Purpose, Requirements, Scope, Out of scope; atomic `- N [ ]` lines obeying the triple requirement above; split tasks that exceed three files / multiple behavior slices / undocumented decisions; integrate `test-case-strategy` for test IDs and drift checks for non-trivial logic.
-- **`contract.md`**: One record per material external dependency (source, surface, I/O, limits, security, failures); else `None` + short reason—**no** fabricated deps.
-- **`design.md`**: Delta vs baseline; modules, responsibilities, flow, state, risks; cross-ref requirement IDs; parallel batch: pointer to `coordination.md`, assumptions for safe concurrency, **no** duplicating batch rules; with `preparation.md`, assume prep **done**—**do not** duplicate prep tasks.
+- **`tasks.md`**: `## **Task N: [Title]**` with Purpose, Requirements, Scope, Out of scope; atomic `- N [ ]` triple (path · change · verify). **Derive sequencing and decomposition from** **`spec.md` + `design.md` + `contract.md`**; **`tasks.md` stays the only enumerated runnable checklist**. Optionally cite **`INT-###` / `EXT-###`** on rows an anchor constrains—and **keep design/contract coarser**, never a second copy of checklist lines. Integrate `test-case-strategy` for drift checks where needed.
+- **`contract.md`**: Cite-backed **external facts / limits / failure semantics / security**, plus **`EXT-###`** integration **anchors** (typically fewer rows than **`tasks.md` items)—**constraints and anti-hallucination context**, **not** a parallel implementation runbook (`TBD` instead of guesses; **`Dependencies` → None** when genuinely no externals).
+- **`design.md`**: **High-level architectural context for composing `tasks.md`**—baseline/target shape, boundaries, modules, **`INT-###`** coarse coupling/order hints (`task` granularity lives only in **`tasks.md`**). No file-level chores; batches defer ownership grids to **`coordination.md`**; **`preparation.md`** assumed done—don't replay prep execution here.
 - **`coordination.md`** (batch root, parallel only): **Business Goals** (outcome, member specs, parallel readiness, exclusions, blockers → `preparation.md` or list); **Design Principles** (baseline, shared invariants, compat, cleanup—high level); **Spec Boundaries** → **Ownership Map** (allowed/forbidden touchpoints per spec) and **Collisions & Integration** (shared-file rules, freeze owners, merge order, checkpoints, re-coordination trigger)—**every** collision candidate **MUST** have a named resolution.
 - **`preparation.md`** (batch root, only if required): Preparation Goal (why, no core business logic, dependents, start condition); **Task P[N]** like `tasks.md` (atomic triple items); **Validation**; **Handoff** (assumptions, must-not-change, if prep changes later). Strip duplicate prep from member specs.
 - **`checklist.md`**: `- [ ]` adapted to scope; map behaviors to requirement/test IDs via `test-case-strategy`; behavior lines `[CL-xx]: … — R?.? → [Test IDs] — Result: …`; property-based logic **required** unless `N/A` + reason; honest execution/completion records—**no** checking unused examples or unchosen options.
    - **Pause →** Pick one **random** `tasks.md` checkbox: does it still fail the triple rule (target, change, verify)—if yes, rewrite now?
    - **Pause →** Does every **R** requirement ID I care about appear in `tasks.md` or `checklist.md` with a test or explicit `N/A`?
-   - **Pause →** For parallel batches, does `design.md` **avoid** duplicating what `coordination.md` already owns?
+   - **Pause →** Do **`design.md` / `contract.md`** stay **coarser than `tasks.md`** (no mirrored checkbox choreography / file paths)—yet still constrain ordering and forbidden hallucinations?
+   - **Pause →** For parallel batches, does `design.md` **avoid** duplicating batch ownership grids already locked in **`coordination.md`**?
 
 ### 4) Clarifications and approval
 
@@ -93,8 +94,8 @@ When implementation exists: mark `tasks.md`; sync `checklist.md` outcomes/`N/A`;
 ## Sample hints
 
 - **`tasks.md` line — bad**: `- [ ] Add tests` → **reject** (no path, change, verifier).
-- **`tasks.md` line — ok**:
-  `- [ ] src/auth/scope.rs — add deny-by-default matcher for unknown scopes · Verify: cargo test scope::defaults`
+- **`tasks.md` line — ok (with ledger wiring)**:
+  `- [ ] 2 src/api/handlers/oauth.rs — implement handler path for POST /oauth/token satisfying INT-003, INT-004 · EXT-001 client config loaded from env per contract · Verify: cargo test oauth::handlers::token_exchange`
 - **Batch scaffold** (three member specs): `WORKSPACE_ROOT=... apltk create-specs "OAuth batch" --change-name oauth-api --batch-name oauth-may-batch --with-coordination --output-dir "$WORKSPACE_ROOT/docs/plans"` (then repeat or use generator rules for additional `change-name` dirs as your tooling permits).
 - **`checklist.md` behavior row sketch**: `[CL-01]: invalid token rejected — R2.1 → TU-Scope-01,TU-Scope-02 — Result: pending`
 - **Split-trigger**: change touches `src/auth/*`, `src/cli/*`, `src/db/*`, `infra/terraform/*` (four modules) ⇒ **minimum two spec sets**, not one.

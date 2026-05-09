@@ -2,6 +2,23 @@
 
 All notable changes to this repository are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Fixed
+
+## [v3.9.6] - 2026-05-09
+
+### Changed
+
+- `generate-spec`: refocus `design.md`/`contract.md` templates as coarse `INT-###`/`EXT-###` guiding context above `tasks.md` (avoid mirroring runnable checklist rows); tighten SKILL/README/agent prompt layering; clarify `tasks.md` notes accordingly.
+- `implement-specs`: treat `tasks.md` as the authoritative runnable queue; read `design`/`contract` as constraints/anchors; align execution standards copy.
+- `implement-specs-with-subagents`: remove fixed four-subagent ceiling and stagger-only pacing language; generalize parallel phase examples and agent prompt.
+- Root `README.md`: simplify `implement-specs-with-subagents` compatibility blurb.
+
 ## [v3.7.0] - 2026-04-29
 
 ### Added
@@ -28,11 +45,6 @@ All notable changes to this repository are documented in this file.
 - Refactor `align-project-documents` to generate standardized `docs/features/` (BDD user-facing scenarios), `docs/architecture/` (macro-level design principles), and `docs/principles/` (code conventions and development constraints) instead of flexible Diataxis-based classification
 - Simplify `maintain-project-constraints` to produce `AGENTS.md`/`CLAUDE.md` with exactly three sections: Common Development Commands, Project Business Goals, and Project Documentation Index
 - Update `archive-specs` to delegate documentation generation to the refactored `align-project-documents` and constraint-file refresh to `maintain-project-constraints`; replace flat-category reference templates with the new three-category structure
-
-## [Unreleased]
-
-### Added
-- (None yet)
 
 ## [v3.9.5] - 2026-05-08
 

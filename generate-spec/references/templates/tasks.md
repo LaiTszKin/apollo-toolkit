@@ -30,6 +30,8 @@ Out of scope: [files/modules/behaviors this task must not change]
   - Verify: [focused command/check/manual inspection; drift check ref if applicable]
 
 ## Notes
+- **Layering:** **`design.md`** / **`contract.md`** are **guiding context** only (architecture + external truth). **`tasks.md` is the sole numbered, file-level execution queue**—do not expect design/contract to re-list its checkboxes.
+- When drafting, derive task order and scope from **`spec.md`** + **`design.md`** + **`contract.md`**; optionally cite **`INT-###` / `EXT-###`** on rows those anchors constrain.
 - Task order reflects implementation sequence.
 - Every task must map back to `spec.md` requirement IDs.
 - Treat `tasks.md` as an implementation queue, not a summary.

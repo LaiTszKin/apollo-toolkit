@@ -12,7 +12,7 @@ A shared planning skill for feature work. It centralizes creation and maintenanc
 - Backfills task and checklist status after implementation and testing.
 - Keeps requirement, task, and test coverage mapping traceable.
 - Uses `test-case-strategy` to choose test levels, define meaningful oracles, and add focused unit drift checks to atomic implementation tasks.
-- Standardizes external dependency contracts in `contract.md` and architecture/design deltas in `design.md`.
+- Standardizes **`design.md` / `contract.md` as high-level context** (architecture + external truth, `INT-###`/`EXT-###` anchors)—**`tasks.md` remains the sole file-level execution queue** implementing that context.
 
 ## Repository layout
 
@@ -95,8 +95,8 @@ docs/plans/<today>/membership-cutover/
 - `spec.md`: use BDD keywords `GIVEN / WHEN / THEN / AND / Requirements`.
 - `tasks.md`: use `## **Task N: ...**` and atomic implementation queue items with allowed scope, output, completion condition, verification hook, and unit drift check.
 - `checklist.md`: use `- [ ]` only, adapt items to real scope, record actual results, and map behavior risks to test IDs plus oracles selected through `test-case-strategy`.
-- `contract.md`: when external dependencies materially shape the change, record their official-source-backed invocation surface, constraints, and caller obligations in the standard dependency-record format.
-- `design.md`: record the architecture/design delta in the standard format, including affected modules, flow, invariants, tradeoffs, and validation plan.
+- `contract.md`: cite-backed **facts/limits/security** + **`EXT-###` anchors** (coarser than **`tasks.md`**); **no parallel checklist**—task rows may cite `EXT-###` when useful.
+- `design.md`: architecture + coarse **`INT-###` ordering/coupling hints** for **authoring** **`tasks.md`**; **no file-level checkbox mirror**; vendor detail belongs in **`contract.md`**.
 - `coordination.md`: for multi-spec batches only, record ownership boundaries, replacement direction, file ownership guardrails, known collision candidates, pre-agreed edit rules for shared surfaces, shared API/schema freeze or additive-only rules, compatibility-shim retention rules, merge order, and cross-spec integration checkpoints, but never use it to make one spec depend on another spec's implementation before it can be completed.
 - `preparation.md`: optional batch-level prerequisite plan used only when specs cannot be made parallel-safe without prior shared work; keep it tasks-like, minimal, verified, and free of core business logic or target outcomes.
 - If clarification responses change the plan, update the docs and obtain approval again before coding.
