@@ -1,7 +1,7 @@
 ---
 name: spec-to-project-html
 description: >-
-  Sync the project HTML architecture atlas to active planning specs by driving `apltk architecture --spec <spec_dir>`. The CLI writes overlay YAML under `<spec_dir>/architecture_diff/atlas/` and re-renders only the affected proposed-after HTML pages, so `apltk architecture diff` can pair before/after by path. Preserve the two-layer rule: macro `index.html` keeps feature clusters with every sub-module visible together; each sub-module page stays self-only (function I/O + variables-with-business-purpose + internal data flow + local errors); feature pages stay lightweight. Read strategy mirrors `init-project-html`: list affected features first, then either dispatch one read-only subagent per affected feature or process them sequentially — never load every affected feature's source into the main agent context at once. Ground every declaration in repo evidence; mark `TBD` when code is missing.
+  Sync the project HTML architecture atlas to active planning specs by driving `apltk architecture --spec <spec_dir>`. The CLI writes overlay YAML under `<spec_dir>/architecture_diff/atlas/` and re-renders only the affected proposed-after HTML pages — macro SVG and per-sub-module internal-dataflow diagrams stay zoomable just like the base atlas — so `apltk architecture diff` can pair before/after by path. Preserve the two-layer rule and the responsibility split: when subagents are available, each subagent reads ONE affected feature and declares EVERY intra-feature change itself (sub-modules, function / variable / dataflow / error rows, intra-feature edges including error and rollback flows); the main agent only aggregates outbound-boundary summaries and declares cross-feature edges. Without subagents, process features sequentially with the same split. Ground every declaration in repo evidence; mark `TBD` when code is missing.
 ---
 
 # Spec To Project HTML
@@ -27,8 +27,8 @@ description: >-
   - Function / variable / dataflow / error deltas → corresponding `add` or `remove` verbs scoped to the sub-module.
   - Edge changes → `edge add` or `edge remove` (use the stable `--id` when available to make the remove unambiguous).
 - **MUST NOT** drop modules that are still present in code just because the spec omits them — keep them, or rewrite their role/purpose strings to flag "out of spec scope".
-- **MUST** scope reads to the **affected feature modules** identified from the spec/design diff (plus any feature owning a cross-feature edge into an affected one). Apply the same context-safe read strategy as `init-project-html` Rule 3:
-  - **With subagents** — main agent lists affected features first, then dispatches **one read-only subagent per affected feature** to deep-read and return a structured change summary (affected sub-modules, variable / I/O / boundary deltas, edges added/removed). Main agent **only** receives summaries, and only after every subagent reports does it run the CLI verbs in one batched pass (use `--no-render` per verb and a single `apltk architecture render --spec ...` at the end).
+- **MUST** scope reads to the **affected feature modules** identified from the spec/design diff (plus any feature owning a cross-feature edge into an affected one). Apply the same context-safe read strategy as `init-project-html` Rule 3 — **subagents own intra-feature overlay changes; the main agent owns cross-feature seams**:
+  - **With subagents (preferred)** — main agent lists affected features first, then dispatches **one write-capable subagent per affected feature**. Each subagent deep-reads its feature and applies every intra-feature overlay mutation itself via `apltk architecture ... --spec <spec_dir> --feature <slug>` (add/remove sub-modules, function / variable / dataflow / error deltas, intra-feature edges — including error / rollback edges and ordered dataflow steps that capture variable state transitions). It returns ONLY a structured change summary of outbound boundaries (cross-feature edges added / changed / removed, with direction and proposed labels) plus its sub-module change list. The main agent never re-reads the feature source; it batches **only cross-feature** `edge add|remove` verbs from the aggregated summaries, then runs `apltk architecture render --spec ...` and `apltk architecture validate --spec ...`.
   - **Without subagents** — process features one at a time: read one affected feature, **immediately** drive the CLI verbs for that feature (with `--spec ...`). Drop function-level details from memory before reading the next feature.
   - **Forbidden**: loading every affected feature's source into the main agent's context before declaring — early details get pushed out and overlay declarations contradict each other.
 - **MUST** run `apltk architecture validate --spec <spec_dir>` after the final mutation. Resolve every reported error before reporting completion.
@@ -39,6 +39,13 @@ description: >-
 - **Execution**: locate the plan set → list affected feature modules → branch by environment (subagent fan-out OR sequential read-declare) → `apltk architecture validate --spec ...` → handover.
 - **Quality**: macro overlay still shows every cross-feature data-row the spec requires; sub-module declarations stay self-only; `apltk architecture diff` opens cleanly with no orphan pages; no dangling edges.
 - **Output**: touches only `<spec_dir>/architecture_diff/atlas/**` (overlay state) and `<spec_dir>/architecture_diff/**/*.html` (renderer output). Base `resources/project-architecture/` is **NEVER** mutated.
+
+## Acceptance criteria (mirrors `init-project-html`)
+
+Open the proposed-after viewer (`apltk architecture diff`) and verify both criteria on the overlay pages before reporting completion:
+
+1. **The macro overlay clearly shows the proposed-after feature × sub-module relationships**, including data flow (`--kind data-row`), interaction logic (`--kind call` + `--kind return`), error handling and rollback (`--kind failure`). Any new / changed / removed cross-boundary path the spec implies MUST exist as an edge mutation in the overlay — not as sub-module prose.
+2. **Each touched sub-module's internal overlay diagram clearly shows the function-level interactions inside it**, including function-to-function flow (`dataflow add --fn <declared-fn>`), variable state transitions (`--reads` / `--writes` referencing declared variables), and the resulting local data flow. If the spec introduces a new function or variable that participates in the flow, declare it via `function add` / `variable add` first, then reference it from the new `dataflow` step so `validate --spec` passes.
 
 ## Workflow
 
@@ -52,29 +59,31 @@ Derive from the spec/design diff which feature modules change: new sub-modules, 
 
 ### 3) Branch the deep-read + declare by environment (mirrors `init-project-html` Rule 3)
 
-#### 3A) With subagents (preferred)
+#### 3A) With subagents (preferred) — workers patch their feature; main agent patches only cross-feature edges
 
-Dispatch one **read-only subagent per affected feature**, requiring this summary:
+Dispatch one **write-capable subagent per affected feature**, plus the main agent for the macro seams. Each subagent owns every intra-feature overlay write and reports outbound boundaries upward:
 
-> **Feature `<slug>` change summary**
-> - Matching spec passages / requirement IDs.
-> - Affected sub-modules (added / renamed / retired / I/O changed; new kind/role if changed).
-> - Per sub-module: function I/O deltas, variables-with-business-purpose deltas (added/removed/renamed), internal dataflow deltas, errors raised.
-> - Boundary changes: new / changed / removed `edge`s (call / return / data-row / failure) with the other-end feature/sub-module slugs.
-> - Spec items the code does not yet scaffold: mark as `planned` / `gap` and propose how to surface them (e.g. `--role "planned: ..."`).
+> **Feature `<slug>` subagent contract (overlay)**
+> - Read this feature's affected sub-modules and the cited spec passages / requirement IDs.
+> - Apply every intra-feature overlay mutation via `apltk architecture ... --spec <spec_dir>`:
+>   - `submodule add|set|remove` for added / renamed / retired / kind-or-role-changed sub-modules.
+>   - `function add|remove`, `variable add|remove`, `dataflow add|remove|reorder`, `error add|remove` for per-sub-module deltas. Order `dataflow` steps so the **variable state transitions** through the new path are visible end-to-end.
+>   - Intra-feature `edge add|remove` for every changed function-call / return / data-row / failure / rollback edge between the feature's own sub-modules.
+> - Run `apltk architecture validate --spec <spec_dir>` (scoped check) before returning.
+> - **Return ONLY**: (i) the sub-module change list (slug + change-kind + new kind/role when relevant), (ii) outbound boundary changes (cross-feature edges added / changed / removed, with the other-end `feature/sub` and the suggested `--kind` / `--label`), (iii) any `planned` / `gap` flags so the main agent can mirror them in `meta.summary` if needed.
 
-Main agent collects summaries and runs the CLI in one batched pass:
+Main agent — after every subagent returns — declares **only** the cross-feature seams and renders once:
 
 ```bash
-# add --no-render to every mutation, then render once at the end
-apltk architecture submodule add --spec <spec_dir> --feature X --slug Y --kind ... --role "..." --no-render
-apltk architecture function add --spec <spec_dir> ... --no-render
-apltk architecture edge add --spec <spec_dir> --from X/sub --to Y/sub --kind data-row --label "..." --no-render
+# one verb per cross-feature edge reported by the subagents
+apltk architecture edge add --spec <spec_dir> --from <featA>/<subA> --to <featB>/<subB> --kind call|return|data-row|failure --label "..." --no-render
+apltk architecture edge remove --spec <spec_dir> --id <stable_id> --no-render
 apltk architecture render --spec <spec_dir>
 apltk architecture validate --spec <spec_dir>
 ```
 
 - **Pause →** Do every `planned` / `gap` declaration appear consistently across affected sub-modules (e.g. role text + variable purpose strings)? Inconsistency would mislead reviewers.
+- The main agent **MUST NOT** re-declare a subagent's intra-feature components, and **MUST NOT** open source files for any feature it delegated.
 
 #### 3B) Without subagents — feature-by-feature read-declare loop
 

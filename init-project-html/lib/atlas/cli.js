@@ -77,6 +77,8 @@ Examples:
   apltk architecture feature add --slug register --title "User registration" --story "..."
   apltk architecture submodule add --feature register --slug api --kind api --role "HTTP endpoint"
   apltk architecture function add --feature register --submodule api --name handlePost --side network --purpose "..."
+  apltk architecture variable add --feature register --submodule api --name token --type "string" --scope call --purpose "..."
+  apltk architecture dataflow add --feature register --submodule api --step "Validate body" --fn handlePost --reads "body" --writes "token"
   apltk architecture --spec docs/plans/2026-05-11/add-2fa submodule set --feature register --slug api --role "..."
   apltk architecture validate
   apltk architecture diff
@@ -449,13 +451,14 @@ async function verbDataflow(action, flags, projectRoot) {
     sub.dataflow = sub.dataflow || [];
     if (action === 'add') {
       const step = String(requireFlag(flags, 'step'));
+      const item = buildDataflowItem(step, flags);
       const atRaw = flags.at;
       if (atRaw !== undefined) {
         const at = Number(atRaw);
         if (!Number.isFinite(at) || at < 0) throw new Error('--at must be a non-negative integer');
-        sub.dataflow.splice(at, 0, step);
+        sub.dataflow.splice(at, 0, item);
       } else {
-        sub.dataflow.push(step);
+        sub.dataflow.push(item);
       }
     } else if (action === 'remove') {
       if (flags.at !== undefined) {
@@ -464,7 +467,7 @@ async function verbDataflow(action, flags, projectRoot) {
         sub.dataflow.splice(at, 1);
       } else {
         const step = String(requireFlag(flags, 'step'));
-        sub.dataflow = sub.dataflow.filter((s) => s !== step);
+        sub.dataflow = sub.dataflow.filter((s) => stepText(s) !== step);
       }
     } else if (action === 'reorder') {
       const from = Number(requireFlag(flags, 'from'));
@@ -479,6 +482,31 @@ async function verbDataflow(action, flags, projectRoot) {
     }
     return { touchedFeatures: new Set([featureSlug]) };
   });
+}
+
+function stepText(item) {
+  return typeof item === 'string' ? item : (item && typeof item.step === 'string' ? item.step : '');
+}
+
+function parseNameList(raw) {
+  if (raw === undefined || raw === null) return undefined;
+  return String(raw)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function buildDataflowItem(step, flags) {
+  const fn = flags.fn === undefined ? undefined : String(flags.fn).trim();
+  const reads = parseNameList(flags.reads);
+  const writes = parseNameList(flags.writes);
+  const annotated = (fn && fn.length > 0) || (reads && reads.length > 0) || (writes && writes.length > 0);
+  if (!annotated) return step;
+  const item = { step };
+  if (fn) item.fn = fn;
+  if (reads && reads.length > 0) item.reads = reads;
+  if (writes && writes.length > 0) item.writes = writes;
+  return item;
 }
 
 async function verbError(action, flags, projectRoot) {

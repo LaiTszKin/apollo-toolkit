@@ -83,10 +83,23 @@ submodules:
         scope: tx
         purpose: Persisted invite_codes row carrying owner, code, expiry, and consumption state.
     dataflow:
-      - Open transaction.
-      - Generate candidate code via generateCode.
-      - INSERT invite_codes row (retry on unique-violation).
-      - Commit and return code.
+      - step: Open transaction.
+        fn: Issue
+      - step: Build candidate code from random bytes.
+        fn: generateCode
+        writes:
+          - code
+      - step: Persist row via INSERT (retry on unique-violation).
+        fn: Issue
+        reads:
+          - code
+        writes:
+          - row
+      - step: Commit transaction and return code to caller.
+        fn: Issue
+        reads:
+          - code
+          - row
     errors:
       - name: ErrCollision
         when: Unique constraint on code repeatedly violated.

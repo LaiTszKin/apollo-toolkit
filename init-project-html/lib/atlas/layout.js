@@ -11,16 +11,109 @@
 
 const ELK = require('elkjs');
 
+// Default fallback box. The actual width/height for each sub-module
+// is computed per node by measureSubmodule() so the role/description
+// fits without overflowing the rectangle.
 const SUB_WIDTH = 240;
 const SUB_HEIGHT = 92;
+
+// Box-sizing knobs (intrinsic SVG coordinates).
+const SUB_WIDTH_MIN = 220;
+const SUB_WIDTH_MAX = 360;
+const SUB_HEIGHT_MIN = 92;
+const SUB_HEIGHT_MAX = 220;
+const SUB_SIDE_PAD = 16;
+const SUB_TOP_PAD = 14;
+const SUB_BOTTOM_PAD = 14;
+const TITLE_LINE = 22;     // slug line
+const KIND_LINE = 16;      // kind chip line
+const ROLE_LINE = 16;      // each role line
+const KIND_GAP = 4;
+const ROLE_GAP = 8;
+const MAX_ROLE_LINES = 4;
+
 const CLUSTER_PAD_TOP = 60;
 const CLUSTER_PAD_SIDE = 24;
 const CLUSTER_PAD_BOTTOM = 28;
 const EDGE_LABEL_HEIGHT = 18;
 
+const KIND_LABELS = {
+  ui: 'UI',
+  api: 'API',
+  service: 'service',
+  db: 'database',
+  'pure-fn': 'pure function',
+  queue: 'queue',
+  external: 'external',
+};
+
 function estimateLabelWidth(text) {
   if (!text) return 0;
   return Math.min(220, Math.max(40, String(text).length * 7 + 16));
+}
+
+// Approximate render width of a string in the target font. The 0.6
+// factor is a deliberate over-estimate for our sans-serif stack so
+// the chosen width almost always leaves a little breathing room.
+function approxTextWidth(text, fontPx) {
+  return String(text || '').length * fontPx * 0.6;
+}
+
+function wrapToLines(text, maxChars) {
+  if (!text) return [];
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    if (!current) { current = word; continue; }
+    if ((current.length + 1 + word.length) <= maxChars) current = `${current} ${word}`;
+    else { lines.push(current); current = word; }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+// measureSubmodule picks a width + height that fit the slug, the kind
+// chip, and the wrapped role text. Both layout.js (when telling elkjs
+// how much room each node needs) and render.js (when actually drawing
+// the text inside the box) call it so the rendered text never spills
+// outside the rectangle the layout engine reserved.
+function measureSubmodule(sub) {
+  const slug = (sub && sub.slug) || '';
+  const kindLabel = KIND_LABELS[sub && sub.kind] || (sub && sub.kind) || 'service';
+  const role = (sub && sub.role) || '';
+
+  const slugW = approxTextWidth(slug, 14);
+  const kindW = approxTextWidth(kindLabel, 11);
+  const baseInner = Math.max(slugW, kindW);
+
+  // Aim to keep the role within ~3 lines: choose a width whose text
+  // area can hold ceil(roleLen / 3) characters, then clamp.
+  const roleLen = role.length;
+  let chosenInner;
+  if (!role) {
+    chosenInner = baseInner;
+  } else {
+    const targetCharsPerLine = Math.max(20, Math.ceil(roleLen / 3));
+    chosenInner = Math.max(baseInner, targetCharsPerLine * 11 * 0.55);
+  }
+  const width = Math.max(SUB_WIDTH_MIN, Math.min(SUB_WIDTH_MAX, Math.ceil(chosenInner + SUB_SIDE_PAD * 2)));
+
+  // With the chosen width fixed, wrap the role for real and count lines.
+  const innerW = width - SUB_SIDE_PAD * 2;
+  const charsPerLine = Math.max(12, Math.floor(innerW / (11 * 0.55)));
+  let roleLines = role ? wrapToLines(role, charsPerLine) : [];
+  if (roleLines.length > MAX_ROLE_LINES) {
+    roleLines = roleLines.slice(0, MAX_ROLE_LINES);
+    const last = roleLines[MAX_ROLE_LINES - 1];
+    roleLines[MAX_ROLE_LINES - 1] = last.length > 3 ? `${last.slice(0, -1)}…` : `${last}…`;
+  }
+
+  const roleBlock = roleLines.length > 0 ? ROLE_GAP + roleLines.length * ROLE_LINE : 0;
+  const intrinsicH = SUB_TOP_PAD + TITLE_LINE + KIND_GAP + KIND_LINE + roleBlock + SUB_BOTTOM_PAD;
+  const height = Math.max(SUB_HEIGHT_MIN, Math.min(SUB_HEIGHT_MAX, Math.ceil(intrinsicH)));
+
+  return { width, height, roleLines, kindLabel };
 }
 
 function endpointId(endpoint, ownerFeature) {
@@ -53,17 +146,20 @@ function buildGraph(state) {
       'elk.layered.spacing.nodeNodeBetweenLayers': '36',
       'elk.nodeLabels.placement': '[H_CENTER, V_TOP, INSIDE]',
     },
-    children: (feature.submodules || []).map((sub) => ({
-      id: `submodule::${feature.slug}::${sub.slug}`,
-      width: SUB_WIDTH,
-      height: SUB_HEIGHT,
-      labels: [{
-        id: `submodule::${feature.slug}::${sub.slug}::label`,
-        text: sub.slug,
-        width: estimateLabelWidth(sub.slug),
-        height: 18,
-      }],
-    })),
+    children: (feature.submodules || []).map((sub) => {
+      const box = measureSubmodule(sub);
+      return {
+        id: `submodule::${feature.slug}::${sub.slug}`,
+        width: box.width,
+        height: box.height,
+        labels: [{
+          id: `submodule::${feature.slug}::${sub.slug}::label`,
+          text: sub.slug,
+          width: estimateLabelWidth(sub.slug),
+          height: 18,
+        }],
+      };
+    }),
   }));
 
   let nextEdgeId = 0;
@@ -223,7 +319,12 @@ async function layoutMacro(state) {
 module.exports = {
   SUB_WIDTH,
   SUB_HEIGHT,
+  SUB_WIDTH_MIN,
+  SUB_WIDTH_MAX,
+  SUB_HEIGHT_MIN,
+  SUB_HEIGHT_MAX,
   layoutMacro,
   assertNoOverlap,
   buildGraph,
+  measureSubmodule,
 };

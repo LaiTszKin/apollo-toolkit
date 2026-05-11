@@ -13,7 +13,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { layoutMacro } = require('./layout');
+const { layoutMacro, measureSubmodule } = require('./layout');
 
 const KIND_LABEL = {
   ui: 'UI',
@@ -115,21 +115,27 @@ function renderMacroSvg(layout, state) {
 
   for (const sub of layout.submodules) {
     const subState = ((state.features || []).find((f) => f.slug === sub.featureSlug) || {}).submodules || [];
-    const meta = subState.find((s) => s.slug === sub.slug);
-    const kind = (meta && meta.kind) || 'service';
+    const meta = subState.find((s) => s.slug === sub.slug) || {};
+    const kind = meta.kind || 'service';
+    const role = meta.role || '';
+    const measured = measureSubmodule({ slug: sub.slug, kind, role });
+
     const cx = sub.x + sub.width / 2;
-    const labelY = sub.y + 28;
-    const kindLabelY = sub.y + 52;
-    const role = meta && meta.role ? meta.role : '';
+    const titleY = sub.y + 14 + 16; // SUB_TOP_PAD (14) + ascent for the title line
+    const kindY = titleY + 4 + 12; // KIND_GAP + kind ascent
+    const roleStartY = kindY + 8 + 12; // ROLE_GAP + first role line ascent
+
     const href = `features/${sub.featureSlug}/${sub.slug}.html`;
-    parts.push(`    <a class="m-node m-node--${kind}" href="${htmlEscape(href)}" data-feature="${htmlEscape(sub.featureSlug)}" data-submodule="${htmlEscape(sub.slug)}">`);
+    const tooltip = role ? `${sub.slug} — ${role}` : sub.slug;
+    parts.push(`    <a class="m-node m-node--${kind}" href="${htmlEscape(href)}" data-feature="${htmlEscape(sub.featureSlug)}" data-submodule="${htmlEscape(sub.slug)}" tabindex="0" aria-label="${htmlEscape(tooltip)} — open sub-module page">`);
+    parts.push(`      <title>${htmlEscape(tooltip)}</title>`);
     parts.push(`      <rect x="${sub.x.toFixed(2)}" y="${sub.y.toFixed(2)}" width="${sub.width.toFixed(2)}" height="${sub.height.toFixed(2)}" rx="10" ry="10" />`);
-    parts.push(`      <text class="m-node__title" x="${cx.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="middle">${htmlEscape(sub.slug)}</text>`);
-    parts.push(`      <text class="m-node__kind" x="${cx.toFixed(2)}" y="${kindLabelY.toFixed(2)}" text-anchor="middle">${htmlEscape(KIND_LABEL[kind] || kind)}</text>`);
-    if (role) {
-      const truncated = role.length > 38 ? `${role.slice(0, 36)}…` : role;
-      parts.push(`      <text class="m-node__role" x="${cx.toFixed(2)}" y="${(sub.y + sub.height - 14).toFixed(2)}" text-anchor="middle">${htmlEscape(truncated)}</text>`);
-    }
+    parts.push(`      <text class="m-node__title" x="${cx.toFixed(2)}" y="${titleY.toFixed(2)}" text-anchor="middle">${htmlEscape(sub.slug)}</text>`);
+    parts.push(`      <text class="m-node__kind" x="${cx.toFixed(2)}" y="${kindY.toFixed(2)}" text-anchor="middle">${htmlEscape(measured.kindLabel || KIND_LABEL[kind] || kind)}</text>`);
+    measured.roleLines.forEach((line, idx) => {
+      const ly = roleStartY + idx * 16;
+      parts.push(`      <text class="m-node__role" x="${cx.toFixed(2)}" y="${ly.toFixed(2)}" text-anchor="middle">${htmlEscape(line)}</text>`);
+    });
     parts.push('    </a>');
   }
 
@@ -286,33 +292,111 @@ ${rows.map((r) => `          <tr>${r.map((c) => `<td>${htmlEscape(c == null ? ''
       </table>`;
 }
 
+function normalizeDataflowStep(item) {
+  if (typeof item === 'string') return { step: item, fn: '', reads: [], writes: [] };
+  if (!item || typeof item !== 'object') return { step: '', fn: '', reads: [], writes: [] };
+  return {
+    step: typeof item.step === 'string' ? item.step : '',
+    fn: typeof item.fn === 'string' ? item.fn.trim() : '',
+    reads: Array.isArray(item.reads) ? item.reads.filter((v) => typeof v === 'string' && v.trim()) : [],
+    writes: Array.isArray(item.writes) ? item.writes.filter((v) => typeof v === 'string' && v.trim()) : [],
+  };
+}
+
 function renderInternalDataflowSvg(steps) {
   if (!steps || steps.length === 0) {
     return '<p class="sub-dataflow__empty">No internal dataflow steps recorded.</p>';
   }
-  const boxW = 360;
-  const boxH = 56;
-  const gap = 28;
-  const totalH = steps.length * boxH + (steps.length - 1) * gap + 40;
+
+  // Each step renders as a box with three optional zones: a top fn pill
+  // (which function executes this step), the step description in the
+  // middle, and a bottom row of variable chips (← reads / → writes).
+  // The surrounding viewport handles zoom/pan, so we size boxes to the
+  // content rather than the viewport.
+  const boxW = 520;
+  const lineHeight = 20;
+  const innerPadY = 18;
+  const fnRowH = 32;       // fn pill + spacing
+  const chipsRowH = 26;    // chips row + spacing
+  const minBoxH = 72;
+  const gap = 44;
+  const padLeft = 80;      // room for the left-side step-number badge
+  const padTop = 32;
+  const padBottom = 32;
+  const padRight = 28;
+
+  const normalized = steps.map(normalizeDataflowStep);
+  const layouts = normalized.map((s) => {
+    const lines = wrapText(s.step, 60);
+    const hasFn = s.fn.length > 0;
+    const hasChips = s.reads.length > 0 || s.writes.length > 0;
+    const textBlockH = lines.length * lineHeight;
+    const boxH = Math.max(minBoxH, innerPadY * 2 + (hasFn ? fnRowH : 0) + textBlockH + (hasChips ? chipsRowH : 0));
+    return { lines, hasFn, hasChips, boxH };
+  });
+
+  const totalH = padTop + layouts.reduce((a, l) => a + l.boxH, 0) + (normalized.length - 1) * gap + padBottom;
+  const totalW = padLeft + boxW + padRight;
+
   const parts = [];
-  parts.push(`<svg class="sub-dataflow__svg" viewBox="0 0 ${boxW + 40} ${totalH}" role="img" aria-label="Internal dataflow">`);
-  parts.push('  <defs><marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker></defs>');
-  steps.forEach((step, i) => {
-    const y = 20 + i * (boxH + gap);
-    parts.push(`  <g class="sub-dataflow__step">`);
-    parts.push(`    <rect x="20" y="${y}" width="${boxW}" height="${boxH}" rx="8" ry="8" />`);
-    const lines = wrapText(step, 52);
-    lines.forEach((line, idx) => {
-      const ly = y + 24 + idx * 16;
-      parts.push(`    <text x="${20 + boxW / 2}" y="${ly}" text-anchor="middle">${htmlEscape(line)}</text>`);
+  parts.push(`<svg class="sub-dataflow__svg" data-atlas-svg="sub-dataflow" viewBox="0 0 ${totalW} ${totalH}" role="img" aria-label="Internal dataflow">`);
+  parts.push('  <defs>');
+  parts.push('    <marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>');
+  parts.push('  </defs>');
+
+  let cursorY = padTop;
+  normalized.forEach((s, i) => {
+    const layout = layouts[i];
+    const boxX = padLeft;
+    const boxY = cursorY;
+    const boxH = layout.boxH;
+    const badgeCx = padLeft - 38;
+    const badgeCy = boxY + boxH / 2;
+
+    parts.push('  <g class="sub-dataflow__step">');
+    parts.push(`    <circle class="sub-dataflow__badge" cx="${badgeCx}" cy="${badgeCy}" r="18" />`);
+    parts.push(`    <text class="sub-dataflow__badge-text" x="${badgeCx}" y="${badgeCy + 5}" text-anchor="middle">${i + 1}</text>`);
+    parts.push(`    <rect class="sub-dataflow__box" x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" rx="14" ry="14" />`);
+
+    if (layout.hasFn) {
+      const fnLabel = `fn ${s.fn}`;
+      const pillX = boxX + 14;
+      const pillY = boxY + 14;
+      const pillW = Math.max(72, fnLabel.length * 7.4 + 20);
+      parts.push(`    <rect class="sub-dataflow__fn-bg" x="${pillX}" y="${pillY}" width="${pillW}" height="20" rx="10" ry="10" />`);
+      parts.push(`    <text class="sub-dataflow__fn-text" x="${pillX + 10}" y="${pillY + 14}">${htmlEscape(fnLabel)}</text>`);
+    }
+
+    const topUsed = layout.hasFn ? fnRowH : 0;
+    const bottomUsed = layout.hasChips ? chipsRowH : 0;
+    const textZoneH = boxH - topUsed - bottomUsed;
+    const textBlockH = layout.lines.length * lineHeight;
+    const textStartY = boxY + topUsed + (textZoneH - textBlockH) / 2 + lineHeight - 4;
+    layout.lines.forEach((line, idx) => {
+      parts.push(`    <text class="sub-dataflow__text" x="${boxX + boxW / 2}" y="${textStartY + idx * lineHeight}" text-anchor="middle">${htmlEscape(line)}</text>`);
     });
+
+    if (layout.hasChips) {
+      const chipY = boxY + boxH - 12;
+      if (s.reads.length > 0) {
+        const text = `← reads: ${s.reads.join(', ')}`;
+        parts.push(`    <text class="sub-dataflow__chip sub-dataflow__chip--reads" x="${boxX + 14}" y="${chipY}">${htmlEscape(text)}</text>`);
+      }
+      if (s.writes.length > 0) {
+        const text = `→ writes: ${s.writes.join(', ')}`;
+        parts.push(`    <text class="sub-dataflow__chip sub-dataflow__chip--writes" x="${boxX + boxW - 14}" y="${chipY}" text-anchor="end">${htmlEscape(text)}</text>`);
+      }
+    }
+
     parts.push('  </g>');
-    if (i < steps.length - 1) {
-      const aY = y + boxH;
-      const bY = aY + gap;
-      const x = 20 + boxW / 2;
+
+    if (i < normalized.length - 1) {
+      const aY = boxY + boxH + 6;
+      const bY = aY + gap - 14;
+      const x = boxX + boxW / 2;
       parts.push(`  <line class="sub-dataflow__arrow" x1="${x}" y1="${aY}" x2="${x}" y2="${bY}" marker-end="url(#sub-arrow)" />`);
     }
+    cursorY += boxH + gap;
   });
   parts.push('</svg>');
   return parts.join('\n');
@@ -329,7 +413,9 @@ function wrapText(text, maxChars) {
     else { lines.push(current); current = word; }
   }
   if (current) lines.push(current);
-  return lines.slice(0, 3);
+  // Allow up to 4 lines so long error/rollback notes stay readable; the
+  // surrounding viewport handles scroll/zoom for anything beyond.
+  return lines.slice(0, 4);
 }
 
 function renderSubmodulePage({ feature, sub, outDir }) {
@@ -361,7 +447,18 @@ function renderSubmodulePage({ feature, sub, outDir }) {
     </section>
     <section class="sub-dataflow" aria-label="Internal data flow">
       <h2>Internal data flow</h2>
-      ${renderInternalDataflowSvg(sub.dataflow)}
+      ${(sub.dataflow && sub.dataflow.length > 0)
+        ? `<div class="sub-dataflow__canvas" data-pan-zoom-container>
+        <div class="sub-dataflow__toolbar" role="toolbar" aria-label="Diagram controls">
+          <button type="button" data-pan-zoom="zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" data-pan-zoom="zoom-out" aria-label="Zoom out">−</button>
+          <button type="button" data-pan-zoom="fit" aria-label="Reset view">Fit</button>
+        </div>
+        <div class="sub-dataflow__viewport" data-pan-zoom-viewport>
+          ${renderInternalDataflowSvg(sub.dataflow)}
+        </div>
+      </div>`
+        : renderInternalDataflowSvg(sub.dataflow)}
     </section>
     <section class="sub-errors" aria-label="Errors">
       <h2>Errors</h2>
@@ -370,6 +467,7 @@ function renderSubmodulePage({ feature, sub, outDir }) {
         : '<p class="sub-section__empty">No errors recorded.</p>'}
     </section>
   </main>
+  <script src="${assetRel}/viewer.client.js" defer></script>
 </body>
 </html>`;
 

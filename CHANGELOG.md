@@ -10,6 +10,23 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.1] - 2026-05-11
+
+### Added
+
+- `dataflow add` optional `--fn`, `--reads`, and `--writes` (comma-separated variable names): each internal step can reference a declared function and read/write declared variables in the same sub-module; `validate` rejects unknown names. The renderer draws a function pill plus reads/writes chips on sub-module internal flow diagrams.
+- `init-project-html` / `spec-to-project-html`: **Acceptance criteria** for macro edges (call/return/data-row/failure) and for sub-module diagrams (function flow + variable state); Rule 2 and CLI verb table updated; `TEMPLATE_SPEC.md` documents object-shaped `dataflow` steps and new CSS hooks.
+- Macro atlas UX: each sub-module rectangle is an `<a href="features/<feature>/<sub>.html">` with `aria-label`, nested SVG `<title>` tooltip, `cursor: pointer`, and clearer hover/focus styles.
+
+### Changed
+
+- `layout.js`: `measureSubmodule()` computes per-node width/height from slug, kind label, and `role` so elkjs lays out boxes that fit wrapped role text (replaces fixed 240×92 and the old single-line truncation).
+- `render.js`: macro SVG draws slug, kind, and multi-line role using the same `measureSubmodule()` output as layout; sub-dataflow SVG renders enriched steps with fn pill and reads/writes chips (from prior work in this release train, now validated and documented).
+
+### Fixed
+
+- `viewer.client.js`: defer pointer capture until the pointer moves past a small drag threshold so clicks on macro sub-module links navigate; swallow the synthetic click after an actual drag so pan does not accidentally open a page.
+
 ## [v3.11.0] - 2026-05-11
 
 ### Added

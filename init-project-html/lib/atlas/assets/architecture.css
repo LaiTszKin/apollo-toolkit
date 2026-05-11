@@ -74,11 +74,17 @@ p { line-height: 1.55; color: var(--text); }
 /* ---- SVG macro ---- */
 .m-cluster__bg { fill: rgba(15, 23, 42, 0.55); stroke: var(--border); stroke-width: 1; }
 .m-cluster__title { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px; fill: var(--text); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
-.m-node rect { fill: var(--panel-soft); stroke: var(--border); stroke-width: 1; transition: stroke 120ms ease; }
-.m-node:hover rect { stroke: var(--accent); }
+.m-node { cursor: pointer; }
+.m-node rect { fill: var(--panel-soft); stroke: var(--border); stroke-width: 1; transition: stroke 120ms ease, fill 120ms ease; }
+.m-node:hover rect,
+.m-node:focus rect,
+.m-node:focus-visible rect { stroke: var(--accent); stroke-width: 1.6; fill: rgba(56, 189, 248, 0.08); }
+.m-node:focus { outline: none; }
 .m-node__title { font-size: 13px; font-weight: 600; fill: var(--text); }
 .m-node__kind { font-size: 11px; fill: var(--muted); }
 .m-node__role { font-size: 11px; fill: var(--muted); }
+.m-node:hover .m-node__title,
+.m-node:focus .m-node__title { fill: var(--accent); }
 
 .m-node--ui rect { stroke: var(--kind-ui); }
 .m-node--api rect { stroke: var(--kind-api); }
@@ -133,8 +139,23 @@ p { line-height: 1.55; color: var(--text); }
 
 .sub-section__empty { color: var(--muted); font-style: italic; font-size: 13px; }
 
-.sub-dataflow__svg { width: 100%; max-width: 480px; }
-.sub-dataflow__step rect { fill: var(--panel); stroke: var(--border); }
-.sub-dataflow__step text { fill: var(--text); font-size: 13px; }
-.sub-dataflow__arrow { stroke: var(--muted); stroke-width: 1.4; }
+.sub-dataflow__canvas { position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.sub-dataflow__toolbar { position: absolute; top: 16px; right: 16px; display: flex; gap: 4px; z-index: 2; }
+.sub-dataflow__toolbar button { background: var(--panel-soft); color: var(--text); border: 1px solid var(--border); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.sub-dataflow__toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+.sub-dataflow__viewport { width: 100%; max-height: 60vh; overflow: hidden; border-radius: 8px; background: #0b1220; }
+.sub-dataflow__viewport.is-grabbing { cursor: grabbing; }
+.sub-dataflow__viewport:not(.is-grabbing) { cursor: grab; }
+.sub-dataflow__svg { width: 100%; height: auto; max-height: 60vh; display: block; user-select: none; touch-action: none; }
+.sub-dataflow__badge { fill: var(--panel-soft); stroke: var(--accent); stroke-width: 1.4; }
+.sub-dataflow__badge-text { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 600; fill: var(--accent); }
+.sub-dataflow__step .sub-dataflow__box { fill: var(--panel-soft); stroke: var(--border); stroke-width: 1; }
+.sub-dataflow__step:hover .sub-dataflow__box { stroke: var(--accent); }
+.sub-dataflow__text { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px; fill: var(--text); }
+.sub-dataflow__arrow { stroke: var(--muted); stroke-width: 1.6; }
+.sub-dataflow__fn-bg { fill: rgba(56, 189, 248, 0.12); stroke: var(--accent); stroke-width: 1; }
+.sub-dataflow__fn-text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 600; fill: var(--accent); letter-spacing: 0.02em; }
+.sub-dataflow__chip { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 500; }
+.sub-dataflow__chip--reads { fill: var(--kind-service); }
+.sub-dataflow__chip--writes { fill: var(--kind-db); }
 .sub-dataflow__empty { color: var(--muted); font-style: italic; }

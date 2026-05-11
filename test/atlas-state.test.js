@@ -66,6 +66,40 @@ test('schema.validate detects unknown edge endpoints', () => {
   assert.ok(errors.some((e) => e.includes('unknown feature')));
 });
 
+test('schema.validate accepts enriched dataflow steps referencing declared fn + variables', () => {
+  const state = sampleState();
+  const api = state.features[0].submodules[1];
+  api.functions = [{ name: 'handlePost', side: 'network', purpose: 'entry' }];
+  api.variables = [
+    { name: 'body', type: 'object', scope: 'call', purpose: 'request body' },
+    { name: 'token', type: 'string', scope: 'call', purpose: 'output token' },
+  ];
+  api.dataflow = [
+    'Receive request',
+    { step: 'Validate body and emit token', fn: 'handlePost', reads: ['body'], writes: ['token'] },
+  ];
+  const errors = schema.validate(state);
+  assert.deepEqual(errors, []);
+});
+
+test('schema.validate rejects dataflow fn/reads/writes referencing undeclared symbols', () => {
+  const state = sampleState();
+  const api = state.features[0].submodules[1];
+  api.functions = [{ name: 'handlePost' }];
+  api.variables = [{ name: 'body', scope: 'call' }];
+  api.dataflow = [
+    { step: 'Bad fn', fn: 'nope' },
+    { step: 'Bad reads', reads: ['ghost'] },
+    { step: 'Bad writes', writes: ['phantom'] },
+    { step: 'Wrong shape', reads: 'not-an-array' },
+  ];
+  const errors = schema.validate(state);
+  assert.ok(errors.some((e) => e.includes('unknown function "nope"')), 'flags unknown fn');
+  assert.ok(errors.some((e) => e.includes('unknown variable "ghost"')), 'flags unknown reads');
+  assert.ok(errors.some((e) => e.includes('unknown variable "phantom"')), 'flags unknown writes');
+  assert.ok(errors.some((e) => e.includes('"reads" must be an array')), 'flags wrong shape');
+});
+
 test('state.save then state.load round-trips', () => {
   const dir = mkTmp();
   try {

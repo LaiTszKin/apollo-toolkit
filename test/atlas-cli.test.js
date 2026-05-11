@@ -110,6 +110,46 @@ test('dataflow reorder swaps step positions', async () => {
   }
 });
 
+test('dataflow add stores fn/reads/writes when flags are passed and validates against declared symbols', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'reg', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'reg', '--slug', 'api', '--kind', 'api', '--project', root, '--no-render'], io);
+    await cli.dispatch(['function', 'add', '--feature', 'reg', '--submodule', 'api', '--name', 'handlePost', '--side', 'network', '--project', root, '--no-render'], io);
+    await cli.dispatch(['variable', 'add', '--feature', 'reg', '--submodule', 'api', '--name', 'body', '--type', 'object', '--scope', 'call', '--project', root, '--no-render'], io);
+    await cli.dispatch(['variable', 'add', '--feature', 'reg', '--submodule', 'api', '--name', 'token', '--type', 'string', '--scope', 'call', '--project', root, '--no-render'], io);
+    await cli.dispatch(['dataflow', 'add', '--feature', 'reg', '--submodule', 'api', '--step', 'plain step', '--project', root, '--no-render'], io);
+    await cli.dispatch(['dataflow', 'add', '--feature', 'reg', '--submodule', 'api', '--step', 'validate body and emit token', '--fn', 'handlePost', '--reads', 'body', '--writes', 'token', '--project', root, '--no-render'], io);
+    const loaded = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    const flow = loaded.features[0].submodules[0].dataflow;
+    assert.equal(flow[0], 'plain step', 'plain string steps stay as strings');
+    assert.deepEqual(flow[1], { step: 'validate body and emit token', fn: 'handlePost', reads: ['body'], writes: ['token'] });
+    const validateIo = makeIo();
+    const code = await cli.dispatch(['validate', '--project', root], validateIo);
+    assert.equal(code, 0);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('dataflow add rejects fn/reads/writes that do not match declared functions/variables', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'reg', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'reg', '--slug', 'api', '--kind', 'api', '--project', root, '--no-render'], io);
+    await cli.dispatch(['dataflow', 'add', '--feature', 'reg', '--submodule', 'api', '--step', 'lying step', '--fn', 'ghostFn', '--project', root, '--no-render'], io);
+    const validateIo = makeIo();
+    const code = await cli.dispatch(['validate', '--project', root], validateIo);
+    assert.notEqual(code, 0, 'validate exits non-zero when fn references unknown function');
+    const combined = validateIo.stderr_text + validateIo.stdout_text;
+    assert.match(combined, /unknown function "ghostFn"/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('cross-feature edge is stored at the index level', async () => {
   const root = mkProject();
   try {

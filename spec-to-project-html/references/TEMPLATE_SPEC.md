@@ -72,6 +72,8 @@ CLI: `apltk architecture submodule add|set|remove --spec <spec_dir> --feature X 
 
 Each row uses the same fields documented in `init-project-html/references/TEMPLATE_SPEC.md`. Always pass `--spec <spec_dir>` so the write lands in the overlay.
 
+`dataflow` steps accept the same structured fields in overlay mode — `--fn` must reference a function declared in this overlay (or inherited from base) for the same sub-module; `--reads` / `--writes` must reference variables declared there. `validate --spec <spec_dir>` enforces these references against the **merged** state, so adding a step that names a function/variable the spec also introduces is fine as long as both land in the same overlay.
+
 ### `edge`
 
 | Field | Type | Required | Notes |

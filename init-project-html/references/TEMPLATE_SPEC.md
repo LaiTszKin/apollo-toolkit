@@ -60,7 +60,7 @@ CLI: `apltk architecture feature add --slug <kebab> --title "..." --story "..." 
 | role       | string | no | Own responsibility in one sentence. Renders as macro node footnote + feature card subtitle. |
 | functions  | array of function row | no | Renders the `sub-io` table. |
 | variables  | array of variable row | no | Renders the `sub-vars` table. |
-| dataflow   | array of string (ordered) | no | Renders the `sub-dataflow` internal flow SVG. |
+| dataflow   | array of dataflow step (string OR object — see below) | no | Renders the `sub-dataflow` internal flow SVG. |
 | errors     | array of error row | no | Renders the `sub-errors` table. |
 
 CLI: `apltk architecture submodule add --feature X --slug Y --kind api --role "..."`
@@ -90,9 +90,22 @@ CLI: `apltk architecture variable add --feature X --submodule Y --name v --type 
 
 ### `dataflow` step
 
-A simple ordered string. Appended at the tail by default; pass `--at N` to insert at index N. Reorder with `apltk architecture dataflow reorder --feature X --submodule Y --from i --to j`.
+Each step is either a plain string OR an object with one required and three optional fields. The renderer arranges them top-to-bottom inside a pan/zoom viewport; `--fn` becomes a function pill at the top of the step box, `--reads` becomes a green chip on the bottom-left, `--writes` becomes an orange chip on the bottom-right.
 
-CLI: `apltk architecture dataflow add --feature X --submodule Y --step "..."`
+| Field   | Type | Required | Notes |
+| ------- | ---- | -------- | ----- |
+| step    | string | yes | The action / observation in one short sentence. |
+| fn      | string | no  | Name of a `function` already declared in the SAME sub-module. `validate` fails otherwise. Use it to surface function-to-function transitions inside the sub-module. |
+| reads   | array of variable names | no | Each name must be a `variable` declared in the SAME sub-module. Shows up as `← reads: …` chip. |
+| writes  | array of variable names | no | Same constraint as `reads`. Shows up as `→ writes: …` chip. |
+
+Appended at the tail by default; pass `--at N` to insert at index N. Reorder with `apltk architecture dataflow reorder --feature X --submodule Y --from i --to j`. `--reads` / `--writes` accept comma-separated lists (`--reads "a, b"`).
+
+CLI:
+
+```
+apltk architecture dataflow add --feature X --submodule Y --step "..." [--fn <declared-fn>] [--reads "v1,v2"] [--writes "v3,v4"]
+```
 
 ### `error` row
 
@@ -125,13 +138,18 @@ These are emitted automatically by `lib/atlas/render.js`. Agents do **not** writ
 | `.atlas-header`, `.atlas-summary`, `.atlas-canvas`, `.atlas-submodule-index`, `.atlas-legend` | macro |
 | `.m-cluster`, `.m-cluster__title`, `.m-node`, `.m-node--<kind>`, `.m-node__title/__kind/__role`, `.m-edge`, `.m-edge--<kind>`, `.m-edge__label` | macro SVG |
 | `.feature-header`, `.feature-story`, `.submodule-nav`, `.submodule-card`, `.feature-edges` | feature page |
-| `.submodule-header`, `.submodule-role`, `.sub-io`, `.sub-vars`, `.sub-dataflow`, `.sub-errors`, `.submodule-kind--<kind>` | sub-module page |
+| `.submodule-header`, `.submodule-role`, `.sub-io`, `.sub-vars`, `.sub-dataflow`, `.sub-dataflow__canvas`, `.sub-dataflow__toolbar`, `.sub-dataflow__viewport`, `.sub-dataflow__step`, `.sub-dataflow__badge`, `.sub-dataflow__fn-text`, `.sub-dataflow__chip--reads`, `.sub-dataflow__chip--writes`, `.sub-errors`, `.submodule-kind--<kind>` | sub-module page |
 
-## Pan/zoom on the macro
+## Pan/zoom
 
-The CLI copies `assets/viewer.client.js` into the atlas. The macro page mounts a `[data-pan-zoom-viewport]` element wrapping the SVG; the script wires:
+The CLI copies `assets/viewer.client.js` into the atlas. Two viewports exist:
+
+- macro `index.html` — one `[data-pan-zoom-viewport]` wrapping the atlas SVG.
+- each sub-module page — one `[data-pan-zoom-viewport]` wrapping the sub-dataflow SVG (when the sub-module has any `dataflow` step).
+
+For every viewport the script wires:
 
 - mouse wheel zoom around the cursor,
 - click + drag to pan,
-- `+` / `−` / `Fit` buttons on the toolbar,
-- keyboard `←` `→` `↑` `↓` (pan), `+` `=` (zoom in), `−` `_` (zoom out), `0` (reset).
+- `+` / `−` / `Fit` buttons on the toolbar (scoped to the surrounding `[data-pan-zoom-container]`),
+- keyboard `←` `→` `↑` `↓` (pan), `+` `=` (zoom in), `−` `_` (zoom out), `0` (reset) — applied to the page's primary viewport.

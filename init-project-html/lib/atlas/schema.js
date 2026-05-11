@@ -128,10 +128,47 @@ function validateSubmodule(sub, errors, where) {
   }
   if (sub && sub.dataflow) {
     if (!Array.isArray(sub.dataflow)) {
-      errors.push(`${where}: "dataflow" must be an array of step strings`);
+      errors.push(`${where}: "dataflow" must be an array`);
     } else {
+      const fnNames = new Set((sub.functions || []).map((f) => f && f.name).filter(Boolean));
+      const varNames = new Set((sub.variables || []).map((v) => v && v.name).filter(Boolean));
       sub.dataflow.forEach((step, i) => {
-        if (typeof step !== 'string') errors.push(`${where}.dataflow[${i}]: must be a string`);
+        const stepWhere = `${where}.dataflow[${i}]`;
+        if (typeof step === 'string') {
+          if (!step.trim()) errors.push(`${stepWhere}: step text must be non-empty`);
+          return;
+        }
+        if (!step || typeof step !== 'object') {
+          errors.push(`${stepWhere}: must be a string or an object with "step"`);
+          return;
+        }
+        if (!isNonEmptyString(step.step)) {
+          errors.push(`${stepWhere}: "step" must be a non-empty string`);
+        }
+        if (step.fn !== undefined) {
+          if (typeof step.fn !== 'string' || !step.fn.trim()) {
+            errors.push(`${stepWhere}: "fn" must be a non-empty string when present`);
+          } else if (!fnNames.has(step.fn)) {
+            errors.push(`${stepWhere}: "fn" references unknown function "${step.fn}" — declare it via \`function add\` first`);
+          }
+        }
+        for (const field of ['reads', 'writes']) {
+          if (step[field] === undefined) continue;
+          if (!Array.isArray(step[field])) {
+            errors.push(`${stepWhere}: "${field}" must be an array of variable names`);
+            continue;
+          }
+          step[field].forEach((name, j) => {
+            const refWhere = `${stepWhere}.${field}[${j}]`;
+            if (typeof name !== 'string' || !name.trim()) {
+              errors.push(`${refWhere}: variable name must be a non-empty string`);
+              return;
+            }
+            if (!varNames.has(name)) {
+              errors.push(`${refWhere}: unknown variable "${name}" — declare it via \`variable add\` first`);
+            }
+          });
+        }
       });
     }
   }

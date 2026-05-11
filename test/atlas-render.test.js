@@ -7,7 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const render = require('../init-project-html/lib/atlas/render');
-const { layoutMacro, assertNoOverlap } = require('../init-project-html/lib/atlas/layout');
+const { layoutMacro, assertNoOverlap, measureSubmodule, SUB_WIDTH_MAX, SUB_HEIGHT_MIN } = require('../init-project-html/lib/atlas/layout');
 
 function fixtureState() {
   return {
@@ -49,6 +49,49 @@ test('layoutMacro produces non-overlapping rectangles with absolute coordinates'
   assertNoOverlap(layout);
 });
 
+test('measureSubmodule grows the box to fit longer role text without truncation', () => {
+  const short = measureSubmodule({ slug: 'svc', kind: 'service', role: 'Tiny.' });
+  const longRole = 'This sub-module mints invite codes, persists them, and returns the code string with retry-on-collision semantics that the caller relies upon.';
+  const long = measureSubmodule({ slug: 'svc', kind: 'service', role: longRole });
+  assert.ok(long.width >= short.width, 'long role widens the box');
+  assert.ok(long.height >= short.height, 'long role grows the box height');
+  assert.ok(long.width <= SUB_WIDTH_MAX, 'width stays capped at SUB_WIDTH_MAX');
+  assert.ok(long.roleLines.length >= 2, 'long role wraps onto multiple lines');
+  const joined = long.roleLines.join(' ');
+  assert.ok(joined.includes('persists') && joined.includes('caller'), 'every part of the role is preserved across the wrapped lines');
+  assert.ok(short.height >= SUB_HEIGHT_MIN, 'short role still respects the min height');
+});
+
+test('renderMacroSvg makes each sub-module node a clickable link to its dedicated page', async () => {
+  const out = mkTmp();
+  try {
+    await render.renderAll({ outDir: out, state: fixtureState() });
+    const macroHtml = fs.readFileSync(path.join(out, 'index.html'), 'utf8');
+    assert.match(macroHtml, /<a class="m-node m-node--ui"[^>]*href="features\/register\/ui\.html"/, 'sub-module ui node is wrapped in a link to its page');
+    assert.match(macroHtml, /<a class="m-node m-node--service"[^>]*href="features\/invite\/svc\.html"/, 'sub-module svc node is wrapped in a link to its page');
+    assert.match(macroHtml, /<title>ui — Renders form<\/title>/, 'macro SVG <title> surfaces the role as a tooltip');
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('renderMacroSvg renders every wrapped line of a long role inside the sub-module box (no truncation)', async () => {
+  const out = mkTmp();
+  try {
+    const state = fixtureState();
+    const longRole = 'Mints invite codes for the registration handshake, persists them in invite_codes, retries on unique-violation, and surfaces 503 only after the retry budget exhausts.';
+    state.features[1].submodules[0].role = longRole;
+    await render.renderAll({ outDir: out, state });
+    const macroHtml = fs.readFileSync(path.join(out, 'index.html'), 'utf8');
+    const roleLines = macroHtml.match(/<text class="m-node__role"[^>]*>([^<]+)<\/text>/g) || [];
+    assert.ok(roleLines.length >= 2, 'long role spans multiple role text lines');
+    const joined = roleLines.map((l) => l.replace(/<[^>]+>/g, '')).join(' ');
+    assert.ok(joined.includes('retries') && joined.includes('budget'), 'no portion of the long role is silently dropped');
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
 test('renderAll emits macro, feature, and submodule HTML plus assets', async () => {
   const out = mkTmp();
   try {
@@ -69,6 +112,32 @@ test('renderAll emits macro, feature, and submodule HTML plus assets', async () 
     assert.match(subHtml, /sub-vars/);
     assert.match(subHtml, /sub-dataflow/);
     assert.match(subHtml, /sub-errors/);
+    assert.match(subHtml, /data-pan-zoom-viewport/, 'sub-module page wraps the dataflow svg in a zoom viewport');
+    assert.match(subHtml, /viewer\.client\.js/, 'sub-module page ships the viewer script');
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('renderAll renders fn pill + reads/writes chips when dataflow steps are enriched', async () => {
+  const out = mkTmp();
+  try {
+    const state = fixtureState();
+    const ui = state.features[0].submodules[0];
+    ui.variables = [
+      { name: 'email', type: 'string', scope: 'call', purpose: 'user id' },
+      { name: 'token', type: 'string', scope: 'call', purpose: 'idempotency key' },
+    ];
+    ui.dataflow = [
+      'collect',
+      { step: 'validate then post', fn: 'submit', reads: ['email'], writes: ['token'] },
+    ];
+    await render.renderAll({ outDir: out, state });
+    const subHtml = fs.readFileSync(path.join(out, 'features', 'register', 'ui.html'), 'utf8');
+    assert.match(subHtml, /sub-dataflow__fn-text[^>]*>fn submit</, 'fn pill renders the function name');
+    assert.match(subHtml, /sub-dataflow__chip--reads[^>]*>← reads: email</, 'reads chip renders');
+    assert.match(subHtml, /sub-dataflow__chip--writes[^>]*>→ writes: token</, 'writes chip renders');
+    assert.match(subHtml, /<text class="sub-dataflow__text"[^>]*>collect<\/text>/, 'plain string step still renders');
   } finally {
     fs.rmSync(out, { recursive: true, force: true });
   }
