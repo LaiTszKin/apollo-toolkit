@@ -69,10 +69,18 @@
       return { x: state.x + xRatio * state.w, y: state.y + yRatio * state.h };
     }
 
+    // The diagram viewport owns the wheel gesture entirely: ANY wheel
+    // event that lands inside the viewport is consumed so the host page
+    // never scrolls underneath the user. The wheel zooms the SVG around
+    // the cursor; trackpad pinch-zoom (which arrives as ctrlKey wheel
+    // on macOS) is treated the same way for a single predictable model.
     viewport.addEventListener('wheel', function (evt) {
-      if (!evt.ctrlKey && !evt.metaKey && Math.abs(evt.deltaY) < 4 && Math.abs(evt.deltaX) < 4) return;
       evt.preventDefault();
-      const factor = evt.deltaY > 0 ? 1.1 : 1 / 1.1;
+      evt.stopPropagation();
+      const absX = Math.abs(evt.deltaX);
+      const absY = Math.abs(evt.deltaY);
+      if (absX < 0.5 && absY < 0.5) return;
+      const factor = evt.deltaY > 0 ? 1.08 : 1 / 1.08;
       const pt = clientToSvg(evt);
       zoom(factor, pt.x, pt.y);
     }, { passive: false });

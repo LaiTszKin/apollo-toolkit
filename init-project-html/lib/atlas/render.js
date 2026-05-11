@@ -55,6 +55,10 @@ function head({ title, assetRel, pageKind }) {
     '  <meta charset="utf-8">',
     `  <title>${htmlEscape(title)}</title>`,
     '  <meta name="viewport" content="width=device-width, initial-scale=1">',
+    '  <meta name="color-scheme" content="dark">',
+    '  <link rel="preconnect" href="https://fonts.googleapis.com">',
+    '  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+    '  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400..600&display=swap">',
     `  <link rel="stylesheet" href="${assetRel}/architecture.css">`,
     '</head>',
   ].join('\n');
@@ -88,13 +92,13 @@ function findEdgeMeta(state, edgeId) {
 
 function renderMacroSvg(layout, state) {
   if (layout.empty) {
-    return '<svg class="atlas-svg" viewBox="0 0 320 160" role="img" aria-label="Atlas is empty"><text x="160" y="80" text-anchor="middle" fill="currentColor">Atlas has no features yet</text></svg>';
+    return '<svg class="atlas-svg" viewBox="0 0 320 160" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Atlas is empty"><text x="160" y="80" text-anchor="middle" fill="currentColor">Atlas has no features yet</text></svg>';
   }
   const pad = 24;
   const vbW = Math.max(320, Math.ceil(layout.width + pad * 2));
   const vbH = Math.max(160, Math.ceil(layout.height + pad * 2));
   const parts = [];
-  parts.push(`<svg class="atlas-svg" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Project architecture atlas" data-atlas-svg="macro">`);
+  parts.push(`<svg class="atlas-svg" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Project architecture atlas" data-atlas-svg="macro">`);
   parts.push('  <defs>');
   for (const kind of ['call', 'return', 'data-row', 'failure']) {
     parts.push(`    <marker id="arrow-${kind}" class="m-arrow m-arrow--${kind}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>`);
@@ -339,7 +343,7 @@ function renderInternalDataflowSvg(steps) {
   const totalW = padLeft + boxW + padRight;
 
   const parts = [];
-  parts.push(`<svg class="sub-dataflow__svg" data-atlas-svg="sub-dataflow" viewBox="0 0 ${totalW} ${totalH}" role="img" aria-label="Internal dataflow">`);
+  parts.push(`<svg class="sub-dataflow__svg" data-atlas-svg="sub-dataflow" viewBox="0 0 ${totalW} ${totalH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Internal dataflow">`);
   parts.push('  <defs>');
   parts.push('    <marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>');
   parts.push('  </defs>');
@@ -539,7 +543,44 @@ async function renderAll({ outDir, state, scope = null, removedPaths = [] }) {
     if (fs.existsSync(file)) fs.rmSync(file);
   }
 
+  // Full base render (no scope): sweep stale HTML so `apltk architecture
+  // render` is a true refresh — old feature folders or renamed sub-modules
+  // do not linger with the previous (broken) markup or styling.
+  if (!scope) {
+    sweepOrphanFeaturePages(outDir, state);
+  }
+
   return { written, layout };
+}
+
+function sweepOrphanFeaturePages(outDir, state) {
+  const featuresRoot = path.join(outDir, 'features');
+  if (!fs.existsSync(featuresRoot)) return;
+  const validFeatures = new Map();
+  for (const f of state.features || []) {
+    validFeatures.set(f.slug, new Set((f.submodules || []).map((s) => s.slug)));
+  }
+  let entries;
+  try { entries = fs.readdirSync(featuresRoot, { withFileTypes: true }); } catch (_e) { return; }
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const featDir = path.join(featuresRoot, entry.name);
+    if (!validFeatures.has(entry.name)) {
+      fs.rmSync(featDir, { recursive: true, force: true });
+      continue;
+    }
+    const wantedSubs = validFeatures.get(entry.name);
+    let files;
+    try { files = fs.readdirSync(featDir); } catch (_e) { continue; }
+    for (const file of files) {
+      if (!file.toLowerCase().endsWith('.html')) continue;
+      if (file === 'index.html') continue;
+      const slug = file.slice(0, -5);
+      if (!wantedSubs.has(slug)) {
+        fs.rmSync(path.join(featDir, file), { force: true });
+      }
+    }
+  }
 }
 
 function scopeFromDiff(diff) {

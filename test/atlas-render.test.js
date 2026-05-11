@@ -163,6 +163,20 @@ test('renderAll honours scope and emits only requested pages', async () => {
   }
 });
 
+test('renderAll with scope.macro only writes index.html', async () => {
+  const out = mkTmp();
+  try {
+    const scope = { macro: true, features: new Set(), submodules: [] };
+    const result = await render.renderAll({ outDir: out, state: fixtureState(), scope });
+    assert.deepEqual(result.written, ['index.html']);
+    assert.equal(fs.existsSync(path.join(out, 'features/register/ui.html')), false);
+    const macroHtml = fs.readFileSync(path.join(out, 'index.html'), 'utf8');
+    assert.match(macroHtml, /register/);
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
 test('renderAll writes _removed.txt when removedPaths supplied', async () => {
   const out = mkTmp();
   try {
@@ -183,6 +197,78 @@ test('renderAll renders an empty atlas with a placeholder SVG', async () => {
     assert.deepEqual(result.written, ['index.html']);
     const html = fs.readFileSync(path.join(out, 'index.html'), 'utf8');
     assert.match(html, /Atlas has no features yet/);
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('shipped architecture.css gives the viewport a fixed height so horizontal atlases keep their block', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'init-project-html', 'lib', 'atlas', 'assets', 'architecture.css'), 'utf8');
+  assert.match(css, /\.atlas-canvas__viewport\b[^{]*\{[^}]*height:\s*clamp\(/, 'macro viewport has a clamp() height');
+  assert.match(css, /\.sub-dataflow__viewport\b[^{]*\{[^}]*height:\s*clamp\(/, 'sub dataflow viewport has a clamp() height');
+  assert.match(css, /\.atlas-svg\b[^{]*\{[^}]*height:\s*100%/, 'atlas-svg fills the viewport height');
+});
+
+test('shipped viewer.client.js claims the wheel gesture so the host page never scrolls', () => {
+  const js = fs.readFileSync(path.join(__dirname, '..', 'init-project-html', 'lib', 'atlas', 'assets', 'viewer.client.js'), 'utf8');
+  const wheelBlock = js.match(/addEventListener\('wheel',[\s\S]*?\}, \{ passive: false \}\)/);
+  assert.ok(wheelBlock, 'wheel handler exists');
+  assert.match(wheelBlock[0], /evt\.preventDefault\(\)/);
+  assert.match(wheelBlock[0], /evt\.stopPropagation\(\)/);
+  assert.ok(!/if \(!evt\.ctrlKey/.test(wheelBlock[0]), 'wheel handler no longer gates page scroll behind ctrlKey');
+});
+
+test('renderMacroSvg sets preserveAspectRatio="xMidYMid meet" so wide atlases stay centered in the fixed viewport', async () => {
+  const out = mkTmp();
+  try {
+    await render.renderAll({ outDir: out, state: fixtureState() });
+    const macroHtml = fs.readFileSync(path.join(out, 'index.html'), 'utf8');
+    assert.match(macroHtml, /class="atlas-svg"[^>]*preserveAspectRatio="xMidYMid meet"/);
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('renderAll head loads the custom font stack (Fraunces / Geist / JetBrains Mono)', async () => {
+  const out = mkTmp();
+  try {
+    await render.renderAll({ outDir: out, state: fixtureState() });
+    const macroHtml = fs.readFileSync(path.join(out, 'index.html'), 'utf8');
+    assert.match(macroHtml, /fonts\.googleapis\.com\/css2\?family=Fraunces:/);
+    assert.match(macroHtml, /family=Geist:/);
+    assert.match(macroHtml, /family=JetBrains\+Mono:/);
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('renderAll (no scope) sweeps orphan feature directories and stale submodule HTML', async () => {
+  const out = mkTmp();
+  try {
+    await render.renderAll({ outDir: out, state: fixtureState() });
+    fs.mkdirSync(path.join(out, 'features', 'legacy'), { recursive: true });
+    fs.writeFileSync(path.join(out, 'features', 'legacy', 'index.html'), '<!doctype html>', 'utf8');
+    fs.writeFileSync(path.join(out, 'features', 'register', 'orphan.html'), '<!doctype html>', 'utf8');
+    assert.ok(fs.existsSync(path.join(out, 'features', 'legacy', 'index.html')));
+    assert.ok(fs.existsSync(path.join(out, 'features', 'register', 'orphan.html')));
+    await render.renderAll({ outDir: out, state: fixtureState() });
+    assert.equal(fs.existsSync(path.join(out, 'features', 'legacy')), false, 'orphan feature dir removed');
+    assert.equal(fs.existsSync(path.join(out, 'features', 'register', 'orphan.html')), false, 'orphan submodule html removed');
+    assert.ok(fs.existsSync(path.join(out, 'features', 'register', 'ui.html')), 'live submodule page kept');
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('renderAll with explicit scope DOES NOT sweep orphans (spec overlay safety)', async () => {
+  const out = mkTmp();
+  try {
+    await render.renderAll({ outDir: out, state: fixtureState() });
+    fs.mkdirSync(path.join(out, 'features', 'legacy'), { recursive: true });
+    fs.writeFileSync(path.join(out, 'features', 'legacy', 'index.html'), '<!doctype html>', 'utf8');
+    const scope = { macro: true, features: new Set(), submodules: [] };
+    await render.renderAll({ outDir: out, state: fixtureState(), scope });
+    assert.ok(fs.existsSync(path.join(out, 'features', 'legacy', 'index.html')), 'scoped renders must not delete files outside scope');
   } finally {
     fs.rmSync(out, { recursive: true, force: true });
   }

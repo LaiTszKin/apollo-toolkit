@@ -285,3 +285,274 @@ test('parseEndpoint accepts "feature/submodule" and rejects empty values', async
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('--help and -h print usage without requiring a project root', async () => {
+  for (const argv of [['--help'], ['-h']]) {
+    const io = makeIo();
+    const code = await cli.dispatch(argv, io);
+    assert.equal(code, 0, argv.join(' '));
+    assert.match(io.stdout_text, /feature add\|set\|remove/);
+    assert.match(io.stdout_text, /error add\|remove/);
+  }
+});
+
+test('unknown top-level verb exits 1', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    const code = await cli.dispatch(['nope', '--project', root, '--no-render'], io);
+    assert.equal(code, 1);
+    assert.match(io.stderr_text, /Unknown verb/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('meta set and feature set persist to base atlas', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'r', '--title', 'Old', '--project', root, '--no-render'], io);
+    await cli.dispatch(['meta', 'set', '--title', 'Macro', '--summary', 'Roots: src/', '--project', root, '--no-render'], io);
+    await cli.dispatch(['feature', 'set', '--slug', 'r', '--title', 'New title', '--story', 'S', '--project', root, '--no-render'], io);
+    const idx = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/atlas.index.yaml'), 'utf8');
+    assert.match(idx, /title:\s*Macro/);
+    assert.match(idx, /Roots: src/);
+    const feat = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/r.yaml'), 'utf8');
+    assert.match(feat, /title:\s*New title/);
+    assert.match(feat, /story:\s*S/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('actor add then actor remove', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'r', '--project', root, '--no-render'], io);
+    await cli.dispatch(['actor', 'add', '--id', 'user', '--label', 'User', '--project', root, '--no-render'], io);
+    let idx = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/atlas.index.yaml'), 'utf8');
+    assert.match(idx, /user/);
+    await cli.dispatch(['actor', 'remove', '--id', 'user', '--project', root, '--no-render'], io);
+    const actorsAfter = stateLib.load(path.join(root, 'resources/project-architecture/atlas')).actors || [];
+    assert.deepEqual(actorsAfter, []);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('feature remove (base) drops feature and incident cross-feature edges', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'a', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'a', '--slug', 's', '--project', root, '--no-render'], io);
+    await cli.dispatch(['feature', 'add', '--slug', 'b', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'b', '--slug', 't', '--project', root, '--no-render'], io);
+    await cli.dispatch(['edge', 'add', '--from', 'a/s', '--to', 'b/t', '--kind', 'call', '--id', 'x1', '--project', root, '--no-render'], io);
+    await cli.dispatch(['feature', 'remove', '--slug', 'a', '--project', root, '--no-render'], io);
+    const st = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    assert.equal(st.features.length, 1);
+    assert.equal(st.features[0].slug, 'b');
+    assert.deepEqual(st.edges || [], []);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('submodule remove (base) drops submodule and incident intra-feature edges', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'f', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'f', '--slug', 'u', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'f', '--slug', 'v', '--project', root, '--no-render'], io);
+    await cli.dispatch(['edge', 'add', '--from', 'f/u', '--to', 'f/v', '--kind', 'call', '--id', 'ie', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'remove', '--feature', 'f', '--slug', 'u', '--project', root, '--no-render'], io);
+    const y = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/f.yaml'), 'utf8');
+    assert.ok(!y.includes('slug: u'));
+    assert.ok(!y.includes('ie'), 'intra edge touching removed sub is gone');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('function remove, variable remove, error remove', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'r', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'api', '--project', root, '--no-render'], io);
+    await cli.dispatch(['function', 'add', '--feature', 'r', '--submodule', 'api', '--name', 'fn1', '--project', root, '--no-render'], io);
+    await cli.dispatch(['variable', 'add', '--feature', 'r', '--submodule', 'api', '--name', 'v1', '--project', root, '--no-render'], io);
+    await cli.dispatch(['error', 'add', '--feature', 'r', '--submodule', 'api', '--name', 'E1', '--project', root, '--no-render'], io);
+    await cli.dispatch(['function', 'remove', '--feature', 'r', '--submodule', 'api', '--name', 'fn1', '--project', root, '--no-render'], io);
+    await cli.dispatch(['variable', 'remove', '--feature', 'r', '--submodule', 'api', '--name', 'v1', '--project', root, '--no-render'], io);
+    await cli.dispatch(['error', 'remove', '--feature', 'r', '--submodule', 'api', '--name', 'E1', '--project', root, '--no-render'], io);
+    const y = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/r.yaml'), 'utf8');
+    assert.ok(!y.includes('fn1') && !y.includes('v1') && !y.includes('E1'));
+    const v = await cli.dispatch(['validate', '--project', root], makeIo());
+    assert.equal(v, 0);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('dataflow remove by --step and by --at', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'f', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'f', '--slug', 's', '--project', root, '--no-render'], io);
+    await cli.dispatch(['dataflow', 'add', '--feature', 'f', '--submodule', 's', '--step', 'First', '--project', root, '--no-render'], io);
+    await cli.dispatch(['dataflow', 'add', '--feature', 'f', '--submodule', 's', '--step', 'Second', '--project', root, '--no-render'], io);
+    await cli.dispatch(['dataflow', 'add', '--feature', 'f', '--submodule', 's', '--step', 'Third', '--project', root, '--no-render'], io);
+    await cli.dispatch(['dataflow', 'remove', '--feature', 'f', '--submodule', 's', '--step', 'Second', '--project', root, '--no-render'], io);
+    let st = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    assert.deepEqual(st.features[0].submodules[0].dataflow, ['First', 'Third']);
+    await cli.dispatch(['dataflow', 'remove', '--feature', 'f', '--submodule', 's', '--at', '0', '--project', root, '--no-render'], io);
+    st = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    assert.deepEqual(st.features[0].submodules[0].dataflow, ['Third']);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('edge remove cross-feature by --id', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'a', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'a', '--slug', 's', '--project', root, '--no-render'], io);
+    await cli.dispatch(['feature', 'add', '--slug', 'b', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'b', '--slug', 't', '--project', root, '--no-render'], io);
+    await cli.dispatch(['edge', 'add', '--from', 'a/s', '--to', 'b/t', '--kind', 'data-row', '--id', 'rm-cross', '--project', root, '--no-render'], io);
+    let st = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    assert.equal(st.edges.length, 1);
+    await cli.dispatch(['edge', 'remove', '--from', 'a/s', '--to', 'b/t', '--id', 'rm-cross', '--project', root, '--no-render'], io);
+    st = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    assert.deepEqual(st.edges || [], []);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('edge remove intra-feature by endpoints', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'f', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'f', '--slug', 'u', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'f', '--slug', 'v', '--project', root, '--no-render'], io);
+    await cli.dispatch(['edge', 'add', '--from', 'f/u', '--to', 'f/v', '--kind', 'return', '--id', 'intra-r', '--project', root, '--no-render'], io);
+    let st = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    assert.equal(st.features[0].edges.length, 1);
+    await cli.dispatch(['edge', 'remove', '--from', 'f/u', '--to', 'f/v', '--project', root, '--no-render'], io);
+    st = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    assert.deepEqual(st.features[0].edges || [], []);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('render verb regenerates HTML after --no-render mutations', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'r', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'ui', '--kind', 'ui', '--project', root, '--no-render'], io);
+    assert.equal(fs.existsSync(path.join(root, 'resources/project-architecture/index.html')), false);
+    const code = await cli.dispatch(['render', '--project', root, '--no-open'], io);
+    assert.equal(code, 0);
+    assert.equal(io.stdout_text.includes('rendered'), true);
+    assert.ok(fs.existsSync(path.join(root, 'resources/project-architecture/index.html')));
+    assert.ok(fs.existsSync(path.join(root, 'resources/project-architecture/features/r/ui.html')));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('open --no-open prints atlas path and creates index when missing', async () => {
+  const root = mkBareRoot();
+  try {
+    const io = makeIo();
+    const code = await cli.dispatch(['open', '--project', root, '--no-open'], io);
+    assert.equal(code, 0);
+    const line = io.stdout_text.trim().split(/\r?\n/).pop();
+    assert.ok(line.endsWith(path.join('resources', 'project-architecture', 'index.html')));
+    assert.ok(fs.existsSync(line));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('diff writes viewer; empty plans show no-diffs state', async () => {
+  const root = mkProject();
+  try {
+    const outDir = path.join(root, 'diff-empty');
+    const io = makeIo();
+    const code = await cli.dispatch(['diff', '--project', root, '--out', outDir, '--no-open'], io);
+    assert.equal(code, 0);
+    const html = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
+    assert.match(html, /No architecture diffs found/);
+    assert.match(io.stdout_text, /Diff pages: 0/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('diff counts a modified overlay page against base HTML', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'register', '--project', root, '--no-open'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'ui', '--kind', 'ui', '--role', 'Form', '--project', root, '--no-open'], io);
+    const specDir = path.join(root, 'docs/plans/batch-1/spec-a');
+    fs.mkdirSync(path.join(specDir, 'architecture_diff/features/register'), { recursive: true });
+    const baseUi = fs.readFileSync(path.join(root, 'resources/project-architecture/features/register/ui.html'), 'utf8');
+    fs.writeFileSync(path.join(specDir, 'architecture_diff/features/register/ui.html'), baseUi.replace('Form', 'Form SPEC OVERLAY'), 'utf8');
+    const outDir = path.join(root, 'diff-out');
+    const code = await cli.dispatch(['diff', '--project', root, '--out', outDir, '--no-open'], io);
+    assert.equal(code, 0);
+    assert.match(io.stdout_text, /modified=1/);
+    assert.match(io.stdout_text, /Diff pages: 1/);
+    const viewer = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
+    assert.match(viewer, /architecture diff/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('validate --spec checks merged base + overlay', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'r', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'api', '--kind', 'api', '--project', root, '--no-render'], io);
+    const specDir = path.join(root, 'docs/plans/merge-val');
+    fs.mkdirSync(specDir, { recursive: true });
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'svc', '--kind', 'service', '--spec', 'docs/plans/merge-val', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['validate', '--spec', 'docs/plans/merge-val', '--project', root], makeIo());
+    assert.equal(code, 0);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('undo --spec restores overlay snapshot', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'r', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'api', '--kind', 'api', '--project', root, '--no-render'], io);
+    const specDir = path.join(root, 'docs/plans/undo-spec');
+    fs.mkdirSync(specDir, { recursive: true });
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'svc', '--kind', 'service', '--spec', 'docs/plans/undo-spec', '--project', root, '--no-render'], io);
+    assert.ok(fs.existsSync(path.join(specDir, 'architecture_diff/atlas/features/r.yaml')));
+    await cli.dispatch(['undo', '--spec', 'docs/plans/undo-spec', '--project', root, '--no-render'], io);
+    assert.equal(fs.existsSync(path.join(specDir, 'architecture_diff/atlas/features/r.yaml')), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

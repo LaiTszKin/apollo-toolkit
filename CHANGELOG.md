@@ -10,6 +10,24 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.3] - 2026-05-11
+
+### Added
+
+- New shipped font stack for every rendered atlas page (Fraunces display serif, Geist UI sans, JetBrains Mono technical accents) loaded via Google Fonts preconnect + stylesheet in `<head>`.
+- Tests: shipped CSS viewport `clamp()` + svg `height:100%`; `viewer.client.js` wheel handler always prevents default; `preserveAspectRatio` on macro SVG; Google Fonts links in rendered `<head>`; full `renderAll` orphan sweep (scoped renders do not sweep).
+
+### Changed
+
+- Atlas visual system redesigned end-to-end: dark "blueprint × editorial" theme with a faint vellum grid behind every diagram, sectioned canvases with corner labels (`MACRO DIAGRAM`, `INTERNAL FLOW`), refined toolbar buttons, sharper edge color hierarchy, hover glow on sub-module nodes, and serif story / role typography. All existing class hooks (`.atlas-svg`, `.m-cluster`, `.m-node`, `.sub-dataflow__*`, etc.) are preserved so spec overlays and tests continue to work.
+- Macro and sub-dataflow SVGs render with `preserveAspectRatio="xMidYMid meet"` and fill 100% of a fixed-height viewport (`clamp(480px, 68vh, 760px)` for macro; `clamp(480px, 64vh, 720px)` for sub-dataflow), so horizontally-biased atlases no longer collapse to a thin strip while leaving empty space inside the canvas block.
+- Skills + OpenAI agent prompts (`init-project-html`, `spec-to-project-html`, `generate-spec`): agents **MUST** use `apltk architecture --help` as the authoritative command tree; SKILL prose carries semantic guidance and constraints only (avoids doc/CLI drift). **Subagent-only** read/declare workflow; orchestrator **MUST** wait until all feature subagents finish before cross-feature `edge` or stitching `meta`/`actor`. `generate-spec` §3.5 and frontmatter describe overlay layout, `validate --spec`, and the paginated **`apltk architecture diff`** viewer across `docs/plans/**/architecture_diff/`.
+
+### Fixed
+
+- `viewer.client.js`: the wheel gesture inside any diagram viewport now unconditionally calls `preventDefault()` + `stopPropagation()`, so scrolling/zooming the atlas no longer scrolls the surrounding page. Removed the `ctrlKey`/`metaKey` gate that previously let small wheel deltas bubble up.
+- `apltk architecture render` (full base mode, no `--spec`) now sweeps orphan feature directories and stale sub-module HTML files left over from previous renders, so re-running `render` is a true refresh — old pages from renamed / removed features no longer linger with the previous styling. Scoped renders (overlay mode) intentionally do **not** sweep.
+
 ## [v3.11.2] - 2026-05-11
 
 ### Fixed
