@@ -1,140 +1,67 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>子模組 · web-get-invite-ui — 獲取邀請碼</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../../assets/architecture.css" />
-  </head>
-  <body>
-    <main class="atlas-page atlas-page--feature">
-      <nav class="breadcrumb" aria-label="階層導航">
-        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">獲取邀請碼</a> · <span>web-get-invite-ui</span>
-      </nav>
-
-      <header class="atlas-header">
-        <p class="atlas-kicker">Submodule · web-get-invite-ui</p>
-        <h1 class="atlas-title">web-get-invite-ui</h1>
-        <p class="atlas-meta">自身職責：登入後顯示「我的邀請碼」、列表載入、生成按鈕。本頁只談自身函式 I/O 與內部資料流。</p>
-      </header>
-
-      <section class="sub-io">
-        <h2>函式 I/O</h2>
-        <table>
-          <thead><tr><th>函式</th><th>簽名</th><th>副作用</th><th>用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><code>useInviteCodes()</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> —<br>
-                <strong>out:</strong> <code>{list, isLoading, refresh}</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">network</span> GET 已發放碼</td>
-              <td>查詢鍵／快取列表。</td>
-            </tr>
-            <tr>
-              <td><code>createInviteCode</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> —<br>
-                <strong>out:</strong> <code>Result&lt;NewCode, UiError&gt;</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">network</span> POST</td>
-              <td>把伺服器產生的新碼樂觀 prepend 到列表。</td>
-            </tr>
-            <tr>
-              <td><code>copyCodeToClipboard</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>code: string</code><br>
-                <strong>out:</strong> <code>void</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">browser</span> clipboard API</td>
-              <td>使用者點復制。</td>
-            </tr>
-            <tr>
-              <td><code>formatQuotaError</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>RetryAfter | null</code><br>
-                <strong>out:</strong> <code>UiMessage</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
-              <td>把 429 訊息翻成本地文字。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-vars">
-        <h2>變數與業務用途</h2>
-        <p class="sub-vars__intro">本子模組以前端組件狀態為主；下表為決定使用者體驗的識別子。</p>
-        <table>
-          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="sub-vars__name">list</td>
-              <td class="sub-vars__type">InviteCode[]</td>
-              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
-              <td>使用者已發放的邀請碼清單；驅動畫面呈現與「複製」按鈕可用性；保留順序讓使用者能識別最近一次取得的碼。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">isLoading</td>
-              <td class="sub-vars__type">boolean</td>
-              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
-              <td>生成 API 進行中旗標；防止連按重複生成造成額度被無意義消耗。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">retryAfter</td>
-              <td class="sub-vars__type">number seconds | null</td>
-              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
-              <td>後端 429 帶回的下次可生成時間；按鈕禁用倒數的依據，業務上提示使用者「節流而非系統故障」。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">Result</td>
-              <td class="sub-vars__type">{ok: NewCode} | {err: UiError}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>一次「生成」呼叫結果；驅動是否要把新碼樂觀插入 <code>list</code>，或顯示錯誤 banner。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">UiMessage</td>
-              <td class="sub-vars__type">{lang_tag, text}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>額度／網路錯誤的本地化呈現；使用者透過此訊息知道是自己的額度問題還是系統暫時不可用。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-dataflow">
-        <h2>內部資料流</h2>
-        <ol>
-          <li>頁面掛載 → <code>useInviteCodes</code> 取得 <code>list</code> 顯示。</li>
-          <li>使用者點生成 → <code>createInviteCode</code>：UI <code>idle → loading</code>。</li>
-          <li><code>Result.ok</code> → 把 <code>NewCode</code> prepend 到 <code>list</code>（保持其餘元素穩定）。</li>
-          <li><code>Result.err</code> 為 quota → <code>formatQuotaError</code> 顯示 <code>UiMessage</code>，<code>list</code> 不變。</li>
-          <li>使用者選擇 <code>copyCodeToClipboard(code)</code>，不影響資料模型。</li>
-        </ol>
-      </section>
-
-      <section class="sub-errors">
-        <h2>本子模組可暴露的錯誤</h2>
-        <table>
-          <thead><tr><th>來源</th><th>UI 行為</th></tr></thead>
-          <tbody>
-            <tr><td>未登入（401）</td><td>路由守衛攔截 → 導向登入；本子模組不顯示業務錯誤。</td></tr>
-            <tr><td>quota（429）</td><td><code>formatQuotaError</code> banner；按鈕短暫禁用至 <code>retryAfter</code>。</td></tr>
-            <tr><td>網路錯誤</td><td>泛用提示；可重試。</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <footer class="atlas-meta" style="margin-top: 2rem">
-        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
-      </footer>
-    </main>
-  </body>
+<html lang="en" data-atlas-page="submodule">
+<head>
+  <meta charset="utf-8">
+  <title>Get invite codes · web-get-invite-ui</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../assets/architecture.css">
+</head>
+<body>
+  <header class="submodule-header">
+    <nav class="submodule-breadcrumb"><a href="../../index.html">← Atlas</a> · <a href="index.html">← Get invite codes</a></nav>
+    <h1>web-get-invite-ui <small class="submodule-kind submodule-kind--ui">UI</small></h1>
+    <p class="submodule-role">React page that lets a signed-in member request a new invite code.</p>
+  </header>
+  <main class="submodule-main">
+    <section class="sub-io" aria-label="Function I/O">
+      <h2>Function I/O</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Out</th><th scope="col">Side</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>handleGenerate</td><td>MouseEvent</td><td>void</td><td>io</td><td>Calls POST /api/invites and renders the returned code.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-vars" aria-label="Variables">
+      <h2>Variables</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Scope</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>userId</td><td>string</td><td>call</td><td>Identifies the member who will own the new invite row.</td></tr>
+          <tr><td>code</td><td>string</td><td>instance</td><td>Last issued code shown to the member.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-dataflow" aria-label="Internal data flow">
+      <h2>Internal data flow</h2>
+      <svg class="sub-dataflow__svg" viewBox="0 0 400 264" role="img" aria-label="Internal dataflow">
+  <defs><marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker></defs>
+  <g class="sub-dataflow__step">
+    <rect x="20" y="20" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="44" text-anchor="middle">Read userId from auth context.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="76" x2="200" y2="104" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="104" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="128" text-anchor="middle">POST /api/invites with userId.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="160" x2="200" y2="188" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="188" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="212" text-anchor="middle">Render returned code or surface error.</text>
+  </g>
+</svg>
+    </section>
+    <section class="sub-errors" aria-label="Errors">
+      <h2>Errors</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">When</th><th scope="col">Means</th></tr></thead>
+        <tbody>
+          <tr><td>ErrUnauthenticated</td><td>Session is missing on the client.</td><td>Redirect to sign-in.</td></tr>
+          <tr><td>ErrIssuanceFailed</td><td>API returns 500.</td><td>Show retry banner.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
 </html>

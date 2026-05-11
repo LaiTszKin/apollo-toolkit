@@ -1,54 +1,69 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>獲取邀請碼 — 功能模組總覽</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../../assets/architecture.css" />
-  </head>
-  <body>
-    <main class="atlas-page atlas-page--feature">
-      <nav class="breadcrumb" aria-label="階層導航">
-        <a href="../../index.html">宏觀架構</a> · <span>獲取邀請碼（功能模組）</span>
-      </nav>
-
-      <header class="atlas-header">
-        <p class="atlas-kicker">Feature module · get-invite-codes</p>
-        <h1 class="atlas-title">獲取邀請碼</h1>
-        <p class="atlas-meta">對外能力：已登入使用者請求系統生成新的邀請碼（生產邀請碼）。</p>
-      </header>
-
-      <section class="feature-story">
-        <h2>使用者故事</h2>
-        <p>使用者進入「我的邀請碼」頁面 → 按生成 → 系統檢查額度與帳號狀態 → 產生密碼學隨機字串並寫入 <code>invite_codes</code>。</p>
-        <p class="atlas-meta">
-          <strong>跨子模組交互</strong>（含 generator 的多次重試呼叫、DB UNIQUE 衝突回傳、跨功能 <code>invite_codes</code> 行被「邀請碼註冊」消費）已在<a href="../../index.html">宏觀架構圖</a>內統一呈現，本頁不重述。
-        </p>
-      </section>
-
-      <section class="submodule-nav">
-        <h2>本功能的子模組</h2>
-        <table>
-          <thead><tr><th>子模組</th><th>自身職責</th><th>頁面（自身 I/O + 內部資料流）</th></tr></thead>
-          <tbody>
-            <tr><td><code>web-get-invite-ui</code></td><td>登入後頁面、列表、生成按鈕</td><td><a href="web-get-invite-ui.html">web-get-invite-ui.html</a></td></tr>
-            <tr><td><code>public-api</code></td><td>HTTP 邊界、認證、錯誤映射</td><td><a href="public-api.html">public-api.html</a></td></tr>
-            <tr><td><code>invite-issuance-service</code></td><td>額度、交易、碰撞重試策略</td><td><a href="invite-issuance-service.html">invite-issuance-service.html</a></td></tr>
-            <tr><td><code>invite-code-generator</code></td><td>純函式：熵 → 字串</td><td><a href="invite-code-generator.html">invite-code-generator.html</a></td></tr>
-            <tr><td><code>postgresql</code></td><td>SQL：計數、INSERT 新邀請碼列、讀帳號狀態</td><td><a href="postgresql.html">postgresql.html</a></td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <footer class="atlas-meta" style="margin-top: 2rem">
-        <p><a href="../../index.html">← 宏觀架構（含完整交互圖）</a> · <code>features/get-invite-codes/</code></p>
-      </footer>
-    </main>
-  </body>
+<html lang="en" data-atlas-page="feature">
+<head>
+  <meta charset="utf-8">
+  <title>Get invite codes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../assets/architecture.css">
+</head>
+<body>
+  <header class="feature-header">
+    <nav class="feature-breadcrumb"><a href="../../index.html">← Atlas</a></nav>
+    <h1>Get invite codes</h1>
+    
+  </header>
+  <main class="feature-main">
+    <section class="feature-story"><p>An authenticated member requests a new invite code that they can hand to an off-platform visitor. The issuance service mints a fresh code, persists it in `invite_codes`, and returns the code string to the UI. Issued rows then become the producer side of the `invite-code-registration` flow.</p></section>
+    <section class="feature-submodules" aria-label="Submodules">
+      <h2>Submodules</h2>
+      <ul class="submodule-nav">
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="web-get-invite-ui.html">
+          <span class="submodule-card__name">web-get-invite-ui</span>
+          <span class="submodule-card__kind submodule-card__kind--ui">UI</span>
+        </a>
+        <p class="submodule-card__role">React page that lets a signed-in member request a new invite code.</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="public-api.html">
+          <span class="submodule-card__name">public-api</span>
+          <span class="submodule-card__kind submodule-card__kind--api">API</span>
+        </a>
+        <p class="submodule-card__role">HTTP boundary for `/api/invites` POST requests.</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="invite-issuance-service.html">
+          <span class="submodule-card__name">invite-issuance-service</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">Domain service that mints and persists a single invite row per request.</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="invite-code-generator.html">
+          <span class="submodule-card__name">invite-code-generator</span>
+          <span class="submodule-card__kind submodule-card__kind--pure-fn">Pure fn</span>
+        </a>
+        <p class="submodule-card__role">Pure helper that turns random bytes into a printable invite code.</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="postgresql.html">
+          <span class="submodule-card__name">postgresql</span>
+          <span class="submodule-card__kind submodule-card__kind--db">DB</span>
+        </a>
+        <p class="submodule-card__role">Owns the `invite_codes` table (producer side of the cross-feature data row).</p>
+      </li>
+      </ul>
+    </section>
+    <section class="feature-edges" aria-label="Intra-feature edges">
+      <h2>Intra-feature edges</h2>
+      <ul class="feature-edges__list">
+        <li class="feature-edges__item feature-edges__item--call"><span class="feature-edges__endpoints">web-get-invite-ui → public-api</span><span class="feature-edges__kind">call</span><span class="feature-edges__label">POST /api/invites</span></li>
+        <li class="feature-edges__item feature-edges__item--call"><span class="feature-edges__endpoints">public-api → invite-issuance-service</span><span class="feature-edges__kind">call</span><span class="feature-edges__label">Issue(ctx, userId)</span></li>
+        <li class="feature-edges__item feature-edges__item--call"><span class="feature-edges__endpoints">invite-issuance-service → invite-code-generator</span><span class="feature-edges__kind">call</span><span class="feature-edges__label">encode(rand)</span></li>
+        <li class="feature-edges__item feature-edges__item--call"><span class="feature-edges__endpoints">invite-issuance-service → postgresql</span><span class="feature-edges__kind">call</span><span class="feature-edges__label">INSERT invite_codes</span></li>
+        <li class="feature-edges__item feature-edges__item--return"><span class="feature-edges__endpoints">postgresql → invite-issuance-service</span><span class="feature-edges__kind">return</span><span class="feature-edges__label">rowid</span></li>
+      </ul>
+    </section>
+  </main>
+</body>
 </html>

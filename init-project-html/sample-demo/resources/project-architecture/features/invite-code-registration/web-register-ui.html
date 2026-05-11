@@ -1,140 +1,67 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>子模組 · web-register-ui — 邀請碼註冊</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../../assets/architecture.css" />
-  </head>
-  <body>
-    <main class="atlas-page atlas-page--feature">
-      <nav class="breadcrumb" aria-label="階層導航">
-        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">邀請碼註冊</a> ·
-        <span>web-register-ui</span>
-      </nav>
-
-      <header class="atlas-header">
-        <p class="atlas-kicker">Submodule · web-register-ui</p>
-        <h1 class="atlas-title">web-register-ui</h1>
-        <p class="atlas-meta">自身職責：渲染註冊表單、客戶端驗證、發出 HTTP 請求、把結果映射成 UI 狀態。本頁只談自身函式 I/O 與資料流。</p>
-      </header>
-
-      <section class="sub-io">
-        <h2>函式 I/O</h2>
-        <table>
-          <thead><tr><th>函式</th><th>簽名</th><th>副作用</th><th>用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><code>useRegisterForm()</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> —<br>
-                <strong>out:</strong> <code>{values, errors, setField, submit}</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">state</span> React state hook</td>
-              <td>表單狀態容器。</td>
-            </tr>
-            <tr>
-              <td><code>validateClientSide</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>FormValues</code><br>
-                <strong>out:</strong> <code>FieldErrors | null</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
-              <td>必填、email 格式、密碼長度等規則。</td>
-            </tr>
-            <tr>
-              <td><code>submit</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>FormValues</code><br>
-                <strong>out:</strong> <code>Result&lt;NewUserID, UiError&gt;</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">network</span> fetch POST</td>
-              <td>送出後驅動 loading / success / error UI。</td>
-            </tr>
-            <tr>
-              <td><code>mapApiError</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>ApiError{code, message}</code><br>
-                <strong>out:</strong> <code>UiMessage{lang_tag, text}</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
-              <td>機讀錯誤碼轉成本地化訊息。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-vars">
-        <h2>變數與業務用途</h2>
-        <p class="sub-vars__intro">本表盤點本子模組在記憶體中持有、決定 UI 行為的關鍵識別子。</p>
-        <table>
-          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="sub-vars__name">FormValues</td>
-              <td class="sub-vars__type">{email, password, inviteCode}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
-              <td>使用者目前打算送出的註冊資料；驅動所有後續驗證、按鈕可用性與請求 body。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">FieldErrors</td>
-              <td class="sub-vars__type">Record&lt;field,msg&gt; | null</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>客戶端驗證結果；非空時阻擋網路請求，避免明顯無效嘗試打到後端造成不必要負擔與錯誤訊息。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">UIState</td>
-              <td class="sub-vars__type">idle | loading | error | success</td>
-              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
-              <td>UI 機器狀態；<code>loading</code> 期間禁用送出按鈕避免重複提交；其他狀態決定要顯示哪個訊息／導向。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">Result</td>
-              <td class="sub-vars__type">{ok: NewUserID} | {err: UiError}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>一次 <code>submit</code> 的最終回應；驅動「導向後續頁」或「停留修改再試」兩條業務分支。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">UiMessage</td>
-              <td class="sub-vars__type">{lang_tag, text}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>後端機讀錯誤碼的本地化呈現；讓使用者用自身語言理解失敗原因（例如「邀請碼已被使用」）。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-dataflow">
-        <h2>內部資料流</h2>
-        <ol>
-          <li>使用者輸入 → <code>setField</code> 改寫 <code>FormValues</code>。</li>
-          <li>送出時 <code>validateClientSide(FormValues)</code> 若回 <code>FieldErrors</code>，UI 設為 <code>error</code>，<strong>不</strong>觸發網路請求。</li>
-          <li>通過驗證後 <code>submit(FormValues)</code>：UI 轉 <code>loading</code>，等待 <code>Result</code>。</li>
-          <li><code>Result.ok</code> → UI 轉 <code>success</code>，呼叫導向；<code>Result.err</code> → 經 <code>mapApiError</code> 變 <code>UiMessage</code> 顯示。</li>
-          <li>失敗後 <code>FormValues</code> 保留，使用者可修正並再次 <code>submit</code>。</li>
-        </ol>
-      </section>
-
-      <section class="sub-errors">
-        <h2>本子模組可暴露的錯誤</h2>
-        <table>
-          <thead><tr><th>類型</th><th>來源</th><th>UI 行為</th></tr></thead>
-          <tbody>
-            <tr><td><code>FieldErrors</code></td><td><code>validateClientSide</code></td><td>就地紅字；無網路請求。</td></tr>
-            <tr><td><code>UiMessage</code></td><td><code>mapApiError</code></td><td>banner／toast；表單仍可編輯。</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <footer class="atlas-meta" style="margin-top: 2rem">
-        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
-      </footer>
-    </main>
-  </body>
+<html lang="en" data-atlas-page="submodule">
+<head>
+  <meta charset="utf-8">
+  <title>Invite-code registration · web-register-ui</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../assets/architecture.css">
+</head>
+<body>
+  <header class="submodule-header">
+    <nav class="submodule-breadcrumb"><a href="../../index.html">← Atlas</a> · <a href="index.html">← Invite-code registration</a></nav>
+    <h1>web-register-ui <small class="submodule-kind submodule-kind--ui">UI</small></h1>
+    <p class="submodule-role">React page that captures email, password, and invite code.</p>
+  </header>
+  <main class="submodule-main">
+    <section class="sub-io" aria-label="Function I/O">
+      <h2>Function I/O</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Out</th><th scope="col">Side</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>handleSubmit</td><td>FormEvent</td><td>void</td><td>io</td><td>POSTs the registration payload and routes the response.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-vars" aria-label="Variables">
+      <h2>Variables</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Scope</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>email</td><td>string</td><td>call</td><td>Identity for the new account; required.</td></tr>
+          <tr><td>inviteCode</td><td>string</td><td>call</td><td>Token from the off-platform invite hand-off.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-dataflow" aria-label="Internal data flow">
+      <h2>Internal data flow</h2>
+      <svg class="sub-dataflow__svg" viewBox="0 0 400 264" role="img" aria-label="Internal dataflow">
+  <defs><marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker></defs>
+  <g class="sub-dataflow__step">
+    <rect x="20" y="20" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="44" text-anchor="middle">Collect form fields.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="76" x2="200" y2="104" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="104" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="128" text-anchor="middle">POST /api/register with payload.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="160" x2="200" y2="188" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="188" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="212" text-anchor="middle">On 2xx redirect to /welcome; otherwise surface</text>
+    <text x="200" y="228" text-anchor="middle">field-level errors.</text>
+  </g>
+</svg>
+    </section>
+    <section class="sub-errors" aria-label="Errors">
+      <h2>Errors</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">When</th><th scope="col">Means</th></tr></thead>
+        <tbody>
+          <tr><td>ErrInvalidCode</td><td>API returns 422 with `invite_code` reason.</td><td>Highlight the invite-code field with the API message.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
 </html>

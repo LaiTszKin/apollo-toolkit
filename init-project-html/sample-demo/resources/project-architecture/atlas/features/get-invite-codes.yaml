@@ -1,0 +1,159 @@
+slug: get-invite-codes
+title: Get invite codes
+story: >-
+  An authenticated member requests a new invite code that they can hand to an off-platform
+  visitor. The issuance service mints a fresh code, persists it in `invite_codes`, and returns
+  the code string to the UI. Issued rows then become the producer side of the
+  `invite-code-registration` flow.
+dependsOn: []
+submodules:
+  - slug: web-get-invite-ui
+    kind: ui
+    role: React page that lets a signed-in member request a new invite code.
+    functions:
+      - name: handleGenerate
+        in: MouseEvent
+        out: void
+        side: io
+        purpose: Calls POST /api/invites and renders the returned code.
+    variables:
+      - name: userId
+        type: string
+        scope: call
+        purpose: Identifies the member who will own the new invite row.
+      - name: code
+        type: string
+        scope: instance
+        purpose: Last issued code shown to the member.
+    dataflow:
+      - Read userId from auth context.
+      - POST /api/invites with userId.
+      - Render returned code or surface error.
+    errors:
+      - name: ErrUnauthenticated
+        when: Session is missing on the client.
+        means: Redirect to sign-in.
+      - name: ErrIssuanceFailed
+        when: API returns 500.
+        means: Show retry banner.
+  - slug: public-api
+    kind: api
+    role: HTTP boundary for `/api/invites` POST requests.
+    functions:
+      - name: postInvites
+        in: HttpRequest
+        out: HttpResponse
+        side: network
+        purpose: Validates the bearer token then delegates to invite-issuance-service.
+    variables:
+      - name: token
+        type: string
+        scope: call
+        purpose: Bearer token used to resolve the requesting member.
+    dataflow:
+      - Validate Authorization header.
+      - Resolve userId from token.
+      - Call invite-issuance-service.Issue.
+      - Serialize response.
+    errors:
+      - name: ErrUnauthorized
+        when: Token missing or invalid.
+        means: 401 response.
+  - slug: invite-issuance-service
+    kind: service
+    role: Domain service that mints and persists a single invite row per request.
+    functions:
+      - name: Issue
+        in: ctx, userId
+        out: InviteCode | error
+        side: tx
+        purpose: Generates a unique code and writes the matching invite_codes row.
+      - name: generateCode
+        in: rand
+        out: code
+        side: pure
+        purpose: Produces a 10-char alphanumeric token.
+    variables:
+      - name: code
+        type: string
+        scope: tx
+        purpose: Newly minted invite token recorded against the member.
+      - name: row
+        type: InviteCodeRow
+        scope: tx
+        purpose: Persisted invite_codes row carrying owner, code, expiry, and consumption state.
+    dataflow:
+      - Open transaction.
+      - Generate candidate code via generateCode.
+      - INSERT invite_codes row (retry on unique-violation).
+      - Commit and return code.
+    errors:
+      - name: ErrCollision
+        when: Unique constraint on code repeatedly violated.
+        means: Surface 503 after retry budget exhausted.
+  - slug: invite-code-generator
+    kind: pure-fn
+    role: Pure helper that turns random bytes into a printable invite code.
+    functions:
+      - name: encode
+        in: bytes[8]
+        out: code
+        side: pure
+        purpose: Base32 encoding without padding for human-readable codes.
+    variables: []
+    dataflow:
+      - Read 8 random bytes.
+      - Base32 encode without padding.
+    errors: []
+  - slug: postgresql
+    kind: db
+    role: Owns the `invite_codes` table (producer side of the cross-feature data row).
+    functions:
+      - name: INSERT_invite_codes
+        in: row
+        out: rowid
+        side: write
+        purpose: Persists the issued invite row.
+    variables:
+      - name: invite_codes.code
+        type: text
+        scope: persist
+        purpose: Unique business key consumed by the registration flow.
+      - name: invite_codes.consumed_at
+        type: timestamptz
+        scope: persist
+        purpose: Stays null until the registration flow consumes the code.
+    dataflow:
+      - Accept INSERT from invite-issuance-service.
+      - Enforce unique constraint on code.
+      - Return new rowid.
+    errors:
+      - name: ErrUniqueViolation
+        when: Two issuance attempts pick the same code.
+        means: Bubble up so issuance can retry.
+edges:
+  - id: e-ui-api
+    from: web-get-invite-ui
+    to: public-api
+    kind: call
+    label: POST /api/invites
+  - id: e-api-svc
+    from: public-api
+    to: invite-issuance-service
+    kind: call
+    label: Issue(ctx, userId)
+  - id: e-svc-gen
+    from: invite-issuance-service
+    to: invite-code-generator
+    kind: call
+    label: encode(rand)
+  - id: e-svc-db
+    from: invite-issuance-service
+    to: postgresql
+    kind: call
+    label: INSERT invite_codes
+  - id: e-db-svc-return
+    from: postgresql
+    to: invite-issuance-service
+    kind: return
+    label: rowid

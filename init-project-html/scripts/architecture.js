@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-// architecture.js — open the project HTML architecture atlas, or render
-// a paginated before/after diff viewer from every active spec's
-// architecture_diff/ directory under docs/plans/.
+// architecture.js — thin shim over lib/atlas/cli.js.
 //
-// Usage:
-//   architecture.js                                 # same as `open`
+// Backward-compatible legacy entrypoint:
+//   architecture.js                                # same as `open`
 //   architecture.js open  [--project <root>] [--no-open]
 //   architecture.js diff  [--project <root>] [--out <dir>] [--no-open]
-//   architecture.js --help
+//
+// All new declarative verbs (feature add, submodule add, function add,
+// variable add, dataflow add|remove|reorder, error add, edge add, meta
+// set, actor add, render, validate, undo) are routed through
+// lib/atlas/cli.js, which owns layout, no-overlap, DOM, CSS, and pan/zoom.
 
 'use strict';
 
@@ -15,25 +17,41 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 
+const newCli = require('../lib/atlas/cli');
+
 const ATLAS_REL = path.join('resources', 'project-architecture', 'index.html');
 const RESOURCES_REL = path.join('resources', 'project-architecture');
 const PLANS_REL = path.join('docs', 'plans');
 const DIFF_DIRNAME = 'architecture_diff';
 const REMOVED_FILE = '_removed.txt';
+const ATLAS_DIRNAME = 'atlas';
 const DEFAULT_OUT_REL = path.join('.apollo-toolkit', 'architecture-diff');
 
-const USAGE = `apltk architecture — open the project architecture atlas or its diff viewer.
+const LEGACY_VERBS = new Set(['open', 'diff']);
+
+const USAGE = `apltk architecture — declarative atlas CLI.
 
 Usage:
-  apltk architecture                      Open resources/project-architecture/index.html
-  apltk architecture open                 Same as above
-  apltk architecture diff                 Render every architecture_diff/ as one paginated viewer
-  apltk architecture --help               Show this help
+  apltk architecture                          Open resources/project-architecture/index.html
+  apltk architecture open                     Same as above
+  apltk architecture diff                     Render every architecture_diff/ as one paginated viewer
+  apltk architecture render                   Regenerate atlas HTML from current YAML state
+  apltk architecture validate                 Run schema + referential checks
+  apltk architecture feature add|set|remove   Manage feature modules
+  apltk architecture submodule add|set|remove Manage sub-modules
+  apltk architecture function|variable|dataflow|error|edge add|remove
+                                              Manage component rows and edges
+  apltk architecture meta set                 Update meta.title / meta.summary
+  apltk architecture actor add|remove         Manage top-level actors
+  apltk architecture undo                     Revert the most recent mutation
+  apltk architecture --help                   Show this help
 
-Options:
-  --project <root>   Override project root (default: nearest ancestor with resources/project-architecture/index.html)
-  --out <dir>        Override viewer output dir (default: <project>/${DEFAULT_OUT_REL})
-  --no-open          Skip launching the browser (CI/test friendly)
+Global flags:
+  --project <root>   Project root (default: nearest ancestor with resources/project-architecture/)
+  --spec <spec_dir>  Mutations write to <spec_dir>/architecture_diff/atlas/
+  --no-render        Skip auto-render after a mutation
+  --no-open          For open/diff: skip launching the browser
+  --out <dir>        For diff: override viewer output directory
   -h, --help         Show this help`;
 
 function parseArgs(argv) {
@@ -80,6 +98,7 @@ function findProjectRoot(startDir) {
   let dir = path.resolve(startDir);
   while (true) {
     if (fs.existsSync(path.join(dir, ATLAS_REL))) return dir;
+    if (fs.existsSync(path.join(dir, RESOURCES_REL, ATLAS_DIRNAME, 'atlas.index.yaml'))) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) return null;
     dir = parent;
@@ -90,44 +109,27 @@ function openInBrowser(filePath) {
   const platform = process.platform;
   let command;
   let args;
-  if (platform === 'darwin') {
-    command = 'open';
-    args = [filePath];
-  } else if (platform === 'win32') {
-    command = 'cmd';
-    args = ['/c', 'start', '""', filePath];
-  } else {
-    command = 'xdg-open';
-    args = [filePath];
-  }
+  if (platform === 'darwin') { command = 'open'; args = [filePath]; }
+  else if (platform === 'win32') { command = 'cmd'; args = ['/c', 'start', '""', filePath]; }
+  else { command = 'xdg-open'; args = [filePath]; }
   try {
     const child = spawn(command, args, { stdio: 'ignore', detached: true });
-    child.on('error', () => { /* best effort */ });
+    child.on('error', () => {});
     child.unref();
-  } catch (_err) {
-    /* best effort */
-  }
+  } catch (_e) { /* best effort */ }
 }
 
 function walkArchitectureDiffDirs(plansRoot) {
   const result = [];
   if (!fs.existsSync(plansRoot)) return result;
-
   function recurse(dir) {
     let entries;
-    try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch (_err) {
-      return;
-    }
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (_e) { return; }
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
       if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
       const full = path.join(dir, entry.name);
-      if (entry.name === DIFF_DIRNAME) {
-        result.push(full);
-        continue;
-      }
+      if (entry.name === DIFF_DIRNAME) { result.push(full); continue; }
       recurse(full);
     }
   }
@@ -139,20 +141,16 @@ function walkAfterStateHtml(diffDir) {
   const out = [];
   function recurse(dir, relParts) {
     let entries;
-    try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch (_err) {
-      return;
-    }
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (_e) { return; }
     for (const entry of entries) {
       if (entry.name === 'assets') continue;
+      if (entry.name === ATLAS_DIRNAME) continue;
       if (entry.name === REMOVED_FILE) continue;
       if (entry.name.startsWith('.')) continue;
       const full = path.join(dir, entry.name);
       const nextRel = [...relParts, entry.name];
-      if (entry.isDirectory()) {
-        recurse(full, nextRel);
-      } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.html')) {
+      if (entry.isDirectory()) recurse(full, nextRel);
+      else if (entry.isFile() && entry.name.toLowerCase().endsWith('.html')) {
         out.push({ abs: full, rel: nextRel.join('/') });
       }
     }
@@ -179,7 +177,6 @@ function collectChanges(projectRoot) {
   for (const diffDir of diffDirs) {
     const specDir = path.dirname(diffDir);
     const specLabel = path.relative(projectRoot, specDir);
-
     for (const after of walkAfterStateHtml(diffDir)) {
       const beforeAbs = path.join(resourcesRoot, after.rel);
       const beforeExists = fs.existsSync(beforeAbs);
@@ -191,7 +188,6 @@ function collectChanges(projectRoot) {
         afterPath: path.relative(projectRoot, after.abs),
       });
     }
-
     for (const removedRel of readRemovedManifest(diffDir)) {
       const beforeAbs = path.join(resourcesRoot, removedRel);
       if (!fs.existsSync(beforeAbs)) continue;
@@ -210,17 +206,7 @@ function collectChanges(projectRoot) {
     if (a.kind !== b.kind) return a.kind.localeCompare(b.kind);
     return a.rel.localeCompare(b.rel);
   });
-
   return changes;
-}
-
-function htmlEscape(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 function toViewerRel(outDir, projectRoot, projectRelPath) {
@@ -231,190 +217,7 @@ function toViewerRel(outDir, projectRoot, projectRelPath) {
 }
 
 function renderViewer({ changes, projectRoot, outDir }) {
-  const pages = changes.map((change) => ({
-    kind: change.kind,
-    rel: change.rel,
-    spec: change.spec,
-    beforeSrc: toViewerRel(outDir, projectRoot, change.beforePath),
-    afterSrc: toViewerRel(outDir, projectRoot, change.afterPath),
-  }));
-
-  const summary = {
-    total: pages.length,
-    modified: pages.filter((p) => p.kind === 'modified').length,
-    added: pages.filter((p) => p.kind === 'added').length,
-    removed: pages.filter((p) => p.kind === 'removed').length,
-    projectRoot,
-  };
-
-  const payload = JSON.stringify({ pages, summary });
-
-  return `<!DOCTYPE html>
-<html lang="en" data-atlas="diff-viewer">
-<head>
-  <meta charset="utf-8">
-  <title>Architecture diff — ${htmlEscape(path.basename(projectRoot))}</title>
-  <style>
-    :root {
-      color-scheme: light dark;
-      --bg: #0f172a;
-      --panel: #1e293b;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
-      --added: #4ade80;
-      --removed: #f87171;
-      --modified: #facc15;
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--text); }
-    body { display: flex; flex-direction: column; min-height: 100vh; }
-    header { padding: 12px 20px; background: var(--panel); border-bottom: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
-    header .title { font-size: 14px; color: var(--muted); }
-    header .title strong { color: var(--text); }
-    header .summary { display: flex; gap: 12px; font-size: 12px; color: var(--muted); }
-    header .summary span.count { font-weight: 600; }
-    header .summary .modified { color: var(--modified); }
-    header .summary .added { color: var(--added); }
-    header .summary .removed { color: var(--removed); }
-    main { flex: 1; display: flex; flex-direction: column; }
-    .meta { padding: 10px 20px; background: var(--bg); border-bottom: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; font-size: 13px; }
-    .meta .left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid currentColor; }
-    .badge.modified { color: var(--modified); }
-    .badge.added { color: var(--added); }
-    .badge.removed { color: var(--removed); }
-    .path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
-    .spec { color: var(--muted); font-size: 12px; }
-    .nav { display: flex; align-items: center; gap: 8px; }
-    .nav button { background: transparent; color: var(--text); border: 1px solid #475569; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-    .nav button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-    .nav button:disabled { opacity: 0.4; cursor: not-allowed; }
-    .nav .counter { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 72px; text-align: center; }
-    .frames { flex: 1; display: grid; gap: 1px; background: #334155; padding: 1px; min-height: 0; }
-    .frames.split { grid-template-columns: 1fr 1fr; }
-    .frames.single { grid-template-columns: 1fr; }
-    .pane { background: #ffffff; display: flex; flex-direction: column; min-height: 0; }
-    .pane h2 { margin: 0; padding: 8px 14px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; background: #f1f5f9; color: #1e293b; border-bottom: 1px solid #cbd5f5; display: flex; align-items: center; gap: 8px; }
-    .pane h2 .side-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #cbd5f5; color: #1e293b; }
-    .pane h2.before .side-badge { background: #fee2e2; color: #991b1b; }
-    .pane h2.after .side-badge { background: #dcfce7; color: #166534; }
-    .pane iframe { flex: 1; width: 100%; border: 0; background: #ffffff; }
-    .empty { display: flex; align-items: center; justify-content: center; padding: 32px; font-size: 14px; color: var(--muted); }
-    footer { padding: 8px 20px; background: var(--panel); border-top: 1px solid #334155; font-size: 12px; color: var(--muted); }
-    footer kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #0f172a; padding: 1px 6px; border-radius: 4px; border: 1px solid #475569; }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="title">Apollo Toolkit · <strong>architecture diff</strong> · ${htmlEscape(path.basename(projectRoot))}</div>
-    <div class="summary">
-      <span><span class="count">${summary.total}</span> change<span>${summary.total === 1 ? '' : 's'}</span></span>
-      <span class="modified"><span class="count">${summary.modified}</span> modified</span>
-      <span class="added"><span class="count">${summary.added}</span> added</span>
-      <span class="removed"><span class="count">${summary.removed}</span> removed</span>
-    </div>
-  </header>
-  <main>
-    <div class="meta">
-      <div class="left">
-        <span id="badge" class="badge modified">modified</span>
-        <span class="path" id="path">—</span>
-        <span class="spec" id="spec">—</span>
-      </div>
-      <div class="nav">
-        <button id="prev" type="button" aria-label="Previous change">← Prev</button>
-        <span class="counter" id="counter">0 / 0</span>
-        <button id="next" type="button" aria-label="Next change">Next →</button>
-      </div>
-    </div>
-    <div class="frames" id="frames">
-      <div class="empty" id="empty">No architecture diffs found under docs/plans/**/architecture_diff/.</div>
-    </div>
-  </main>
-  <footer>
-    Navigate with <kbd>←</kbd> / <kbd>→</kbd> or the buttons above. Each page pairs the current atlas (left) with the proposed-after HTML (right) for one affected page.
-  </footer>
-  <script id="__diff_payload" type="application/json">${payload.replace(/</g, '\\u003c')}</script>
-  <script>
-    (function () {
-      const data = JSON.parse(document.getElementById('__diff_payload').textContent);
-      const pages = data.pages || [];
-      const framesEl = document.getElementById('frames');
-      const emptyEl = document.getElementById('empty');
-      const badgeEl = document.getElementById('badge');
-      const pathEl = document.getElementById('path');
-      const specEl = document.getElementById('spec');
-      const counterEl = document.getElementById('counter');
-      const prevBtn = document.getElementById('prev');
-      const nextBtn = document.getElementById('next');
-
-      if (pages.length === 0) {
-        counterEl.textContent = '0 / 0';
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-        return;
-      }
-
-      let index = 0;
-
-      function render() {
-        const page = pages[index];
-        badgeEl.className = 'badge ' + page.kind;
-        badgeEl.textContent = page.kind;
-        pathEl.textContent = page.rel;
-        specEl.textContent = page.spec;
-        counterEl.textContent = (index + 1) + ' / ' + pages.length;
-        prevBtn.disabled = index === 0;
-        nextBtn.disabled = index === pages.length - 1;
-
-        framesEl.innerHTML = '';
-        if (page.kind === 'modified') {
-          framesEl.className = 'frames split';
-          framesEl.appendChild(buildPane('Before', page.beforeSrc, 'before'));
-          framesEl.appendChild(buildPane('After', page.afterSrc, 'after'));
-        } else if (page.kind === 'added') {
-          framesEl.className = 'frames single';
-          framesEl.appendChild(buildPane('After (new)', page.afterSrc, 'after'));
-        } else if (page.kind === 'removed') {
-          framesEl.className = 'frames single';
-          framesEl.appendChild(buildPane('Before (removed)', page.beforeSrc, 'before'));
-        }
-      }
-
-      function buildPane(label, src, side) {
-        const pane = document.createElement('div');
-        pane.className = 'pane';
-        const heading = document.createElement('h2');
-        heading.className = side;
-        const sideBadge = document.createElement('span');
-        sideBadge.className = 'side-badge';
-        sideBadge.textContent = side;
-        heading.appendChild(sideBadge);
-        heading.appendChild(document.createTextNode(' ' + label));
-        pane.appendChild(heading);
-        const frame = document.createElement('iframe');
-        frame.src = src;
-        frame.loading = 'lazy';
-        frame.title = label;
-        pane.appendChild(frame);
-        return pane;
-      }
-
-      prevBtn.addEventListener('click', () => { if (index > 0) { index--; render(); } });
-      nextBtn.addEventListener('click', () => { if (index < pages.length - 1) { index++; render(); } });
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'ArrowLeft') { prevBtn.click(); }
-        else if (event.key === 'ArrowRight') { nextBtn.click(); }
-      });
-
-      emptyEl.remove();
-      render();
-    })();
-  </script>
-</body>
-</html>
-`;
+  return newCli.renderDiffViewer({ changes, projectRoot, outDir });
 }
 
 function runOpen(opts, io) {
@@ -443,7 +246,6 @@ function runDiff(opts, io) {
     );
     return 1;
   }
-
   const outDir = opts.out || path.join(projectRoot, DEFAULT_OUT_REL);
   fs.mkdirSync(outDir, { recursive: true });
 
@@ -460,6 +262,9 @@ function runDiff(opts, io) {
   return 0;
 }
 
+// main(argv, io) is sync and supports the legacy verbs `open` and
+// `diff` only. Tests rely on the sync return-code contract. All other
+// verbs go through dispatchAsync().
 function main(argv, io = { stdout: process.stdout, stderr: process.stderr }) {
   let opts;
   try {
@@ -478,9 +283,21 @@ function main(argv, io = { stdout: process.stdout, stderr: process.stderr }) {
   return 1;
 }
 
+async function dispatchAsync(argv, io = { stdout: process.stdout, stderr: process.stderr }) {
+  return newCli.dispatch(argv, io);
+}
+
 if (require.main === module) {
-  const code = main(process.argv.slice(2));
-  process.exit(code);
+  const argv = process.argv.slice(2);
+  const verb = argv[0];
+  if (!verb || verb.startsWith('-') || LEGACY_VERBS.has(verb)) {
+    process.exit(main(argv));
+  } else {
+    dispatchAsync(argv).then((code) => process.exit(code)).catch((err) => {
+      process.stderr.write(`${err && err.stack ? err.stack : err}\n`);
+      process.exit(1);
+    });
+  }
 }
 
 module.exports = {
@@ -493,4 +310,5 @@ module.exports = {
   walkAfterStateHtml,
   readRemovedManifest,
   main,
+  dispatchAsync,
 };

@@ -1,145 +1,65 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>子模組 · public-api — 邀請碼註冊</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../../assets/architecture.css" />
-  </head>
-  <body>
-    <main class="atlas-page atlas-page--feature">
-      <nav class="breadcrumb" aria-label="階層導航">
-        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">邀請碼註冊</a> · <span>public-api</span>
-      </nav>
-
-      <header class="atlas-header">
-        <p class="atlas-kicker">Submodule · public-api</p>
-        <h1 class="atlas-title">public-api（reg）</h1>
-        <p class="atlas-meta">自身職責：HTTP 邊界。處理綁定、輸入 schema 檢查、把網域結果映射為狀態碼／錯誤 payload。</p>
-      </header>
-
-      <section class="sub-io">
-        <h2>函式 I/O</h2>
-        <table>
-          <thead><tr><th>函式</th><th>簽名</th><th>副作用</th><th>用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><code>RegisterHandler</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>http.Request</code><br>
-                <strong>out:</strong> <code>http.Response</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">io</span> 讀／寫 socket</td>
-              <td>路由綁定的對外入口。</td>
-            </tr>
-            <tr>
-              <td><code>decodeRegisterInput</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>io.Reader</code><br>
-                <strong>out:</strong> <code>RegisterInput</code> | <code>ErrBadRequest</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">io</span> 讀 body</td>
-              <td>JSON 解碼 + 基本 schema 校驗。</td>
-            </tr>
-            <tr>
-              <td><code>mapDomainError</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>error</code><br>
-                <strong>out:</strong> <code>(httpStatus, ErrorBody)</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
-              <td>網域 error → HTTP 對映表。</td>
-            </tr>
-            <tr>
-              <td><code>writeSuccess</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>NewUserID</code>, <code>http.ResponseWriter</code><br>
-                <strong>out:</strong> —
-              </td>
-              <td><span class="sub-io__side sub-io__side--write">io</span> 寫 201 body</td>
-              <td>序列化 user id + 必要 header。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-vars">
-        <h2>變數與業務用途</h2>
-        <p class="sub-vars__intro">HTTP 邊界子模組持有的識別子，幾乎全在單次 handler 呼叫中存活。</p>
-        <table>
-          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="sub-vars__name">http.Request</td>
-              <td class="sub-vars__type">request</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>邊界輸入；只在 handler 期間有效，handler 結束後資源歸還，不可在背景任務繼續使用。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">RegisterInput</td>
-              <td class="sub-vars__type">{Email, Password, InviteCode}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>HTTP body 解碼後的網域層承載；schema 校驗通過代表「結構面可進入業務」，避免錯誤輸入觸發無謂的 DB 開銷。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">httpStatus</td>
-              <td class="sub-vars__type">int</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td><code>mapDomainError</code> 的輸出之一；業務面決定協議語意（409 與 503 不可混用，前者要使用者改、後者要使用者稍後再試）。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">ErrorBody</td>
-              <td class="sub-vars__type">{code, message}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>結構化錯誤體；<code>code</code> 給 UI 對映本地化文字，<code>message</code> 僅供開發者排錯。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">http.ResponseWriter</td>
-              <td class="sub-vars__type">writer</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>對外副作用通道；本子模組保證一次回應只寫一次，避免重複寫入造成協議違例與使用者看到的不一致結果。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-dataflow">
-        <h2>內部資料流</h2>
-        <ol>
-          <li><code>http.Request.Body</code> → <code>decodeRegisterInput</code> → <code>RegisterInput</code>（失敗 → <code>ErrBadRequest</code>）。</li>
-          <li><code>RegisterInput</code> 作為傳入網域層的參數；本子模組<strong>不</strong>持有交易、密碼明文也只在這一函式內存在。</li>
-          <li>從網域層拿到 <code>NewUserID | error</code>：
-            <ul>
-              <li><code>NewUserID</code> → <code>writeSuccess</code>。</li>
-              <li><code>error</code> → <code>mapDomainError</code> → 對應 HTTP 狀態 + JSON。</li>
-            </ul>
-          </li>
-          <li>處理結束 / response 完成寫入後生命週期終止。</li>
-        </ol>
-      </section>
-
-      <section class="sub-errors">
-        <h2>本子模組會回應／轉化的錯誤</h2>
-        <table>
-          <thead><tr><th>條件</th><th>HTTP</th></tr></thead>
-          <tbody>
-            <tr><td>schema 失敗</td><td><code>400 BAD_REQUEST</code></td></tr>
-            <tr><td>網域回 <code>ErrInviteInvalid</code></td><td><code>409 INVITE_INVALID</code></td></tr>
-            <tr><td>網域回 <code>ErrTransient</code></td><td><code>503 SERVICE_UNAVAILABLE</code></td></tr>
-            <tr><td>panic 或未分類</td><td><code>500 INTERNAL</code></td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <footer class="atlas-meta" style="margin-top: 2rem">
-        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
-      </footer>
-    </main>
-  </body>
+<html lang="en" data-atlas-page="submodule">
+<head>
+  <meta charset="utf-8">
+  <title>Invite-code registration · public-api</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../assets/architecture.css">
+</head>
+<body>
+  <header class="submodule-header">
+    <nav class="submodule-breadcrumb"><a href="../../index.html">← Atlas</a> · <a href="index.html">← Invite-code registration</a></nav>
+    <h1>public-api <small class="submodule-kind submodule-kind--api">API</small></h1>
+    <p class="submodule-role">HTTP boundary for `/api/register` POST requests.</p>
+  </header>
+  <main class="submodule-main">
+    <section class="sub-io" aria-label="Function I/O">
+      <h2>Function I/O</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Out</th><th scope="col">Side</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>postRegister</td><td>HttpRequest</td><td>HttpResponse</td><td>network</td><td>Parses payload and delegates to registration-service.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-vars" aria-label="Variables">
+      <h2>Variables</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Scope</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>payload</td><td>RegisterDTO</td><td>call</td><td>Inbound registration intent.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-dataflow" aria-label="Internal data flow">
+      <h2>Internal data flow</h2>
+      <svg class="sub-dataflow__svg" viewBox="0 0 400 264" role="img" aria-label="Internal dataflow">
+  <defs><marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker></defs>
+  <g class="sub-dataflow__step">
+    <rect x="20" y="20" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="44" text-anchor="middle">Decode JSON body.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="76" x2="200" y2="104" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="104" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="128" text-anchor="middle">Call registration-service.RegisterWithInvite.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="160" x2="200" y2="188" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="188" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="212" text-anchor="middle">Serialize success or 422 / 5xx error.</text>
+  </g>
+</svg>
+    </section>
+    <section class="sub-errors" aria-label="Errors">
+      <h2>Errors</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">When</th><th scope="col">Means</th></tr></thead>
+        <tbody>
+          <tr><td>ErrMalformedPayload</td><td>JSON parse fails.</td><td>400 response with `payload` reason.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
 </html>

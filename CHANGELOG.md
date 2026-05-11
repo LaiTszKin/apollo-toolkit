@@ -10,6 +10,26 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.0] - 2026-05-11
+
+### Added
+
+- Declarative atlas CLI: every component (feature, sub-module, function, variable, dataflow step, error, edge, actor, meta) is now declared through `apltk architecture <verb> ...`. The CLI persists per-feature YAML under `resources/project-architecture/atlas/`, runs deterministic layout via `elkjs`, and re-renders HTML/SVG (with built-in pan/zoom) on every mutation.
+- `--spec <spec_dir>` flag: spec-mode mutations write the overlay snapshot under `<spec_dir>/architecture_diff/atlas/` and render only the affected proposed-after HTML pages there; `apltk architecture diff` continues to pair pages by relative path.
+- `apltk architecture` new verbs: `render`, `validate`, `undo`, plus per-component `add` / `set` / `remove` actions for features, sub-modules, functions, variables, dataflow steps, errors, and edges.
+- Built-in pan/zoom client for the macro atlas (mouse wheel, drag, +/-/Fit toolbar, keyboard arrows) shipped as `lib/atlas/assets/viewer.client.js`.
+- New test suites: `test/atlas-state.test.js`, `test/atlas-render.test.js`, `test/atlas-cli.test.js` covering YAML round-trip, overlay merge, layout no-overlap, rendering scope, and every CLI verb.
+- New runtime dependencies: `elkjs` (layered layout) and `js-yaml` (YAML state).
+
+### Changed
+
+- `init-project-html`, `spec-to-project-html`, and `generate-spec` SKILL.md / agents/openai.yaml / `references/TEMPLATE_SPEC.md`: rewritten around CLI verbs and the declarative atlas; binding rules now forbid hand-authoring HTML under `resources/project-architecture/**` or `architecture_diff/**` (the renderer owns layout, no-overlap, DOM, CSS, ARIA, pan/zoom).
+- `init-project-html/sample-demo/`: converted to YAML source (`atlas/atlas.index.yaml` + `atlas/features/*.yaml`) and regenerated via the new CLI.
+- `init-project-html/scripts/architecture.js`: now a thin shim — the legacy `open` / `diff` verbs stay sync for backward-compatible tests, while new declarative verbs (`feature add`, `submodule add`, etc.) route through `lib/atlas/cli.js`.
+- `.gitignore`: ignore `node_modules/` for local development; document that `package-lock.json` must remain committed so `npm ci` installs and published installs resolve the same dependency tree (`elkjs`, `js-yaml`).
+
+### Fixed
+
 ## [v3.10.0] - 2026-05-11
 
 ### Added

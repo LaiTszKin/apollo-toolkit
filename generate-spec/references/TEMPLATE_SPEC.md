@@ -1,98 +1,117 @@
-# HTML architecture atlas — reference cheat sheet (generate-spec copy)
+# Atlas component schema — reference cheat sheet (generate-spec copy)
 
-> Reference material only. The **binding rules for atlas pages** (page contracts, naming, assets, accessibility, forbidden shortcuts) live in `init-project-html/SKILL.md`. The **binding rules for `architecture_diff/`** (the three-rule path-alignment contract used by `apltk architecture diff`) live in this skill's own `generate-spec/SKILL.md`. This file is a local glossary + class-hook table + DOM snippets so `generate-spec` can author proposed-after pages without re-deriving the markup, and stay self-contained when installed alone.
+> Reference material only. The binding rules for atlas pages (verbs, semantic contracts, evidence) live in `init-project-html/SKILL.md`. The binding rule for spec-time atlas changes (declare via CLI, never hand-author HTML) lives in this skill's own `generate-spec/SKILL.md`. This file lists the exact fields and enum values that `apltk architecture --spec <spec_dir>` accepts.
 
-## Vocabulary
+## Where the overlay lands
 
-- **Feature module** — one **user-visible end-to-end capability** (e.g. "invite-code registration", "get-invite-codes"). One directory `features/<feature-slug>/`. It is **not** a single web layer or a single database.
-- **Sub-module** — an implementation boundary inside that capability (front-end page, public API, domain service, PostgreSQL, pure helpers, message queues…). One HTML page per sub-module, sibling to the feature's `index.html`.
+When you run any `apltk architecture --spec <spec_dir> <verb> ...`, the CLI writes:
 
-## Directory layout (target output)
-
-```text
-resources/project-architecture/
-  index.html                           # macro: feature × sub-module in one SVG with multi-edge + data-row flow
-  assets/
-    architecture.css
-  features/
-    <feature-slug>/                    # one feature module = one directory
-      index.html                       # lightweight overview (story + submodule nav)
-      <sub-module-slug>.html           # one HTML per sub-module (own I/O + internal flow)
+```
+<spec_dir>/architecture_diff/
+├── atlas/
+│   ├── atlas.index.yaml          # optional partial override of meta / actors / cross-feature edges / feature ordering
+│   ├── features/<slug>.yaml      # full proposed state of any changed feature
+│   ├── _removed.yaml             # {features: [...], submodules: [{feature, submodule}]}
+│   ├── atlas.history.log
+│   └── atlas.history.undo.json
+├── index.html                    # rendered when macro visibly changes
+├── features/<slug>/index.html    # rendered when feature page visibly changes
+├── features/<slug>/<sub>.html    # rendered when sub-module visibly changes
+├── _removed.txt                  # auto-written from _removed.yaml; consumed by `apltk architecture diff`
+└── assets/                       # architecture.css + viewer.client.js (copied by the renderer)
 ```
 
-## Macro SVG — CSS class hooks
+`apltk architecture diff` scans every `docs/plans/**/architecture_diff/**/*.html`, pairs them with `resources/project-architecture/` by relative path, and classifies each as **modified**, **added**, or **removed**. The CLI's overlay path layout guarantees correct pairing — agents do not need to manage paths manually.
 
-| Element | class |
-|---|---|
-| Actor block | `m-actor` |
-| Feature cluster frame | `m-cluster` / `m-cluster__rect` / `m-cluster__title` |
-| Sub-module node | `m-sub` (add `m-sub--db` for databases) |
-| Edge | `m-edge` + modifier `m-edge--call` / `m-edge--return` / `m-edge--cross` |
-| Edge label | `m-edge__label` (cross-feature labels add `m-edge__label--cross`) |
+## Components (mirrors `init-project-html/references/TEMPLATE_SPEC.md`)
 
-## DOM snippets
+The same component fields and enums apply in spec mode:
 
-### `sub-io` function I/O table
+| Component | Required fields | Enum values |
+| --------- | --------------- | ----------- |
+| `meta` | `title` | — (`summary` optional) |
+| `actor` | `id` (kebab-case), `label` | — |
+| `feature` | `slug` (kebab-case), `title` | — (`story`, `dependsOn` optional) |
+| `submodule` | `slug` (kebab-case), `kind` | `ui` `api` `service` `db` `pure-fn` `queue` `external` |
+| `function` | `name` | `side`: `pure` `io` `write` `tx` `lock` `network` |
+| `variable` | `name` | `scope`: `call` `tx` `persist` `instance` `loop` |
+| `dataflow` step | string | — |
+| `error` | `name` | — (`when`, `means` optional) |
+| `edge` | `from`, `to`, `kind` | `kind`: `call` `return` `data-row` `failure` |
 
-```html
-<section class="sub-io">
-  <h2>Function I/O</h2>
-  <table>
-    <thead><tr><th>Function</th><th>Signature</th><th>Side effects</th><th>Purpose</th></tr></thead>
-    <tbody>
-      <tr>
-        <td><code>FunctionName</code></td>
-        <td class="sub-io__signature">
-          <strong>in:</strong> <code>T1</code>, <code>T2</code><br>
-          <strong>out:</strong> <code>R</code> | <code>ErrX</code>
-        </td>
-        <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
-        <td>One-line purpose.</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
+## Verb cheat sheet (spec mode)
+
+Always pass `--spec <spec_dir>`. Common patterns:
+
+```bash
+# Open the spec directory once as a shell variable for readability:
+SPEC_DIR=docs/plans/2026-05-11/add-2fa
+
+# Add a new sub-module to an existing feature in the base atlas:
+apltk architecture --spec "$SPEC_DIR" submodule add \
+  --feature register --slug 2fa --kind service \
+  --role "TOTP verification (planned: not yet implemented)" --no-render
+
+# Adjust an existing sub-module's role / kind:
+apltk architecture --spec "$SPEC_DIR" submodule set \
+  --feature register --slug api --role "Endpoint with 2FA gate" --no-render
+
+# Add functions / variables / dataflow / errors:
+apltk architecture --spec "$SPEC_DIR" function add \
+  --feature register --submodule 2fa --name VerifyTotp \
+  --in "ctx, code" --out "ok | ErrInvalidTotp" --side network \
+  --purpose "Checks the TOTP code against the user's seed." --no-render
+
+apltk architecture --spec "$SPEC_DIR" variable add \
+  --feature register --submodule 2fa --name totp_seed \
+  --type "bytes[20]" --scope persist \
+  --purpose "Seed material for TOTP verification (per user)." --no-render
+
+apltk architecture --spec "$SPEC_DIR" dataflow add \
+  --feature register --submodule 2fa --step "Load seed for userId" --no-render
+apltk architecture --spec "$SPEC_DIR" dataflow add \
+  --feature register --submodule 2fa --step "Validate TOTP code window" --no-render
+
+apltk architecture --spec "$SPEC_DIR" error add \
+  --feature register --submodule 2fa --name ErrInvalidTotp \
+  --when "Code mismatch within accepted window." \
+  --means "422 response with totp reason." --no-render
+
+# Add intra-feature edge:
+apltk architecture --spec "$SPEC_DIR" edge add \
+  --from register/api --to register/2fa --kind call \
+  --label "verify TOTP" --id e-api-2fa --no-render
+
+# Removals (overlay records them in _removed.yaml; the renderer emits _removed.txt):
+apltk architecture --spec "$SPEC_DIR" feature remove --slug legacy --no-render
+apltk architecture --spec "$SPEC_DIR" submodule remove --feature register --slug v0-shim --no-render
+
+# Render + validate once at the end (sed for batched mutations):
+apltk architecture --spec "$SPEC_DIR" render
+apltk architecture --spec "$SPEC_DIR" validate
 ```
 
-### `sub-vars` variables-with-business-purpose table
+## Important constraints (binding)
 
-```html
-<section class="sub-vars">
-  <h2>Variables &amp; business purpose</h2>
-  <p class="sub-vars__intro">Identifiers this sub-module holds or threads through. Types align readers; business purpose comes first.</p>
-  <table>
-    <thead>
-      <tr><th>Variable</th><th>Type</th><th>Scope</th><th>Business purpose</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="sub-vars__name">someVar</td>
-        <td class="sub-vars__type">SomeType</td>
-        <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-        <td>One line: this value decides branch X; without it Y breaks.</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
+- **Never** hand-edit any file under `architecture_diff/` — the renderer rewrites them on every `apltk architecture --spec ... render` call.
+- The base atlas under `resources/project-architecture/` is **read-only** in spec mode; CLI writes never touch it.
+- Cross-feature edges into features that are not overlaid still resolve against the base atlas without re-declaring those features.
+- For batch specs, scope each member's overlay to its own member directory; never duplicate at the batch root.
+
+## Worked example: end-to-end overlay for a new "add 2FA" spec
+
+The CLI invocation above produces this overlay tree (rendered HTML omitted for brevity):
+
+```
+docs/plans/2026-05-11/add-2fa/architecture_diff/
+├── atlas/
+│   ├── atlas.index.yaml
+│   └── features/register.yaml
+├── index.html
+├── features/register/index.html
+├── features/register/api.html
+├── features/register/2fa.html
+└── assets/architecture.css
 ```
 
-Scope chip vocabulary: `sub-vars__scope--call` (single call), `--tx` (transaction-bound), `--persist` (persisted), `--instance` (fixed at construction; lifetime-shared), `--loop` (retry/loop).
-
-### `sub-dataflow` small SVG sizing
-
-- Node class: `d-node`; edge class: `d-edge` (side-effect edges use `d-edge--side`).
-- Recommended viewBox: height ≤ 240, width ≤ 720.
-- Nodes are this sub-module's internal variables/functions only.
-
-## Edge-kind vocabulary (for macro `flow-edge-manifest`)
-
-| `data-edge-kind` | meaning | typical visual |
-|---|---|---|
-| `call` | function call / HTTP request | solid arrow |
-| `return` | return value / response | thin dashed arrow |
-| `data-row` | cross-feature hand-off via data rows (not a function call) | warm-tone heavy dashed |
-| `failure` | failure branch | red solid arrow with `failure` chip in the manifest row |
-
-## Typography hint
-
-Pair a recognisable display face (e.g. `Fraunces`) with `Plus Jakarta Sans`. Avoid the "AI-default purple gradient" and Inter look-alike. Detailed rules live in `init-project-html/SKILL.md` § Rule 6.
+Running `apltk architecture diff` then pairs `register/2fa.html` (added) and `register/api.html` + `register/index.html` + `index.html` (modified) with their base counterparts.

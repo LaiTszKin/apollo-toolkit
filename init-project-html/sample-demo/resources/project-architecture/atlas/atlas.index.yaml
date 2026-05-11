@@ -1,0 +1,34 @@
+meta:
+  title: Acme App — sample atlas
+  summary: >-
+    Two end-to-end feature modules — minting invite codes and consuming them during account
+    registration — produced by `apltk architecture` from a declarative YAML source. The macro
+    diagram surfaces both feature clusters and every sub-module they own, plus the cross-feature
+    data-row that carries an `invite_codes` row between them.
+actors:
+  - id: visitor
+    label: Visitor (unregistered)
+  - id: member
+    label: Authenticated member
+features:
+  - get-invite-codes
+  - invite-code-registration
+edges:
+  - id: cross-issuance-to-postgres-codes
+    from:
+      feature: get-invite-codes
+      submodule: invite-issuance-service
+    to:
+      feature: get-invite-codes
+      submodule: postgresql
+    kind: data-row
+    label: INSERT invite_codes
+  - id: cross-postgres-codes-to-registration
+    from:
+      feature: get-invite-codes
+      submodule: postgresql
+    to:
+      feature: invite-code-registration
+      submodule: registration-service
+    kind: data-row
+    label: read/consume invite_codes

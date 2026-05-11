@@ -1,0 +1,485 @@
+'use strict';
+
+// render.js — declarative atlas → HTML/SVG.
+//
+// Three page types:
+//   1. Macro `index.html`          (atlas-summary + atlas SVG with clusters + cross-feature edges + submodule index)
+//   2. Feature `features/<slug>/index.html`  (feature story + sub-module navigation)
+//   3. Sub-module `features/<slug>/<sub>.html`  (sub-io + sub-vars + sub-dataflow + sub-errors)
+//
+// Render output is deterministic so tests can snapshot it. Assets
+// (architecture.css + viewer.client.js) are copied to <outDir>/assets/.
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const { layoutMacro } = require('./layout');
+
+const KIND_LABEL = {
+  ui: 'UI',
+  api: 'API',
+  service: 'Service',
+  db: 'DB',
+  'pure-fn': 'Pure fn',
+  queue: 'Queue',
+  external: 'External',
+};
+
+function htmlEscape(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function relAssetPath(fromPagePath, outDir) {
+  const fromDir = path.dirname(fromPagePath);
+  const rel = path.relative(fromDir, path.join(outDir, 'assets'));
+  return (rel === '' ? '.' : rel).split(path.sep).join('/');
+}
+
+function pagePathFor(kind, { featureSlug, submoduleSlug } = {}) {
+  if (kind === 'macro') return 'index.html';
+  if (kind === 'feature') return `features/${featureSlug}/index.html`;
+  if (kind === 'submodule') return `features/${featureSlug}/${submoduleSlug}.html`;
+  throw new Error(`unknown page kind: ${kind}`);
+}
+
+function head({ title, assetRel, pageKind }) {
+  return [
+    '<!DOCTYPE html>',
+    `<html lang="en" data-atlas-page="${pageKind}">`,
+    '<head>',
+    '  <meta charset="utf-8">',
+    `  <title>${htmlEscape(title)}</title>`,
+    '  <meta name="viewport" content="width=device-width, initial-scale=1">',
+    `  <link rel="stylesheet" href="${assetRel}/architecture.css">`,
+    '</head>',
+  ].join('\n');
+}
+
+function renderEdgePath(edge) {
+  const segments = [];
+  for (const section of edge.sections || []) {
+    const pts = [section.startPoint, ...(section.bendPoints || []), section.endPoint];
+    if (pts.length === 0) continue;
+    segments.push(pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' '));
+  }
+  return segments.join(' ');
+}
+
+function edgeKindFor(stateEdge) {
+  return stateEdge && stateEdge.kind ? stateEdge.kind : 'call';
+}
+
+function findEdgeMeta(state, edgeId) {
+  for (const feature of state.features || []) {
+    for (const e of feature.edges || []) {
+      if (e.id === edgeId) return e;
+    }
+  }
+  for (const e of state.edges || []) {
+    if (e.id === edgeId) return e;
+  }
+  return null;
+}
+
+function renderMacroSvg(layout, state) {
+  if (layout.empty) {
+    return '<svg class="atlas-svg" viewBox="0 0 320 160" role="img" aria-label="Atlas is empty"><text x="160" y="80" text-anchor="middle" fill="currentColor">Atlas has no features yet</text></svg>';
+  }
+  const pad = 24;
+  const vbW = Math.max(320, Math.ceil(layout.width + pad * 2));
+  const vbH = Math.max(160, Math.ceil(layout.height + pad * 2));
+  const parts = [];
+  parts.push(`<svg class="atlas-svg" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Project architecture atlas" data-atlas-svg="macro">`);
+  parts.push('  <defs>');
+  for (const kind of ['call', 'return', 'data-row', 'failure']) {
+    parts.push(`    <marker id="arrow-${kind}" class="m-arrow m-arrow--${kind}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>`);
+  }
+  parts.push('  </defs>');
+  parts.push(`  <g transform="translate(${pad},${pad})">`);
+
+  for (const feat of layout.features) {
+    parts.push(`    <g class="m-cluster" data-feature="${htmlEscape(feat.slug)}">`);
+    parts.push(`      <rect class="m-cluster__bg" x="${feat.x.toFixed(2)}" y="${feat.y.toFixed(2)}" width="${feat.width.toFixed(2)}" height="${feat.height.toFixed(2)}" rx="14" ry="14" />`);
+    const titleX = feat.x + feat.width / 2;
+    const titleY = feat.y + 26;
+    const featureState = (state.features || []).find((f) => f.slug === feat.slug);
+    const title = (featureState && featureState.title) || feat.slug;
+    parts.push(`      <text class="m-cluster__title" x="${titleX.toFixed(2)}" y="${titleY.toFixed(2)}" text-anchor="middle">${htmlEscape(title)}</text>`);
+    parts.push('    </g>');
+  }
+
+  for (const sub of layout.submodules) {
+    const subState = ((state.features || []).find((f) => f.slug === sub.featureSlug) || {}).submodules || [];
+    const meta = subState.find((s) => s.slug === sub.slug);
+    const kind = (meta && meta.kind) || 'service';
+    const cx = sub.x + sub.width / 2;
+    const labelY = sub.y + 28;
+    const kindLabelY = sub.y + 52;
+    const role = meta && meta.role ? meta.role : '';
+    const href = `features/${sub.featureSlug}/${sub.slug}.html`;
+    parts.push(`    <a class="m-node m-node--${kind}" href="${htmlEscape(href)}" data-feature="${htmlEscape(sub.featureSlug)}" data-submodule="${htmlEscape(sub.slug)}">`);
+    parts.push(`      <rect x="${sub.x.toFixed(2)}" y="${sub.y.toFixed(2)}" width="${sub.width.toFixed(2)}" height="${sub.height.toFixed(2)}" rx="10" ry="10" />`);
+    parts.push(`      <text class="m-node__title" x="${cx.toFixed(2)}" y="${labelY.toFixed(2)}" text-anchor="middle">${htmlEscape(sub.slug)}</text>`);
+    parts.push(`      <text class="m-node__kind" x="${cx.toFixed(2)}" y="${kindLabelY.toFixed(2)}" text-anchor="middle">${htmlEscape(KIND_LABEL[kind] || kind)}</text>`);
+    if (role) {
+      const truncated = role.length > 38 ? `${role.slice(0, 36)}…` : role;
+      parts.push(`      <text class="m-node__role" x="${cx.toFixed(2)}" y="${(sub.y + sub.height - 14).toFixed(2)}" text-anchor="middle">${htmlEscape(truncated)}</text>`);
+    }
+    parts.push('    </a>');
+  }
+
+  for (const edge of layout.edges) {
+    const meta = findEdgeMeta(state, edge.id);
+    const kind = edgeKindFor(meta);
+    const d = renderEdgePath(edge);
+    if (!d) continue;
+    parts.push(`    <g class="m-edge m-edge--${kind}" data-edge="${htmlEscape(edge.id)}">`);
+    parts.push(`      <path d="${d}" fill="none" marker-end="url(#arrow-${kind})" />`);
+    for (const label of edge.labels || []) {
+      if (!label.text) continue;
+      const lx = label.x + (label.width || 0) / 2;
+      const ly = label.y + (label.height || 0) / 2 + 4;
+      parts.push(`      <text class="m-edge__label" x="${lx.toFixed(2)}" y="${ly.toFixed(2)}" text-anchor="middle">${htmlEscape(label.text)}</text>`);
+    }
+    parts.push('    </g>');
+  }
+
+  parts.push('  </g>');
+  parts.push('</svg>');
+  return parts.join('\n');
+}
+
+function renderAtlasSubmoduleIndex(state) {
+  const items = [];
+  for (const feature of state.features || []) {
+    for (const sub of feature.submodules || []) {
+      items.push({
+        feature: feature.slug,
+        featureTitle: feature.title || feature.slug,
+        sub: sub.slug,
+        kind: sub.kind,
+        role: sub.role,
+      });
+    }
+  }
+  if (items.length === 0) return '';
+  const rows = items.map((it) => `        <li class="atlas-submodule-index__item">
+          <a href="features/${htmlEscape(it.feature)}/${htmlEscape(it.sub)}.html">
+            <span class="atlas-submodule-index__feature">${htmlEscape(it.featureTitle)}</span>
+            <span class="atlas-submodule-index__sub">${htmlEscape(it.sub)}</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--${htmlEscape(it.kind)}">${htmlEscape(KIND_LABEL[it.kind] || it.kind)}</span>
+          </a>
+          ${it.role ? `<p class="atlas-submodule-index__role">${htmlEscape(it.role)}</p>` : ''}
+        </li>`).join('\n');
+  return `      <ul class="atlas-submodule-index">
+${rows}
+      </ul>`;
+}
+
+function renderMacro({ state, layout, outDir }) {
+  const pageRel = pagePathFor('macro');
+  const assetRel = relAssetPath(path.join(outDir, pageRel), outDir);
+  const svg = renderMacroSvg(layout, state);
+  const title = (state.meta && state.meta.title) || 'Project architecture';
+  const summary = (state.meta && state.meta.summary) || '';
+  const submoduleIndex = renderAtlasSubmoduleIndex(state);
+
+  const body = `<body>
+  <header class="atlas-header">
+    <h1>${htmlEscape(title)}</h1>
+    ${summary ? `<p class="atlas-summary">${htmlEscape(summary)}</p>` : ''}
+  </header>
+  <main class="atlas-main">
+    <section class="atlas-canvas" aria-label="Macro architecture diagram">
+      <div class="atlas-canvas__toolbar" role="toolbar" aria-label="Diagram controls">
+        <button type="button" data-pan-zoom="zoom-in" aria-label="Zoom in">+</button>
+        <button type="button" data-pan-zoom="zoom-out" aria-label="Zoom out">−</button>
+        <button type="button" data-pan-zoom="fit" aria-label="Reset view">Fit</button>
+      </div>
+      <div class="atlas-canvas__viewport" data-pan-zoom-viewport>
+${svg}
+      </div>
+      <ol class="atlas-legend" aria-label="Edge legend">
+        <li><span class="legend-swatch legend-swatch--call"></span>call</li>
+        <li><span class="legend-swatch legend-swatch--return"></span>return</li>
+        <li><span class="legend-swatch legend-swatch--data-row"></span>data-row</li>
+        <li><span class="legend-swatch legend-swatch--failure"></span>failure</li>
+      </ol>
+    </section>
+    <section class="atlas-index" aria-label="Submodule index">
+      <h2>Submodule index</h2>
+${submoduleIndex}
+    </section>
+  </main>
+  <script src="${assetRel}/viewer.client.js" defer></script>
+</body>
+</html>`;
+
+  return `${head({ title, assetRel, pageKind: 'macro' })}\n${body}\n`;
+}
+
+function renderSubmoduleCard(featureSlug, sub) {
+  const kindLabel = KIND_LABEL[sub.kind] || sub.kind;
+  const link = `${sub.slug}.html`;
+  return `      <li class="submodule-card">
+        <a class="submodule-card__link" href="${htmlEscape(link)}">
+          <span class="submodule-card__name">${htmlEscape(sub.slug)}</span>
+          <span class="submodule-card__kind submodule-card__kind--${htmlEscape(sub.kind)}">${htmlEscape(kindLabel)}</span>
+        </a>
+        ${sub.role ? `<p class="submodule-card__role">${htmlEscape(sub.role)}</p>` : ''}
+      </li>`;
+}
+
+function renderFeaturePage({ feature, outDir }) {
+  const pageRel = pagePathFor('feature', { featureSlug: feature.slug });
+  const assetRel = relAssetPath(path.join(outDir, pageRel), outDir);
+  const title = feature.title || feature.slug;
+  const subNav = (feature.submodules || []).map((s) => renderSubmoduleCard(feature.slug, s)).join('\n');
+  const dependsOn = Array.isArray(feature.dependsOn) ? feature.dependsOn : [];
+  const dependsList = dependsOn.length > 0
+    ? `<p class="feature-depends">Depends on: ${dependsOn.map((d) => `<a href="../${htmlEscape(d)}/index.html">${htmlEscape(d)}</a>`).join(', ')}</p>`
+    : '';
+  const intraEdges = (feature.edges || []).filter((e) => e.kind && e.label);
+
+  const body = `<body>
+  <header class="feature-header">
+    <nav class="feature-breadcrumb"><a href="../../index.html">← Atlas</a></nav>
+    <h1>${htmlEscape(title)}</h1>
+    ${dependsList}
+  </header>
+  <main class="feature-main">
+    ${feature.story ? `<section class="feature-story"><p>${htmlEscape(feature.story)}</p></section>` : ''}
+    <section class="feature-submodules" aria-label="Submodules">
+      <h2>Submodules</h2>
+      <ul class="submodule-nav">
+${subNav}
+      </ul>
+    </section>
+    ${intraEdges.length > 0 ? `<section class="feature-edges" aria-label="Intra-feature edges">
+      <h2>Intra-feature edges</h2>
+      <ul class="feature-edges__list">
+${intraEdges.map((e) => {
+  const from = typeof e.from === 'string' ? e.from : (e.from && e.from.submodule);
+  const to = typeof e.to === 'string' ? e.to : (e.to && e.to.submodule);
+  return `        <li class="feature-edges__item feature-edges__item--${htmlEscape(e.kind)}"><span class="feature-edges__endpoints">${htmlEscape(from)} → ${htmlEscape(to)}</span><span class="feature-edges__kind">${htmlEscape(e.kind)}</span><span class="feature-edges__label">${htmlEscape(e.label || '')}</span></li>`;
+}).join('\n')}
+      </ul>
+    </section>` : ''}
+  </main>
+</body>
+</html>`;
+
+  return `${head({ title, assetRel, pageKind: 'feature' })}\n${body}\n`;
+}
+
+function renderSubmoduleTable(headers, rows) {
+  return `<table class="sub-table">
+        <thead><tr>${headers.map((h) => `<th scope="col">${htmlEscape(h)}</th>`).join('')}</tr></thead>
+        <tbody>
+${rows.map((r) => `          <tr>${r.map((c) => `<td>${htmlEscape(c == null ? '' : c)}</td>`).join('')}</tr>`).join('\n')}
+        </tbody>
+      </table>`;
+}
+
+function renderInternalDataflowSvg(steps) {
+  if (!steps || steps.length === 0) {
+    return '<p class="sub-dataflow__empty">No internal dataflow steps recorded.</p>';
+  }
+  const boxW = 360;
+  const boxH = 56;
+  const gap = 28;
+  const totalH = steps.length * boxH + (steps.length - 1) * gap + 40;
+  const parts = [];
+  parts.push(`<svg class="sub-dataflow__svg" viewBox="0 0 ${boxW + 40} ${totalH}" role="img" aria-label="Internal dataflow">`);
+  parts.push('  <defs><marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker></defs>');
+  steps.forEach((step, i) => {
+    const y = 20 + i * (boxH + gap);
+    parts.push(`  <g class="sub-dataflow__step">`);
+    parts.push(`    <rect x="20" y="${y}" width="${boxW}" height="${boxH}" rx="8" ry="8" />`);
+    const lines = wrapText(step, 52);
+    lines.forEach((line, idx) => {
+      const ly = y + 24 + idx * 16;
+      parts.push(`    <text x="${20 + boxW / 2}" y="${ly}" text-anchor="middle">${htmlEscape(line)}</text>`);
+    });
+    parts.push('  </g>');
+    if (i < steps.length - 1) {
+      const aY = y + boxH;
+      const bY = aY + gap;
+      const x = 20 + boxW / 2;
+      parts.push(`  <line class="sub-dataflow__arrow" x1="${x}" y1="${aY}" x2="${x}" y2="${bY}" marker-end="url(#sub-arrow)" />`);
+    }
+  });
+  parts.push('</svg>');
+  return parts.join('\n');
+}
+
+function wrapText(text, maxChars) {
+  if (!text) return [''];
+  const words = String(text).split(/\s+/);
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    if (!current) { current = word; continue; }
+    if ((current.length + 1 + word.length) <= maxChars) current = `${current} ${word}`;
+    else { lines.push(current); current = word; }
+  }
+  if (current) lines.push(current);
+  return lines.slice(0, 3);
+}
+
+function renderSubmodulePage({ feature, sub, outDir }) {
+  const pageRel = pagePathFor('submodule', { featureSlug: feature.slug, submoduleSlug: sub.slug });
+  const assetRel = relAssetPath(path.join(outDir, pageRel), outDir);
+  const title = `${feature.title || feature.slug} · ${sub.slug}`;
+  const ioRows = (sub.functions || []).map((fn) => [fn.name, fn.in || '', fn.out || '', fn.side || '', fn.purpose || '']);
+  const varRows = (sub.variables || []).map((v) => [v.name, v.type || '', v.scope || '', v.purpose || '']);
+  const errRows = (sub.errors || []).map((e) => [e.name, e.when || '', e.means || '']);
+
+  const body = `<body>
+  <header class="submodule-header">
+    <nav class="submodule-breadcrumb"><a href="../../index.html">← Atlas</a> · <a href="index.html">← ${htmlEscape(feature.title || feature.slug)}</a></nav>
+    <h1>${htmlEscape(sub.slug)} <small class="submodule-kind submodule-kind--${htmlEscape(sub.kind)}">${htmlEscape(KIND_LABEL[sub.kind] || sub.kind)}</small></h1>
+    ${sub.role ? `<p class="submodule-role">${htmlEscape(sub.role)}</p>` : ''}
+  </header>
+  <main class="submodule-main">
+    <section class="sub-io" aria-label="Function I/O">
+      <h2>Function I/O</h2>
+      ${ioRows.length > 0
+        ? renderSubmoduleTable(['Name', 'In', 'Out', 'Side', 'Purpose'], ioRows)
+        : '<p class="sub-section__empty">No functions recorded.</p>'}
+    </section>
+    <section class="sub-vars" aria-label="Variables">
+      <h2>Variables</h2>
+      ${varRows.length > 0
+        ? renderSubmoduleTable(['Name', 'Type', 'Scope', 'Purpose'], varRows)
+        : '<p class="sub-section__empty">No variables recorded.</p>'}
+    </section>
+    <section class="sub-dataflow" aria-label="Internal data flow">
+      <h2>Internal data flow</h2>
+      ${renderInternalDataflowSvg(sub.dataflow)}
+    </section>
+    <section class="sub-errors" aria-label="Errors">
+      <h2>Errors</h2>
+      ${errRows.length > 0
+        ? renderSubmoduleTable(['Name', 'When', 'Means'], errRows)
+        : '<p class="sub-section__empty">No errors recorded.</p>'}
+    </section>
+  </main>
+</body>
+</html>`;
+
+  return `${head({ title, assetRel, pageKind: 'submodule' })}\n${body}\n`;
+}
+
+function copyAssets(outDir) {
+  const assetsDir = path.join(outDir, 'assets');
+  fs.mkdirSync(assetsDir, { recursive: true });
+  const srcCss = path.join(__dirname, 'assets', 'architecture.css');
+  const srcJs = path.join(__dirname, 'assets', 'viewer.client.js');
+  fs.copyFileSync(srcCss, path.join(assetsDir, 'architecture.css'));
+  fs.copyFileSync(srcJs, path.join(assetsDir, 'viewer.client.js'));
+}
+
+// renderAll({outDir, state, scope?}) writes every page for the
+// resolved state. When scope is provided, only the listed pages are
+// emitted; this is how spec mode generates the proposed-after subset.
+async function renderAll({ outDir, state, scope = null, removedPaths = [] }) {
+  fs.mkdirSync(outDir, { recursive: true });
+  copyAssets(outDir);
+
+  const layout = await layoutMacro(state);
+
+  const shouldEmit = (kind, slug, subSlug) => {
+    if (!scope) return true;
+    if (kind === 'macro') return scope.macro === true;
+    if (kind === 'feature') return scope.features && scope.features.has(slug);
+    if (kind === 'submodule') {
+      return (scope.submodules || []).some((s) => s.feature === slug && s.submodule === subSlug);
+    }
+    return false;
+  };
+
+  const written = [];
+
+  if (shouldEmit('macro')) {
+    const html = renderMacro({ state, layout, outDir });
+    const file = path.join(outDir, pagePathFor('macro'));
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, html, 'utf8');
+    written.push(pagePathFor('macro'));
+  }
+
+  for (const feature of state.features || []) {
+    if (shouldEmit('feature', feature.slug)) {
+      const html = renderFeaturePage({ feature, outDir });
+      const file = path.join(outDir, pagePathFor('feature', { featureSlug: feature.slug }));
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, html, 'utf8');
+      written.push(pagePathFor('feature', { featureSlug: feature.slug }));
+    }
+    for (const sub of feature.submodules || []) {
+      if (shouldEmit('submodule', feature.slug, sub.slug)) {
+        const html = renderSubmodulePage({ feature, sub, outDir });
+        const file = path.join(outDir, pagePathFor('submodule', { featureSlug: feature.slug, submoduleSlug: sub.slug }));
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, html, 'utf8');
+        written.push(pagePathFor('submodule', { featureSlug: feature.slug, submoduleSlug: sub.slug }));
+      }
+    }
+  }
+
+  if (removedPaths && removedPaths.length > 0) {
+    const lines = ['# Pages removed by this spec. Used by `apltk architecture diff`.', ...removedPaths];
+    fs.writeFileSync(path.join(outDir, '_removed.txt'), `${lines.join('\n')}\n`, 'utf8');
+  } else {
+    const file = path.join(outDir, '_removed.txt');
+    if (fs.existsSync(file)) fs.rmSync(file);
+  }
+
+  return { written, layout };
+}
+
+function scopeFromDiff(diff) {
+  const submodules = [];
+  for (const item of diff.modifiedSubmodules || []) submodules.push(item);
+  for (const item of diff.addedSubmodules || []) submodules.push(item);
+  const features = new Set([...(diff.modifiedFeatures || []), ...(diff.addedFeatures || [])]);
+  // If only a submodule changed but its feature isn't otherwise modified,
+  // the feature index page does not need to re-emit. The submodule page
+  // itself still needs the feature title/role for breadcrumb, which is
+  // pulled from state at render time, so omitting the feature page is safe.
+  return {
+    macro: diff.macroChanged === true,
+    features,
+    submodules,
+  };
+}
+
+function removedPagePathsFromDiff(diff) {
+  const paths = [];
+  for (const slug of diff.removedFeatures || []) {
+    paths.push(pagePathFor('feature', { featureSlug: slug }));
+  }
+  for (const item of diff.removedSubmodules || []) {
+    paths.push(pagePathFor('submodule', { featureSlug: item.feature, submoduleSlug: item.submodule }));
+  }
+  return paths;
+}
+
+module.exports = {
+  KIND_LABEL,
+  htmlEscape,
+  pagePathFor,
+  renderAll,
+  renderMacro,
+  renderFeaturePage,
+  renderSubmodulePage,
+  copyAssets,
+  scopeFromDiff,
+  removedPagePathsFromDiff,
+};

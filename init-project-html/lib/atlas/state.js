@@ -1,0 +1,402 @@
+'use strict';
+
+// state.js — YAML persistence for the declarative atlas.
+//
+// On-disk layout (base mode):
+//   <project>/resources/project-architecture/atlas/
+//     ├── atlas.index.yaml          # meta, actors, ordered feature slug list, cross-feature edges
+//     ├── features/<slug>.yaml      # one file per feature (submodules + intra-feature edges)
+//     ├── atlas.history.log         # append-only audit JSONL
+//     └── atlas.history.undo.json   # single-step undo snapshot
+//
+// Overlay layout (spec mode mirrors base, plus _removed.yaml):
+//   <spec_dir>/architecture_diff/atlas/
+//     ├── atlas.index.yaml          # optional partial override of meta/actors/edges/feature ordering
+//     ├── features/<slug>.yaml      # full proposed state of any changed feature
+//     └── _removed.yaml             # {features: [...], submodules: [{feature, submodule}]}
+
+const fs = require('node:fs');
+const path = require('node:path');
+const yaml = require('js-yaml');
+
+const { emptyState } = require('./schema');
+
+const INDEX_FILE = 'atlas.index.yaml';
+const REMOVED_FILE = '_removed.yaml';
+const FEATURES_DIR = 'features';
+const HISTORY_FILE = 'atlas.history.log';
+const UNDO_FILE = 'atlas.history.undo.json';
+const ATLAS_DIRNAME = 'atlas';
+
+function readYaml(file) {
+  if (!fs.existsSync(file)) return null;
+  const text = fs.readFileSync(file, 'utf8');
+  if (text.trim().length === 0) return null;
+  return yaml.load(text);
+}
+
+function writeYaml(file, data) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const text = yaml.dump(data, { sortKeys: false, lineWidth: 100, noRefs: true });
+  fs.writeFileSync(file, text, 'utf8');
+}
+
+// load(atlasDir) reads the full base state. Missing directories are
+// treated as empty (returns emptyState()). Each referenced feature
+// file is loaded eagerly; missing feature files are surfaced as empty
+// stubs so validation can flag them.
+function load(atlasDir) {
+  const state = emptyState();
+  const indexFile = path.join(atlasDir, INDEX_FILE);
+  const index = readYaml(indexFile);
+  if (!index) return state;
+
+  if (index.meta) state.meta = { ...state.meta, ...index.meta };
+  if (Array.isArray(index.actors)) state.actors = index.actors;
+  if (Array.isArray(index.edges)) state.edges = index.edges;
+
+  const featureList = Array.isArray(index.features) ? index.features : [];
+  state.features = featureList
+    .map((entry) => {
+      const slug = typeof entry === 'string' ? entry : entry && entry.slug;
+      if (!slug) return null;
+      const featureFile = path.join(atlasDir, FEATURES_DIR, `${slug}.yaml`);
+      const feature = readYaml(featureFile);
+      if (!feature) {
+        return { slug, title: slug, story: '', dependsOn: [], submodules: [], edges: [] };
+      }
+      return normalizeFeature({ ...feature, slug: feature.slug || slug });
+    })
+    .filter(Boolean);
+
+  return state;
+}
+
+function normalizeFeature(feature) {
+  return {
+    slug: feature.slug,
+    title: feature.title || feature.slug,
+    story: feature.story || '',
+    dependsOn: Array.isArray(feature.dependsOn) ? feature.dependsOn : [],
+    submodules: Array.isArray(feature.submodules) ? feature.submodules.map(normalizeSubmodule) : [],
+    edges: Array.isArray(feature.edges) ? feature.edges : [],
+  };
+}
+
+function normalizeSubmodule(sub) {
+  return {
+    slug: sub.slug,
+    kind: sub.kind || 'service',
+    role: sub.role || '',
+    functions: Array.isArray(sub.functions) ? sub.functions : [],
+    variables: Array.isArray(sub.variables) ? sub.variables : [],
+    dataflow: Array.isArray(sub.dataflow) ? sub.dataflow : [],
+    errors: Array.isArray(sub.errors) ? sub.errors : [],
+  };
+}
+
+// save(atlasDir, state, {touch=true}) writes the index + every feature
+// YAML, dropping orphan feature files. When touch is true, meta.updatedAt
+// is refreshed.
+function save(atlasDir, state, options = {}) {
+  const { touch = true } = options;
+  const next = JSON.parse(JSON.stringify(state));
+  next.meta = next.meta || {};
+  if (touch) next.meta.updatedAt = new Date().toISOString();
+
+  const indexFile = path.join(atlasDir, INDEX_FILE);
+  const index = {
+    meta: next.meta,
+    actors: next.actors || [],
+    features: (next.features || []).map((f) => f.slug),
+    edges: next.edges || [],
+  };
+  writeYaml(indexFile, index);
+
+  const featuresDir = path.join(atlasDir, FEATURES_DIR);
+  fs.mkdirSync(featuresDir, { recursive: true });
+  const wanted = new Set((next.features || []).map((f) => `${f.slug}.yaml`));
+  for (const entry of fs.readdirSync(featuresDir)) {
+    if (entry.endsWith('.yaml') && !wanted.has(entry)) {
+      fs.rmSync(path.join(featuresDir, entry));
+    }
+  }
+  for (const feature of next.features || []) {
+    writeYaml(path.join(featuresDir, `${feature.slug}.yaml`), feature);
+  }
+}
+
+// loadOverlay reads the spec-mode overlay. Every field is optional.
+// Returns a structured overlay object even when the overlay directory
+// is missing (all-empty overlay, which merges to base unchanged).
+function loadOverlay(overlayDir) {
+  const overlay = {
+    meta: null,
+    actors: null,
+    edges: null,
+    featureOrder: null,
+    features: {},
+    removed: { features: [], submodules: [] },
+  };
+  if (!fs.existsSync(overlayDir)) return overlay;
+
+  const index = readYaml(path.join(overlayDir, INDEX_FILE));
+  if (index) {
+    if (index.meta !== undefined) overlay.meta = index.meta;
+    if (index.actors !== undefined) overlay.actors = index.actors;
+    if (index.edges !== undefined) overlay.edges = index.edges;
+    if (Array.isArray(index.features) && index.features.length > 0) {
+      overlay.featureOrder = index.features.map((entry) => (typeof entry === 'string' ? entry : entry && entry.slug)).filter(Boolean);
+    }
+  }
+
+  const featuresDir = path.join(overlayDir, FEATURES_DIR);
+  if (fs.existsSync(featuresDir)) {
+    for (const entry of fs.readdirSync(featuresDir)) {
+      if (!entry.endsWith('.yaml')) continue;
+      const data = readYaml(path.join(featuresDir, entry));
+      if (data && data.slug) overlay.features[data.slug] = normalizeFeature(data);
+    }
+  }
+
+  const removed = readYaml(path.join(overlayDir, REMOVED_FILE));
+  if (removed) {
+    if (Array.isArray(removed.features)) overlay.removed.features = removed.features;
+    if (Array.isArray(removed.submodules)) overlay.removed.submodules = removed.submodules;
+  }
+
+  return overlay;
+}
+
+// saveOverlay writes only the components the caller provided. Unlike
+// save(), this does not touch base files. Untouched features keep their
+// base definition; explicitly written features land in
+// overlayDir/features/<slug>.yaml; removed features/submodules land in
+// _removed.yaml.
+function saveOverlay(overlayDir, overlay) {
+  fs.mkdirSync(overlayDir, { recursive: true });
+
+  const indexPayload = {};
+  if (overlay.meta !== null && overlay.meta !== undefined) indexPayload.meta = overlay.meta;
+  if (overlay.actors !== null && overlay.actors !== undefined) indexPayload.actors = overlay.actors;
+  if (overlay.edges !== null && overlay.edges !== undefined) indexPayload.edges = overlay.edges;
+  if (overlay.featureOrder) indexPayload.features = overlay.featureOrder;
+  if (Object.keys(indexPayload).length > 0) {
+    writeYaml(path.join(overlayDir, INDEX_FILE), indexPayload);
+  } else if (fs.existsSync(path.join(overlayDir, INDEX_FILE))) {
+    fs.rmSync(path.join(overlayDir, INDEX_FILE));
+  }
+
+  const featuresDir = path.join(overlayDir, FEATURES_DIR);
+  fs.mkdirSync(featuresDir, { recursive: true });
+  const wanted = new Set(Object.keys(overlay.features || {}).map((slug) => `${slug}.yaml`));
+  for (const entry of fs.readdirSync(featuresDir)) {
+    if (entry.endsWith('.yaml') && !wanted.has(entry)) {
+      fs.rmSync(path.join(featuresDir, entry));
+    }
+  }
+  for (const [slug, feature] of Object.entries(overlay.features || {})) {
+    writeYaml(path.join(featuresDir, `${slug}.yaml`), feature);
+  }
+
+  const removedFile = path.join(overlayDir, REMOVED_FILE);
+  const hasRemoved = (overlay.removed.features && overlay.removed.features.length > 0)
+    || (overlay.removed.submodules && overlay.removed.submodules.length > 0);
+  if (hasRemoved) {
+    writeYaml(removedFile, overlay.removed);
+  } else if (fs.existsSync(removedFile)) {
+    fs.rmSync(removedFile);
+  }
+}
+
+// mergeOverlay produces the after-state given a base state and an
+// overlay. Overlay features fully replace base features of the same
+// slug; removed features/submodules drop from the merged result.
+// When overlay.featureOrder is provided it controls the order of
+// features in the merged output (unlisted features keep base ordering
+// at the tail).
+function mergeOverlay(base, overlay) {
+  const merged = JSON.parse(JSON.stringify(base));
+  if (overlay.meta) merged.meta = { ...merged.meta, ...overlay.meta };
+  if (overlay.actors !== null && overlay.actors !== undefined) merged.actors = overlay.actors || [];
+  if (overlay.edges !== null && overlay.edges !== undefined) merged.edges = overlay.edges || [];
+
+  const featureMap = new Map((merged.features || []).map((f) => [f.slug, f]));
+  for (const [slug, feature] of Object.entries(overlay.features || {})) {
+    featureMap.set(slug, feature);
+  }
+
+  if (overlay.removed && Array.isArray(overlay.removed.features)) {
+    for (const slug of overlay.removed.features) featureMap.delete(slug);
+  }
+  if (overlay.removed && Array.isArray(overlay.removed.submodules)) {
+    for (const { feature: fslug, submodule: sslug } of overlay.removed.submodules) {
+      const f = featureMap.get(fslug);
+      if (f) f.submodules = (f.submodules || []).filter((s) => s.slug !== sslug);
+    }
+  }
+
+  let orderedSlugs;
+  if (overlay.featureOrder) {
+    const seen = new Set();
+    orderedSlugs = [];
+    for (const slug of overlay.featureOrder) {
+      if (featureMap.has(slug) && !seen.has(slug)) {
+        orderedSlugs.push(slug);
+        seen.add(slug);
+      }
+    }
+    for (const slug of featureMap.keys()) {
+      if (!seen.has(slug)) orderedSlugs.push(slug);
+    }
+  } else {
+    orderedSlugs = [...featureMap.keys()];
+  }
+  merged.features = orderedSlugs.map((slug) => featureMap.get(slug));
+
+  return merged;
+}
+
+// diffPages compares the merged after-state against the base and
+// classifies which HTML pages must be regenerated (modified) versus
+// emitted fresh (added) versus listed in _removed.txt (removed).
+function diffPages(base, merged) {
+  const baseFeatures = new Map((base.features || []).map((f) => [f.slug, f]));
+  const mergedFeatures = new Map((merged.features || []).map((f) => [f.slug, f]));
+
+  const addedFeatures = new Set();
+  const modifiedFeatures = new Set();
+  const removedFeatures = new Set();
+  const addedSubmodules = []; // {feature, submodule}
+  const modifiedSubmodules = [];
+  const removedSubmodules = [];
+
+  for (const [slug, mergedFeat] of mergedFeatures) {
+    const baseFeat = baseFeatures.get(slug);
+    if (!baseFeat) {
+      addedFeatures.add(slug);
+      for (const sub of mergedFeat.submodules || []) {
+        addedSubmodules.push({ feature: slug, submodule: sub.slug });
+      }
+      continue;
+    }
+    if (JSON.stringify(featureVisualOf(baseFeat)) !== JSON.stringify(featureVisualOf(mergedFeat))) {
+      modifiedFeatures.add(slug);
+    }
+    const baseSubMap = new Map((baseFeat.submodules || []).map((s) => [s.slug, s]));
+    const mergedSubMap = new Map((mergedFeat.submodules || []).map((s) => [s.slug, s]));
+    for (const [subSlug, mergedSub] of mergedSubMap) {
+      const baseSub = baseSubMap.get(subSlug);
+      if (!baseSub) addedSubmodules.push({ feature: slug, submodule: subSlug });
+      else if (JSON.stringify(baseSub) !== JSON.stringify(mergedSub)) {
+        modifiedSubmodules.push({ feature: slug, submodule: subSlug });
+      }
+    }
+    for (const subSlug of baseSubMap.keys()) {
+      if (!mergedSubMap.has(subSlug)) removedSubmodules.push({ feature: slug, submodule: subSlug });
+    }
+  }
+  for (const slug of baseFeatures.keys()) {
+    if (!mergedFeatures.has(slug)) {
+      removedFeatures.add(slug);
+      for (const sub of baseFeatures.get(slug).submodules || []) {
+        removedSubmodules.push({ feature: slug, submodule: sub.slug });
+      }
+    }
+  }
+
+  const macroChanged = (
+    JSON.stringify(macroVisualOf(base)) !== JSON.stringify(macroVisualOf(merged))
+  );
+
+  return {
+    addedFeatures,
+    modifiedFeatures,
+    removedFeatures,
+    addedSubmodules,
+    modifiedSubmodules,
+    removedSubmodules,
+    macroChanged,
+  };
+}
+
+// featureVisualOf returns the projection of a feature that drives its
+// own page (title, story, dependsOn, submodule navigation cards, and
+// intra-feature edge list). Sub-module internals are compared
+// separately in diffPages.
+function featureVisualOf(feature) {
+  return {
+    title: feature.title,
+    story: feature.story,
+    dependsOn: feature.dependsOn || [],
+    submodules: (feature.submodules || []).map((s) => ({ slug: s.slug, kind: s.kind, role: s.role })),
+    edges: feature.edges || [],
+  };
+}
+
+// macroVisualOf returns the projection of state that drives the macro
+// SVG (cluster titles, submodule nodes + their kind/role badges, every
+// edge label/kind). Sub-module-internal fields (functions, variables,
+// dataflow, errors) are excluded so editing those alone does not force
+// a macro re-render.
+function macroVisualOf(state) {
+  return {
+    meta: state.meta || {},
+    actors: state.actors || [],
+    edges: state.edges || [],
+    features: (state.features || []).map((f) => ({
+      slug: f.slug,
+      title: f.title,
+      dependsOn: f.dependsOn || [],
+      submodules: (f.submodules || []).map((s) => ({ slug: s.slug, kind: s.kind, role: s.role })),
+      edges: f.edges || [],
+    })),
+  };
+}
+
+function appendHistory(atlasDir, entry) {
+  fs.mkdirSync(atlasDir, { recursive: true });
+  const file = path.join(atlasDir, HISTORY_FILE);
+  fs.appendFileSync(file, `${JSON.stringify({ ts: new Date().toISOString(), ...entry })}\n`, 'utf8');
+}
+
+function writeUndoSnapshot(atlasDir, state) {
+  fs.mkdirSync(atlasDir, { recursive: true });
+  fs.writeFileSync(path.join(atlasDir, UNDO_FILE), JSON.stringify(state, null, 2), 'utf8');
+}
+
+function readUndoSnapshot(atlasDir) {
+  const file = path.join(atlasDir, UNDO_FILE);
+  if (!fs.existsSync(file)) return null;
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+function clearUndoSnapshot(atlasDir) {
+  const file = path.join(atlasDir, UNDO_FILE);
+  if (fs.existsSync(file)) fs.rmSync(file);
+}
+
+module.exports = {
+  ATLAS_DIRNAME,
+  INDEX_FILE,
+  REMOVED_FILE,
+  FEATURES_DIR,
+  HISTORY_FILE,
+  UNDO_FILE,
+  readYaml,
+  writeYaml,
+  load,
+  save,
+  loadOverlay,
+  saveOverlay,
+  mergeOverlay,
+  diffPages,
+  normalizeFeature,
+  normalizeSubmodule,
+  appendHistory,
+  writeUndoSnapshot,
+  readUndoSnapshot,
+  clearUndoSnapshot,
+  macroVisualOf,
+  featureVisualOf,
+};

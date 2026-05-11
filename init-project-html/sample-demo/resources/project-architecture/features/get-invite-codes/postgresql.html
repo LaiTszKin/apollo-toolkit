@@ -1,165 +1,66 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>子模組 · postgresql — 獲取邀請碼（iss 視角）</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../../assets/architecture.css" />
-  </head>
-  <body>
-    <main class="atlas-page atlas-page--feature">
-      <nav class="breadcrumb" aria-label="階層導航">
-        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">獲取邀請碼</a> · <span>postgresql</span>
-      </nav>
-
-      <header class="atlas-header">
-        <p class="atlas-kicker">Submodule · postgresql（iss 視角）</p>
-        <h1 class="atlas-title">postgresql — 發放側操作</h1>
-        <p class="atlas-meta">
-          自身職責：對 <code>invite_codes</code> 表執行<strong>計數</strong>與<strong>插入</strong>。寫入的列會在「邀請碼註冊」功能裡被另一個視角讀取（跨功能資料流見<a href="../../index.html">宏觀架構圖</a>）。本頁只列自身 SQL 函式的 I/O。
-        </p>
-      </header>
-
-      <section class="sub-io">
-        <h2>SQL 函式 I/O</h2>
-        <table>
-          <thead><tr><th>函式</th><th>簽名／SQL</th><th>副作用</th><th>用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><code>CountInvitesSince</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>tx</code>, <code>userID</code>, <code>since</code><br>
-                <strong>out:</strong> <code>int64</code><br>
-                SQL: <code>SELECT count(*) FROM invite_codes WHERE owner_user_id=$1 AND created_at &gt; $2</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">read</span></td>
-              <td>滑動視窗計數，給呼叫端做額度判斷。</td>
-            </tr>
-            <tr>
-              <td><code>InsertInviteCode</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>tx</code>, <code>InviteCodeRecord</code><br>
-                <strong>out:</strong> <code>InviteID</code> | <code>UniqueViolation</code><br>
-                SQL: <code>INSERT INTO invite_codes (code, owner_user_id, allowed_registration, ...) VALUES (...) RETURNING id</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--write">write</span> 新列（待 commit）</td>
-              <td><code>invite_codes.code UNIQUE</code>；衝突時呼叫端負責換碼重試。</td>
-            </tr>
-            <tr>
-              <td><code>GetUserStatus</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>tx</code>, <code>userID</code><br>
-                <strong>out:</strong> <code>UserStatus</code> | <code>NotFound</code><br>
-                SQL: <code>SELECT status, banned_at FROM users WHERE id=$1</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">read</span></td>
-              <td>給呼叫端做帳號狀態檢查。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-vars">
-        <h2>變數與業務用途</h2>
-        <p class="sub-vars__intro">本表分兩段：上半為 SQL 函式參數／回傳，下半為 <code>invite_codes</code> / <code>users</code> 表上的關鍵列欄位（被本子模組寫入或讀取）。</p>
-        <table>
-          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="sub-vars__name">tx</td>
-              <td class="sub-vars__type">*sql.Tx</td>
-              <td><span class="sub-vars__scope sub-vars__scope--tx">tx</span></td>
-              <td>上層管理的隔離單元；本子模組所有 SQL 都掛在這個 <code>tx</code> 上以保證原子寫入。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">userID</td>
-              <td class="sub-vars__type">UUID</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>SQL 參數；標記新邀請碼擁有者，也是計數視窗鍵；錯誤帶入會把額度算到別人頭上。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">since</td>
-              <td class="sub-vars__type">timestamp</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>滑動視窗起點；決定 <code>count(*)</code> 的時段；起點漂移會讓額度執行不準。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">InviteCodeRecord</td>
-              <td class="sub-vars__type">{code, owner_user_id, allowed_registration, ...}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>待插入的邀請碼資料；其欄位直接落在 <code>invite_codes</code> 列上。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">UserStatus</td>
-              <td class="sub-vars__type">{status, banned_at}</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td><code>GetUserStatus</code> 的回傳；給呼叫端判定是否准予發放。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">invite_codes.code</td>
-              <td class="sub-vars__type">text UNIQUE</td>
-              <td><span class="sub-vars__scope sub-vars__scope--persist">persist</span></td>
-              <td>列上欄位；UNIQUE 約束在本子模組是「衝突信號源」，呼叫端據此換碼重試。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">invite_codes.owner_user_id</td>
-              <td class="sub-vars__type">FK → users.id</td>
-              <td><span class="sub-vars__scope sub-vars__scope--persist">persist</span></td>
-              <td>列上欄位；建立「誰擁有這張邀請」的關聯；額度查詢與後續審計都依此欄。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">invite_codes.allowed_registration</td>
-              <td class="sub-vars__type">boolean</td>
-              <td><span class="sub-vars__scope sub-vars__scope--persist">persist</span></td>
-              <td>列上欄位；發放時寫 <code>true</code>；「邀請碼註冊」功能在判定時讀此欄，<code>false</code> 即拒絕該邀請可用。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">invite_codes.consumed_at</td>
-              <td class="sub-vars__type">timestamp NULL</td>
-              <td><span class="sub-vars__scope sub-vars__scope--persist">persist</span></td>
-              <td>列上欄位；本子模組寫入時為 <code>NULL</code>；之後由「邀請碼註冊」標記消費，是橋接兩個功能模組的關鍵欄位。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">invite_codes.created_at</td>
-              <td class="sub-vars__type">timestamp</td>
-              <td><span class="sub-vars__scope sub-vars__scope--persist">persist</span></td>
-              <td>列上欄位；額度的滑動視窗計數憑此欄位，業務上要與 <code>now</code> 同步以免漂移。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-dataflow">
-        <h2>內部資料流（單一交易視角）</h2>
-        <ol>
-          <li>呼叫端開 <code>tx</code> → 本子模組以該 <code>tx</code> 執行 SQL；交易控制不在本子模組內。</li>
-          <li><code>CountInvitesSince</code> 與 <code>GetUserStatus</code> 為純讀；不變動列。</li>
-          <li><code>InsertInviteCode</code>：寫入後回傳 <code>InviteID</code> 或 <code>UniqueViolation</code>；<strong>無</strong> partial row。</li>
-          <li>所有寫入皆在 <code>tx</code> 內；本子模組對外只報告每個 SQL 結果。</li>
-        </ol>
-      </section>
-
-      <section class="sub-errors">
-        <h2>本子模組會回傳的錯誤</h2>
-        <table>
-          <thead><tr><th>錯誤</th><th>觸發 SQL</th></tr></thead>
-          <tbody>
-            <tr><td><code>UniqueViolation</code></td><td><code>InsertInviteCode</code>（<code>code</code> 已存在）</td></tr>
-            <tr><td><code>NotFound</code></td><td><code>GetUserStatus</code></td></tr>
-            <tr><td><code>ConnTransient</code></td><td>任意</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <footer class="atlas-meta" style="margin-top: 2rem">
-        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
-      </footer>
-    </main>
-  </body>
+<html lang="en" data-atlas-page="submodule">
+<head>
+  <meta charset="utf-8">
+  <title>Get invite codes · postgresql</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../assets/architecture.css">
+</head>
+<body>
+  <header class="submodule-header">
+    <nav class="submodule-breadcrumb"><a href="../../index.html">← Atlas</a> · <a href="index.html">← Get invite codes</a></nav>
+    <h1>postgresql <small class="submodule-kind submodule-kind--db">DB</small></h1>
+    <p class="submodule-role">Owns the `invite_codes` table (producer side of the cross-feature data row).</p>
+  </header>
+  <main class="submodule-main">
+    <section class="sub-io" aria-label="Function I/O">
+      <h2>Function I/O</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Out</th><th scope="col">Side</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>INSERT_invite_codes</td><td>row</td><td>rowid</td><td>write</td><td>Persists the issued invite row.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-vars" aria-label="Variables">
+      <h2>Variables</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Scope</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>invite_codes.code</td><td>text</td><td>persist</td><td>Unique business key consumed by the registration flow.</td></tr>
+          <tr><td>invite_codes.consumed_at</td><td>timestamptz</td><td>persist</td><td>Stays null until the registration flow consumes the code.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-dataflow" aria-label="Internal data flow">
+      <h2>Internal data flow</h2>
+      <svg class="sub-dataflow__svg" viewBox="0 0 400 264" role="img" aria-label="Internal dataflow">
+  <defs><marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker></defs>
+  <g class="sub-dataflow__step">
+    <rect x="20" y="20" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="44" text-anchor="middle">Accept INSERT from invite-issuance-service.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="76" x2="200" y2="104" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="104" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="128" text-anchor="middle">Enforce unique constraint on code.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="160" x2="200" y2="188" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="188" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="212" text-anchor="middle">Return new rowid.</text>
+  </g>
+</svg>
+    </section>
+    <section class="sub-errors" aria-label="Errors">
+      <h2>Errors</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">When</th><th scope="col">Means</th></tr></thead>
+        <tbody>
+          <tr><td>ErrUniqueViolation</td><td>Two issuance attempts pick the same code.</td><td>Bubble up so issuance can retry.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
 </html>

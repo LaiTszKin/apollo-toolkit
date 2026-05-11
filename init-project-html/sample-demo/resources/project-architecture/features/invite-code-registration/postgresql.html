@@ -1,161 +1,68 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>子模組 · postgresql — 邀請碼註冊（reg 視角）</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../../assets/architecture.css" />
-  </head>
-  <body>
-    <main class="atlas-page atlas-page--feature">
-      <nav class="breadcrumb" aria-label="階層導航">
-        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">邀請碼註冊</a> · <span>postgresql</span>
-      </nav>
-
-      <header class="atlas-header">
-        <p class="atlas-kicker">Submodule · postgresql（reg 視角）</p>
-        <h1 class="atlas-title">postgresql — 註冊側操作</h1>
-        <p class="atlas-meta">
-          自身職責：以 SQL 對 <code>invite_codes</code>／<code>users</code> 表執行讀鎖、寫入與條件更新。本子模組同時是<strong>讀者</strong>（查邀請碼）與<strong>寫者</strong>（建 user、核銷邀請）。本頁只列自身 SQL 函式的 I/O。
-        </p>
-      </header>
-
-      <section class="sub-io">
-        <h2>SQL 函式 I/O</h2>
-        <table>
-          <thead><tr><th>函式</th><th>簽名／SQL</th><th>副作用</th><th>用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><code>GetInviteForUpdate</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>tx</code>, <code>code: text</code><br>
-                <strong>out:</strong> <code>InviteRow</code> | <code>NotFound</code><br>
-                SQL: <code>SELECT … FROM invite_codes WHERE code=$1 FOR UPDATE</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--io">lock</span> 對該列加 row lock 直到 tx 結束</td>
-              <td>取得邀請碼狀態並阻止他人並行核銷。</td>
-            </tr>
-            <tr>
-              <td><code>InsertUser</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>tx</code>, <code>{email, passwordHash, inviteID}</code><br>
-                <strong>out:</strong> <code>UserID</code> | <code>UniqueViolation</code><br>
-                SQL: <code>INSERT INTO users (...) RETURNING id</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--write">write</span> 新列（待 commit）</td>
-              <td>建立使用者列；<code>users.email UNIQUE</code>。</td>
-            </tr>
-            <tr>
-              <td><code>MarkInviteConsumed</code></td>
-              <td class="sub-io__signature">
-                <strong>in:</strong> <code>tx</code>, <code>inviteID</code>, <code>userID</code>, <code>now</code><br>
-                <strong>out:</strong> <code>RowsAffected</code><br>
-                SQL: <code>UPDATE invite_codes SET consumed_at=$3, consumed_by=$2 WHERE id=$1 AND consumed_at IS NULL</code>
-              </td>
-              <td><span class="sub-io__side sub-io__side--write">write</span> 條件更新</td>
-              <td>標記核銷；<code>RowsAffected=0</code> 表示已被搶先核銷。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-vars">
-        <h2>變數與業務用途</h2>
-        <p class="sub-vars__intro">本表分兩段：上半為 SQL 函式參數，下半為 <code>invite_codes</code> / <code>users</code> 表上的關鍵列欄位（被本子模組讀寫）。</p>
-        <table>
-          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="sub-vars__name">tx</td>
-              <td class="sub-vars__type">*sql.Tx</td>
-              <td><span class="sub-vars__scope sub-vars__scope--tx">tx</span></td>
-              <td>上層管理的隔離單元；本子模組所有 SQL 都掛在這個 <code>tx</code> 上，未 commit 即視為「無事發生」，保證註冊原子性。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">code</td>
-              <td class="sub-vars__type">text</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td><code>GetInviteForUpdate</code> 的查鎖鍵；對應到列上欄位 <code>invite_codes.code</code> 的 UNIQUE 索引，避免並行核銷相同邀請。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">inviteID</td>
-              <td class="sub-vars__type">UUID</td>
-              <td><span class="sub-vars__scope sub-vars__scope--tx">tx</span></td>
-              <td>從 SELECT 取得後跨多個寫入；把「核銷哪一張邀請」與「新 user 屬於哪張邀請」綁定，作為日後審計鏈。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">userID</td>
-              <td class="sub-vars__type">UUID</td>
-              <td><span class="sub-vars__scope sub-vars__scope--tx">tx</span></td>
-              <td><code>InsertUser RETURNING id</code> 的結果；同一 <code>tx</code> 內回填到 <code>consumed_by</code>，完成「誰用了邀請」的紀錄。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">now</td>
-              <td class="sub-vars__type">timestamp</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td>核銷時的官方時間；由應用層提供以避免應用與 DB 時鐘漂移影響審計順序。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">RowsAffected</td>
-              <td class="sub-vars__type">int</td>
-              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
-              <td><code>MarkInviteConsumed</code> 條件更新結果；<code>0</code> 表示已被搶先核銷，本次必須回滾，否則會發生雙倍消費。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">consumed_at</td>
-              <td class="sub-vars__type">timestamp NULL</td>
-              <td><span class="sub-vars__scope sub-vars__scope--persist">persist</span></td>
-              <td><code>invite_codes</code> 列上欄位；非空代表「這張邀請已被消費」，與 <code>WHERE consumed_at IS NULL</code> 一起防雙重核銷。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">consumed_by</td>
-              <td class="sub-vars__type">FK → users.id</td>
-              <td><span class="sub-vars__scope sub-vars__scope--persist">persist</span></td>
-              <td><code>invite_codes</code> 列上欄位；紀錄是哪個 user 用掉這張邀請，是「邀請碼註冊」這條業務路徑留下的最終痕跡。</td>
-            </tr>
-            <tr>
-              <td class="sub-vars__name">users.email</td>
-              <td class="sub-vars__type">text UNIQUE</td>
-              <td><span class="sub-vars__scope sub-vars__scope--persist">persist</span></td>
-              <td>使用者唯一鍵；UNIQUE 違例代表「相同信箱已註冊」，業務上以 409 回應，呼叫端不應靜默忽略。</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="sub-dataflow">
-        <h2>內部資料流（單一交易視角）</h2>
-        <ol>
-          <li>呼叫端開 <code>tx</code> → 本子模組以該 <code>tx</code> 執行 SQL；交易控制不在本子模組內。</li>
-          <li><code>GetInviteForUpdate</code> 取得 <code>InviteRow</code> 並把 <strong>列鎖</strong> 綁在 <code>tx</code> 上。</li>
-          <li><code>InsertUser</code> 取得 <code>UserID</code>，作為下一步 <code>consumed_by</code> 的 FK 值。</li>
-          <li><code>MarkInviteConsumed</code> 以 <code>WHERE consumed_at IS NULL</code> 防雙重核銷。</li>
-          <li>所有寫入皆在 <code>tx</code> 內；commit／rollback 由呼叫端決定，本子模組對外只報告每個 SQL 的結果。</li>
-        </ol>
-      </section>
-
-      <section class="sub-errors">
-        <h2>本子模組會回傳的錯誤</h2>
-        <table>
-          <thead><tr><th>錯誤</th><th>觸發 SQL</th><th>含義</th></tr></thead>
-          <tbody>
-            <tr><td><code>NotFound</code></td><td><code>GetInviteForUpdate</code></td><td>無該邀請碼列。</td></tr>
-            <tr><td><code>UniqueViolation</code></td><td><code>InsertUser</code></td><td>email 重複。</td></tr>
-            <tr><td><code>LockWaitTimeout</code></td><td><code>GetInviteForUpdate</code></td><td>其他並發交易長時間持有鎖。</td></tr>
-            <tr><td><code>ConnTransient</code></td><td>任意</td><td>網路／restart；交易不會 partial。</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <footer class="atlas-meta" style="margin-top: 2rem">
-        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
-      </footer>
-    </main>
-  </body>
+<html lang="en" data-atlas-page="submodule">
+<head>
+  <meta charset="utf-8">
+  <title>Invite-code registration · postgresql</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../assets/architecture.css">
+</head>
+<body>
+  <header class="submodule-header">
+    <nav class="submodule-breadcrumb"><a href="../../index.html">← Atlas</a> · <a href="index.html">← Invite-code registration</a></nav>
+    <h1>postgresql <small class="submodule-kind submodule-kind--db">DB</small></h1>
+    <p class="submodule-role">Stores `users` rows and applies invite-code state transitions inside the registration tx.</p>
+  </header>
+  <main class="submodule-main">
+    <section class="sub-io" aria-label="Function I/O">
+      <h2>Function I/O</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Out</th><th scope="col">Side</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>SELECT_invite_for_update</td><td>code</td><td>InviteCodeRow | nil</td><td>lock</td><td>Locks the invite row for the duration of the transaction.</td></tr>
+          <tr><td>INSERT_users</td><td>userRow</td><td>userId</td><td>write</td><td>Persists the new account.</td></tr>
+          <tr><td>UPDATE_invite_consumed</td><td>code, now</td><td>rows_affected</td><td>write</td><td>Marks the invite as consumed.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-vars" aria-label="Variables">
+      <h2>Variables</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Scope</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>users.email</td><td>text</td><td>persist</td><td>Unique account identity.</td></tr>
+          <tr><td>invite_codes.consumed_at</td><td>timestamptz</td><td>persist</td><td>Timestamp set the moment the invite row is consumed.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="sub-dataflow" aria-label="Internal data flow">
+      <h2>Internal data flow</h2>
+      <svg class="sub-dataflow__svg" viewBox="0 0 400 264" role="img" aria-label="Internal dataflow">
+  <defs><marker id="sub-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker></defs>
+  <g class="sub-dataflow__step">
+    <rect x="20" y="20" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="44" text-anchor="middle">Apply row lock on invite_codes.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="76" x2="200" y2="104" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="104" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="128" text-anchor="middle">Validate uniqueness of users.email.</text>
+  </g>
+  <line class="sub-dataflow__arrow" x1="200" y1="160" x2="200" y2="188" marker-end="url(#sub-arrow)" />
+  <g class="sub-dataflow__step">
+    <rect x="20" y="188" width="360" height="56" rx="8" ry="8" />
+    <text x="200" y="212" text-anchor="middle">Write users row and update invite_codes.consumed_at.</text>
+  </g>
+</svg>
+    </section>
+    <section class="sub-errors" aria-label="Errors">
+      <h2>Errors</h2>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">When</th><th scope="col">Means</th></tr></thead>
+        <tbody>
+          <tr><td>ErrUniqueEmail</td><td>users.email unique constraint violated.</td><td>Bubble up so service can return ErrEmailTaken.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
 </html>

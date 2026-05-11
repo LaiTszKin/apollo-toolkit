@@ -2,8 +2,8 @@
 name: generate-spec
 description: >-
   Author docs/plans trees: run `apltk create-specs`, hydrate `spec/tasks/checklist/contract/design` (+ `coordination.md`/`preparation.md` when parallel/prep dictates), cite official docs for external deps, plan tests via **`test-case-strategy`**, block code edits until explicit user approval.
-  Architecture-touching specs also emit `architecture_diff/` next to `spec.md` (after-HTML for affected pages only): module-internal edits reuse the SAME path as `resources/project-architecture/<rel>.html` so `apltk architecture diff` aligns by path, additions use a new path, removals go in `_removed.txt`.
-  Use when drafting/refreshing specs or restructuring batches—not when executing approved plans (use **`implement-specs*`** instead).
+  Architecture-touching specs declare the proposed-after atlas via `apltk architecture --spec <spec_dir> <verb> ...`; the CLI writes overlay YAML to `<spec_dir>/architecture_diff/atlas/` and re-renders only the affected proposed-after HTML pages — never hand-author files under `architecture_diff/`.
+  Use when drafting/refreshing specs or restructuring batches — not when executing approved plans (use **`implement-specs*`** instead).
   Reject vague `tasks.md` missing file/mutation/verifier; SPLIT >3-module scope; never overwrite a neighbor `{change}`.
   Bad: `- [ ] Add tests`… OK: `- [ ] src/auth/scope.rs — deny unknown scopes — Verify: cargo test scope::defaults`…
 ---
@@ -27,12 +27,7 @@ description: >-
 - **`tasks.md` checklist items**: **every** `- [ ]` **MUST** specify (a) concrete file/function target, (b) specific modification and expected outcome, (c) a verification hook—**no** vague rows (`Implement integration`, `Add tests`). Forbidden vague items **MUST** be rewritten before approval.
 - **MUST** use `test-case-strategy` when planning non-trivial logic tests and checklist mapping (test IDs, drift checks). Every **non-trivial** `tasks.md` implementation item **MUST** name a focused unit drift check, another concrete verification hook, or **`N/A`** with a concrete reason.
 - **MUST NOT** modify implementation code before **explicit user approval** of the spec set. Clarifications **MUST** sync across affected files and **MUST** re-trigger approval. If scope becomes a **different issue**, **MUST** stop editing the old set and create a **new** `change_name`.
-- **MUST** when the proposed change touches the architecture surface (feature/sub-module add/rename/remove, edge add/remove, `sub-vars` or `sub-io` deltas), generate an `architecture_diff/` directory **next to `spec.md`** containing the proposed **after** HTML for **only the affected pages**, mirroring `resources/project-architecture/` paths produced by `init-project-html`. Use this skill's own `references/TEMPLATE_SPEC.md` for the vocabulary, macro SVG class hooks, and ready-to-copy `sub-io` / `sub-vars` / `sub-dataflow` DOM snippets — page-contract rules still come from `init-project-html/SKILL.md`. The CLI `apltk architecture diff` identifies diffs **by path alone**, so deviating from the three alignment rules below breaks the viewer:
-  - **Module-internal change** (same sub-module: function I/O, variables, internal flow, errors; or small in-place edits on `macro` / feature index pages): write the proposed-after HTML at the **SAME path** as `resources/project-architecture/<rel>.html`. This is the common case — never invent a new filename for an in-place edit, or the CLI mis-classifies it as add + remove.
-  - **Addition**: write at a new `architecture_diff/<new-rel>.html` whose mirror under `resources/project-architecture/` does not yet exist.
-  - **Removal**: list the removed `<rel>` in `architecture_diff/_removed.txt` (one relative path per line). Do not create an empty placeholder HTML for removals.
-  - **Rename = removal + addition**: list the old path in `_removed.txt` AND write proposed-after HTML at the new path.
-  Always copy `architecture.css` into `architecture_diff/assets/` so every page renders standalone via relative paths (`../../assets/architecture.css`). For batch specs the diff lives inside each member spec's directory only — **MUST NOT** duplicate at batch root. **MUST** keep all paths relative for portability.
+- **MUST** when the proposed change touches the architecture surface (feature / sub-module add / rename / remove, edge add / remove, `sub-vars` or function I/O deltas, internal dataflow / error deltas), declare the proposed-after state through `apltk architecture --spec <spec_dir> <verb> ...`. The CLI writes overlay YAML to `<spec_dir>/architecture_diff/atlas/` and renders only the affected proposed-after HTML pages under `<spec_dir>/architecture_diff/`; `apltk architecture diff` then pairs them with the base atlas by path. **MUST NOT** hand-author files under `architecture_diff/**` — the renderer owns layout, no-overlap, DOM, CSS, ARIA, and pan/zoom. For batch specs the overlay lives in each member spec's own directory only — **MUST NOT** duplicate at batch root. See this skill's own `references/TEMPLATE_SPEC.md` for the component schema cheat sheet and a quick worked example; the binding verbs and semantic rules live in `init-project-html/SKILL.md`.
 - Write prose in the **user’s language** by default; keep requirement/task/test IDs traceable across `spec.md`, `tasks.md`, and `checklist.md`.
 - **MUST** use **kebab-case** `change_name`; **MUST NOT** use spaces or arbitrary special characters in names.
 
@@ -88,16 +83,23 @@ Always materialize: `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `desig
 
 ### 3.5) Architecture diff (only when the proposal touches the architecture surface)
 
-When the spec changes a feature module, sub-module, edge, variable, or function I/O, create `architecture_diff/` **inside the spec directory** and write proposed-after HTML following the three alignment rules:
+When the spec changes a feature module, sub-module, edge, variable, or function I/O, declare the proposed-after state through the CLI scoped to this spec directory:
 
-- Module-internal change → write at the **SAME path** as `resources/project-architecture/<rel>.html`.
-- Addition → write at a new path.
-- Removal → list the `<rel>` in `architecture_diff/_removed.txt`; do not write an HTML placeholder.
+```bash
+SPEC_DIR=docs/plans/<date>/<change_name>
+apltk architecture --spec "$SPEC_DIR" feature add --slug ... --title "..." --story "..." --no-render
+apltk architecture --spec "$SPEC_DIR" submodule add|set|remove --feature ... --slug ... --kind ... --role "..." --no-render
+apltk architecture --spec "$SPEC_DIR" function|variable|dataflow|error add|remove ... --no-render
+apltk architecture --spec "$SPEC_DIR" edge add|remove --from <feat>[/sub] --to <feat>[/sub] --kind ... --label "..." --no-render
+apltk architecture --spec "$SPEC_DIR" render
+apltk architecture --spec "$SPEC_DIR" validate
+```
 
-Copy `architecture.css` into `architecture_diff/assets/`; keep every path relative. For batch specs the diff stays inside the member spec's own directory. `apltk architecture diff` pairs `architecture_diff/` with `resources/project-architecture/` for a paginated before/after viewer.
+The CLI writes overlay YAML under `$SPEC_DIR/architecture_diff/atlas/` and re-renders only the affected HTML pages under `$SPEC_DIR/architecture_diff/`. Cross-feature edges into features that are not declared in the overlay still resolve against the base atlas. For batch specs, scope each member spec's overlay to its own directory — never duplicate at the batch root. **Do not hand-edit** any file under `architecture_diff/`.
 
-- **Pause →** Did an in-place sub-module edit get written at a new path? Move it back to the same path — otherwise the CLI registers it as add + remove.
-- **Pause →** Does every `_removed.txt` entry actually exist under `resources/project-architecture/`? Drop entries that do not.
+- **Pause →** Did I touch any file under `architecture_diff/` by hand? Revert and re-run the CLI verb instead.
+- **Pause →** Does `apltk architecture --spec "$SPEC_DIR" validate` return OK? Resolve dangling edges and unknown enums before approval.
+- **Pause →** Does `apltk architecture diff` pair the spec's pages correctly (modified / added / removed)? A page that shows as remove + add means a slug was renamed inadvertently.
 
 ### 4) Clarifications and approval
 
