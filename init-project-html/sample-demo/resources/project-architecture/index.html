@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content="apollo-toolkit:init-project-html (sample demo)" />
+    <meta name="architecture-root" content="resources/project-architecture" />
+    <title>Acme App — 宏觀架構（功能模組 × 子模組）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/architecture.css" />
+  </head>
+  <body>
+    <main class="atlas-page atlas-page--macro">
+      <header class="atlas-header">
+        <p class="atlas-kicker">Architecture atlas — macro</p>
+        <h1 class="atlas-title">Acme App — 功能模組 × 子模組（同一張圖）</h1>
+        <p class="atlas-meta">
+          更新於 <time datetime="2026-05-11T12:00:00Z">2026-05-11（UTC）</time>
+          · 此頁同時呈現「功能模組之間」與「子模組之間」的多對多交互；子模組頁本身只描述<strong>自身函式 I/O 與內部資料流</strong>。
+        </p>
+      </header>
+
+      <section class="atlas-summary">
+        <h2>為何把兩層放同一張圖</h2>
+        <p>
+          功能模組（對使用者可見的能力）的「宏觀交互」實際上是由其底下的子模組互相呼叫與資料交換達成的。為了讓讀者能在<strong>同一張圖</strong>同時看到「功能 A → 功能 B」與「達成這條路徑的具體子模組是誰呼叫誰、誰讀誰寫」，本宏觀圖以兩個功能模組為<strong>群組（cluster）</strong>，群組內畫出子模組節點與彼此的呼叫、回傳與寫讀資料邊。
+        </p>
+        <p>
+          一個子模組可能<strong>同時是生產者與消費者</strong>。本示範刻意保留：<code>postgresql</code> 的 <code>invite_codes</code> 表在「獲取邀請碼」功能裡被<strong>寫入</strong>，產生的列在「邀請碼註冊」功能裡被<strong>讀取／核銷</strong>；<code>registration-service</code> 對 <code>postgresql</code> 同時是<strong>讀者（SELECT FOR UPDATE）</strong>與<strong>寫者（INSERT user / UPDATE invite consumed）</strong>；<code>invite-issuance-service</code> 把 <code>invite-code-generator</code> 當成多次呼叫的內嵌函式並回收其結果。
+        </p>
+      </section>
+
+      <section class="atlas-legend">
+        <h2>圖例</h2>
+        <ul>
+          <li><strong>虛線大方框</strong>：一個<strong>功能模組</strong>（feature module）= 對使用者可見的能力。標題即連到該功能總覽。</li>
+          <li><strong>實心小方塊</strong>：<strong>子模組</strong>。每一塊點擊進入該子模組頁（內容只談自身函式 I/O 與資料流）。</li>
+          <li><strong>實線箭頭</strong>：函式呼叫／HTTP 請求（caller → callee）。</li>
+          <li><strong>虛線細箭頭</strong>：回傳值／HTTP 回應（callee → caller）。</li>
+          <li><strong>暖色粗虛線</strong>：跨功能<strong>資料行</strong>級別的生產者→消費者關係（與函式呼叫不同：透過 DB 行傳遞）。</li>
+          <li><strong>同一對節點可有多條邊</strong>：例如 <code>registration-service</code> 對 <code>postgresql</code> 有 SELECT、INSERT、UPDATE 三條獨立邊。</li>
+        </ul>
+      </section>
+
+      <section class="flow-section flow-section--macro">
+        <h2>宏觀圖：功能模組 × 子模組</h2>
+        <figure class="flow-chart flow-chart--macro flow-chart--svg" data-flow-id="macro-graph" aria-label="功能模組與子模組多對多交互">
+          <div class="macro-svg__wrap">
+            <svg
+              class="macro-svg"
+              viewBox="0 0 1200 1020"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <defs>
+                <marker id="mk-solid" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="currentColor"></path>
+                </marker>
+                <marker id="mk-thin" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+                  <path d="M0,0 L9,4.5 L0,9 Z" fill="currentColor"></path>
+                </marker>
+                <marker id="mk-cross" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto">
+                  <path d="M0,0 L11,5.5 L0,11 Z" fill="#e07a5f"></path>
+                </marker>
+              </defs>
+
+              <!-- Actors -->
+              <g class="m-actor" data-node-id="actor-visitor">
+                <rect x="220" y="40" width="200" height="56" rx="28"></rect>
+                <text x="320" y="74" text-anchor="middle">訪客（未註冊）</text>
+              </g>
+              <g class="m-actor" data-node-id="actor-member">
+                <rect x="800" y="40" width="200" height="56" rx="28"></rect>
+                <text x="900" y="74" text-anchor="middle">已註冊／已登入</text>
+              </g>
+
+              <!-- Feature A cluster: invite-code-registration -->
+              <g class="m-cluster" data-feature-id="invite-code-registration">
+                <rect x="60" y="130" width="520" height="850" rx="18" class="m-cluster__rect"></rect>
+                <a href="features/invite-code-registration/index.html">
+                  <text x="78" y="160" class="m-cluster__title">功能模組 ▸ 邀請碼註冊</text>
+                </a>
+                <text x="78" y="180" class="m-cluster__sub">訪客憑邀請碼建立帳號（消費邀請碼）</text>
+
+                <a href="features/invite-code-registration/web-register-ui.html">
+                  <g class="m-sub" id="m-A1" data-submodule-id="web-register-ui">
+                    <rect x="180" y="210" width="280" height="64" rx="10"></rect>
+                    <text x="320" y="237" text-anchor="middle" class="m-sub__title">web-register-ui</text>
+                    <text x="320" y="256" text-anchor="middle" class="m-sub__kind">React 頁面 · 表單提交</text>
+                  </g>
+                </a>
+
+                <a href="features/invite-code-registration/public-api.html">
+                  <g class="m-sub" id="m-A2" data-submodule-id="public-api">
+                    <rect x="180" y="320" width="280" height="64" rx="10"></rect>
+                    <text x="320" y="347" text-anchor="middle" class="m-sub__title">public-api（reg）</text>
+                    <text x="320" y="366" text-anchor="middle" class="m-sub__kind">Go HTTP handler</text>
+                  </g>
+                </a>
+
+                <a href="features/invite-code-registration/registration-service.html">
+                  <g class="m-sub" id="m-A3" data-submodule-id="registration-service">
+                    <rect x="180" y="450" width="280" height="64" rx="10"></rect>
+                    <text x="320" y="477" text-anchor="middle" class="m-sub__title">registration-service</text>
+                    <text x="320" y="496" text-anchor="middle" class="m-sub__kind">交易編排 · 網域規則</text>
+                  </g>
+                </a>
+
+                <a href="features/invite-code-registration/postgresql.html">
+                  <g class="m-sub m-sub--db" id="m-A4" data-submodule-id="postgresql">
+                    <rect x="180" y="700" width="280" height="84" rx="10"></rect>
+                    <text x="320" y="728" text-anchor="middle" class="m-sub__title">postgresql（reg 視角）</text>
+                    <text x="320" y="748" text-anchor="middle" class="m-sub__kind">表：invite_codes · users</text>
+                    <text x="320" y="768" text-anchor="middle" class="m-sub__kind">作用：讀邀請碼 · 寫 user · 核銷</text>
+                  </g>
+                </a>
+              </g>
+
+              <!-- Feature B cluster: get-invite-codes -->
+              <g class="m-cluster" data-feature-id="get-invite-codes">
+                <rect x="620" y="130" width="520" height="850" rx="18" class="m-cluster__rect"></rect>
+                <a href="features/get-invite-codes/index.html">
+                  <text x="638" y="160" class="m-cluster__title">功能模組 ▸ 獲取邀請碼</text>
+                </a>
+                <text x="638" y="180" class="m-cluster__sub">已登入使用者請求發放新邀請碼（生產邀請碼）</text>
+
+                <a href="features/get-invite-codes/web-get-invite-ui.html">
+                  <g class="m-sub" id="m-B1" data-submodule-id="web-get-invite-ui">
+                    <rect x="740" y="210" width="280" height="64" rx="10"></rect>
+                    <text x="880" y="237" text-anchor="middle" class="m-sub__title">web-get-invite-ui</text>
+                    <text x="880" y="256" text-anchor="middle" class="m-sub__kind">React 頁面 · 列表 + 生成按鈕</text>
+                  </g>
+                </a>
+
+                <a href="features/get-invite-codes/public-api.html">
+                  <g class="m-sub" id="m-B2" data-submodule-id="public-api">
+                    <rect x="740" y="320" width="280" height="64" rx="10"></rect>
+                    <text x="880" y="347" text-anchor="middle" class="m-sub__title">public-api（iss）</text>
+                    <text x="880" y="366" text-anchor="middle" class="m-sub__kind">Go HTTP handler</text>
+                  </g>
+                </a>
+
+                <a href="features/get-invite-codes/invite-issuance-service.html">
+                  <g class="m-sub" id="m-B3" data-submodule-id="invite-issuance-service">
+                    <rect x="740" y="450" width="280" height="64" rx="10"></rect>
+                    <text x="880" y="477" text-anchor="middle" class="m-sub__title">invite-issuance-service</text>
+                    <text x="880" y="496" text-anchor="middle" class="m-sub__kind">額度 · 交易 · 重試</text>
+                  </g>
+                </a>
+
+                <a href="features/get-invite-codes/invite-code-generator.html">
+                  <g class="m-sub" id="m-B4" data-submodule-id="invite-code-generator">
+                    <rect x="740" y="570" width="280" height="64" rx="10"></rect>
+                    <text x="880" y="597" text-anchor="middle" class="m-sub__title">invite-code-generator</text>
+                    <text x="880" y="616" text-anchor="middle" class="m-sub__kind">純函式 · crypto/rand → 字串</text>
+                  </g>
+                </a>
+
+                <a href="features/get-invite-codes/postgresql.html">
+                  <g class="m-sub m-sub--db" id="m-B5" data-submodule-id="postgresql">
+                    <rect x="740" y="700" width="280" height="84" rx="10"></rect>
+                    <text x="880" y="728" text-anchor="middle" class="m-sub__title">postgresql（iss 視角）</text>
+                    <text x="880" y="748" text-anchor="middle" class="m-sub__kind">表：invite_codes</text>
+                    <text x="880" y="768" text-anchor="middle" class="m-sub__kind">作用：INSERT 新行（屬於 owner）</text>
+                  </g>
+                </a>
+              </g>
+
+              <!-- ============ INTRA-FEATURE A EDGES ============ -->
+              <!-- visitor -> A1 -->
+              <g class="m-edge m-edge--call" data-edge-id="e-A-1">
+                <path d="M 320 96 L 320 206" marker-end="url(#mk-solid)"></path>
+                <text x="332" y="160" class="m-edge__label">提交註冊表單</text>
+              </g>
+              <!-- A1 -> A2 -->
+              <g class="m-edge m-edge--call" data-edge-id="e-A-2">
+                <path d="M 320 274 L 320 316" marker-end="url(#mk-solid)"></path>
+                <text x="332" y="300" class="m-edge__label">HTTP POST /register · {email, password, inviteCode}</text>
+              </g>
+              <!-- A2 -> A3 -->
+              <g class="m-edge m-edge--call" data-edge-id="e-A-3">
+                <path d="M 320 384 L 320 446" marker-end="url(#mk-solid)"></path>
+                <text x="332" y="420" class="m-edge__label">RegisterWithInvite(ctx, RegisterInput)</text>
+              </g>
+              <!-- A3 -> A4 (read invite) on RIGHT side -->
+              <g class="m-edge m-edge--call" data-edge-id="e-A-4-read">
+                <path d="M 415 514 C 510 540, 510 670, 415 700" marker-end="url(#mk-solid)"></path>
+                <text x="520" y="610" class="m-edge__label">SELECT … FOR UPDATE (code)</text>
+              </g>
+              <!-- A4 -> A3 (return InviteRow) on right inner -->
+              <g class="m-edge m-edge--return" data-edge-id="e-A-4-row">
+                <path d="M 360 700 C 360 600, 360 580, 360 514" marker-end="url(#mk-thin)"></path>
+                <text x="370" y="600" class="m-edge__label">⇠ InviteRow | NotFound</text>
+              </g>
+              <!-- A3 -> A4 (insert user) on LEFT -->
+              <g class="m-edge m-edge--call" data-edge-id="e-A-4-insert-user">
+                <path d="M 225 514 C 130 560, 130 660, 225 700" marker-end="url(#mk-solid)"></path>
+                <text x="78" y="600" class="m-edge__label">INSERT users(...)</text>
+              </g>
+              <!-- A3 -> A4 (update invite consumed) center-left -->
+              <g class="m-edge m-edge--call" data-edge-id="e-A-4-update">
+                <path d="M 280 514 C 240 560, 240 660, 280 700" marker-end="url(#mk-solid)"></path>
+                <text x="158" y="660" class="m-edge__label">UPDATE invite_codes SET consumed_at=now()</text>
+              </g>
+              <!-- A2 -> visitor (response) -->
+              <g class="m-edge m-edge--return" data-edge-id="e-A-resp">
+                <path d="M 270 320 C 180 220, 180 130, 245 96" marker-end="url(#mk-thin)"></path>
+                <text x="72" y="220" class="m-edge__label">⇠ 201 / 409</text>
+              </g>
+
+              <!-- ============ INTRA-FEATURE B EDGES ============ -->
+              <!-- member -> B1 -->
+              <g class="m-edge m-edge--call" data-edge-id="e-B-1">
+                <path d="M 880 96 L 880 206" marker-end="url(#mk-solid)"></path>
+                <text x="892" y="160" class="m-edge__label">點擊「產生邀請碼」</text>
+              </g>
+              <!-- B1 -> B2 -->
+              <g class="m-edge m-edge--call" data-edge-id="e-B-2">
+                <path d="M 880 274 L 880 316" marker-end="url(#mk-solid)"></path>
+                <text x="892" y="300" class="m-edge__label">HTTP POST /me/invite-codes</text>
+              </g>
+              <!-- B2 -> B3 -->
+              <g class="m-edge m-edge--call" data-edge-id="e-B-3">
+                <path d="M 880 384 L 880 446" marker-end="url(#mk-solid)"></path>
+                <text x="892" y="420" class="m-edge__label">IssueInviteCode(ctx, userID)</text>
+              </g>
+              <!-- B3 -> B4 (call Next) on LEFT inner -->
+              <g class="m-edge m-edge--call" data-edge-id="e-B-3-gen-call">
+                <path d="M 820 514 C 770 540, 770 560, 820 566" marker-end="url(#mk-solid)"></path>
+                <text x="650" y="555" class="m-edge__label">Next()</text>
+              </g>
+              <!-- B4 -> B3 (return candidate) on RIGHT inner -->
+              <g class="m-edge m-edge--return" data-edge-id="e-B-3-gen-ret">
+                <path d="M 950 570 C 1010 560, 1010 540, 950 514" marker-end="url(#mk-thin)"></path>
+                <text x="1020" y="555" class="m-edge__label">⇠ 候選字串</text>
+              </g>
+              <!-- B3 -> B5 (INSERT) -->
+              <g class="m-edge m-edge--call" data-edge-id="e-B-5-insert">
+                <path d="M 860 514 C 860 600, 860 660, 860 700" marker-end="url(#mk-solid)"></path>
+                <text x="872" y="610" class="m-edge__label">INSERT invite_codes(owner=userID, code)</text>
+              </g>
+              <!-- B5 -> B3 (return ok / unique_violation) -->
+              <g class="m-edge m-edge--return" data-edge-id="e-B-5-ret">
+                <path d="M 920 700 C 980 660, 980 560, 920 514" marker-end="url(#mk-thin)"></path>
+                <text x="990" y="610" class="m-edge__label">⇠ ok | unique_violation</text>
+              </g>
+              <!-- B2 -> member (response) -->
+              <g class="m-edge m-edge--return" data-edge-id="e-B-resp">
+                <path d="M 940 320 C 1030 220, 1030 130, 965 96" marker-end="url(#mk-thin)"></path>
+                <text x="1040" y="220" class="m-edge__label">⇠ 201 / 429</text>
+              </g>
+
+              <!-- ============ CROSS-FEATURE DATA-ROW EDGE ============ -->
+              <!-- B5 produces row → A4 consumes row -->
+              <g class="m-edge m-edge--cross" data-edge-id="x-row-flow">
+                <path
+                  d="M 740 742 C 600 880, 600 880, 460 742"
+                  marker-end="url(#mk-cross)"
+                ></path>
+                <text x="600" y="900" text-anchor="middle" class="m-edge__label m-edge__label--cross">
+                  資料行流向：B5 寫入 <tspan font-style="italic">invite_codes</tspan> 行 → A4 之後讀取／核銷該行（非函式呼叫）
+                </text>
+              </g>
+            </svg>
+          </div>
+
+          <ol class="flow-edge-manifest flow-edge-manifest--macro">
+            <li data-edge-id="e-A-1" data-edge-kind="call"><span class="flow-edge-from">#actor-visitor</span> → <span class="flow-edge-to">#m-A1</span> <span class="flow-edge-label">提交註冊</span></li>
+            <li data-edge-id="e-A-2" data-edge-kind="call"><span class="flow-edge-from">#m-A1</span> → <span class="flow-edge-to">#m-A2</span> <span class="flow-edge-label">HTTP POST</span></li>
+            <li data-edge-id="e-A-3" data-edge-kind="call"><span class="flow-edge-from">#m-A2</span> → <span class="flow-edge-to">#m-A3</span> <span class="flow-edge-label">RegisterWithInvite(ctx, in)</span></li>
+            <li data-edge-id="e-A-4-read" data-edge-kind="call"><span class="flow-edge-from">#m-A3</span> → <span class="flow-edge-to">#m-A4</span> <span class="flow-edge-label">SELECT FOR UPDATE invite_codes</span></li>
+            <li data-edge-id="e-A-4-row" data-edge-kind="return"><span class="flow-edge-from">#m-A4</span> ⇠ <span class="flow-edge-to">#m-A3</span> <span class="flow-edge-label">InviteRow | NotFound</span></li>
+            <li data-edge-id="e-A-4-insert-user" data-edge-kind="call"><span class="flow-edge-from">#m-A3</span> → <span class="flow-edge-to">#m-A4</span> <span class="flow-edge-label">INSERT users</span></li>
+            <li data-edge-id="e-A-4-update" data-edge-kind="call"><span class="flow-edge-from">#m-A3</span> → <span class="flow-edge-to">#m-A4</span> <span class="flow-edge-label">UPDATE invite_codes SET consumed_at</span></li>
+            <li data-edge-id="e-A-resp" data-edge-kind="return"><span class="flow-edge-from">#m-A2</span> ⇠ <span class="flow-edge-to">#actor-visitor</span> <span class="flow-edge-label">201 / 409</span></li>
+
+            <li data-edge-id="e-B-1" data-edge-kind="call"><span class="flow-edge-from">#actor-member</span> → <span class="flow-edge-to">#m-B1</span> <span class="flow-edge-label">點生成</span></li>
+            <li data-edge-id="e-B-2" data-edge-kind="call"><span class="flow-edge-from">#m-B1</span> → <span class="flow-edge-to">#m-B2</span> <span class="flow-edge-label">HTTP POST</span></li>
+            <li data-edge-id="e-B-3" data-edge-kind="call"><span class="flow-edge-from">#m-B2</span> → <span class="flow-edge-to">#m-B3</span> <span class="flow-edge-label">IssueInviteCode(ctx, userID)</span></li>
+            <li data-edge-id="e-B-3-gen-call" data-edge-kind="call"><span class="flow-edge-from">#m-B3</span> → <span class="flow-edge-to">#m-B4</span> <span class="flow-edge-label">Next() · 純函式</span></li>
+            <li data-edge-id="e-B-3-gen-ret" data-edge-kind="return"><span class="flow-edge-from">#m-B4</span> ⇠ <span class="flow-edge-to">#m-B3</span> <span class="flow-edge-label">候選字串</span></li>
+            <li data-edge-id="e-B-5-insert" data-edge-kind="call"><span class="flow-edge-from">#m-B3</span> → <span class="flow-edge-to">#m-B5</span> <span class="flow-edge-label">INSERT invite_codes</span></li>
+            <li data-edge-id="e-B-5-ret" data-edge-kind="return"><span class="flow-edge-from">#m-B5</span> ⇠ <span class="flow-edge-to">#m-B3</span> <span class="flow-edge-label">ok / unique_violation（碰撞 → 重新 Next）</span></li>
+            <li data-edge-id="e-B-resp" data-edge-kind="return"><span class="flow-edge-from">#m-B2</span> ⇠ <span class="flow-edge-to">#actor-member</span> <span class="flow-edge-label">201 / 429</span></li>
+
+            <li data-edge-id="x-row-flow" data-edge-kind="data-row"><span class="flow-edge-from">#m-B5</span> ⇒ <span class="flow-edge-to">#m-A4</span> <span class="flow-edge-label">同一 invite_codes 表：B 寫入行被 A 讀取／核銷（非函式呼叫，純資料行傳遞）</span></li>
+          </ol>
+          <figcaption class="flow-caption">
+            「同一對節點 N 條邊」是真實的（例如 A3 → A4 同時有 SELECT、INSERT、UPDATE 三條；B3 ↔ B4、B3 ↔ B5 皆有呼叫/回傳對）。子模組頁不重述這些跨界邊；它們只在此處統一呈現。
+          </figcaption>
+        </figure>
+      </section>
+
+      <nav class="atlas-submodule-index">
+        <h2>子模組索引（每一個子模組各一頁）</h2>
+        <ul>
+          <li>
+            <strong>邀請碼註冊 ▸</strong>
+            <a href="features/invite-code-registration/web-register-ui.html">web-register-ui</a> ·
+            <a href="features/invite-code-registration/public-api.html">public-api</a> ·
+            <a href="features/invite-code-registration/registration-service.html">registration-service</a> ·
+            <a href="features/invite-code-registration/postgresql.html">postgresql</a>
+          </li>
+          <li>
+            <strong>獲取邀請碼 ▸</strong>
+            <a href="features/get-invite-codes/web-get-invite-ui.html">web-get-invite-ui</a> ·
+            <a href="features/get-invite-codes/public-api.html">public-api</a> ·
+            <a href="features/get-invite-codes/invite-issuance-service.html">invite-issuance-service</a> ·
+            <a href="features/get-invite-codes/invite-code-generator.html">invite-code-generator</a> ·
+            <a href="features/get-invite-codes/postgresql.html">postgresql</a>
+          </li>
+        </ul>
+        <p class="atlas-meta">
+          每一頁只描述<strong>該子模組自身的函式輸入／輸出／副作用</strong>與<strong>內部資料流</strong>；跨子模組的呼叫關係請回到上方宏觀圖。
+        </p>
+      </nav>
+
+      <nav class="atlas-features">
+        <h2>功能模組總覽（中層）</h2>
+        <ul>
+          <li><a href="features/invite-code-registration/index.html">邀請碼註冊（功能總覽）</a></li>
+          <li><a href="features/get-invite-codes/index.html">獲取邀請碼（功能總覽）</a></li>
+        </ul>
+      </nav>
+
+      <footer class="atlas-meta" style="margin-top: 2rem">
+        <p>示範：<code>init-project-html/sample-demo/resources/project-architecture/</code></p>
+      </footer>
+    </main>
+  </body>
+</html>

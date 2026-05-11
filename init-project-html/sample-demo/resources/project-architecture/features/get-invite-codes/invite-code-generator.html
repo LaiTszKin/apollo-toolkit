@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>子模組 · invite-code-generator — 獲取邀請碼</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/architecture.css" />
+  </head>
+  <body>
+    <main class="atlas-page atlas-page--feature">
+      <nav class="breadcrumb" aria-label="階層導航">
+        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">獲取邀請碼</a> · <span>invite-code-generator</span>
+      </nav>
+
+      <header class="atlas-header">
+        <p class="atlas-kicker">Submodule · invite-code-generator</p>
+        <h1 class="atlas-title">invite-code-generator</h1>
+        <p class="atlas-meta">自身職責：把熵編碼成符合產品規格的可讀字串。<strong>無 I/O 副作用</strong>（除讀取隨機源）。本頁只列自身函式 I/O 與內部資料流。</p>
+      </header>
+
+      <section class="sub-io">
+        <h2>函式 I/O</h2>
+        <table>
+          <thead><tr><th>函式</th><th>簽名</th><th>副作用</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>NewGenerator</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>Config{bits, alphabet, groupSize}</code><br>
+                <strong>out:</strong> <code>Generator</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td>建構，驗證 <code>bits &gt;= 64</code>、字元表非空且不含易混字。</td>
+            </tr>
+            <tr>
+              <td><code>Generator.Next</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> —<br>
+                <strong>out:</strong> <code>string</code> | <code>ErrEntropy</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--io">io</span> 讀 <code>crypto/rand</code></td>
+              <td>單次抽碼。</td>
+            </tr>
+            <tr>
+              <td><code>encode</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>bytes</code>, <code>alphabet</code><br>
+                <strong>out:</strong> <code>string</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td>把位元組以 Crockford Base32（或同類）映射成字元。</td>
+            </tr>
+            <tr>
+              <td><code>group</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>string</code>, <code>groupSize</code><br>
+                <strong>out:</strong> <code>string</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td>每 N 位插入 <code>-</code>，便於人讀。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sub-vars">
+        <h2>變數與業務用途</h2>
+        <p class="sub-vars__intro">本子模組屬於純函式工具；下表分兩段：上半為建構時固定的設定，下半為單次 <code>Next</code> 期間的臨時值。</p>
+        <table>
+          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="sub-vars__name">Config</td>
+              <td class="sub-vars__type">{bits, alphabet, groupSize}</td>
+              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
+              <td>整個 Generator 生命週期固定；決定碼強度（bits）、可讀性（alphabet）、人讀分組（groupSize）。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">bits</td>
+              <td class="sub-vars__type">int</td>
+              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
+              <td>熵預算；決定隨機字串對 UNIQUE 碰撞的容忍度；過低會推高呼叫端的重試次數與失敗率。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">alphabet</td>
+              <td class="sub-vars__type">string</td>
+              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
+              <td>字元表；剃除 0/O、1/I/l 等易混字，業務上降低使用者抄錄錯誤率，間接提高分享成功率。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">groupSize</td>
+              <td class="sub-vars__type">int</td>
+              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
+              <td>每幾個字元插入連字號；只影響顯示／輸入體驗，不影響熵或唯一性。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">bytes / buf</td>
+              <td class="sub-vars__type">[]byte</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>從 <code>crypto/rand</code> 讀出的原始熵；只在單次 <code>Next</code> 期間活著，不持久化、不外傳，避免被推測下一次值。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">raw</td>
+              <td class="sub-vars__type">string</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>經 base32 編碼後尚未分組的中介字串；只是內部步驟，不對外。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">out / candidate</td>
+              <td class="sub-vars__type">string</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>最終回傳的候選碼；本子模組不快取、不記錄；唯一性由呼叫端結合 DB UNIQUE 保證。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sub-dataflow">
+        <h2>內部資料流（單次 Next）</h2>
+        <ol>
+          <li>從 <code>crypto/rand</code> 讀 <code>bytes[ceil(bits/8)]</code>。</li>
+          <li><code>bytes</code> → <code>encode(bytes, alphabet)</code> → <code>raw: string</code>。</li>
+          <li><code>raw</code> → <code>group(raw, groupSize)</code> → 最終字串。</li>
+          <li>內部不持有狀態（除設定）；多次呼叫互相獨立，無快取無記錄。</li>
+        </ol>
+        <svg class="sub-dataflow__svg" viewBox="0 0 720 110" role="img" aria-label="生成器資料流">
+          <defs>
+            <marker id="d-arr3" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="currentColor"></path>
+            </marker>
+          </defs>
+          <g class="d-node"><rect x="20" y="30" width="150" height="50" rx="8"></rect><text x="95" y="50" text-anchor="middle">crypto/rand</text><text x="95" y="68" text-anchor="middle" class="d-label">→ bytes</text></g>
+          <g class="d-node"><rect x="220" y="30" width="150" height="50" rx="8"></rect><text x="295" y="50" text-anchor="middle">encode</text><text x="295" y="68" text-anchor="middle" class="d-label">bytes → raw</text></g>
+          <g class="d-node"><rect x="420" y="30" width="150" height="50" rx="8"></rect><text x="495" y="50" text-anchor="middle">group</text><text x="495" y="68" text-anchor="middle" class="d-label">raw → 字串</text></g>
+          <g class="d-node"><rect x="600" y="30" width="100" height="50" rx="8"></rect><text x="650" y="58" text-anchor="middle">candidate</text></g>
+          <line class="d-edge" x1="170" y1="55" x2="216" y2="55" marker-end="url(#d-arr3)"></line>
+          <line class="d-edge" x1="370" y1="55" x2="416" y2="55" marker-end="url(#d-arr3)"></line>
+          <line class="d-edge" x1="570" y1="55" x2="596" y2="55" marker-end="url(#d-arr3)"></line>
+        </svg>
+      </section>
+
+      <section class="sub-errors">
+        <h2>本子模組會拋出的錯誤</h2>
+        <table>
+          <thead><tr><th>錯誤</th><th>條件</th></tr></thead>
+          <tbody>
+            <tr><td><code>ErrEntropy</code></td><td><code>crypto/rand.Read</code> 短讀／失敗（罕見）。</td></tr>
+            <tr><td><code>ErrConfig</code></td><td><code>NewGenerator</code> 收到非法 <code>Config</code>。</td></tr>
+          </tbody>
+        </table>
+        <p class="atlas-meta">注意：「唯一性」<strong>不在本子模組</strong>；DB UNIQUE 違例由呼叫端處理（重新呼叫 <code>Next</code>）。</p>
+      </section>
+
+      <footer class="atlas-meta" style="margin-top: 2rem">
+        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
+      </footer>
+    </main>
+  </body>
+</html>

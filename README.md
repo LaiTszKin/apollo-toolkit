@@ -25,6 +25,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - implement-specs
 - implement-specs-with-subagents
 - implement-specs-with-worktree
+- init-project-html
 - improve-observability
 - iterative-code-performance
 - iterative-code-quality
@@ -49,6 +50,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - scheduled-runtime-health-check
 - shadow-api-model-research
 - solana-development
+- spec-to-project-html
 - solve-issues-found-during-review
 - submission-readiness-check
 - systematic-debug
@@ -112,6 +114,10 @@ apltk tools
 apltk filter-logs app.log --start "2026-03-24T10:00:00Z"
 apltk create-specs "Membership upgrade flow" --change-name membership-upgrade-flow
 apltk open-github-issue --help
+
+# Browse architecture HTML atlas and active-spec diffs
+apltk architecture          # opens resources/project-architecture/index.html
+apltk architecture diff     # paginates docs/plans/**/architecture_diff/ vs atlas
 ```
 
 ### Non-interactive install

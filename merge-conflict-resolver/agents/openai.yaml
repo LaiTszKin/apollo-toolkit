@@ -1,0 +1,5 @@
+interface:
+  display_name: "merge-conflict-resolver"
+  short_description: "Resolve git merge conflicts with deterministic, evidence-based rules"
+  default_prompt: >-
+    Use $merge-conflict-resolver to read both sides of conflict markers, apply scenario-specific resolution rules that preserve intended behavior, verify with the project’s tests or checks, and when the user needs persistence, hand off to $commit-and-push instead of ad-hoc git commands.

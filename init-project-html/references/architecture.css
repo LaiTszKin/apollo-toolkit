@@ -1,0 +1,1059 @@
+/* Shared atlas styles — pair with architecture-page.template.html */
+:root {
+  --bg: #0f1419;
+  --surface: #1a222c;
+  --surface-elevated: #232d3a;
+  --text: #e8ecf1;
+  --muted: #9aa7b2;
+  --accent: #e07a5f;
+  --accent-soft: rgba(224, 122, 95, 0.15);
+  --edge: #4a5b6c;
+  --ok: #6fcf97;
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --radius: 12px;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f1ea;
+    --surface: #ffffff;
+    --surface-elevated: #faf8f3;
+    --text: #1a1d22;
+    --muted: #5c6670;
+    --accent: #c45c3e;
+    --accent-soft: rgba(196, 92, 62, 0.12);
+    --edge: #a8b0b9;
+    --shadow: 0 8px 28px rgba(26, 29, 34, 0.08);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text);
+  background: radial-gradient(1200px 800px at 10% -10%, rgba(224, 122, 95, 0.08), transparent),
+    var(--bg);
+}
+
+.atlas-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  position: relative;
+}
+
+.atlas-header {
+  margin-bottom: 2rem;
+}
+
+.atlas-kicker {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 0.5rem;
+}
+
+.atlas-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+
+.atlas-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.atlas-summary,
+.atlas-legend,
+.atlas-diagram,
+.atlas-features,
+.feature-story,
+.feature-modules,
+.feature-flows,
+.feature-trace {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.atlas-summary h2,
+.atlas-legend h2,
+.atlas-diagram h2,
+.atlas-features h2,
+.feature-story h2,
+.feature-modules h2,
+.feature-flows h2,
+.feature-trace h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0 0 0.75rem;
+}
+
+.atlas-legend ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--muted);
+}
+
+.arch-diagram {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.arch-canvas {
+  position: relative;
+  background: var(--surface-elevated);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  min-height: 280px;
+}
+
+.arch-nodes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.arch-node {
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: calc(var(--radius) - 4px);
+  padding: 0.85rem 1rem;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arch-node {
+    transition: none;
+  }
+}
+
+.arch-node:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.arch-node--ui {
+  border-top: 3px solid var(--accent);
+}
+
+.arch-node--service {
+  border-top: 3px solid #7eb8da;
+}
+
+.arch-node--data {
+  border-top: 3px solid var(--ok);
+}
+
+.arch-node--external {
+  border-top: 3px solid #d4a837;
+  border-style: dashed;
+}
+
+.arch-node-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin: 0 0 0.35rem;
+}
+
+.arch-node-body {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.arch-edge-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.arch-edge-list li {
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--edge);
+}
+
+.arch-edge-list code {
+  color: var(--text);
+  background: var(--surface-elevated);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.8em;
+}
+
+.arch-caption {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+}
+
+.atlas-features ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.atlas-features li {
+  margin-bottom: 0.65rem;
+}
+
+.atlas-features a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.atlas-features a:hover {
+  text-decoration: underline;
+}
+
+.feature-modules table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.feature-modules th,
+.feature-modules td {
+  text-align: left;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--edge);
+}
+
+.feature-modules th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.breadcrumb {
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.breadcrumb a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+/* --- Flowchart (flow-chart): macro / cross-module / internal --- */
+.flow-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.flow-chart {
+  margin: 0 0 1.25rem;
+}
+
+.flow-chart__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 1.25rem 1rem 1rem;
+  background: var(--surface-elevated);
+  border-radius: var(--radius);
+  max-width: 100%;
+}
+
+.flow-node {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: calc(var(--radius) - 4px);
+  padding: 0.85rem 1.1rem;
+  border-top:3px solid #7eb8da;
+}
+
+.flow-node--module {
+  max-width: 520px;
+  border-top-color: #7eb8da;
+}
+
+.flow-node--process {
+  border-top-color: var(--accent);
+}
+
+.flow-node--decision {
+  border-top: 3px solid #d4a837;
+  border-left: 3px solid rgba(212, 168, 55, 0.45);
+  text-align: center;
+  position: relative;
+  max-width: 440px;
+}
+
+.flow-node--decision::before {
+  content: "Decision";
+  position: absolute;
+  top: 0.45rem;
+  right: 0.65rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #d4a837;
+  font-weight: 600;
+}
+
+.flow-node--decision .flow-node__title {
+  display: block;
+  font-size: 0.95rem;
+  margin: 0.25rem 2.5rem 0.5rem 0.25rem;
+  text-align: left;
+}
+
+.flow-node__kicker {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.flow-node__title {
+  font-family: var(--font-display);
+  display: block;
+  font-size: 1rem;
+}
+
+.flow-node__body {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0.4rem 0 0;
+}
+
+.flow-branch-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+.flow-branch {
+  background: var(--surface-elevated);
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--edge);
+}
+
+.flow-branch__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.flow-branch__note {
+  font-size: 0.78rem;
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.flow-connector {
+  display: flex;
+  justify-content: center;
+  color: var(--accent);
+  margin: -0.1rem 0;
+}
+
+.flow-connector--dashed .flow-connector__svg line {
+  stroke-dasharray: 5 4;
+  opacity: 0.85;
+}
+
+.flow-connector--failure,
+.flow-connector--rollback {
+  color: #e07a5f;
+  opacity: 0.95;
+}
+
+.flow-connector--failure .flow-connector__svg line,
+.flow-connector--rollback .flow-connector__svg line {
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+@media (prefers-color-scheme: light) {
+  .flow-connector--failure,
+  .flow-connector--rollback {
+    color: #b3472b;
+  }
+}
+
+.flow-node--failure {
+  border-top: 3px solid #e07a5f;
+  border-left: 2px solid rgba(224, 122, 95, 0.35);
+  background: var(--accent-soft);
+}
+
+.flow-node--failure .flow-node__kicker {
+  color: #e07a5f;
+}
+
+.flow-node--rollback {
+  border-top: 3px dashed #9aa7b2;
+  font-size: 0.9rem;
+}
+
+.flow-edge-rollback {
+  display: block;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--surface-elevated);
+  border-radius: 6px;
+  font-size: 0.82em;
+  border-left: 3px solid #e07a5f;
+}
+
+.flow-edge-rollback a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.flow-edge-manifest {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.flow-edge-manifest li {
+  margin-bottom: 0.45rem;
+}
+
+.flow-edge-from,
+.flow-edge-to {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78em;
+  color: var(--text);
+}
+
+.flow-edge-label {
+  display: inline-block;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0.25rem;
+}
+
+.flow-edge-note {
+  display: block;
+  font-size: 0.9em;
+  margin-top: 0.15rem;
+}
+
+.flow-caption {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.65rem;
+}
+
+.flow-glossary {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.flow-glossary h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0 0 0.75rem;
+}
+
+.flow-glossary h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.flow-glossary h3:first-of-type {
+  margin-top: 0;
+}
+
+.flow-glossary table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.flow-glossary th,
+.flow-glossary td {
+  text-align: left;
+  padding: 0.45rem 0.55rem;
+  border-bottom: 1px solid var(--edge);
+  vertical-align: top;
+}
+
+.flow-glossary th {
+  color: var(--muted);
+  font-weight: 500;
+  width: 18%;
+}
+
+.flow-glossary td code {
+  font-size: 0.85em;
+  background: var(--surface-elevated);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+/* Page-level SVG marker defs (see TEMPLATE_SPEC.md) */
+.flow-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.flow-path-divider {
+  text-align: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0.65rem 0 0.35rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Feature folder: submodule nav + rollback return strip */
+.submodule-nav {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.submodule-nav h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0 0 0.75rem;
+}
+
+.submodule-nav table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.submodule-nav th,
+.submodule-nav td {
+  text-align: left;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--edge);
+}
+
+.submodule-nav th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.flow-node--submodule .flow-node__title a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.flow-node--submodule .flow-node__title a:hover {
+  text-decoration: underline;
+}
+
+.flow-node--feature-cap {
+  border-top-color: #9b7ed9;
+  max-width: 480px;
+  text-align: center;
+}
+
+.flow-node--feature-cap .flow-node__title a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.flow-return-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  width: 100%;
+  max-width: 520px;
+  margin: 0.35rem auto 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--accent-soft);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+.flow-return-row__endpoint {
+  font-size: 0.82rem;
+  max-width: 200px;
+}
+
+.flow-return-row__label {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.flow-return-row__hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.flow-return-row a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.flow-return-arrow {
+  flex-shrink: 0;
+  color: #e07a5f;
+}
+
+@media (prefers-color-scheme: light) {
+  .flow-return-arrow {
+    color: #b3472b;
+  }
+}
+
+.submodule-role {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.submodule-role h2 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin: 0 0 0.5rem;
+}
+
+/* ============================================================
+   Macro SVG graph (feature × submodule, many-to-many)
+   ============================================================ */
+.flow-chart--svg {
+  margin: 0 0 1.25rem;
+}
+
+.macro-svg__wrap {
+  background: var(--surface-elevated);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  overflow-x: auto;
+}
+
+.macro-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 880px;
+  max-width: 1240px;
+  font-family: var(--font-body);
+}
+
+/* Actors */
+.macro-svg .m-actor rect {
+  fill: var(--surface);
+  stroke: var(--edge);
+  stroke-width: 1.4;
+}
+.macro-svg .m-actor text {
+  fill: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-display);
+}
+
+/* Feature cluster (the big dashed box that contains submodules) */
+.macro-svg .m-cluster__rect {
+  fill: rgba(155, 126, 217, 0.06);
+  stroke: #9b7ed9;
+  stroke-width: 1.5;
+  stroke-dasharray: 8 5;
+}
+.macro-svg .m-cluster__title {
+  fill: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+.macro-svg .m-cluster__title:hover {
+  text-decoration: underline;
+}
+.macro-svg .m-cluster__sub {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+/* Submodule node */
+.macro-svg .m-sub rect {
+  fill: var(--surface);
+  stroke: var(--edge);
+  stroke-width: 1.4;
+  transition: stroke 0.15s ease;
+}
+.macro-svg .m-sub:hover rect {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.macro-svg .m-sub__title {
+  fill: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+.macro-svg .m-sub__kind {
+  fill: var(--muted);
+  font-size: 10.5px;
+}
+.macro-svg .m-sub--db rect {
+  fill: rgba(111, 207, 151, 0.08);
+  stroke: var(--ok);
+}
+
+/* Edges */
+.macro-svg .m-edge path {
+  fill: none;
+  stroke: var(--edge);
+  stroke-width: 1.4;
+}
+.macro-svg .m-edge--call {
+  color: var(--text);
+}
+.macro-svg .m-edge--call path {
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+.macro-svg .m-edge--return {
+  color: var(--muted);
+}
+.macro-svg .m-edge--return path {
+  stroke: currentColor;
+  stroke-width: 1.1;
+  stroke-dasharray: 5 4;
+}
+.macro-svg .m-edge--cross {
+  color: var(--accent);
+}
+.macro-svg .m-edge--cross path {
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-dasharray: 10 5;
+  opacity: 0.9;
+}
+
+.macro-svg .m-edge__label {
+  fill: var(--muted);
+  font-size: 10.5px;
+}
+.macro-svg .m-edge__label--cross {
+  fill: var(--accent);
+  font-weight: 600;
+  font-size: 11.5px;
+}
+
+@media (prefers-color-scheme: light) {
+  .macro-svg .m-cluster__rect {
+    fill: rgba(155, 126, 217, 0.08);
+  }
+  .macro-svg .m-sub--db rect {
+    fill: rgba(111, 207, 151, 0.14);
+  }
+}
+
+/* ============================================================
+   Macro manifest list (under SVG)
+   ============================================================ */
+.flow-edge-manifest--macro {
+  margin-top: 1rem;
+}
+.flow-edge-manifest--macro li[data-edge-kind="call"] {
+  border-left: 3px solid var(--text);
+  padding-left: 0.6rem;
+}
+.flow-edge-manifest--macro li[data-edge-kind="return"] {
+  border-left: 3px solid var(--muted);
+  padding-left: 0.6rem;
+  font-style: italic;
+}
+.flow-edge-manifest--macro li[data-edge-kind="data-row"] {
+  border-left: 3px solid var(--accent);
+  padding-left: 0.6rem;
+  font-weight: 600;
+}
+
+/* ============================================================
+   Submodule page: I/O table + variables + internal data flow
+   ============================================================ */
+.sub-io,
+.sub-vars,
+.sub-dataflow,
+.sub-errors {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.35rem;
+  margin-bottom: 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.sub-io h2,
+.sub-vars h2,
+.sub-dataflow h2,
+.sub-errors h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+.sub-vars__intro {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.sub-vars table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+.sub-vars th,
+.sub-vars td {
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--edge);
+  vertical-align: top;
+}
+.sub-vars th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sub-vars code {
+  background: var(--surface-elevated);
+  padding: 0.08rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.8em;
+}
+.sub-vars__name {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+.sub-vars__type {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--muted);
+}
+.sub-vars__scope {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--surface-elevated);
+  color: var(--muted);
+  border: 1px solid var(--edge);
+}
+.sub-vars__scope--call {
+  border-color: rgba(126, 184, 218, 0.5);
+  color: #7eb8da;
+}
+.sub-vars__scope--tx {
+  border-color: rgba(212, 168, 55, 0.55);
+  color: #d4a837;
+}
+.sub-vars__scope--persist {
+  border-color: rgba(111, 207, 151, 0.55);
+  color: var(--ok);
+}
+.sub-vars__scope--instance {
+  border-color: rgba(155, 126, 217, 0.55);
+  color: #9b7ed9;
+}
+.sub-vars__scope--loop {
+  border-color: rgba(224, 122, 95, 0.55);
+  color: var(--accent);
+}
+
+.sub-io table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+.sub-io th,
+.sub-io td {
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--edge);
+  vertical-align: top;
+}
+.sub-io th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sub-io code {
+  background: var(--surface-elevated);
+  padding: 0.08rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.8em;
+}
+
+.sub-io__signature {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.84rem;
+  color: var(--text);
+}
+.sub-io__side {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-right: 0.25rem;
+}
+.sub-io__side--pure {
+  background: rgba(111, 207, 151, 0.18);
+  color: var(--ok);
+}
+.sub-io__side--io {
+  background: rgba(212, 168, 55, 0.18);
+  color: #d4a837;
+}
+.sub-io__side--write {
+  background: rgba(224, 122, 95, 0.18);
+  color: var(--accent);
+}
+
+.sub-dataflow ol {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text);
+}
+.sub-dataflow li {
+  margin-bottom: 0.5rem;
+  line-height: 1.55;
+}
+.sub-dataflow code {
+  background: var(--surface-elevated);
+  padding: 0.08rem 0.3rem;
+  border-radius: 3px;
+}
+
+/* tiny inline SVG graph for in-submodule data movement */
+.sub-dataflow__svg {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  margin-top: 0.75rem;
+  background: var(--surface-elevated);
+  border-radius: calc(var(--radius) - 4px);
+  padding: 0.5rem;
+}
+.sub-dataflow__svg .d-node rect {
+  fill: var(--surface);
+  stroke: var(--edge);
+}
+.sub-dataflow__svg .d-node text {
+  fill: var(--text);
+  font-size: 12px;
+}
+.sub-dataflow__svg .d-edge {
+  stroke: var(--text);
+  fill: none;
+  stroke-width: 1.4;
+}
+.sub-dataflow__svg .d-edge--side {
+  stroke: var(--accent);
+  stroke-dasharray: 4 3;
+}
+.sub-dataflow__svg .d-label {
+  fill: var(--muted);
+  font-size: 10.5px;
+}
+
+/* Submodule index list on macro page */
+.atlas-submodule-index {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.35rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+.atlas-submodule-index h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0 0 0.6rem;
+}
+.atlas-submodule-index ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.atlas-submodule-index li {
+  margin-bottom: 0.5rem;
+  font-size: 0.92rem;
+}
+.atlas-submodule-index strong {
+  color: var(--accent);
+  font-family: var(--font-display);
+  margin-right: 0.3rem;
+}
+.atlas-submodule-index a {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--edge);
+}
+.atlas-submodule-index a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>子模組 · registration-service — 邀請碼註冊</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/architecture.css" />
+  </head>
+  <body>
+    <main class="atlas-page atlas-page--feature">
+      <nav class="breadcrumb" aria-label="階層導航">
+        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">邀請碼註冊</a> ·
+        <span>registration-service</span>
+      </nav>
+
+      <header class="atlas-header">
+        <p class="atlas-kicker">Submodule · registration-service</p>
+        <h1 class="atlas-title">registration-service</h1>
+        <p class="atlas-meta">
+          自身職責：在<strong>單一交易</strong>內以邀請碼狀態判定是否建立 user 並核銷邀請碼。本頁只記述<strong>本子模組自身函式的 I/O 與內部資料流</strong>；與其他子模組之間的呼叫關係請見<a href="../../index.html">宏觀架構圖</a>。
+        </p>
+      </header>
+
+      <section class="sub-io">
+        <h2>函式 I/O</h2>
+        <table>
+          <thead>
+            <tr><th>函式</th><th>簽名／I/O</th><th>副作用</th><th>用途</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>RegisterWithInvite</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>ctx</code>, <code>RegisterInput{Email, Password, InviteCode}</code><br>
+                <strong>out:</strong> <code>NewUserID</code> | <code>error</code>
+              </td>
+              <td>
+                <span class="sub-io__side sub-io__side--io">tx</span> 開／關交易<br>
+                <span class="sub-io__side sub-io__side--write">db</span> 條件成立時寫入 user + 標記邀請碼已用<br>
+                <span class="sub-io__side sub-io__side--io">hash</span> 對密碼做 hash
+              </td>
+              <td>對外唯一入口。</td>
+            </tr>
+            <tr>
+              <td><code>validateInput</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>RegisterInput</code><br>
+                <strong>out:</strong> <code>NormalizedInput</code> | <code>ErrInvalidInput</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td>email 規範化、邀請碼 trim／大小寫策略、密碼最小強度。</td>
+            </tr>
+            <tr>
+              <td><code>decideInviteValid</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>InviteRow | nil</code>, <code>now</code><br>
+                <strong>out:</strong> <code>true | ErrInviteInvalid</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td>判斷邀請列是否存在、未過期、未核銷、<code>allowed_registration==true</code>。</td>
+            </tr>
+            <tr>
+              <td><code>hashPassword</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>plaintext</code><br>
+                <strong>out:</strong> <code>passwordHash</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--io">cpu</span> 高成本（bcrypt/argon2）</td>
+              <td>密碼絕不外傳明文；本函式回傳後 plaintext 應被丟棄。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sub-vars">
+        <h2>變數與業務用途</h2>
+        <p class="sub-vars__intro">下列為本子模組在「邀請碼註冊」業務裡實際持有／流動的識別子。型別僅供讀者對齊，業務用途優先。</p>
+        <table>
+          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="sub-vars__name">ctx</td>
+              <td class="sub-vars__type">context.Context</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>限制單次註冊請求佔用資源的時間預算；逾時或取消即放棄交易，避免長時間握列鎖把其他註冊請求拖垮。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">RegisterInput</td>
+              <td class="sub-vars__type">{Email, Password, InviteCode}</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>使用者註冊意圖承載：要為誰建立帳號、用什麼憑證、套用哪張邀請碼；任一欄缺值即無法進入業務判定。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">NormalizedInput</td>
+              <td class="sub-vars__type">{email_lc, code_norm, pwd_plain}</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>規範化後的業務輸入；保證 email／邀請碼比較在同一基準上，避免大小寫造成的可避免失敗。<code>pwd_plain</code> 在 hash 之後即被丟棄。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">row / InviteRow</td>
+              <td class="sub-vars__type">DB row</td>
+              <td><span class="sub-vars__scope sub-vars__scope--tx">tx</span></td>
+              <td>「能否註冊」的唯一證據；<code>AllowedRegistration</code> / <code>ConsumedAt</code> / <code>ExpiresAt</code> 三欄直接決定進入「拒絕」或「建立」分支；列鎖在本 <code>tx</code> 內持續至結束。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">now</td>
+              <td class="sub-vars__type">time.Time</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>決策基準時間：判斷邀請碼是否過期、寫入 <code>consumed_at</code> 的官方時戳；測試可注入以避免依賴牆鐘。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">passwordHash</td>
+              <td class="sub-vars__type">[]byte</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>不可逆密碼承載；確保任何明文不會離開本子模組或進入持久化路徑與日誌。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">UserToInsert</td>
+              <td class="sub-vars__type">{email_lc, passwordHash, invite_id}</td>
+              <td><span class="sub-vars__scope sub-vars__scope--tx">tx</span></td>
+              <td>把「業務通過」結果翻譯成 DB 寫入承載；<code>invite_id</code> 把新使用者與其邀請來源綁定，作為日後審計依據。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">tx</td>
+              <td class="sub-vars__type">*sql.Tx</td>
+              <td><span class="sub-vars__scope sub-vars__scope--tx">tx</span></td>
+              <td>把「邀請判定 + 建立 user + 核銷邀請」綁成原子單元；commit／rollback 決定本次註冊是否在世界上留下任何持久化痕跡。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sub-dataflow">
+        <h2>內部資料流</h2>
+        <p>下列步序描述<strong>同一個 <code>RegisterWithInvite</code> 呼叫</strong>內部資料如何在自身函式之間流動。每一步只標記值的變化與作用，不展開外部子模組的細節。</p>
+        <ol>
+          <li><code>RegisterInput</code> → <code>validateInput</code> → <code>NormalizedInput{email_lc, code_norm, pwd_plain}</code>。</li>
+          <li><code>NormalizedInput.code_norm</code> 作為查鎖讀的鍵；讀回 <code>InviteRow | nil</code>，記在區域變數 <code>row</code>。</li>
+          <li><code>row</code> 連同 <code>time.Now()</code> 傳入 <code>decideInviteValid</code>；不通過則拋 <code>ErrInviteInvalid</code> 並結束（交易在外層被回滾）。</li>
+          <li><code>NormalizedInput.pwd_plain</code> → <code>hashPassword</code> → <code>passwordHash</code>；之後 <code>pwd_plain</code> 不再使用。</li>
+          <li>組合 <code>UserToInsert{email_lc, passwordHash, invite_id=row.ID}</code>，作為寫入承載。</li>
+          <li>條件分支結束後將控制權交給交易管理；本子模組函式自此不再持有任何明文敏感資料。</li>
+        </ol>
+        <svg class="sub-dataflow__svg" viewBox="0 0 720 220" role="img" aria-label="內部資料流">
+          <defs>
+            <marker id="d-arr" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="currentColor"></path>
+            </marker>
+          </defs>
+          <g class="d-node"><rect x="20" y="30" width="150" height="50" rx="8"></rect><text x="95" y="58" text-anchor="middle">RegisterInput</text></g>
+          <g class="d-node"><rect x="200" y="30" width="150" height="50" rx="8"></rect><text x="275" y="50" text-anchor="middle">validateInput</text><text x="275" y="68" text-anchor="middle" class="d-label">→ NormalizedInput</text></g>
+          <g class="d-node"><rect x="380" y="30" width="170" height="50" rx="8"></rect><text x="465" y="50" text-anchor="middle">decideInviteValid</text><text x="465" y="68" text-anchor="middle" class="d-label">(row, now) → bool</text></g>
+          <g class="d-node"><rect x="580" y="30" width="120" height="50" rx="8"></rect><text x="640" y="58" text-anchor="middle">ErrInviteInvalid</text></g>
+
+          <g class="d-node"><rect x="200" y="140" width="150" height="50" rx="8"></rect><text x="275" y="160" text-anchor="middle">hashPassword</text><text x="275" y="178" text-anchor="middle" class="d-label">pwd → passwordHash</text></g>
+          <g class="d-node"><rect x="380" y="140" width="170" height="50" rx="8"></rect><text x="465" y="160" text-anchor="middle">UserToInsert</text><text x="465" y="178" text-anchor="middle" class="d-label">{email_lc, hash, invite_id}</text></g>
+
+          <line class="d-edge" x1="170" y1="55" x2="196" y2="55" marker-end="url(#d-arr)"></line>
+          <line class="d-edge" x1="350" y1="55" x2="376" y2="55" marker-end="url(#d-arr)"></line>
+          <line class="d-edge d-edge--side" x1="550" y1="55" x2="576" y2="55" marker-end="url(#d-arr)"></line>
+          <line class="d-edge" x1="275" y1="80" x2="275" y2="136" marker-end="url(#d-arr)"></line>
+          <line class="d-edge" x1="350" y1="165" x2="376" y2="165" marker-end="url(#d-arr)"></line>
+        </svg>
+      </section>
+
+      <section class="sub-errors">
+        <h2>本子模組會拋出的錯誤</h2>
+        <table class="sub-io__inline">
+          <thead><tr><th>錯誤</th><th>觸發條件</th><th>後續責任</th></tr></thead>
+          <tbody>
+            <tr><td><code>ErrInvalidInput</code></td><td><code>validateInput</code> 失敗</td><td>呼叫端決定 HTTP 對映；本子模組不開交易。</td></tr>
+            <tr><td><code>ErrInviteInvalid</code></td><td><code>decideInviteValid</code> 為 false</td><td>呼叫端負責回滾交易並回應對外錯誤碼。</td></tr>
+            <tr><td><code>ErrTransient</code></td><td>外部 I/O 暫時失敗（例如 hash CPU 中斷、context 取消）</td><td>呼叫端決定是否重試；本子模組僅保證未提交。</td></tr>
+          </tbody>
+        </table>
+        <p class="atlas-meta">回滾／重試怎麼影響其他子模組的狀態，屬於跨界議題；請見<a href="../../index.html">宏觀架構圖</a>的 manifest 與資料行邊。</p>
+      </section>
+
+      <footer class="atlas-meta" style="margin-top: 2rem">
+        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
+      </footer>
+    </main>
+  </body>
+</html>

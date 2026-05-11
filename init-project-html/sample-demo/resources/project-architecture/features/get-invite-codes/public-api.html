@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>子模組 · public-api — 獲取邀請碼</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/architecture.css" />
+  </head>
+  <body>
+    <main class="atlas-page atlas-page--feature">
+      <nav class="breadcrumb" aria-label="階層導航">
+        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">獲取邀請碼</a> · <span>public-api</span>
+      </nav>
+
+      <header class="atlas-header">
+        <p class="atlas-kicker">Submodule · public-api</p>
+        <h1 class="atlas-title">public-api（iss）</h1>
+        <p class="atlas-meta">自身職責：HTTP 邊界：認證解析、輸入綁定、把網域結果映射為狀態碼。</p>
+      </header>
+
+      <section class="sub-io">
+        <h2>函式 I/O</h2>
+        <table>
+          <thead><tr><th>函式</th><th>簽名</th><th>副作用</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>AuthMiddleware</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>http.Request</code><br>
+                <strong>out:</strong> <code>Principal</code> | <code>401</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--io">io</span> 解 cookie / JWT</td>
+              <td>驗證並注入 <code>Principal.UserID</code>。</td>
+            </tr>
+            <tr>
+              <td><code>CreateInviteCodeHandler</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>http.Request</code>, <code>Principal</code><br>
+                <strong>out:</strong> <code>http.Response</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--io">io</span> 寫 body</td>
+              <td>路由綁定的對外入口。</td>
+            </tr>
+            <tr>
+              <td><code>mapDomainError</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>error</code><br>
+                <strong>out:</strong> <code>(httpStatus, ErrorBody)</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td>quota → 429（含 <code>Retry-After</code>）等對映。</td>
+            </tr>
+            <tr>
+              <td><code>writeCreated</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>NewCode</code>, <code>http.ResponseWriter</code><br>
+                <strong>out:</strong> —
+              </td>
+              <td><span class="sub-io__side sub-io__side--write">io</span> 寫 201 body</td>
+              <td>序列化新碼 + metadata。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sub-vars">
+        <h2>變數與業務用途</h2>
+        <p class="sub-vars__intro">HTTP 邊界子模組持有的識別子；本子模組的責任是「正確識別調用者」與「正確翻譯網域結果為協議語意」。</p>
+        <table>
+          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="sub-vars__name">http.Request</td>
+              <td class="sub-vars__type">request</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>邊界輸入；只在 handler 期間有效。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">Principal.UserID</td>
+              <td class="sub-vars__type">UUID</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>由 middleware 注入；業務上代表「為誰生成邀請碼」；<strong>禁止</strong>從 body 取以避免使用者冒名為他人發碼。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">httpStatus</td>
+              <td class="sub-vars__type">int</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td><code>mapDomainError</code> 的輸出之一；<code>ErrQuotaExceeded</code> 必須對映成 <code>429</code> 才能搭配 <code>Retry-After</code> 讓 UI 知道是節流。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">ErrorBody</td>
+              <td class="sub-vars__type">{code, message}</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>結構化錯誤體；<code>code</code> 給 UI 對映本地化文字（例如「今日額度用盡」）。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">Retry-After</td>
+              <td class="sub-vars__type">int seconds</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>節流提示 header；UI 透過它倒數禁用按鈕，避免使用者反覆 429。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">NewCode</td>
+              <td class="sub-vars__type">string</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>網域回傳的新碼；序列化為 201 body 給使用者複製分享。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">http.ResponseWriter</td>
+              <td class="sub-vars__type">writer</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>對外副作用通道；保證一次回應只寫一次。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sub-dataflow">
+        <h2>內部資料流</h2>
+        <ol>
+          <li><code>Request</code> → <code>AuthMiddleware</code> → 注入 <code>Principal{UserID}</code>，失敗即 <code>401</code>。</li>
+          <li><code>Principal.UserID</code> 作為網域層輸入；本子模組不持有 token 明文。</li>
+          <li>從網域層取得 <code>NewCode | error</code>。</li>
+          <li><code>NewCode</code> → <code>writeCreated</code>；<code>error</code> → <code>mapDomainError</code>。</li>
+        </ol>
+      </section>
+
+      <section class="sub-errors">
+        <h2>HTTP 對映</h2>
+        <table>
+          <thead><tr><th>條件</th><th>HTTP</th></tr></thead>
+          <tbody>
+            <tr><td>無 session</td><td><code>401</code></td></tr>
+            <tr><td>網域 <code>ErrQuotaExceeded</code></td><td><code>429</code> + <code>Retry-After</code></td></tr>
+            <tr><td>網域 <code>ErrForbidden</code></td><td><code>403</code></td></tr>
+            <tr><td>網域 <code>ErrTransient</code></td><td><code>503</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer class="atlas-meta" style="margin-top: 2rem">
+        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
+      </footer>
+    </main>
+  </body>
+</html>

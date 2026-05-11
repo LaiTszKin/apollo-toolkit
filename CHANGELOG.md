@@ -10,6 +10,23 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.10.0] - 2026-05-11
+
+### Added
+
+- `init-project-html` skill: HTML architecture atlas (macro × sub-module SVG contract, sample demo, `references/TEMPLATE_SPEC.md` cheat sheet, `apltk architecture` helper script).
+- `spec-to-project-html` skill: refresh `resources/project-architecture/**` from active `docs/plans/**` specs using the same atlas rules.
+- `apltk architecture` and `apltk architecture diff`: open the project atlas or render a paginated before/after viewer from every `docs/plans/**/architecture_diff/` tree (pairs paths with `resources/project-architecture/`).
+- `generate-spec/references/TEMPLATE_SPEC.md` and `spec-to-project-html/references/TEMPLATE_SPEC.md`: local copies of the atlas vocabulary + DOM cheat sheet so each skill is self-contained when installed.
+- `cjk-pdf/agents/openai.yaml` and `merge-conflict-resolver/agents/openai.yaml` OpenAI agent interface stubs.
+- `test/architecture-script.test.js` covering registration, diff classification, and viewer output paths.
+
+### Changed
+
+- `generate-spec`: when a spec touches the atlas surface, emit `architecture_diff/` next to `spec.md` with path-aligned after-HTML (`_removed.txt` for deletions); keep rules in SKILL.md (reference file is non-authoritative).
+- Root `README.md` and `AGENTS.md`: document `apltk architecture` / `architecture diff` examples.
+- `.gitignore`: ignore `.apollo-toolkit/` (default output for the diff viewer).
+
 ## [v3.9.7] - 2026-05-09
 
 ### Changed

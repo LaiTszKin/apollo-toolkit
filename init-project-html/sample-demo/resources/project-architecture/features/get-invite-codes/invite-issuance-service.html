@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>子模組 · invite-issuance-service — 獲取邀請碼</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/architecture.css" />
+  </head>
+  <body>
+    <main class="atlas-page atlas-page--feature">
+      <nav class="breadcrumb" aria-label="階層導航">
+        <a href="../../index.html">宏觀架構</a> · <a href="./index.html">獲取邀請碼</a> · <span>invite-issuance-service</span>
+      </nav>
+
+      <header class="atlas-header">
+        <p class="atlas-kicker">Submodule · invite-issuance-service</p>
+        <h1 class="atlas-title">invite-issuance-service</h1>
+        <p class="atlas-meta">自身職責：在同一交易內判斷使用者額度、組裝待寫入列、處理 UNIQUE 碰撞重試。本頁只列自身函式 I/O 與內部資料流。</p>
+      </header>
+
+      <section class="sub-io">
+        <h2>函式 I/O</h2>
+        <table>
+          <thead><tr><th>函式</th><th>簽名</th><th>副作用</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>IssueInviteCode</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>ctx</code>, <code>userID</code><br>
+                <strong>out:</strong> <code>InviteCodeRecord</code> | <code>error</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--io">tx</span> 開／關交易<br><span class="sub-io__side sub-io__side--write">db</span> 條件成立時寫入新行</td>
+              <td>對外唯一入口。</td>
+            </tr>
+            <tr>
+              <td><code>checkQuota</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>used</code>, <code>limit</code>, <code>userStatus</code><br>
+                <strong>out:</strong> <code>true | ErrQuotaExceeded | ErrForbidden</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td>窗口計數 + 帳號狀態合法性判斷。</td>
+            </tr>
+            <tr>
+              <td><code>buildRecord</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>userID</code>, <code>code: string</code>, <code>now</code><br>
+                <strong>out:</strong> <code>InviteCodeRecord</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td>組裝待寫入承載：<code>owner_user_id</code>、<code>allowed_registration=true</code>、<code>created_at=now</code>。</td>
+            </tr>
+            <tr>
+              <td><code>shouldRetryOnCollision</code></td>
+              <td class="sub-io__signature">
+                <strong>in:</strong> <code>err</code>, <code>attempt: int</code>, <code>max: int</code><br>
+                <strong>out:</strong> <code>bool</code>
+              </td>
+              <td><span class="sub-io__side sub-io__side--pure">pure</span></td>
+              <td><code>err</code> 為 UNIQUE 違例且 <code>attempt &lt; max</code> 才回 <code>true</code>。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sub-vars">
+        <h2>變數與業務用途</h2>
+        <p class="sub-vars__intro">本表盤點額度判定、寫入承載組裝、與 UNIQUE 碰撞重試所依賴的識別子。</p>
+        <table>
+          <thead><tr><th>變數</th><th>型別</th><th>作用域</th><th>業務用途</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="sub-vars__name">ctx</td>
+              <td class="sub-vars__type">context.Context</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>限制整次發放的時間預算；避免重試迴圈無限延長導致連線資源被吃光。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">userID</td>
+              <td class="sub-vars__type">UUID</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>本次發放歸屬；同時也是額度視窗的主鍵；由 <code>public-api</code> 從可信來源（Principal）注入。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">tx</td>
+              <td class="sub-vars__type">*sql.Tx</td>
+              <td><span class="sub-vars__scope sub-vars__scope--tx">tx</span></td>
+              <td>把「額度檢查 + 帳號狀態檢查 + 寫入」綁成原子單元；避免在檢查與寫入之間出現空隙造成雙倍超發。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">used</td>
+              <td class="sub-vars__type">int64</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>當前滑動視窗已發放數；額度判定的「左值」；錯算即可能放行超額或誤拒。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">limit</td>
+              <td class="sub-vars__type">int</td>
+              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
+              <td>滑動視窗額度上限；產品設定，跨呼叫不變；改值代表產品策略改變，需配套更新文案。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">userStatus</td>
+              <td class="sub-vars__type">active | banned | suspended</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>帳號是否處於可發放狀態；停權或暫停狀態下立即拒絕，不浪費 generator/DB 資源。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">now</td>
+              <td class="sub-vars__type">time.Time</td>
+              <td><span class="sub-vars__scope sub-vars__scope--call">call</span></td>
+              <td>滑動視窗起點計算與 <code>created_at</code> 的基準；測試可注入。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">attempt</td>
+              <td class="sub-vars__type">int</td>
+              <td><span class="sub-vars__scope sub-vars__scope--loop">loop</span></td>
+              <td>UNIQUE 碰撞重試計數；搭配 <code>max</code> 限制最壞情況避免無限循環。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">max</td>
+              <td class="sub-vars__type">int</td>
+              <td><span class="sub-vars__scope sub-vars__scope--instance">instance</span></td>
+              <td>重試上限；超出即拋 <code>ErrCollisionExhausted</code>；上限與 generator 的熵預算共同決定罕見失敗率。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">candidate</td>
+              <td class="sub-vars__type">string</td>
+              <td><span class="sub-vars__scope sub-vars__scope--loop">loop</span></td>
+              <td>一輪重試取得的候選碼；尚未確定唯一；UNIQUE 違例即丟棄並重抽，不會被使用者看到。</td>
+            </tr>
+            <tr>
+              <td class="sub-vars__name">InviteCodeRecord</td>
+              <td class="sub-vars__type">{code, owner_user_id, allowed_registration, created_at}</td>
+              <td><span class="sub-vars__scope sub-vars__scope--loop">loop</span></td>
+              <td>寫入 DB 的承載；<code>allowed_registration=true</code> 是「邀請碼註冊」功能消費的關鍵旗標——關閉此值代表暫停發放但保留歷史紀錄。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sub-dataflow">
+        <h2>內部資料流</h2>
+        <ol>
+          <li>取得 <code>userID</code> + 開 <code>tx</code> → 讀<code>{used, userStatus}</code>（透過 DB 子模組；其 SQL 介面見宏觀圖邊 <code>e-B-...</code>）。</li>
+          <li><code>checkQuota</code> 不通過 → 拋 <code>ErrQuotaExceeded</code>／<code>ErrForbidden</code>；本函式直接結束（呼叫端負責回滾）。</li>
+          <li><code>candidate</code> ← 生成器產出的字串。</li>
+          <li><code>buildRecord(userID, candidate, now)</code> → <code>InviteCodeRecord</code>。</li>
+          <li>嘗試寫入；若 <code>err</code> 與 <code>shouldRetryOnCollision(err, attempt, max)</code> 為 <code>true</code>，<code>attempt+=1</code>，回到步驟 3。</li>
+          <li>寫入成功 → 提交 → 回傳 <code>InviteCodeRecord</code>。</li>
+        </ol>
+        <svg class="sub-dataflow__svg" viewBox="0 0 720 220" role="img" aria-label="內部資料流">
+          <defs>
+            <marker id="d-arr2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="currentColor"></path>
+            </marker>
+          </defs>
+          <g class="d-node"><rect x="20" y="30" width="150" height="50" rx="8"></rect><text x="95" y="58" text-anchor="middle">userID</text></g>
+          <g class="d-node"><rect x="200" y="30" width="150" height="50" rx="8"></rect><text x="275" y="50" text-anchor="middle">checkQuota</text><text x="275" y="68" text-anchor="middle" class="d-label">→ true | err</text></g>
+          <g class="d-node"><rect x="380" y="30" width="170" height="50" rx="8"></rect><text x="465" y="50" text-anchor="middle">candidate</text><text x="465" y="68" text-anchor="middle" class="d-label">← Generator.Next()</text></g>
+          <g class="d-node"><rect x="580" y="30" width="120" height="50" rx="8"></rect><text x="640" y="58" text-anchor="middle">buildRecord</text></g>
+
+          <g class="d-node"><rect x="380" y="140" width="170" height="50" rx="8"></rect><text x="465" y="160" text-anchor="middle">shouldRetryOnCollision</text><text x="465" y="178" text-anchor="middle" class="d-label">err+attempt → bool</text></g>
+          <g class="d-node"><rect x="580" y="140" width="120" height="50" rx="8"></rect><text x="640" y="168" text-anchor="middle">InviteCodeRecord</text></g>
+
+          <line class="d-edge" x1="170" y1="55" x2="196" y2="55" marker-end="url(#d-arr2)"></line>
+          <line class="d-edge" x1="350" y1="55" x2="376" y2="55" marker-end="url(#d-arr2)"></line>
+          <line class="d-edge" x1="550" y1="55" x2="576" y2="55" marker-end="url(#d-arr2)"></line>
+          <line class="d-edge" x1="640" y1="80" x2="640" y2="136" marker-end="url(#d-arr2)"></line>
+          <line class="d-edge d-edge--side" x1="465" y1="190" x2="465" y2="80" marker-end="url(#d-arr2)"></line>
+        </svg>
+      </section>
+
+      <section class="sub-errors">
+        <h2>本子模組會拋出的錯誤</h2>
+        <table>
+          <thead><tr><th>錯誤</th><th>條件</th></tr></thead>
+          <tbody>
+            <tr><td><code>ErrQuotaExceeded</code></td><td><code>checkQuota</code> 失敗（含 <code>retryAfter</code>）</td></tr>
+            <tr><td><code>ErrForbidden</code></td><td>帳號停用</td></tr>
+            <tr><td><code>ErrCollisionExhausted</code></td><td>重試次數用盡；極罕見，視熵設計。</td></tr>
+            <tr><td><code>ErrTransient</code></td><td>連線中斷／<code>ctx</code> 取消</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer class="atlas-meta" style="margin-top: 2rem">
+        <p><a href="../../index.html">← 宏觀架構</a> · <a href="./index.html">← 功能總覽</a></p>
+      </footer>
+    </main>
+  </body>
+</html>

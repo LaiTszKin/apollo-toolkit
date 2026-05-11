@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content="apollo-toolkit:init-project-html|spec-to-project-html" />
+    <!-- ARCHITECTURE_ROOT: default resources/project-architecture -->
+    <title>{{PAGE_TITLE}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{CSS_PATH}}" />
+  </head>
+  <body>
+    <main class="atlas-page atlas-page--{{PAGE_KIND}}">
+      <header class="atlas-header">
+        <p class="atlas-kicker">Architecture atlas</p>
+        <h1 class="atlas-title">{{HEADLINE}}</h1>
+        <p class="atlas-meta">
+          Updated <time datetime="{{UPDATED_ISO}}">{{UPDATED_DISPLAY}}</time>
+          · {{VERSION_OR_REF}}
+        </p>
+      </header>
+
+      {{BODY_SECTIONS}}
+
+      <footer class="atlas-meta" style="margin-top: 2rem">
+        <p>{{FOOTER_NOTE}}</p>
+      </footer>
+    </main>
+  </body>
+</html>

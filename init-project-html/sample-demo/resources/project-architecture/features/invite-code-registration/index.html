@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>邀請碼註冊 — 功能模組總覽</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/architecture.css" />
+  </head>
+  <body>
+    <main class="atlas-page atlas-page--feature">
+      <nav class="breadcrumb" aria-label="階層導航">
+        <a href="../../index.html">宏觀架構</a> · <span>邀請碼註冊（功能模組）</span>
+      </nav>
+
+      <header class="atlas-header">
+        <p class="atlas-kicker">Feature module · invite-code-registration</p>
+        <h1 class="atlas-title">邀請碼註冊</h1>
+        <p class="atlas-meta">對外能力：訪客憑邀請碼建立帳號（消費邀請碼）。</p>
+      </header>
+
+      <section class="feature-story">
+        <h2>使用者故事</h2>
+        <p>訪客提交註冊 → 系統以邀請碼狀態判定 → 通過則建立帳號並核銷邀請碼，失敗則不留下任何持久化副作用。</p>
+        <p class="atlas-meta">
+          <strong>跨子模組交互（誰呼叫誰、誰讀誰寫、回應如何流回）以及與「獲取邀請碼」功能的資料行傳遞，已在<a href="../../index.html">宏觀架構圖</a>內統一呈現</strong>，本頁不重述。
+        </p>
+      </section>
+
+      <section class="submodule-nav">
+        <h2>本功能的子模組</h2>
+        <table>
+          <thead><tr><th>子模組</th><th>自身職責</th><th>頁面（自身 I/O + 內部資料流）</th></tr></thead>
+          <tbody>
+            <tr><td><code>web-register-ui</code></td><td>表單、客戶端驗證、發 HTTP</td><td><a href="web-register-ui.html">web-register-ui.html</a></td></tr>
+            <tr><td><code>public-api</code></td><td>HTTP 邊界、輸入綁定、錯誤映射</td><td><a href="public-api.html">public-api.html</a></td></tr>
+            <tr><td><code>registration-service</code></td><td>網域規則、交易編排</td><td><a href="registration-service.html">registration-service.html</a></td></tr>
+            <tr><td><code>postgresql</code></td><td>SQL：讀邀請碼、寫 user、核銷邀請</td><td><a href="postgresql.html">postgresql.html</a></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer class="atlas-meta" style="margin-top: 2rem">
+        <p><a href="../../index.html">← 宏觀架構（含完整交互圖）</a> · <code>features/invite-code-registration/</code></p>
+      </footer>
+    </main>
+  </body>
+</html>

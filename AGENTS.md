@@ -77,6 +77,8 @@ This repository enables users to install and run a curated set of reusable agent
 - `node bin/apollo-toolkit.js codex openclaw trae` - 以非互動方式將技能安裝到指定目標。
 - `node bin/apollo-toolkit.js tools` - 列出 Apollo Toolkit 內建 CLI 工具。
 - `node bin/apollo-toolkit.js filter-logs app.log --start 2026-03-24T10:00:00Z` - 透過內建工具包裝器執行技能腳本。
+- `node bin/apollo-toolkit.js architecture` - 開啟專案 `resources/project-architecture/index.html` 架構圖。
+- `node bin/apollo-toolkit.js architecture diff` - 將 `docs/plans/**/architecture_diff/` 與目前架構圖配對成分頁式 before/after viewer（輸出至 `.apollo-toolkit/architecture-diff/`）。
 - `python3 scripts/validate_skill_frontmatter.py` - 驗證所有頂層技能 `SKILL.md` 的 frontmatter。
 - `python3 scripts/validate_openai_agent_config.py` - 驗證所有技能 `agents/openai.yaml` 設定。
 - `./scripts/install_skills.sh codex` - 用本地安裝腳本把技能安裝到 Codex 目錄。

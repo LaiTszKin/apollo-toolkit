@@ -1,10 +1,11 @@
 ---
 name: generate-spec
 description: >-
-  Author planning trees under docs/plans: run `apltk create-specs`, hydrate templates (`spec/tasks/checklist/contract/design`; add `coordination.md`/`preparation.md` when parallel/prep dictates), cite official docs for every material external dependency, plan tests with **`test-case-strategy`**, and block product code changes until explicit user approval completes.
-  Use when drafting or refreshing specs before coding, restructuring multi-member batches, or recording clarifications—not when simply executing tasks from an approved plan (**`implement-specs*`** family instead).
-  Reject ALWAYS vague `tasks.md` lines missing file target + mutation + verifier; SPLIT work when scope exceeds three modules; never overwrite a neighboring `{change}` directory for a different issue.
-  Example bad: `- [ ] Add tests`… Example ok: `- [ ] src/auth/scope.rs — deny unknown scopes — Verify: cargo test scope::defaults`…
+  Author docs/plans trees: run `apltk create-specs`, hydrate `spec/tasks/checklist/contract/design` (+ `coordination.md`/`preparation.md` when parallel/prep dictates), cite official docs for external deps, plan tests via **`test-case-strategy`**, block code edits until explicit user approval.
+  Architecture-touching specs also emit `architecture_diff/` next to `spec.md` (after-HTML for affected pages only): module-internal edits reuse the SAME path as `resources/project-architecture/<rel>.html` so `apltk architecture diff` aligns by path, additions use a new path, removals go in `_removed.txt`.
+  Use when drafting/refreshing specs or restructuring batches—not when executing approved plans (use **`implement-specs*`** instead).
+  Reject vague `tasks.md` missing file/mutation/verifier; SPLIT >3-module scope; never overwrite a neighbor `{change}`.
+  Bad: `- [ ] Add tests`… OK: `- [ ] src/auth/scope.rs — deny unknown scopes — Verify: cargo test scope::defaults`…
 ---
 
 # Generate Spec
@@ -26,6 +27,12 @@ description: >-
 - **`tasks.md` checklist items**: **every** `- [ ]` **MUST** specify (a) concrete file/function target, (b) specific modification and expected outcome, (c) a verification hook—**no** vague rows (`Implement integration`, `Add tests`). Forbidden vague items **MUST** be rewritten before approval.
 - **MUST** use `test-case-strategy` when planning non-trivial logic tests and checklist mapping (test IDs, drift checks). Every **non-trivial** `tasks.md` implementation item **MUST** name a focused unit drift check, another concrete verification hook, or **`N/A`** with a concrete reason.
 - **MUST NOT** modify implementation code before **explicit user approval** of the spec set. Clarifications **MUST** sync across affected files and **MUST** re-trigger approval. If scope becomes a **different issue**, **MUST** stop editing the old set and create a **new** `change_name`.
+- **MUST** when the proposed change touches the architecture surface (feature/sub-module add/rename/remove, edge add/remove, `sub-vars` or `sub-io` deltas), generate an `architecture_diff/` directory **next to `spec.md`** containing the proposed **after** HTML for **only the affected pages**, mirroring `resources/project-architecture/` paths produced by `init-project-html`. Use this skill's own `references/TEMPLATE_SPEC.md` for the vocabulary, macro SVG class hooks, and ready-to-copy `sub-io` / `sub-vars` / `sub-dataflow` DOM snippets — page-contract rules still come from `init-project-html/SKILL.md`. The CLI `apltk architecture diff` identifies diffs **by path alone**, so deviating from the three alignment rules below breaks the viewer:
+  - **Module-internal change** (same sub-module: function I/O, variables, internal flow, errors; or small in-place edits on `macro` / feature index pages): write the proposed-after HTML at the **SAME path** as `resources/project-architecture/<rel>.html`. This is the common case — never invent a new filename for an in-place edit, or the CLI mis-classifies it as add + remove.
+  - **Addition**: write at a new `architecture_diff/<new-rel>.html` whose mirror under `resources/project-architecture/` does not yet exist.
+  - **Removal**: list the removed `<rel>` in `architecture_diff/_removed.txt` (one relative path per line). Do not create an empty placeholder HTML for removals.
+  - **Rename = removal + addition**: list the old path in `_removed.txt` AND write proposed-after HTML at the new path.
+  Always copy `architecture.css` into `architecture_diff/assets/` so every page renders standalone via relative paths (`../../assets/architecture.css`). For batch specs the diff lives inside each member spec's directory only — **MUST NOT** duplicate at batch root. **MUST** keep all paths relative for portability.
 - Write prose in the **user’s language** by default; keep requirement/task/test IDs traceable across `spec.md`, `tasks.md`, and `checklist.md`.
 - **MUST** use **kebab-case** `change_name`; **MUST NOT** use spaces or arbitrary special characters in names.
 
@@ -78,6 +85,19 @@ Always materialize: `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `desig
    - **Pause →** Does every **R** requirement ID I care about appear in `tasks.md` or `checklist.md` with a test or explicit `N/A`?
    - **Pause →** Do **`design.md` / `contract.md`** stay **coarser than `tasks.md`** (no mirrored checkbox choreography / file paths)—yet still constrain ordering and forbidden hallucinations?
    - **Pause →** For parallel batches, does `design.md` **avoid** duplicating batch ownership grids already locked in **`coordination.md`**?
+
+### 3.5) Architecture diff (only when the proposal touches the architecture surface)
+
+When the spec changes a feature module, sub-module, edge, variable, or function I/O, create `architecture_diff/` **inside the spec directory** and write proposed-after HTML following the three alignment rules:
+
+- Module-internal change → write at the **SAME path** as `resources/project-architecture/<rel>.html`.
+- Addition → write at a new path.
+- Removal → list the `<rel>` in `architecture_diff/_removed.txt`; do not write an HTML placeholder.
+
+Copy `architecture.css` into `architecture_diff/assets/`; keep every path relative. For batch specs the diff stays inside the member spec's own directory. `apltk architecture diff` pairs `architecture_diff/` with `resources/project-architecture/` for a paginated before/after viewer.
+
+- **Pause →** Did an in-place sub-module edit get written at a new path? Move it back to the same path — otherwise the CLI registers it as add + remove.
+- **Pause →** Does every `_removed.txt` entry actually exist under `resources/project-architecture/`? Drop entries that do not.
 
 ### 4) Clarifications and approval
 
