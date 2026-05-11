@@ -106,13 +106,14 @@ test('open subcommand prints atlas path and exits 0', () => {
   }
 });
 
-test('open subcommand fails with helpful error when atlas missing', () => {
+test('open subcommand bootstraps atlas when resources tree is empty (... --project root)', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-empty-'));
   try {
     const io = makeIo();
     const code = architecture.main(['open', '--project', root, '--no-open'], io);
-    assert.equal(code, 1);
-    assert.match(io.stderr_text, /resources\/project-architecture/);
+    assert.equal(code, 0);
+    assert.match(io.stdout_text, /resources\/project-architecture\/index\.html/);
+    assert.ok(fs.existsSync(path.join(root, 'resources', 'project-architecture', 'index.html')));
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

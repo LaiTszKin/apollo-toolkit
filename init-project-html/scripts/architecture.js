@@ -15,7 +15,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawn } = require('node:child_process');
+const { spawn, spawnSync } = require('node:child_process');
 
 const newCli = require('../lib/atlas/cli');
 
@@ -47,7 +47,7 @@ Usage:
   apltk architecture --help                   Show this help
 
 Global flags:
-  --project <root>   Project root (default: nearest ancestor with resources/project-architecture/)
+  --project <root>   Project root (default: nearest ancestor with resources/project-architecture/, else cwd); missing layout dirs are created when needed
   --spec <spec_dir>  Mutations write to <spec_dir>/architecture_diff/atlas/
   --no-render        Skip auto-render after a mutation
   --no-open          For open/diff: skip launching the browser
@@ -221,14 +221,24 @@ function renderViewer({ changes, projectRoot, outDir }) {
 }
 
 function runOpen(opts, io) {
-  const projectRoot = opts.projectRoot || findProjectRoot(process.cwd());
+  let projectRoot = opts.projectRoot
+    ? path.resolve(opts.projectRoot)
+    : findProjectRoot(process.cwd());
   if (!projectRoot) {
-    io.stderr.write(
-      `Could not find resources/project-architecture/index.html. Pass --project <root> or generate the atlas via the init-project-html skill.\n`,
-    );
-    return 1;
+    projectRoot = process.cwd();
   }
+  fs.mkdirSync(path.join(projectRoot, RESOURCES_REL), { recursive: true });
   const atlas = path.join(projectRoot, ATLAS_REL);
+  if (!fs.existsSync(atlas)) {
+    const bootstrap = path.join(__dirname, 'architecture-bootstrap-render.js');
+    const result = spawnSync(process.execPath, [bootstrap, 'render', '--project', projectRoot, '--no-open'], {
+      stdio: 'ignore',
+    });
+    if (result.status !== 0) {
+      io.stderr.write(`Atlas not found and render failed: ${atlas}\n`);
+      return 1;
+    }
+  }
   if (!fs.existsSync(atlas)) {
     io.stderr.write(`Atlas not found: ${atlas}\n`);
     return 1;
@@ -239,13 +249,13 @@ function runOpen(opts, io) {
 }
 
 function runDiff(opts, io) {
-  const projectRoot = opts.projectRoot || findProjectRoot(process.cwd());
+  let projectRoot = opts.projectRoot
+    ? path.resolve(opts.projectRoot)
+    : findProjectRoot(process.cwd());
   if (!projectRoot) {
-    io.stderr.write(
-      `Could not find resources/project-architecture/index.html. Pass --project <root> or generate the atlas via the init-project-html skill.\n`,
-    );
-    return 1;
+    projectRoot = process.cwd();
   }
+  fs.mkdirSync(path.join(projectRoot, RESOURCES_REL), { recursive: true });
   const outDir = opts.out || path.join(projectRoot, DEFAULT_OUT_REL);
   fs.mkdirSync(outDir, { recursive: true });
 

@@ -26,6 +26,22 @@ function mkProject() {
   return root;
 }
 
+function mkBareRoot() {
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-atlas-bare-'));
+}
+
+test('feature add with --project creates resources/project-architecture when entirely missing', async () => {
+  const root = mkBareRoot();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'boot', '--project', root, '--no-render'], io);
+    assert.ok(fs.existsSync(path.join(root, 'resources', 'project-architecture', 'atlas', 'atlas.index.yaml')));
+    assert.ok(fs.existsSync(path.join(root, 'resources', 'project-architecture', 'atlas', 'features', 'boot.yaml')));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('parseFlags handles =, space-separated values, and booleans', () => {
   const { positional, flags } = cli.parseFlags(['--slug=foo', '--title', 'My title', '--no-render', 'extra']);
   assert.equal(flags.slug, 'foo');

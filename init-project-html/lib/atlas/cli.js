@@ -22,7 +22,7 @@
 //   help / --help / -h                            usage
 //
 // Global flags:
-//   --project <root>     project root (default: nearest ancestor with resources/project-architecture/)
+//   --project <root>     project root; creates resources/project-architecture/ if missing
 //   --spec <spec_dir>    spec directory; mutations go to <spec_dir>/architecture_diff/atlas/
 //   --no-render          skip auto-render after a mutation
 //   --no-open            for open/diff: skip launching the browser
@@ -67,7 +67,7 @@ Verbs:
   help                                  show this help
 
 Global flags:
-  --project <root>                      project root (default: nearest ancestor with resources/project-architecture/)
+  --project <root>                      explicit project root (default: nearest ancestor with atlas markers, else cwd); missing directories under resources/project-architecture/ are created automatically
   --spec <spec_dir>                     mutations write to <spec_dir>/architecture_diff/atlas/
   --no-render                           skip auto-render after a mutation
   --no-open                             for open/diff: skip launching the browser
@@ -96,6 +96,10 @@ function openInBrowser(filePath) {
     child.on('error', () => {});
     child.unref();
   } catch (_e) { /* best effort */ }
+}
+
+function ensureResourcesLayout(projectRoot) {
+  fs.mkdirSync(path.join(projectRoot, ATLAS_REL), { recursive: true });
 }
 
 function findProjectRoot(startDir) {
@@ -154,10 +158,15 @@ function requireFlag(flags, name) {
 }
 
 function resolveProjectRoot(flags) {
-  if (flags.project) return path.resolve(String(flags.project));
-  const root = findProjectRoot(process.cwd());
-  if (!root) throw new Error('Could not find resources/project-architecture/. Pass --project <root> or run inside the project.');
-  return root;
+  const finish = (root) => {
+    ensureResourcesLayout(root);
+    return root;
+  };
+  if (flags.project) return finish(path.resolve(String(flags.project)));
+  const discovered = findProjectRoot(process.cwd());
+  if (discovered) return finish(discovered);
+  // No marker walking parents — use cwd and create resources/project-architecture/.
+  return finish(process.cwd());
 }
 
 function specOverlayDir(projectRoot, specFlag) {
@@ -655,14 +664,10 @@ async function verbUndo(flags, projectRoot, io) {
 async function verbOpen(flags, projectRoot, io) {
   const atlas = path.join(projectRoot, ATLAS_INDEX_REL);
   if (!fs.existsSync(atlas)) {
-    // Try to render fresh if state exists
-    const baseDir = baseAtlasDir(projectRoot);
-    if (fs.existsSync(path.join(baseDir, stateLib.INDEX_FILE))) {
-      await runRender({ projectRoot, flags: { ...flags, spec: undefined } });
-    }
+    await runRender({ projectRoot, flags: { ...flags, spec: undefined } });
   }
   if (!fs.existsSync(atlas)) {
-    io.stderr.write(`Atlas not found: ${atlas}\n`);
+    io.stderr.write(`Atlas not found after render: ${atlas}\n`);
     return 1;
   }
   io.stdout.write(`${atlas}\n`);
