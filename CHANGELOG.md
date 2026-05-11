@@ -10,6 +10,18 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.2] - 2026-05-11
+
+### Fixed
+
+- `apltk architecture` / `resolveProjectRoot`: auto-create `resources/project-architecture/` on every command; when no atlas marker is found walking parent directories, use the current working directory as the project root (explicit `--project` still wins). `open` renders a fresh `index.html` when the file is missing so an empty tree bootstraps in one step.
+- Legacy `init-project-html/scripts/architecture.js` `open` / `diff`: same directory creation and one-shot `render` bootstrap via `architecture-bootstrap-render.js` when `index.html` is absent.
+
+### Added
+
+- `init-project-html/scripts/architecture-bootstrap-render.js` helper invoked by the legacy sync `open` path.
+- Tests: `test/atlas-cli.test.js` covers `--project` on a bare directory (layout + `index.html`); `test/architecture-script.test.js` expects legacy `open` to exit 0 when `index.html` is missing after bootstrap.
+
 ## [v3.11.1] - 2026-05-11
 
 ### Added
@@ -26,8 +38,6 @@ All notable changes to this repository are documented in this file.
 ### Fixed
 
 - `viewer.client.js`: defer pointer capture until the pointer moves past a small drag threshold so clicks on macro sub-module links navigate; swallow the synthetic click after an actual drag so pan does not accidentally open a page.
-- `apltk architecture` / `resolveProjectRoot`: auto-create `resources/project-architecture/` on every command; when no atlas marker is found walking parent directories, use the current working directory as the project root (explicit `--project` still wins). `open` renders a fresh `index.html` when the file is missing so an empty tree bootstraps in one step.
-- Legacy `init-project-html/scripts/architecture.js` `open` / `diff`: same directory creation and one-shot `render` bootstrap via `architecture-bootstrap-render.js` when `index.html` is absent.
 
 ## [v3.11.0] - 2026-05-11
 
