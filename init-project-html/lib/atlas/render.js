@@ -81,13 +81,13 @@ function edgeKindFor(stateEdge) {
 function findEdgeMeta(state, edgeId) {
   for (const feature of state.features || []) {
     for (const e of feature.edges || []) {
-      if (e.id === edgeId) return e;
+      if (e.id === edgeId) return { edge: e, scope: 'feature' };
     }
   }
   for (const e of state.edges || []) {
-    if (e.id === edgeId) return e;
+    if (e.id === edgeId) return { edge: e, scope: 'root' };
   }
-  return null;
+  return { edge: null, scope: 'feature' };
 }
 
 function renderMacroSvg(layout, state) {
@@ -144,17 +144,29 @@ function renderMacroSvg(layout, state) {
   }
 
   for (const edge of layout.edges) {
-    const meta = findEdgeMeta(state, edge.id);
+    const { edge: meta, scope } = findEdgeMeta(state, edge.id);
     const kind = edgeKindFor(meta);
     const d = renderEdgePath(edge);
     if (!d) continue;
-    parts.push(`    <g class="m-edge m-edge--${kind}" data-edge="${htmlEscape(edge.id)}">`);
+    const scopeClass = scope === 'root' ? ' m-edge--cross' : '';
+    parts.push(`    <g class="m-edge m-edge--${kind}${scopeClass}" data-edge="${htmlEscape(edge.id)}">`);
     parts.push(`      <path d="${d}" fill="none" marker-end="url(#arrow-${kind})" />`);
     for (const label of edge.labels || []) {
       if (!label.text) continue;
-      const lx = label.x + (label.width || 0) / 2;
-      const ly = label.y + (label.height || 0) / 2 + 4;
-      parts.push(`      <text class="m-edge__label" x="${lx.toFixed(2)}" y="${ly.toFixed(2)}" text-anchor="middle">${htmlEscape(label.text)}</text>`);
+      const lines = String(label.text).split('\n');
+      const cx = label.x + (label.width || 0) / 2;
+      const lineH = 14; // matches EDGE_LABEL_LINE_PX in layout.js
+      const blockH = lines.length * lineH;
+      const firstBaseline = label.y + ((label.height || 0) - blockH) / 2 + (lineH - 3);
+      parts.push(`      <text class="m-edge__label" x="${cx.toFixed(2)}" y="${firstBaseline.toFixed(2)}" text-anchor="middle">`);
+      lines.forEach((line, idx) => {
+        if (idx === 0) {
+          parts.push(`        <tspan x="${cx.toFixed(2)}">${htmlEscape(line)}</tspan>`);
+        } else {
+          parts.push(`        <tspan x="${cx.toFixed(2)}" dy="${lineH}">${htmlEscape(line)}</tspan>`);
+        }
+      });
+      parts.push('      </text>');
     }
     parts.push('    </g>');
   }

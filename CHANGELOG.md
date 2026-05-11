@@ -10,6 +10,20 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.4] - 2026-05-12
+
+### Added
+
+- Macro atlas: `measureEdgeLabel` wraps long edge labels (including CJK) with honest width/height for elkjs so orthogonal routes reserve space proportional to label size; `renderMacroSvg` paints wrapped labels as stacked `<tspan>` lines on one anchor.
+- Macro atlas: isolated feature clusters (no intra-feature edges and not an endpoint of a root-level cross-feature edge) use elk **rectpacking** with aspect-ratio hint for a grid-like pack instead of a tall vertical column of sub-modules.
+- Tests: CJK submodule sizing, edge-label wrapping, rectpacking vs layered cluster selection, compact rectpack geometry, `m-edge--cross` markup, and cross-edge CSS dim/hover rules.
+
+### Changed
+
+- Macro layout (`layout.js`): CJK-aware text width and visual-width wrapping for sub-module **role** lines; raised `SUB_WIDTH_MAX` / `SUB_HEIGHT_MAX` and `MAX_ROLE_LINES`; sub-module boxes prefer fewer wrapped lines when content allows.
+- Root ELK graph: `elk.aspectRatio` 16:9, tighter node/layer spacing and padding, `BALANCED` node placement, `EDGE_LENGTH` post-compaction; cluster padding and internal spacing reduced.
+- Cross-feature edges: root-level edges render with `m-edge--cross`; default lower opacity/thinner stroke, full strength on hover/focus so intra-feature flow reads first.
+
 ## [v3.11.3] - 2026-05-11
 
 ### Added

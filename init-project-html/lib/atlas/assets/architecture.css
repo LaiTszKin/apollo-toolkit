@@ -433,7 +433,22 @@ p { line-height: 1.6; color: var(--vellum-soft); }
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.02em;
+  paint-order: stroke fill;
+  stroke: var(--ink);
+  stroke-width: 3.5;
+  stroke-linejoin: round;
+  pointer-events: none;
 }
+
+/* Cross-feature edges are routed across the entire atlas and tend to
+   be the loudest lines on screen. Dim them so intra-feature flow
+   reads first; restore full strength on hover/focus. */
+.m-edge--cross path { opacity: 0.5; stroke-width: 1.1; }
+.m-edge--cross .m-edge__label { opacity: 0.7; }
+.m-edge--cross:hover path,
+.m-edge--cross:focus-within path { opacity: 1; stroke-width: 1.8; }
+.m-edge--cross:hover .m-edge__label,
+.m-edge--cross:focus-within .m-edge__label { opacity: 1; }
 
 /* =================================================================
    feature page
