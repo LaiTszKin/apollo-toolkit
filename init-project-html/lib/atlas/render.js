@@ -560,9 +560,38 @@ async function renderAll({ outDir, state, scope = null, removedPaths = [] }) {
   // do not linger with the previous (broken) markup or styling.
   if (!scope) {
     sweepOrphanFeaturePages(outDir, state);
+  } else {
+    sweepScopedHtml(outDir, new Set(written.map((file) => file.split(path.sep).join('/'))));
   }
 
   return { written, layout };
+}
+
+function sweepScopedHtml(outDir, keepPaths) {
+  function recurse(dir) {
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (_e) { return; }
+    for (const entry of entries) {
+      if (entry.name === 'assets' || entry.name === 'atlas' || entry.name.startsWith('.')) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        recurse(full);
+        let remaining;
+        try { remaining = fs.readdirSync(full); } catch (_e) { remaining = null; }
+        if (remaining && remaining.length === 0) {
+          fs.rmSync(full, { recursive: true, force: true });
+        }
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.html')) continue;
+      const rel = path.relative(outDir, full).split(path.sep).join('/');
+      if (!keepPaths.has(rel)) {
+        fs.rmSync(full, { force: true });
+      }
+    }
+  }
+
+  recurse(outDir);
 }
 
 function sweepOrphanFeaturePages(outDir, state) {

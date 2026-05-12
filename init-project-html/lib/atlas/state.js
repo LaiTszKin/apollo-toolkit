@@ -26,6 +26,7 @@ const REMOVED_FILE = '_removed.yaml';
 const FEATURES_DIR = 'features';
 const HISTORY_FILE = 'atlas.history.log';
 const UNDO_FILE = 'atlas.history.undo.json';
+const UNDO_STACK_FILE = 'atlas.history.undo.stack.json';
 const ATLAS_DIRNAME = 'atlas';
 
 function readYaml(file) {
@@ -257,6 +258,51 @@ function mergeOverlay(base, overlay) {
   return merged;
 }
 
+function deriveOverlay(base, merged) {
+  const overlay = {
+    meta: null,
+    actors: null,
+    edges: null,
+    featureOrder: null,
+    features: {},
+    removed: { features: [], submodules: [] },
+  };
+
+  if (JSON.stringify(merged.meta || {}) !== JSON.stringify(base.meta || {})) {
+    overlay.meta = merged.meta || {};
+  }
+  if (JSON.stringify(merged.actors || []) !== JSON.stringify(base.actors || [])) {
+    overlay.actors = merged.actors || [];
+  }
+  if (JSON.stringify(merged.edges || []) !== JSON.stringify(base.edges || [])) {
+    overlay.edges = merged.edges || [];
+  }
+
+  const baseOrder = (base.features || []).map((feature) => feature.slug);
+  const mergedOrder = (merged.features || []).map((feature) => feature.slug);
+  if (JSON.stringify(mergedOrder) !== JSON.stringify(baseOrder)) {
+    overlay.featureOrder = mergedOrder;
+  }
+
+  const baseFeatures = new Map((base.features || []).map((feature) => [feature.slug, feature]));
+  const mergedFeatures = new Map((merged.features || []).map((feature) => [feature.slug, feature]));
+
+  for (const [slug, feature] of mergedFeatures) {
+    const baseFeature = baseFeatures.get(slug);
+    if (!baseFeature || JSON.stringify(feature) !== JSON.stringify(baseFeature)) {
+      overlay.features[slug] = feature;
+    }
+  }
+
+  for (const slug of baseFeatures.keys()) {
+    if (!mergedFeatures.has(slug)) {
+      overlay.removed.features.push(slug);
+    }
+  }
+
+  return overlay;
+}
+
 // diffPages compares the merged after-state against the base and
 // classifies which HTML pages must be regenerated (modified) versus
 // emitted fresh (added) versus listed in _removed.txt (removed).
@@ -361,19 +407,52 @@ function appendHistory(atlasDir, entry) {
 }
 
 function writeUndoSnapshot(atlasDir, state) {
-  fs.mkdirSync(atlasDir, { recursive: true });
-  fs.writeFileSync(path.join(atlasDir, UNDO_FILE), JSON.stringify(state, null, 2), 'utf8');
+  const stack = readUndoStack(atlasDir);
+  stack.push(state);
+  writeUndoStack(atlasDir, stack);
 }
 
 function readUndoSnapshot(atlasDir) {
-  const file = path.join(atlasDir, UNDO_FILE);
-  if (!fs.existsSync(file)) return null;
-  return JSON.parse(fs.readFileSync(file, 'utf8'));
+  const stack = readUndoStack(atlasDir);
+  return stack.length > 0 ? stack[stack.length - 1] : null;
 }
 
 function clearUndoSnapshot(atlasDir) {
-  const file = path.join(atlasDir, UNDO_FILE);
-  if (fs.existsSync(file)) fs.rmSync(file);
+  writeUndoStack(atlasDir, []);
+}
+
+function consumeUndoSnapshot(atlasDir, steps = 1) {
+  if (!Number.isInteger(steps) || steps < 1) return null;
+  const stack = readUndoStack(atlasDir);
+  if (stack.length < steps) return null;
+  const snapshot = stack[stack.length - steps];
+  writeUndoStack(atlasDir, stack.slice(0, stack.length - steps));
+  return snapshot;
+}
+
+function readUndoStack(atlasDir) {
+  const stackFile = path.join(atlasDir, UNDO_STACK_FILE);
+  if (fs.existsSync(stackFile)) {
+    return JSON.parse(fs.readFileSync(stackFile, 'utf8'));
+  }
+  const latestFile = path.join(atlasDir, UNDO_FILE);
+  if (fs.existsSync(latestFile)) {
+    return [JSON.parse(fs.readFileSync(latestFile, 'utf8'))];
+  }
+  return [];
+}
+
+function writeUndoStack(atlasDir, stack) {
+  const stackFile = path.join(atlasDir, UNDO_STACK_FILE);
+  const latestFile = path.join(atlasDir, UNDO_FILE);
+  if (!stack || stack.length === 0) {
+    if (fs.existsSync(stackFile)) fs.rmSync(stackFile);
+    if (fs.existsSync(latestFile)) fs.rmSync(latestFile);
+    return;
+  }
+  fs.mkdirSync(atlasDir, { recursive: true });
+  fs.writeFileSync(stackFile, JSON.stringify(stack, null, 2), 'utf8');
+  fs.writeFileSync(latestFile, JSON.stringify(stack[stack.length - 1], null, 2), 'utf8');
 }
 
 module.exports = {
@@ -383,6 +462,7 @@ module.exports = {
   FEATURES_DIR,
   HISTORY_FILE,
   UNDO_FILE,
+  UNDO_STACK_FILE,
   readYaml,
   writeYaml,
   load,
@@ -390,6 +470,7 @@ module.exports = {
   loadOverlay,
   saveOverlay,
   mergeOverlay,
+  deriveOverlay,
   diffPages,
   normalizeFeature,
   normalizeSubmodule,
@@ -397,6 +478,7 @@ module.exports = {
   writeUndoSnapshot,
   readUndoSnapshot,
   clearUndoSnapshot,
+  consumeUndoSnapshot,
   macroVisualOf,
   featureVisualOf,
 };

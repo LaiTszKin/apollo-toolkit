@@ -206,6 +206,37 @@ test('--spec writes to overlay path and never mutates base files', async () => {
   }
 });
 
+test('--spec member paths in a batch write to the shared batch-root architecture_diff', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'register', '--title', 'Register', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'api', '--kind', 'api', '--role', 'Endpoint', '--project', root, '--no-render'], io);
+
+    const batchRoot = path.join(root, 'docs/plans/2026-05-12/shared-batch');
+    const memberA = path.join(batchRoot, 'member-a');
+    const memberB = path.join(batchRoot, 'member-b');
+    fs.mkdirSync(memberA, { recursive: true });
+    fs.mkdirSync(memberB, { recursive: true });
+    fs.writeFileSync(path.join(batchRoot, 'coordination.md'), '# coordination\n');
+
+    await cli.dispatch(['feature', 'set', '--slug', 'register', '--title', 'Register batch', '--spec', 'docs/plans/2026-05-12/shared-batch/member-a', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'ui', '--kind', 'ui', '--role', 'Batch UI', '--spec', 'docs/plans/2026-05-12/shared-batch/member-b', '--project', root, '--no-open'], io);
+
+    const batchFeatureYaml = path.join(batchRoot, 'architecture_diff', 'atlas', 'features', 'register.yaml');
+    assert.equal(fs.existsSync(batchFeatureYaml), true);
+    const batchOverlay = fs.readFileSync(batchFeatureYaml, 'utf8');
+    assert.match(batchOverlay, /Register batch/);
+    assert.match(batchOverlay, /slug: ui/);
+
+    assert.equal(fs.existsSync(path.join(memberA, 'architecture_diff')), false, 'member-a should not get its own architecture_diff');
+    assert.equal(fs.existsSync(path.join(memberB, 'architecture_diff')), false, 'member-b should not get its own architecture_diff');
+    assert.equal(fs.existsSync(path.join(batchRoot, 'architecture_diff', 'features', 'register', 'ui.html')), true);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('feature remove in --spec records the removal in _removed.yaml', async () => {
   const root = mkProject();
   try {
@@ -220,6 +251,66 @@ test('feature remove in --spec records the removal in _removed.yaml', async () =
     const removedTxt = fs.readFileSync(path.join(specDir, 'architecture_diff/_removed.txt'), 'utf8');
     assert.match(removedTxt, /features\/legacy\/index\.html/);
     assert.match(removedTxt, /features\/legacy\/svc\.html/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('spec re-adding a removed submodule clears removal state and stops reporting it as removed', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'register', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'api', '--kind', 'api', '--role', 'Endpoint', '--project', root, '--no-open'], io);
+
+    const specDir = path.join(root, 'docs/plans/2026-05-12/readd-api');
+    fs.mkdirSync(specDir, { recursive: true });
+
+    await cli.dispatch(['submodule', 'remove', '--feature', 'register', '--slug', 'api', '--spec', 'docs/plans/2026-05-12/readd-api', '--project', root, '--no-open'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'api', '--kind', 'api', '--role', 'Updated endpoint', '--spec', 'docs/plans/2026-05-12/readd-api', '--project', root, '--no-open'], io);
+
+    const overlay = stateLib.loadOverlay(path.join(specDir, 'architecture_diff', 'atlas'));
+    assert.deepEqual(overlay.removed.features, []);
+    assert.deepEqual(overlay.removed.submodules, []);
+
+    const base = stateLib.load(path.join(root, 'resources', 'project-architecture', 'atlas'));
+    const merged = stateLib.mergeOverlay(base, overlay);
+    const register = merged.features.find((feature) => feature.slug === 'register');
+    assert.equal(register.submodules.some((submodule) => submodule.slug === 'api'), true);
+    assert.equal(register.submodules.find((submodule) => submodule.slug === 'api').role, 'Updated endpoint');
+
+    const diffIo = makeIo();
+    const code = await cli.dispatch(['diff', '--project', root, '--out', path.join(root, 'diff-readd'), '--no-open'], diffIo);
+    assert.equal(code, 0);
+    assert.match(diffIo.stdout_text, /removed=0/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('spec setting a submodule back to its base state clears the overlay diff', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'register', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'ui', '--kind', 'ui', '--role', 'Base role', '--project', root, '--no-render'], io);
+
+    const specDir = path.join(root, 'docs/plans/2026-05-12/revert-ui-role');
+    fs.mkdirSync(specDir, { recursive: true });
+
+    await cli.dispatch(['submodule', 'set', '--feature', 'register', '--slug', 'ui', '--kind', 'ui', '--role', 'Spec role', '--spec', 'docs/plans/2026-05-12/revert-ui-role', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'set', '--feature', 'register', '--slug', 'ui', '--kind', 'ui', '--role', 'Base role', '--spec', 'docs/plans/2026-05-12/revert-ui-role', '--project', root, '--no-render'], io);
+
+    const overlayDir = path.join(specDir, 'architecture_diff', 'atlas');
+    const overlay = stateLib.loadOverlay(overlayDir);
+    assert.deepEqual(Object.keys(overlay.features), []);
+    assert.deepEqual(overlay.removed.features, []);
+    assert.deepEqual(overlay.removed.submodules, []);
+
+    const diffIo = makeIo();
+    const code = await cli.dispatch(['diff', '--project', root, '--out', path.join(root, 'diff-revert'), '--no-open'], diffIo);
+    assert.equal(code, 0);
+    assert.match(diffIo.stdout_text, /Diff pages: 0/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
@@ -524,6 +615,75 @@ test('diff counts a modified overlay page against base HTML', async () => {
   }
 });
 
+test('diff merges batch member overlays into one combined macro view', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'register', '--project', root, '--no-open'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'api', '--kind', 'api', '--role', 'Base API', '--project', root, '--no-open'], io);
+
+    const batchRoot = path.join(root, 'docs/plans/2026-05-12/invite-batch');
+    fs.mkdirSync(batchRoot, { recursive: true });
+    fs.writeFileSync(path.join(batchRoot, 'coordination.md'), '# coordination\n');
+    fs.mkdirSync(path.join(batchRoot, 'member-a'), { recursive: true });
+    fs.mkdirSync(path.join(batchRoot, 'member-b'), { recursive: true });
+
+    await cli.dispatch(['feature', 'add', '--slug', 'billing', '--title', 'Billing', '--spec', 'docs/plans/2026-05-12/invite-batch/member-a', '--project', root, '--no-open'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'billing', '--slug', 'api', '--kind', 'api', '--role', 'Billing API', '--spec', 'docs/plans/2026-05-12/invite-batch/member-a', '--project', root, '--no-open'], io);
+
+    await cli.dispatch(['feature', 'add', '--slug', 'profile', '--title', 'Profile', '--spec', 'docs/plans/2026-05-12/invite-batch/member-b', '--project', root, '--no-open'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'profile', '--slug', 'ui', '--kind', 'ui', '--role', 'Profile UI', '--spec', 'docs/plans/2026-05-12/invite-batch/member-b', '--project', root, '--no-open'], io);
+
+    const outDir = path.join(root, 'diff-batch');
+    const diffIo = makeIo();
+    const code = await cli.dispatch(['diff', '--project', root, '--out', outDir, '--no-open'], diffIo);
+    assert.equal(code, 0);
+    assert.match(diffIo.stdout_text, /Diff pages: 5/);
+    assert.match(diffIo.stdout_text, /modified=1/);
+    assert.match(diffIo.stdout_text, /added=4/);
+
+    const viewer = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
+    const macroMatches = viewer.match(/"rel":"index\.html"/g) || [];
+    assert.equal(macroMatches.length, 1, 'batch diff should emit a single combined macro page');
+    assert.match(viewer, /docs\/plans\/2026-05-12\/invite-batch/);
+    assert.doesNotMatch(viewer, /_batch/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('diff falls back to legacy batch member html manifests when atlas overlay state is absent', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'register', '--project', root, '--no-open'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'ui', '--kind', 'ui', '--role', 'Base UI', '--project', root, '--no-open'], io);
+
+    const batchRoot = path.join(root, 'docs/plans/2026-05-12/legacy-html-batch');
+    const memberA = path.join(batchRoot, 'member-a');
+    const memberB = path.join(batchRoot, 'member-b');
+    fs.mkdirSync(path.join(memberA, 'architecture_diff', 'features', 'register'), { recursive: true });
+    fs.mkdirSync(path.join(memberB, 'architecture_diff', 'features', 'extra'), { recursive: true });
+    fs.writeFileSync(path.join(batchRoot, 'coordination.md'), '# coordination\n');
+
+    const baseUi = fs.readFileSync(path.join(root, 'resources/project-architecture/features/register/ui.html'), 'utf8');
+    fs.writeFileSync(path.join(memberA, 'architecture_diff', 'features', 'register', 'ui.html'), baseUi.replace('Base UI', 'Legacy member A UI'), 'utf8');
+    fs.writeFileSync(path.join(memberB, 'architecture_diff', 'features', 'extra', 'index.html'), '<html><body>extra feature</body></html>', 'utf8');
+
+    const diffIo = makeIo();
+    const code = await cli.dispatch(['diff', '--project', root, '--out', path.join(root, 'diff-legacy-batch'), '--no-open'], diffIo);
+    assert.equal(code, 0);
+    assert.match(diffIo.stdout_text, /modified=1/);
+    assert.match(diffIo.stdout_text, /added=1/);
+
+    const viewer = fs.readFileSync(path.join(root, 'diff-legacy-batch', 'index.html'), 'utf8');
+    assert.match(viewer, /docs\/plans\/2026-05-12\/legacy-html-batch\/member-a/);
+    assert.match(viewer, /docs\/plans\/2026-05-12\/legacy-html-batch\/member-b/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('validate --spec checks merged base + overlay', async () => {
   const root = mkProject();
   try {
@@ -552,6 +712,59 @@ test('undo --spec restores overlay snapshot', async () => {
     assert.ok(fs.existsSync(path.join(specDir, 'architecture_diff/atlas/features/r.yaml')));
     await cli.dispatch(['undo', '--spec', 'docs/plans/undo-spec', '--project', root, '--no-render'], io);
     assert.equal(fs.existsSync(path.join(specDir, 'architecture_diff/atlas/features/r.yaml')), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('undo --steps rolls back multiple spec mutations', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'r', '--title', 'Base title', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'api', '--kind', 'api', '--project', root, '--no-render'], io);
+
+    const specDir = path.join(root, 'docs/plans/undo-spec-steps');
+    fs.mkdirSync(specDir, { recursive: true });
+
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'svc', '--kind', 'service', '--spec', 'docs/plans/undo-spec-steps', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'r', '--slug', 'ui', '--kind', 'ui', '--spec', 'docs/plans/undo-spec-steps', '--project', root, '--no-render'], io);
+    await cli.dispatch(['feature', 'set', '--slug', 'r', '--title', 'Spec title', '--spec', 'docs/plans/undo-spec-steps', '--project', root, '--no-render'], io);
+
+    const code = await cli.dispatch(['undo', '--steps', '2', '--spec', 'docs/plans/undo-spec-steps', '--project', root, '--no-render'], io);
+    assert.equal(code, 0);
+
+    const base = stateLib.load(path.join(root, 'resources', 'project-architecture', 'atlas'));
+    const overlay = stateLib.loadOverlay(path.join(specDir, 'architecture_diff', 'atlas'));
+    const merged = stateLib.mergeOverlay(base, overlay);
+    const feature = merged.features.find((entry) => entry.slug === 'r');
+    assert.equal(feature.title, 'Base title');
+    assert.equal(feature.submodules.some((entry) => entry.slug === 'svc'), true);
+    assert.equal(feature.submodules.some((entry) => entry.slug === 'ui'), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('spec render deletes stale overlay html when a previously modified page is removed', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['feature', 'add', '--slug', 'register', '--project', root, '--no-render'], io);
+    await cli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'ui', '--kind', 'ui', '--role', 'Base role', '--project', root, '--no-open'], io);
+
+    const specDir = path.join(root, 'docs/plans/2026-05-12/remove-stale-page');
+    fs.mkdirSync(specDir, { recursive: true });
+    const pagePath = path.join(specDir, 'architecture_diff', 'features', 'register', 'ui.html');
+
+    await cli.dispatch(['submodule', 'set', '--feature', 'register', '--slug', 'ui', '--kind', 'ui', '--role', 'Spec role', '--spec', 'docs/plans/2026-05-12/remove-stale-page', '--project', root, '--no-open'], io);
+    assert.equal(fs.existsSync(pagePath), true);
+
+    await cli.dispatch(['submodule', 'remove', '--feature', 'register', '--slug', 'ui', '--spec', 'docs/plans/2026-05-12/remove-stale-page', '--project', root, '--no-open'], io);
+    assert.equal(fs.existsSync(pagePath), false);
+
+    const removedTxt = fs.readFileSync(path.join(specDir, 'architecture_diff', '_removed.txt'), 'utf8');
+    assert.match(removedTxt, /features\/register\/ui\.html/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

@@ -1,11 +1,14 @@
 ---
 name: generate-spec
 description: >-
-  Author docs/plans trees: run `apltk create-specs`, hydrate `spec/tasks/checklist/contract/design` (+ `coordination.md`/`preparation.md` when parallel/prep dictates), cite official docs for external deps, plan tests via **`test-case-strategy`**, block code edits until explicit user approval.
-  Architecture deltas use `apltk architecture --spec <spec_dir> …` (**flags: `apltk architecture --help`**) → overlay under `<spec_dir>/architecture_diff/`; **`apltk architecture diff`** pages every `docs/plans/**/architecture_diff/` vs the base atlas — never hand-edit `architecture_diff/`.
-  Use when drafting/refreshing specs or restructuring batches — not when executing approved plans (use **`implement-specs*`** instead).
-  Reject vague `tasks.md` missing file/mutation/verifier; SPLIT >3-module scope; never overwrite a neighbor `{change}`.
-  Bad: `- [ ] Add tests`… OK: `- [ ] src/auth/scope.rs — deny unknown scopes — Verify: cargo test scope::defaults`…
+  Author docs/plans trees: run `apltk create-specs`, fill `spec/tasks/checklist/contract/design`
+  (+ `coordination.md`/`preparation.md` for batches), cite official docs, plan tests via
+  **`test-case-strategy`**, and block code edits until approval. Architecture deltas use
+  `apltk architecture --spec <spec_dir> …`: single specs write under `<spec_dir>/architecture_diff/`,
+  while batch member paths resolve to the shared batch-root `architecture_diff/` beside
+  `coordination.md`; `apltk architecture diff` renders the before/after viewer. Use for
+  drafting/refreshing specs or restructuring batches, not execution. Reject vague `tasks.md`
+  rows and split scope beyond 3 modules.
 ---
 
 # Generate Spec
@@ -27,7 +30,7 @@ description: >-
 - **`tasks.md` checklist items**: **every** `- [ ]` **MUST** specify (a) concrete file/function target, (b) specific modification and expected outcome, (c) a verification hook—**no** vague rows (`Implement integration`, `Add tests`). Forbidden vague items **MUST** be rewritten before approval.
 - **MUST** use `test-case-strategy` when planning non-trivial logic tests and checklist mapping (test IDs, drift checks). Every **non-trivial** `tasks.md` implementation item **MUST** name a focused unit drift check, another concrete verification hook, or **`N/A`** with a concrete reason.
 - **MUST NOT** modify implementation code before **explicit user approval** of the spec set. Clarifications **MUST** sync across affected files and **MUST** re-trigger approval. If scope becomes a **different issue**, **MUST** stop editing the old set and create a **new** `change_name`.
-- **MUST** when the proposed change touches the architecture surface (feature / sub-module add / rename / remove, edge add / remove, variable rows, function I/O rows, internal dataflow / error deltas), declare the proposed-after state **only** through `apltk architecture --spec <spec_dir> …` using the exact verbs, subverbs, and flags from **`apltk architecture --help`** (this file must not be treated as the command list). The CLI writes overlay YAML to `<spec_dir>/architecture_diff/atlas/` and renders only the affected proposed-after HTML pages under `<spec_dir>/architecture_diff/`. **`apltk architecture diff`** then builds a paginated **before/after viewer**: it walks every `docs/plans/**/architecture_diff/` tree, pairs each overlay HTML path with the matching file under `resources/project-architecture/` when it exists, and labels pages **modified**, **added**, or **removed** (via `_removed.txt` / removal manifests) so reviewers can scroll the whole architecture delta without opening files by hand. **MUST NOT** hand-author anything under `architecture_diff/**` — the renderer owns layout, DOM, CSS, ARIA, and pan/zoom. For batch specs the overlay lives in **each member spec’s own directory** only — **MUST NOT** duplicate overlay at the batch root. Use this skill’s `references/TEMPLATE_SPEC.md` for field/enum schema; use `init-project-html/SKILL.md` for semantic rules (**subagent gate** + edge kinds + dataflow integrity). When using subagents to draft atlas overlay, the authoring agent **MUST** wait until **all** feature subagents finish before declaring cross-feature **`edge`** (or overlay **`meta`** / **`actor`** that only exists to stitch features), matching `init-project-html` / `spec-to-project-html`.
+- **MUST** when the proposed change touches the architecture surface (feature / sub-module add / rename / remove, edge add / remove, variable rows, function I/O rows, internal dataflow / error deltas), declare the proposed-after state **only** through `apltk architecture --spec <spec_dir> …` using the exact verbs, subverbs, and flags from **`apltk architecture --help`** (this file must not be treated as the command list). The CLI writes overlay YAML to `<spec_dir>/architecture_diff/atlas/` and renders only the affected proposed-after HTML pages under `<spec_dir>/architecture_diff/` for single-spec plans. For batch plans, passing any member spec path to `--spec` resolves to the shared batch-root overlay beside `coordination.md`, so the whole batch maintains **one** `architecture_diff/atlas/` and **one** rendered architecture diff. **`apltk architecture diff`** then builds a paginated **before/after viewer**: it walks every `docs/plans/**/architecture_diff/` tree, pairs each overlay HTML path with the matching file under `resources/project-architecture/` when it exists, and labels pages **modified**, **added**, or **removed** (via `_removed.txt` / removal manifests) so reviewers can scroll the whole architecture delta without opening files by hand. **MUST NOT** hand-author anything under `architecture_diff/**` — the renderer owns layout, DOM, CSS, ARIA, and pan/zoom. Use this skill’s `references/TEMPLATE_SPEC.md` for field/enum schema; use `init-project-html/SKILL.md` for semantic rules (**subagent gate** + edge kinds + dataflow integrity). When using subagents to draft atlas overlay, the authoring agent **MUST** wait until **all** feature subagents finish before declaring cross-feature **`edge`** (or overlay **`meta`** / **`actor`** that only exists to stitch features), matching `init-project-html` / `spec-to-project-html`.
 - Write prose in the **user’s language** by default; keep requirement/task/test IDs traceable across `spec.md`, `tasks.md`, and `checklist.md`.
 - **MUST** use **kebab-case** `change_name`; **MUST NOT** use spaces or arbitrary special characters in names.
 
@@ -85,15 +88,15 @@ Always materialize: `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `desig
 
 When the spec changes a feature module, sub-module, edge, variable row, function I/O row, internal dataflow, or error row:
 
+**Completion standard:** the overlay is not complete until every intended cross-feature **edge**, every feature-to-feature dependency or call/return relationship, and every sub-module-to-sub-module relationship inside the affected scope has been declared precisely through the CLI. It is **not** acceptable to leave relationship structure implied only by prose in `spec.md` / `design.md`; the architecture diff must explicitly express the real proposed-after topology.
+
 1. **Discover commands:** run **`apltk architecture --help`** in the target workspace; use that output for every `add` / `set` / `remove` / `reorder` spelling and required flag. Do not copy long command tables from skills — they go stale.
-2. **Declare proposed-after state** with `apltk architecture --spec <spec_dir> …` for each mutation (pass `--no-render` while batching if you prefer a single render at the end).
-3. **`apltk architecture render --spec <spec_dir>`** — emits/updates only the HTML files touched by this overlay plus assets.
-4. **`apltk architecture validate --spec <spec_dir>`** — **MUST** return OK before the spec is approval-ready (resolve dangling edges, unknown enums, bad dataflow references).
-5. **`apltk architecture diff`** — **MUST** run before hand-off when atlas changed; confirm the paginated viewer shows sensible **modified** / **added** / **removed** counts and that each interesting path pairs correctly (base `resources/project-architecture/…` vs `<spec_dir>/architecture_diff/…`). A page appearing as **remove + add** instead of **modified** usually means a **slug rename** was split wrong — fix with intentional remove+add or a single coherent mutation sequence.
+2. **Declare proposed-after state** with `apltk architecture --spec <spec_dir> …` for each mutation (pass `--no-render` while batching if you prefer a single render at the end). In a batch, keep using the member spec path; the CLI resolves writes to the batch-root `architecture_diff/` beside `coordination.md`.
+3. **`apltk architecture render --spec <spec_dir>`** — emits/updates only the HTML files touched by this overlay plus assets. In a batch, this updates the shared batch-root render.
+4. **`apltk architecture validate --spec <spec_dir>`** — **MUST** return OK before the spec is approval-ready (resolve dangling edges, unknown enums, bad dataflow references). In a batch, this validates the shared batch-root overlay.
+5. **`apltk architecture diff`** — **MUST** run before hand-off when atlas changed; confirm the paginated viewer shows sensible **modified** / **added** / **removed** counts and that each interesting path pairs correctly (base `resources/project-architecture/…` vs the spec or batch-root `architecture_diff/…`). Use this pass to verify that the rendered graph actually contains the full intended relationship set: all relevant feature-level seams, all required sub-module seams, and no missing edge that the design prose depends on. A page appearing as **remove + add** instead of **modified** usually means a **slug rename** was split wrong — fix with intentional remove+add or a single coherent mutation sequence.
 
-**Where files land:** overlay YAML under `<spec_dir>/architecture_diff/atlas/`; rendered proposed-after HTML under `<spec_dir>/architecture_diff/`. Cross-feature edges whose far endpoint exists only in the **base** atlas still resolve when merged — but you **must** `validate` to catch mistakes.
-
-**Batch specs:** each `<spec_dir>` is one member directory under `docs/plans/...`; **never** duplicate overlay at the batch root.
+**Where files land:** single-spec plans write overlay YAML under `<spec_dir>/architecture_diff/atlas/` and rendered proposed-after HTML under `<spec_dir>/architecture_diff/`. Batch plans write both under the batch root beside `coordination.md`, even when the CLI call uses a member spec path. Cross-feature edges whose far endpoint exists only in the **base** atlas still resolve when merged — but you **must** `validate` to catch mistakes.
 
 **Subagent coordination:** if multiple features are drafted in parallel, **do not** declare cross-feature **`edge`** (or overlay **`meta` / `actor`** used only to stitch features) until **all** feature workers report done — see `init-project-html/SKILL.md` Rule 3 and `spec-to-project-html`.
 
@@ -102,6 +105,7 @@ When the spec changes a feature module, sub-module, edge, variable row, function
 - **Pause →** Did I touch any file under `architecture_diff/` by hand? Revert and re-run the CLI verb instead.
 - **Pause →** Does `apltk architecture validate --spec <spec_dir>` return OK?
 - **Pause →** Does `apltk architecture diff` pair the spec’s pages correctly?
+- **Pause →** Have I explicitly declared every intended edge, feature-to-feature relationship, and sub-module relationship in the CLI output, or am I still relying on prose to imply missing structure?
 
 ### 4) Clarifications and approval
 

@@ -10,6 +10,24 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.6] - 2026-05-12
+
+### Added
+
+- Tests: spec-mode batch-root overlay writes, combined batch diff rendering, legacy HTML-only batch diff fallback, repeated spec render cleanup, and multi-step `undo` coverage for the declarative atlas CLI.
+
+### Changed
+
+- `apltk architecture --spec <spec_dir>` now keeps the existing single-spec layout for standalone plans, but batch member paths resolve to one shared `architecture_diff/` beside `coordination.md` so the whole batch maintains a single overlay and rendered architecture diff.
+- `generate-spec` and `spec-to-project-html` now document the shared batch-root overlay behavior and tighten architecture-diff completion criteria: all intended cross-feature edges, feature-to-feature relationships, and sub-module relationships must be declared explicitly through the CLI instead of being left implicit in prose.
+- Spec-mode atlas persistence now derives overlay state from the merged proposed-after graph, which lets repeated edits collapse back to a minimal diff automatically and adds `apltk architecture undo --steps <n>` for multi-step rollback.
+
+### Fixed
+
+- `apltk architecture diff` now renders batch specs as one combined macro/viewer result instead of showing separate incomplete macro pages per member spec.
+- `apltk architecture diff` preserves compatibility with legacy batch artifacts that only contain rendered HTML plus `_removed.txt`, instead of silently dropping those member diffs when atlas overlay state is absent.
+- Spec-mode scoped renders now clean stale HTML pages and removal state correctly, preventing repeated render/diff runs from crashing on already-removed pages or leaving ghost overlay output behind.
+
 ## [v3.11.5] - 2026-05-12
 
 ### Added

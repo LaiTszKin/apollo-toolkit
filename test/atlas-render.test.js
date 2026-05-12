@@ -268,15 +268,18 @@ test('renderAll (no scope) sweeps orphan feature directories and stale submodule
   }
 });
 
-test('renderAll with explicit scope DOES NOT sweep orphans (spec overlay safety)', async () => {
+test('renderAll with explicit scope keeps only the current scoped html set', async () => {
   const out = mkTmp();
   try {
     await render.renderAll({ outDir: out, state: fixtureState() });
     fs.mkdirSync(path.join(out, 'features', 'legacy'), { recursive: true });
     fs.writeFileSync(path.join(out, 'features', 'legacy', 'index.html'), '<!doctype html>', 'utf8');
+    assert.ok(fs.existsSync(path.join(out, 'features', 'register', 'ui.html')));
     const scope = { macro: true, features: new Set(), submodules: [] };
     await render.renderAll({ outDir: out, state: fixtureState(), scope });
-    assert.ok(fs.existsSync(path.join(out, 'features', 'legacy', 'index.html')), 'scoped renders must not delete files outside scope');
+    assert.ok(fs.existsSync(path.join(out, 'index.html')), 'scoped render keeps the requested macro page');
+    assert.equal(fs.existsSync(path.join(out, 'features', 'legacy', 'index.html')), false, 'stale overlay-only html is removed');
+    assert.equal(fs.existsSync(path.join(out, 'features', 'register', 'ui.html')), false, 'pages outside the current scope are removed');
   } finally {
     fs.rmSync(out, { recursive: true, force: true });
   }

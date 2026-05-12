@@ -1,7 +1,7 @@
 ---
 name: spec-to-project-html
 description: >-
-  Sync the project HTML architecture atlas to active planning specs by driving `apltk architecture --spec <spec_dir>`. The CLI writes overlay YAML under `<spec_dir>/architecture_diff/atlas/` and re-renders only the affected proposed-after HTML pages — macro SVG and per-sub-module internal-dataflow diagrams stay zoomable like the base atlas — so `apltk architecture diff` pairs before/after by path under `docs/plans/**/architecture_diff/`. Preserve the two-layer rule and the responsibility split: **subagents only** — each subagent reads ONE affected feature and declares EVERY intra-feature overlay change; the main agent **waits until all subagents finish**, then aggregates outbound summaries and declares **only** cross-feature edges. **Exact CLI spelling:** always `apltk architecture --help`. Ground every declaration in repo evidence; mark `TBD` when code is missing.
+  Sync the project HTML architecture atlas to active planning specs by driving `apltk architecture --spec <spec_dir>`. Single specs write overlay YAML under `<spec_dir>/architecture_diff/atlas/`; batch member paths resolve to the shared batch-root `architecture_diff/` beside `coordination.md`. The CLI re-renders only the affected proposed-after HTML pages — macro SVG and per-sub-module internal-dataflow diagrams stay zoomable like the base atlas — so `apltk architecture diff` pairs before/after by path under `docs/plans/**/architecture_diff/`. Preserve the two-layer rule and the responsibility split: **subagents only** — each subagent reads ONE affected feature and declares EVERY intra-feature overlay change; the main agent **waits until all subagents finish**, then aggregates outbound summaries and declares **only** cross-feature edges. **Exact CLI spelling:** always `apltk architecture --help`. Ground every declaration in repo evidence; mark `TBD` when code is missing.
 ---
 
 # Spec To Project HTML
@@ -17,7 +17,7 @@ description: >-
 ## Non-negotiables
 
 - **MUST** read specs in order unless the user directs otherwise: `spec.md` → `design.md` → `contract.md` → coordination notes.
-- **MUST** declare every change through the CLI with `--spec <spec_dir>` (exact verbs/flags: **`apltk architecture --help`**). The CLI writes overlay YAML to `<spec_dir>/architecture_diff/atlas/` and re-renders only the affected proposed-after HTML pages there. **MUST NOT** hand-edit `architecture_diff/**/*.html` — the renderer owns those files.
+- **MUST** declare every change through the CLI with `--spec <spec_dir>` (exact verbs/flags: **`apltk architecture --help`**). Single specs write overlay YAML to `<spec_dir>/architecture_diff/atlas/` and re-render only the affected proposed-after HTML pages there. Batch member paths resolve to the shared batch-root `architecture_diff/` beside `coordination.md`, so the whole batch keeps one overlay and one rendered diff. **MUST NOT** hand-edit `architecture_diff/**/*.html` — the renderer owns those files.
 - **MUST** obey the semantic rules from `init-project-html/SKILL.md`:
   - Sub-module pages stay self-only — express cross-boundary interactions via **edges** (cross-feature or intra-feature), never as sub-module page prose.
   - Feature pages stay lightweight — cross-sub-module choreography belongs in **edges**, not in `dataflow` prose that pretends to cross features.
@@ -38,7 +38,7 @@ description: >-
 - **Evidence**: cite the spec passage (design subsystem entry) alongside the code path; record the citation in `meta.summary` or in sub-module purposes when relevant.
 - **Execution**: locate the plan set → list affected feature modules → subagent fan-out → **all complete** → cross-feature edges → `render --spec` if batched → `validate --spec` → `diff` check → handover.
 - **Quality**: macro overlay still shows every cross-feature data-row the spec requires; sub-module declarations stay self-only; `apltk architecture diff` opens cleanly with no orphan pages; no dangling edges.
-- **Output**: touches only `<spec_dir>/architecture_diff/atlas/**` (overlay state) and `<spec_dir>/architecture_diff/**/*.html` (renderer output). Base `resources/project-architecture/` is **NEVER** mutated.
+- **Output**: single specs touch only `<spec_dir>/architecture_diff/atlas/**` (overlay state) and `<spec_dir>/architecture_diff/**/*.html` (renderer output); batch specs write the same artifacts under the batch root beside `coordination.md`. Base `resources/project-architecture/` is **NEVER** mutated.
 
 ## Acceptance criteria (mirrors `init-project-html`)
 
@@ -92,7 +92,7 @@ List overlay files touched (or verb families used), the diff counts (`modified` 
 
 ## Sample hints
 
-- **Batch merge**: each member spec’s `--spec <member_dir>` writes its own overlay; `diff` lists each spec’s section in the paginated viewer.
+- **Batch merge**: each member spec still calls `--spec <member_dir>`, but the CLI resolves writes to the shared batch-root overlay beside `coordination.md`; `diff` shows the batch as one combined architecture delta.
 - **Spec shrinks scope**: prefer `submodule set --role "deprecated: ..."` before `submodule remove` so reviewers see intent.
 - **Design-only change**: still review edges — order shifts surface as edge mutations; `validate --spec` catches dangling references.
 

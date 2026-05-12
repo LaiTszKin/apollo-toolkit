@@ -43,12 +43,12 @@ Usage:
                                               Manage component rows and edges
   apltk architecture meta set                 Update meta.title / meta.summary
   apltk architecture actor add|remove         Manage top-level actors
-  apltk architecture undo                     Revert the most recent mutation
+  apltk architecture undo [--steps <n>]      Revert the most recent mutation or roll back multiple steps
   apltk architecture --help                   Show this help
 
 Global flags:
   --project <root>   Project root (default: nearest ancestor with resources/project-architecture/, else cwd); missing layout dirs are created when needed
-  --spec <spec_dir>  Mutations write to <spec_dir>/architecture_diff/atlas/
+  --spec <spec_dir>  Single specs write locally; batch member paths write to the coordination.md root architecture_diff/atlas/
   --no-render        Skip auto-render after a mutation
   --no-open          For open/diff: skip launching the browser
   --out <dir>        For diff: override viewer output directory
@@ -255,21 +255,14 @@ function runDiff(opts, io) {
   if (!projectRoot) {
     projectRoot = process.cwd();
   }
-  fs.mkdirSync(path.join(projectRoot, RESOURCES_REL), { recursive: true });
-  const outDir = opts.out || path.join(projectRoot, DEFAULT_OUT_REL);
-  fs.mkdirSync(outDir, { recursive: true });
-
-  const changes = collectChanges(projectRoot);
-  const html = renderViewer({ changes, projectRoot, outDir });
-  const indexPath = path.join(outDir, 'index.html');
-  fs.writeFileSync(indexPath, html, 'utf8');
-
-  io.stdout.write(`${indexPath}\n`);
-  io.stdout.write(
-    `Diff pages: ${changes.length} (modified=${changes.filter((c) => c.kind === 'modified').length}, added=${changes.filter((c) => c.kind === 'added').length}, removed=${changes.filter((c) => c.kind === 'removed').length})\n`,
-  );
-  if (opts.open) openInBrowser(indexPath);
-  return 0;
+  const bootstrap = path.join(__dirname, 'architecture-bootstrap-render.js');
+  const args = [bootstrap, 'diff', '--project', projectRoot];
+  if (opts.out) args.push('--out', opts.out);
+  if (!opts.open) args.push('--no-open');
+  const result = spawnSync(process.execPath, args, { encoding: 'utf8' });
+  if (result.stdout) io.stdout.write(result.stdout);
+  if (result.stderr) io.stderr.write(result.stderr);
+  return result.status || 0;
 }
 
 // main(argv, io) is sync and supports the legacy verbs `open` and

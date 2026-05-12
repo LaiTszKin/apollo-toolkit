@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const architecture = require('../init-project-html/scripts/architecture.js');
+const atlasCli = require('../init-project-html/lib/atlas/cli');
 const { listToolCommands, resolveToolCommand } = require('../lib/tool-runner');
 const { parseArguments, buildHelpText } = require('../lib/cli');
 
@@ -237,6 +238,35 @@ test('diff renders an empty-state viewer when no architecture_diff dirs exist', 
     assert.equal(code, 0);
     const html = fs.readFileSync(path.join(root, '.apollo-toolkit', 'architecture-diff', 'index.html'), 'utf8');
     assert.match(html, /No architecture diffs found/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('legacy diff command merges batch overlays into one macro page', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-arch-batch-'));
+  try {
+    await atlasCli.dispatch(['feature', 'add', '--slug', 'register', '--project', root, '--no-open'], makeIo());
+    await atlasCli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'api', '--kind', 'api', '--project', root, '--no-open'], makeIo());
+
+    const batchRoot = path.join(root, 'docs/plans/2026-05-12/legacy-batch');
+    fs.mkdirSync(batchRoot, { recursive: true });
+    fs.writeFileSync(path.join(batchRoot, 'coordination.md'), '# coordination\n');
+    fs.mkdirSync(path.join(batchRoot, 'member-a'), { recursive: true });
+    fs.mkdirSync(path.join(batchRoot, 'member-b'), { recursive: true });
+
+    await atlasCli.dispatch(['feature', 'add', '--slug', 'billing', '--title', 'Billing', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-a', '--project', root, '--no-open'], makeIo());
+    await atlasCli.dispatch(['submodule', 'add', '--feature', 'billing', '--slug', 'api', '--kind', 'api', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-a', '--project', root, '--no-open'], makeIo());
+    await atlasCli.dispatch(['feature', 'add', '--slug', 'profile', '--title', 'Profile', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-b', '--project', root, '--no-open'], makeIo());
+    await atlasCli.dispatch(['submodule', 'add', '--feature', 'profile', '--slug', 'ui', '--kind', 'ui', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-b', '--project', root, '--no-open'], makeIo());
+
+    const io = makeIo();
+    const code = architecture.main(['diff', '--project', root, '--no-open'], io);
+    assert.equal(code, 0);
+    assert.match(io.stdout_text, /Diff pages: 5/);
+    const html = fs.readFileSync(path.join(root, '.apollo-toolkit', 'architecture-diff', 'index.html'), 'utf8');
+    const macroMatches = html.match(/"rel":"index\.html"/g) || [];
+    assert.equal(macroMatches.length, 1);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

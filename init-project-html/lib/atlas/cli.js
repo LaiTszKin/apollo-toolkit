@@ -23,7 +23,7 @@
 //
 // Global flags:
 //   --project <root>     project root; creates resources/project-architecture/ if missing
-//   --spec <spec_dir>    spec directory; mutations go to <spec_dir>/architecture_diff/atlas/
+//   --spec <spec_dir>    single specs write to <spec_dir>/architecture_diff/atlas/; batch member paths resolve to the coordination.md root
 //   --no-render          skip auto-render after a mutation
 //   --no-open            for open/diff: skip launching the browser
 //   --out <dir>          for diff: override viewer output directory
@@ -41,6 +41,7 @@ const ATLAS_INDEX_REL = path.join(ATLAS_REL, 'index.html');
 const ATLAS_DIRNAME = stateLib.ATLAS_DIRNAME;
 const DIFF_DIRNAME = 'architecture_diff';
 const PLANS_REL = path.join('docs', 'plans');
+const COORDINATION_FILE = 'coordination.md';
 const REMOVED_TXT = '_removed.txt';
 const DEFAULT_DIFF_OUT_REL = path.join('.apollo-toolkit', 'architecture-diff');
 
@@ -63,12 +64,12 @@ Verbs:
   meta set                              edit meta.title / meta.summary
   actor add|remove                      manage top-level actors
   validate                              run schema + referential checks
-  undo                                  revert the most recent mutation
+  undo                                  revert the most recent mutation (use --steps <n> for multi-step rollback)
   help                                  show this help
 
 Global flags:
   --project <root>                      explicit project root (default: nearest ancestor with atlas markers, else cwd); missing directories under resources/project-architecture/ are created automatically
-  --spec <spec_dir>                     mutations write to <spec_dir>/architecture_diff/atlas/
+  --spec <spec_dir>                     single specs write to <spec_dir>/architecture_diff/atlas/; batch member paths write to the coordination.md root
   --no-render                           skip auto-render after a mutation
   --no-open                             for open/diff: skip launching the browser
   --out <dir>                           for diff: override viewer output directory
@@ -81,6 +82,7 @@ Examples:
   apltk architecture dataflow add --feature register --submodule api --step "Validate body" --fn handlePost --reads "body" --writes "token"
   apltk architecture --spec docs/plans/2026-05-11/add-2fa submodule set --feature register --slug api --role "..."
   apltk architecture validate
+  apltk architecture undo --steps 3 --spec docs/plans/2026-05-11/add-2fa
   apltk architecture diff
 `;
 
@@ -171,7 +173,15 @@ function resolveProjectRoot(flags) {
 
 function specOverlayDir(projectRoot, specFlag) {
   const specDir = path.isAbsolute(String(specFlag)) ? String(specFlag) : path.resolve(projectRoot, String(specFlag));
-  return { specDir, overlayDir: path.join(specDir, DIFF_DIRNAME, ATLAS_DIRNAME), htmlOutDir: path.join(specDir, DIFF_DIRNAME) };
+  const plansRoot = path.join(projectRoot, PLANS_REL);
+  const batchRoot = fs.existsSync(path.join(specDir, COORDINATION_FILE)) ? specDir : findBatchRoot(specDir, plansRoot);
+  const rootDir = batchRoot || specDir;
+  return {
+    specDir,
+    rootDir,
+    overlayDir: path.join(rootDir, DIFF_DIRNAME, ATLAS_DIRNAME),
+    htmlOutDir: path.join(rootDir, DIFF_DIRNAME),
+  };
 }
 
 function baseAtlasDir(projectRoot) {
@@ -207,26 +217,21 @@ function ensureBaseAtlasDir(projectRoot) {
 async function performMutation(projectRoot, flags, action, args, mutate) {
   const isSpec = Boolean(flags.spec);
   const base = stateLib.load(baseAtlasDir(projectRoot));
-  let overlay = null;
   let merged = base;
-  let touchedFeatureSlugs = new Set();
 
   if (isSpec) {
     const { overlayDir } = specOverlayDir(projectRoot, flags.spec);
-    overlay = stateLib.loadOverlay(overlayDir);
+    const overlay = stateLib.loadOverlay(overlayDir);
     merged = stateLib.mergeOverlay(base, overlay);
     const before = JSON.parse(JSON.stringify({ base, overlay }));
-    const result = mutate(merged, base, overlay) || {};
-    if (result.touchedFeatures) for (const slug of result.touchedFeatures) touchedFeatureSlugs.add(slug);
+    mutate(merged, base, overlay);
     stateLib.writeUndoSnapshot(overlayDir, before);
-    syncOverlayFromMerged({ base, overlay, merged, touchedFeatureSlugs, removalsHint: result.removalsHint });
-    stateLib.saveOverlay(overlayDir, overlay);
+    stateLib.saveOverlay(overlayDir, stateLib.deriveOverlay(base, merged));
     stateLib.appendHistory(overlayDir, { action, args, mode: 'spec' });
   } else {
     ensureBaseAtlasDir(projectRoot);
     const before = JSON.parse(JSON.stringify({ base }));
-    const result = mutate(base, base, null) || {};
-    if (result.touchedFeatures) for (const slug of result.touchedFeatures) touchedFeatureSlugs.add(slug);
+    mutate(base, base, null);
     stateLib.writeUndoSnapshot(baseAtlasDir(projectRoot), before);
     stateLib.save(baseAtlasDir(projectRoot), base);
     stateLib.appendHistory(baseAtlasDir(projectRoot), { action, args, mode: 'base' });
@@ -234,47 +239,6 @@ async function performMutation(projectRoot, flags, action, args, mutate) {
 
   if (!flags['no-render']) {
     await runRender({ projectRoot, flags });
-  }
-}
-
-function syncOverlayFromMerged({ base, overlay, merged, touchedFeatureSlugs, removalsHint }) {
-  // Compare merged top-level fields against base; if they differ, sync into overlay.
-  if (JSON.stringify(merged.meta || {}) !== JSON.stringify(base.meta || {})) overlay.meta = merged.meta;
-  if (JSON.stringify(merged.actors || []) !== JSON.stringify(base.actors || [])) overlay.actors = merged.actors || [];
-  if (JSON.stringify(merged.edges || []) !== JSON.stringify(base.edges || [])) overlay.edges = merged.edges || [];
-
-  const baseOrder = (base.features || []).map((f) => f.slug);
-  const mergedOrder = (merged.features || []).map((f) => f.slug);
-  if (JSON.stringify(baseOrder) !== JSON.stringify(mergedOrder)) {
-    overlay.featureOrder = mergedOrder;
-  }
-
-  // Persist touched (or simply differing) features into overlay.features
-  const baseFeatureMap = new Map((base.features || []).map((f) => [f.slug, f]));
-  const mergedFeatureMap = new Map((merged.features || []).map((f) => [f.slug, f]));
-  for (const slug of touchedFeatureSlugs) {
-    if (!mergedFeatureMap.has(slug)) continue;
-    const baseFeat = baseFeatureMap.get(slug);
-    const mergedFeat = mergedFeatureMap.get(slug);
-    if (!baseFeat || JSON.stringify(baseFeat) !== JSON.stringify(mergedFeat)) {
-      overlay.features[slug] = mergedFeat;
-    }
-  }
-  // Apply hinted removals
-  if (removalsHint) {
-    if (Array.isArray(removalsHint.features)) {
-      const seen = new Set(overlay.removed.features || []);
-      for (const slug of removalsHint.features) seen.add(slug);
-      overlay.removed.features = [...seen];
-      // also drop from overlay.features if present
-      for (const slug of removalsHint.features) delete overlay.features[slug];
-    }
-    if (Array.isArray(removalsHint.submodules)) {
-      const seen = new Map();
-      for (const item of overlay.removed.submodules || []) seen.set(`${item.feature}::${item.submodule}`, item);
-      for (const item of removalsHint.submodules) seen.set(`${item.feature}::${item.submodule}`, item);
-      overlay.removed.submodules = [...seen.values()];
-    }
   }
 }
 
@@ -642,9 +606,14 @@ async function verbValidate(flags, projectRoot, io) {
 
 async function verbUndo(flags, projectRoot, io) {
   const dir = flags.spec ? specOverlayDir(projectRoot, flags.spec).overlayDir : baseAtlasDir(projectRoot);
-  const snapshot = stateLib.readUndoSnapshot(dir);
+  const stepsRaw = flags.steps === undefined ? 1 : Number(flags.steps);
+  if (!Number.isInteger(stepsRaw) || stepsRaw < 1) {
+    io.stderr.write('--steps must be a positive integer.\n');
+    return 1;
+  }
+  const snapshot = stateLib.consumeUndoSnapshot(dir, stepsRaw);
   if (!snapshot) {
-    io.stderr.write('No undo snapshot found.\n');
+    io.stderr.write(stepsRaw === 1 ? 'No undo snapshot found.\n' : `Unable to undo ${stepsRaw} steps; history is shorter.\n`);
     return 1;
   }
   if (flags.spec) {
@@ -655,9 +624,8 @@ async function verbUndo(flags, projectRoot, io) {
     stateLib.save(baseAtlasDir(projectRoot), snapshot.base);
     stateLib.appendHistory(baseAtlasDir(projectRoot), { action: 'undo', mode: 'base' });
   }
-  stateLib.clearUndoSnapshot(dir);
   if (!flags['no-render']) await runRender({ projectRoot, flags });
-  io.stdout.write('atlas: undo applied\n');
+  io.stdout.write(`atlas: undo applied (${stepsRaw} step${stepsRaw === 1 ? '' : 's'})\n`);
   return 0;
 }
 
@@ -678,44 +646,7 @@ async function verbOpen(flags, projectRoot, io) {
 async function verbDiff(flags, projectRoot, io) {
   const outDir = flags.out ? path.resolve(String(flags.out)) : path.join(projectRoot, DEFAULT_DIFF_OUT_REL);
   fs.mkdirSync(outDir, { recursive: true });
-
-  const plansRoot = path.join(projectRoot, PLANS_REL);
-  const diffDirs = walkArchitectureDiffDirs(plansRoot);
-  const resourcesRoot = path.join(projectRoot, ATLAS_REL);
-  const changes = [];
-
-  for (const diffDir of diffDirs) {
-    const specDir = path.dirname(diffDir);
-    const specLabel = path.relative(projectRoot, specDir);
-    for (const after of walkAfterStateHtml(diffDir)) {
-      const beforeAbs = path.join(resourcesRoot, after.rel);
-      const beforeExists = fs.existsSync(beforeAbs);
-      changes.push({
-        kind: beforeExists ? 'modified' : 'added',
-        rel: after.rel,
-        spec: specLabel,
-        beforePath: beforeExists ? path.relative(projectRoot, beforeAbs) : null,
-        afterPath: path.relative(projectRoot, after.abs),
-      });
-    }
-    for (const removedRel of readRemovedManifest(diffDir)) {
-      const beforeAbs = path.join(resourcesRoot, removedRel);
-      if (!fs.existsSync(beforeAbs)) continue;
-      changes.push({
-        kind: 'removed',
-        rel: removedRel,
-        spec: specLabel,
-        beforePath: path.relative(projectRoot, beforeAbs),
-        afterPath: null,
-      });
-    }
-  }
-
-  changes.sort((a, b) => {
-    if (a.spec !== b.spec) return a.spec.localeCompare(b.spec);
-    if (a.kind !== b.kind) return a.kind.localeCompare(b.kind);
-    return a.rel.localeCompare(b.rel);
-  });
+  const changes = await collectDiffChanges({ projectRoot, outDir });
 
   const html = renderDiffViewer({ changes, projectRoot, outDir });
   const indexPath = path.join(outDir, 'index.html');
@@ -724,6 +655,191 @@ async function verbDiff(flags, projectRoot, io) {
   io.stdout.write(`Diff pages: ${changes.length} (modified=${changes.filter((c) => c.kind === 'modified').length}, added=${changes.filter((c) => c.kind === 'added').length}, removed=${changes.filter((c) => c.kind === 'removed').length})\n`);
   if (!flags['no-open']) openInBrowser(indexPath);
   return 0;
+}
+
+async function collectDiffChanges({ projectRoot, outDir }) {
+  const plansRoot = path.join(projectRoot, PLANS_REL);
+  const groups = groupDiffDirsByBatch({ projectRoot, plansRoot });
+  const changes = [];
+
+  for (const group of groups) {
+    if (group.kind === 'batch') {
+      changes.push(...await collectBatchGroupChanges({ projectRoot, outDir, group }));
+    } else {
+      changes.push(...collectSingleSpecChanges({ projectRoot, specDir: group.specDir, specLabel: group.label }));
+    }
+  }
+
+  changes.sort((a, b) => {
+    if (a.spec !== b.spec) return a.spec.localeCompare(b.spec);
+    if (a.kind !== b.kind) return a.kind.localeCompare(b.kind);
+    return a.rel.localeCompare(b.rel);
+  });
+  return changes;
+}
+
+function groupDiffDirsByBatch({ projectRoot, plansRoot }) {
+  const groups = new Map();
+  for (const diffDir of walkArchitectureDiffDirs(plansRoot)) {
+    const specDir = path.dirname(diffDir);
+    const batchRoot = findBatchRoot(specDir, plansRoot);
+    const isBatchMember = Boolean(batchRoot && batchRoot !== specDir);
+    const key = isBatchMember ? batchRoot : specDir;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        kind: isBatchMember ? 'batch' : 'single',
+        key,
+        label: path.relative(projectRoot, key),
+        specDir: isBatchMember ? null : specDir,
+        members: [],
+      });
+    }
+    groups.get(key).members.push({ specDir, diffDir, label: path.relative(projectRoot, specDir) });
+  }
+  return [...groups.values()]
+    .map((group) => ({ ...group, members: group.members.sort((a, b) => a.specDir.localeCompare(b.specDir)) }))
+    .sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function findBatchRoot(specDir, plansRoot) {
+  const absolutePlansRoot = path.resolve(plansRoot);
+  let current = path.resolve(path.dirname(specDir));
+  while (current.startsWith(`${absolutePlansRoot}${path.sep}`) || current === absolutePlansRoot) {
+    if (fs.existsSync(path.join(current, COORDINATION_FILE))) return current;
+    if (current === absolutePlansRoot) break;
+    current = path.dirname(current);
+  }
+  return null;
+}
+
+function collectSingleSpecChanges({ projectRoot, specDir, specLabel }) {
+  const overlayDir = path.join(specDir, DIFF_DIRNAME, ATLAS_DIRNAME);
+  if (!hasOverlayState(overlayDir)) {
+    return collectHtmlManifestChanges({ projectRoot, diffDir: path.join(specDir, DIFF_DIRNAME), specLabel });
+  }
+  const base = stateLib.load(baseAtlasDir(projectRoot));
+  const overlay = stateLib.loadOverlay(overlayDir);
+  const merged = stateLib.mergeOverlay(base, overlay);
+  const diff = stateLib.diffPages(base, merged);
+  return diffToChanges({
+    projectRoot,
+    specLabel,
+    htmlRoot: path.join(specDir, DIFF_DIRNAME),
+    diff,
+  });
+}
+
+function hasOverlayState(overlayDir) {
+  return fs.existsSync(path.join(overlayDir, stateLib.INDEX_FILE))
+    || fs.existsSync(path.join(overlayDir, stateLib.FEATURES_DIR))
+    || fs.existsSync(path.join(overlayDir, stateLib.REMOVED_FILE));
+}
+
+async function collectBatchGroupChanges({ projectRoot, outDir, group }) {
+  const batchRootOverlayDir = path.join(group.key, DIFF_DIRNAME, ATLAS_DIRNAME);
+  if (hasOverlayState(batchRootOverlayDir)) {
+    return collectSingleSpecChanges({ projectRoot, specDir: group.key, specLabel: group.label });
+  }
+
+  const memberOverlayDirs = group.members.map((member) => ({
+    ...member,
+    overlayDir: path.join(member.specDir, DIFF_DIRNAME, ATLAS_DIRNAME),
+  }));
+  if (memberOverlayDirs.some((member) => !hasOverlayState(member.overlayDir))) {
+    return group.members.flatMap((member) => (
+      collectSingleSpecChanges({ projectRoot, specDir: member.specDir, specLabel: member.label })
+    ));
+  }
+
+  const base = stateLib.load(baseAtlasDir(projectRoot));
+  let merged = JSON.parse(JSON.stringify(base));
+  for (const member of memberOverlayDirs) {
+    const overlay = stateLib.loadOverlay(member.overlayDir);
+    merged = stateLib.mergeOverlay(merged, overlay);
+  }
+  const diff = stateLib.diffPages(base, merged);
+  const htmlRoot = path.join(outDir, '_batch', group.label);
+  await renderLib.renderAll({
+    outDir: htmlRoot,
+    state: merged,
+    scope: renderLib.scopeFromDiff(diff),
+    removedPaths: renderLib.removedPagePathsFromDiff(diff),
+  });
+  return diffToChanges({
+    projectRoot,
+    specLabel: group.label,
+    htmlRoot,
+    diff,
+  });
+}
+
+function diffToChanges({ projectRoot, specLabel, htmlRoot, diff }) {
+  const resourcesRoot = path.join(projectRoot, ATLAS_REL);
+  const changes = [];
+  const add = (kind, rel) => {
+    const beforeAbs = path.join(resourcesRoot, rel);
+    const afterAbs = kind === 'removed' ? null : path.join(htmlRoot, rel);
+    if (kind === 'removed' && !fs.existsSync(beforeAbs)) return;
+    changes.push({
+      kind,
+      rel,
+      spec: specLabel,
+      beforePath: kind === 'added' ? null : path.relative(projectRoot, beforeAbs),
+      afterPath: afterAbs ? path.relative(projectRoot, afterAbs) : null,
+    });
+  };
+
+  if (diff.macroChanged) {
+    add('modified', renderLib.pagePathFor('macro'));
+  }
+  for (const slug of diff.modifiedFeatures || []) {
+    add('modified', renderLib.pagePathFor('feature', { featureSlug: slug }));
+  }
+  for (const slug of diff.addedFeatures || []) {
+    add('added', renderLib.pagePathFor('feature', { featureSlug: slug }));
+  }
+  for (const item of diff.modifiedSubmodules || []) {
+    add('modified', renderLib.pagePathFor('submodule', { featureSlug: item.feature, submoduleSlug: item.submodule }));
+  }
+  for (const item of diff.addedSubmodules || []) {
+    add('added', renderLib.pagePathFor('submodule', { featureSlug: item.feature, submoduleSlug: item.submodule }));
+  }
+  for (const slug of diff.removedFeatures || []) {
+    add('removed', renderLib.pagePathFor('feature', { featureSlug: slug }));
+  }
+  for (const item of diff.removedSubmodules || []) {
+    add('removed', renderLib.pagePathFor('submodule', { featureSlug: item.feature, submoduleSlug: item.submodule }));
+  }
+
+  return changes;
+}
+
+function collectHtmlManifestChanges({ projectRoot, diffDir, specLabel }) {
+  const resourcesRoot = path.join(projectRoot, ATLAS_REL);
+  const changes = [];
+  for (const after of walkAfterStateHtml(diffDir)) {
+    const beforeAbs = path.join(resourcesRoot, after.rel);
+    const beforeExists = fs.existsSync(beforeAbs);
+    changes.push({
+      kind: beforeExists ? 'modified' : 'added',
+      rel: after.rel,
+      spec: specLabel,
+      beforePath: beforeExists ? path.relative(projectRoot, beforeAbs) : null,
+      afterPath: path.relative(projectRoot, after.abs),
+    });
+  }
+  for (const removedRel of readRemovedManifest(diffDir)) {
+    const beforeAbs = path.join(resourcesRoot, removedRel);
+    if (!fs.existsSync(beforeAbs)) continue;
+    changes.push({
+      kind: 'removed',
+      rel: removedRel,
+      spec: specLabel,
+      beforePath: path.relative(projectRoot, beforeAbs),
+      afterPath: null,
+    });
+  }
+  return changes;
 }
 
 function walkArchitectureDiffDirs(plansRoot) {
@@ -1021,6 +1137,7 @@ module.exports = {
   specOverlayDir,
   runRender,
   walkArchitectureDiffDirs,
+  collectDiffChanges,
   walkAfterStateHtml,
   readRemovedManifest,
   renderDiffViewer,
