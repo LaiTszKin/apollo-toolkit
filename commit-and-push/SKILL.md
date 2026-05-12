@@ -1,72 +1,44 @@
 ---
 name: commit-and-push
-description: >-
-  Commit and push only (no semver): inspect staged vs unstaged, classify scopes, run the mandated `review-change-set` for code-affecting scope, then **`submission-readiness-check`** BEFORE the final commit honoring `CHANGELOG.md` Unreleased + `archive-specs` redirections, preserve intentional staging splits, forbid UI git stubs, VERIFY remote hashes post-push. **`version-release` elsewhere**.
-  Use for “please commit”, “submit”, “push branch” lacking explicit semver/tag language **STOP** tagging here… BAD skip readiness red… GOOD staged subset untouched unrelated dirty files changelog mirrors diff… hashes `git rev-parse HEAD` versus upstream… archive specs before commit flagged…
+description: 提供提交指引以及作為提交前的必要品控閘門。當你需要將變更提交到git repo或者是推送到remote，使用這個技能。
 ---
 
-# Commit and Push
+## 目標
 
-## Dependencies
+在不破壞使用者既有工作樹與提交邊界的前提下，安全地完成本地 commit 與可選 push，並確保所有提交前的審查、文件同步與 changelog 門檻都已真正完成。
 
-- Required: **`submission-readiness-check`** immediately before the **final** commit.
-- Conditional: **`archive-specs`** when readiness (or completed specs) requires doc conversion or categorized `docs/` alignment; **`review-change-set`** for every **code-affecting** scope.
-- Optional: none.
-- Fallback: Any **required** dependency unavailable ⇒ **MUST** stop and report—**MUST NOT** “light” commit.
+## 驗收條件
 
-## Non-negotiables
+- 所有暫存的變更已經被提交和推送到remote
 
-- **MUST** use real `git` mutations (`git add`, `git commit`, `git push`, `git stash`, etc.); **MUST NOT** treat UI tokens (`::git-commit`, IDE buttons) as proof of history.
-- **MUST** run **`submission-readiness-check`** before final commit; unresolved readiness (e.g. stale/missing `CHANGELOG.md` **Unreleased**, doc drift) **blocks** commit.
-- Code-affecting: **`review-change-set` MANDATORY**; unresolved confirmed findings **block**.
-- **`archive-specs`**: when readiness says convert/archive or `docs/` mismatch—**MUST** run **before** final commit, not as a vague follow-up.
-- **MUST** reconcile **staged vs unstaged** with user intent—**MUST NOT** broaden scope by auto-staging unrelated files when user staged a subset.
-- **`CHANGELOG.md` `Unreleased`**: for code-affecting or user-visible docs, **MUST** reflect this change before commit; reopen diff after edits to match commit scope.
-- **MUST** resolve **target branch** per user (or current if explicit) before rewriting history; protect unrelated dirty work (`stash` etc.); **no** force-push unless user explicitly requests.
-- After **push**, **MUST** verify remote tip matches local `HEAD` (`git rev-parse` / `@{u}` / `ls-remote`) before claiming success.
-- **MUST NOT** run version bump, tag, or GitHub release (**use `version-release`**).
-- Clean worktree requests: **MUST** inspect `HEAD`, upstream, last commit—**MUST NOT** fabricate “pushed” when already satisfied or impossible.
+## 工作流程
 
-**Repository regression checks (verbatim requirements):** Treat root `CHANGELOG.md` `Unreleased` coverage as mandatory for code-affecting or user-visible changes. Re-open the final `CHANGELOG.md` diff after readiness updates. **`review-change-set` is required for code-affecting changes**; Run `review-change-set` for every code-affecting change before continuing; treat unresolved review findings as blocking. Any conditional gate whose trigger is confirmed by this classification becomes mandatory before commit. Treat every scenario-matched gate as blocking before commit.
+### 1. 檢查變更狀態
 
-## Standards (summary)
+檢查目前的git變更狀態。識別變更範圍及確認目前暫存變更之中是否包含代碼變更。
 
-- **Evidence**: `git status`/`diff`; classification drives gates; changelog diff matches commit.
-- **Execution**: Inspect → classify → (deps) → readiness → commit → push verify.
-- **Quality**: No gate bypass; sequential git ops; preserve intentional commit boundaries.
-- **Output**: Conventional commit message + confirmed remote **when push ran** + note stash/scope if any.
+### 2. 品控閘門（選用）
 
-## References
+如果變更範圍設計代碼變更，使用 `review-change`, `discover-edge-cases`, `discover-security-issues` 這三個技能，並遵從當中的任務指引，對代碼變更進行審查。
+如果外部環境允許使用subagents，建議通過調度subagents完成三個不同維度的代碼審查工作。
+如果在審查過程中發現問題，修復發現的問題並暫存。
 
-- `references/commit-messages.md`
-- `references/branch-naming.md`
+### 3. 同步項目文檔
 
-## Workflow
+使用 `submission-readiness-check` 並遵照當中的指引，同步更新項目文檔，確保項目文檔時刻與repo保持一致。
 
-**Chain-of-thought:** **`Pause →`** guards skipping a gate or mis-sizing scope.
+### 4. 提交及推送變更
 
-1. **Inspect** — `git status -sb`; `git diff --stat`; `git diff --cached --stat`; `git diff --cached --name-only`. If clean: `git log -1 --stat`, upstream tracking, whether work already pushed.
-   - **Pause →** Is the user’s intended commit **exactly** the staged set, or full worktree—I must not mix them silently?
+依使用者的 staging 邊界建立 commit，提交訊息遵循 `references/commit-messages.md`。
+只有在使用者明確要求更新remote時才 push。
 
-2. **Classify** — Tag mentally: `code-affecting` | `docs-only` | `repo-specs-present` | `repo-specs-ready-for-conversion` | `project-doc-structure-mismatch` (per `archive-specs` needs). Active specs with unfinished same-change work stay active.
-   - **Pause →** Which conditional skills just became **mandatory**—did I list them explicitly?
+## 範例
 
-3. **Branch target** — Honor user branch; if switch needed, protect unrelated changes; cherry-pick/replay off wrong branch safely; worktree cases: identify authoritative target **before** replay.
-   - **Pause →** Am I about to merge noise because diff > issue scope—should I stop and narrow first?
+- 「只把已 staged 的 `foo.ts` 提交」-> 只能提交已暫存內容，不能順手把未 staged 的 `bar.ts` 一起帶進來
+- 「幫我 push 這個 branch」-> 先完成 review 與 readiness gate，再 push，最後用 hash 證明remote已同步
+- 「順便幫我發版」-> 不使用本技能，改走 `version-release`
 
-4. **Code-affecting gates** — `review-change-set` always; fix or document blockers; re-test material logic.
+## 參考資料索引
 
-5. **Readiness** — Run **`submission-readiness-check`**; if it routes to **`archive-specs`**, run that **now**; fix `Unreleased` bullets; recheck changelog vs staged intent.
-   - **Pause →** Could I commit while readiness still red—**why not**?
-
-6. **Commit** — Respect staging; separate commits if user asked; Conventional message per `references/commit-messages.md`.
-
-7. **Push** — **Only** when the user requested remote update (`push`, `publish`, PR branch sync, explicit upstream publish, or equivalent). If the user asked **only** for a **local** commit with **no** remote publish in this thread, finish after step 6, state local `HEAD`, and **do not** push.
-   - **Pause →** Did the user **explicitly** ask to update a remote, or only to record commits locally?
-   - **Pause →** What two hashes prove remote == local when push **did** run?
-
-## Sample hints
-
-- **Scope**: Staged `foo.ts` only; unstaged `bar.ts` unrelated → commit **must not** pick up `bar.ts` without user scope change.
-- **Changelog**: Code change with no `Unreleased` bullet → **blocking** until added.
-- **Push proof**: “Pushed” means e.g. local `abc123` equals `origin/feature` `abc123`, not “command sent.”
+- `references/commit-messages.md`：提交訊息格式
+- `references/branch-naming.md`：分支命名慣例

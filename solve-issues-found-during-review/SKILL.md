@@ -1,86 +1,58 @@
 ---
 name: solve-issues-found-during-review
 description: >-
-  From a confirmed finding list: fix in severity order (Critical→Low) with minimal patches, validate after each item, forbid speculative polish; document Deferred/CNR with evidence.
-  Done only when code matches governing specs/plans where they apply and security, edge-case, and other inbound review findings are fixed/verified with nothing material open.
-  Use for concrete review excerpts; STOP if vague. Bad: refactor while Critical SSRF open. Good: minimal patch, tests green, evidence cited.
+  用於根據已確認的 review finding 清單逐項修復問題。必須按嚴重度排序、最小化修改、
+  每項修完立即驗證，並在結束前證明 spec 合規與相關安全 / edge-case finding 已真正清乾淨。
 ---
 
-# Solve Issues Found During Review
+# 修復審查發現的問題
 
 ## Dependencies
 
-- Required: none (caller **MUST** supply an existing review report or reconstructable finding list).
-- Conditional: `review-spec-related-changes` when governing `docs/plans/...`, `spec.md`, `tasks.md`, contracts, or checklists bind the changed behavior—**MUST** satisfy **Completion criteria** §1 before declaring done; `review-change-set` for optional re-validation after **code-affecting** fixes; `systematic-debug` when a fix causes unexpected test or runtime failures; **`commit-and-push`** when the user requests **git commit** and/or **push** to persist fixes—**MUST** hand off that leg to **`commit-and-push`** (not bare `git commit` / ungated push).
-- Conditional (completion gate): **`discover-security-issues`** / **`discover-edge-cases`** when the inbound material includes security or edge-case findings, or when completion requires proving those dimensions clean—rerun or equivalent scoped proof **MUST** show no remaining confirmed in-scope issue (see **Completion criteria** §2).
-- Fallback: If `review-change-set` is unavailable after code fixes, **MUST** still verify via targeted tests and `git diff` (or equivalent) and **MUST** document exactly what was run. If the user requested **commit/push** and **`commit-and-push`** is unavailable, **MUST** stop and report.
+- Required: 使用者必須提供既有 review 報告或可重建的 finding 清單
+- Conditional: `review-spec-related-changes`、`review-change-set`、`systematic-debug`、`discover-security-issues`、`discover-edge-cases`、`commit-and-push`
+- Optional: 無
+- Fallback: 若沒有可重建的 finding 清單就必須停止；若 `review-change-set` 不可用，至少要用針對性測試與 diff 證據補足；若使用者要求提交或推送但 `commit-and-push` 不可用，也必須停止
 
-## Non-negotiables
+## Standards
 
-- **MUST** read the **full** report and the affected code **before** editing. **MUST** tie every code change to a **confirmed** finding (explicit severity/title/evidence). **MUST NOT** fix speculative, hypothetical, or “nice-to-have” items unless the report elevated them to confirmed findings.
-- **MUST** process findings in strict severity order: complete **all** Critical before **any** High, then Medium, then Low—**MUST NOT** skip ahead for convenience. Within a tier, follow the reviewer’s stated ordering when present; if severities are missing, treat business-goal / correctness breaks as **High–Critical class** and cosmetic simplification as **Low**.
-- **MUST** validate after each finding’s fix (tests, repro steps, or agreed oracle) **before** starting the next finding at the same or lower priority. **MUST NOT** mark a finding fixed without passing validation.
-- **MUST** keep each fix **minimal** and scoped to the finding: **MUST NOT** bundle unrelated refactors, style sweeps, or scope expansion.
-- This skill **defaults to product code**; **MUST NOT** edit specs, docs, or `AGENTS.md`/`CLAUDE.md` unless the **finding text** explicitly requires it.
-- If a finding cannot be reproduced after investigation, **MUST** record `Could not reproduce` with evidence and **MUST** continue the queue without silently dropping the item.
+- Evidence: 每個修改都要能對應到一條已確認 finding、受影響程式碼與驗證證據
+- Execution: 依嚴重度由高到低處理，每項 finding 修完就驗證，再進入下一項；最後再做全域重驗證
+- Quality: 僅修確認問題，不夾帶順手重構或推測性 hardening；不能重現時必須留下 `Could not reproduce` 證據
+- Output: 交付逐項狀態、驗證證據、spec 合規結果、 ancillary review 清理結果，以及是否真正完成本輪修復
 
-## Completion criteria
+## 技能目標
 
-Declare this workflow **finished** only when **both** clauses below hold. Partial closure of the finding queue is insufficient.
+把 review 報告中的 confirmed findings 轉成一條可追蹤、可驗證、可收斂的修復流程，避免只做表面修改，並在結束前證明相關spec、安全與 edge-case 要求沒有留下實質風險。
 
-1. **Specification conformance**: Every behavior touched by fixes **MUST** match the authoritative specification documents (`spec.md`, `tasks.md`, `checklist.md`, `contract.md`, governing `docs/plans/{change}` prose, plus any checklist items the caller names). **MUST** run **`review-spec-related-changes`** (or an equivalent checklist walk tied to cited requirement IDs plus tests/commands) whenever such docs exist or the user points at a plan path; cite **Met** (or repaired **Partial**) outcomes with file/test evidence in the closing report. If the caller asserts **no** binding spec for the scope, **MUST** state that assumption explicitly and anchor compliance to the issue/report text plus passing validation—**MUST NOT** silently invent spec obligations.
-2. **Ancillary reviews fully cleared**: Confirmed findings from **security audits**, **edge-case / hardening reviews**, and any other labeled review streams in the inbound package **MUST** reach **`Fixed`** (or documented **`Could not reproduce`** with reproducible rationale) **with** reruns or scoped proofs that show no remaining reproducible exploit or edge-case failure **in scope**. **MUST NOT** declare completion while Critical / High-class security issues or correctness-class edge regressions remain open. **`Deferred`** is incompatible with declaring completion unless the caller explicitly rescopes (“out of this pass”) **in writing** in the conversation; otherwise **MUST** keep working or stop with a blocker report listing what still fails completion §2.
+## 驗收條件
 
-`Could not reproduce` on a formerly cited line **counts** toward §2 cleared **only if** investigation evidence excludes stale reports; if reproducibility disagrees between spec §1 and a security/edge claim, **priority is correctness and safety**: resolve the conflict before completion.
+- 每個程式碼改動都能對應到明確的 finding，且沒有混入無關修補
+- 所有 finding 均按嚴重度順序處理，並在每項修復後留下通過的驗證證據
+- 若此範圍受 `docs/plans/...`、`spec.md`、`tasks.md`、`checklist.md` 或 contract 約束，最終已有 spec 合規證據
+- 安全、edge-case 與其他隨附 review finding 已被修復或以可重現證據標記 `Could not reproduce`；若仍有 `Deferred`，只有在使用者明確縮 scope 時才能宣稱本輪完成
 
-## Standards (summary)
+## 工作流程
 
-- **Evidence**: Confirmed finding → code path → minimal patch → validation artifact; closure adds spec traceability and ancillary-review clean signal.
-- **Execution**: Order by severity; optional parallel module groups only when isolation is real; merge without losing fix intent; completion gates §1–§2 after the queue settles.
-- **Quality**: No speculative hardening; conflicts resolved conservatively unless the finding demands an aggressive change.
-- **Output**: Per-finding status, validation proof, **completion-criteria checklist** (spec + ancillary reviews), final re-validation summary, residual/blockers only when completion is explicitly waived by caller rescope.
+1. 先完整閱讀 report 與受影響程式碼；若使用者只說「修 review finding」但沒提供內容，先嘗試從近期輸出或 diff 重建清單，重建失敗就停止
+2. 擷取每條 finding 的嚴重度、標題、證據位置與重現方式，並排除沒有被 reviewer 明確確認的猜測性項目
+3. 按 Critical -> High -> Medium -> Low 排序；只有在工作空間完全隔離且檔案不重疊時，才允許平行處理不同群組，否則一律串行
+4. 逐條處理 finding：先讀程式碼與重現路徑，再用最小修改修復，立刻執行最窄且足夠的驗證；若驗證結果不清楚，交給 `systematic-debug`
+5. 全部 finding 處理完後，對修改範圍做整體重驗證；若是 code-affecting 變更，重新跑 `review-change-set`
+6. 若存在綁定 spec 或計劃檔，使用 `review-spec-related-changes` 證明已重新符合要求；若 inbound package 含安全或 edge-case finding，使用 `discover-security-issues` 或 `discover-edge-cases` 的 rerun / scoped proof 證明該維度已清空
+7. 向使用者輸出逐項狀態、驗證命令、殘留阻塞與本輪是否真的完成；若要求提交或推送，再交給 `commit-and-push`
 
-## Workflow
+## 使用範例
 
-**Chain-of-thought:** After **each** phase, **`Pause →`** guards against speculative fixes and order violations—answer them before edits or merges.
+- 「修這份 review 裡的 HIGH SSRF finding」-> 只修該 finding 對應路徑，跑針對性測試與重現命令，確認通過後才處理下一條
+- 「report 裡還有 edge-case 與 security finding」-> 修完主問題後，還要補 rerun / scoped proof，不能只靠口頭說明就宣稱完成
+- 「reviewer 指的路徑現在不存在」-> 記錄檢查過的 commit 與路徑，若無法重現則標成 `Could not reproduce`，而不是虛構一個修復
 
-### 1) Ingest findings
+## 參考資料索引
 
-Read the supplied report. If the user says “fix review findings” but attached nothing, reconstruct from git/recent outputs; if **no** reconstructable list exists, **MUST** stop and report. Extract each finding: severity, title, evidence (`path:line` or equivalent), reproduction notes.
-   - **Pause →** Can I attach **severity + excerpt + repro** per row—is anything still vague “looks bad”?
-   - **Pause →** Is this finding **explicitly confirmed** by the reviewer, or only a hypothesis I must shelve?
-
-### 2) Order and (optional) parallelize
-
-Sort into Critical → High → Medium → Low. Optionally group by **module** or **business chain** for parallel work **only** if sub-agents with **isolated workspaces** exist and groups do not share half-applied state.
-
-**Parallel path** — One package per independent group; each worker fixes its findings **in severity order locally**, validates, returns branch/diff + status. Merge packages one at a time; on conflict, preserve both fix intents; prefer the **more conservative** behavior unless the finding required aggressiveness; **MUST** flag unresolvable conflicts instead of silently dropping a fix. After merge, run consolidated tests.
-
-**Serial path (default)** — For each finding in global severity order: read code and repro → apply minimal fix → validate (`systematic-debug` if failures are unclear) → record status → next finding.
-   - **Pause →** Am I respecting **tier closure**—no High work started until every Critical has a settled status (`Fixed`, `Deferred`, `Could not reproduce`)?
-   - **Pause →** If parallelizing: could two workers touch **overlapping** symbols or files midway through—if unsure, serialize.
-
-### 3) Full-scope re-validation
-
-After all findings are processed: run relevant tests over touched areas; if code changed and `review-change-set` is available, run it on the post-fix diff; capture `git diff --stat` (or equivalent). **MUST** confirm no confirmed finding remains open without a recorded reason (`Deferred`, `Could not reproduce`, etc.).
-**Before** declaring the engagement complete: apply **Completion criteria**—**(§1)** spec/plan conformance evidence (`review-spec-related-changes` or equivalent cited requirement IDs + commands); **(§2)** reruns or scoped proofs so security / edge-case (and sibling) confirmed issues are **`Fixed`** or evidenced `Could not reproduce`, with nothing Critical/High-class left open unless the caller explicitly rescopes.
-   - **Pause →** Would the **same** reviewer still see **actionable proof** closed for each `Fixed`, or did I rationalize failures away?
-   - **Pause →** Did my consolidated diff sneak in **bonus** unrelated changes—if yes, peel them back?
-   - **Pause →** Would **§1 + §2** pass an external spot-check—is spec coverage documented and ancillary dimensions clean?
-
-### 4) Report
-
-Deliver: (1) Summary by severity. (2) Per finding: `Fixed` / `Could not reproduce` / `Deferred` + location + validation evidence. (3) **Completion criteria block**: §1 spec conformance (tool or checklist + requirement IDs + commands); §2 security/edge-case (and other ancillary) closure with rerun evidence or explicit caller rescope for any intentional exception. (4) Final re-validation (review tool result if any, tests, diff stat). (5) Residual/deferred with reasons—if present, state whether completion was declared or blocked. (6) User-facing next checks before merge (manual QA, integration, etc.).
-   - **Pause →** Could the user rerun **exactly one** cited command per `Fixed` to trust me—is that cited?
-   - **Pause →** Does the report prove **§1 + §2** without hand-waving?
-
-## Notes
-
-- Hypotheses or “might be risky” lines in a report that were **not** confirmed as findings stay **out of scope** for fixes.
-
-## Sample hints
-
-- **Inbound finding slice** — `HIGH | SSRF via webhook URL | src/net/fetch.rs:112 | curl user-controlled URL without allowlist`.
-- **Serial flow** — fix `HIGH #1`, run `cargo test net_fetch` (or the project’s narrowest test), mark `Fixed` **only after green** → then proceed to `HIGH #2`; do **not** batch three HIGH fixes then test once unless a single coherent patch is unavoidable and validation still proves each finding closed.
-- **Status line**: `HIGH SSRF fetch · Fixed · fetch.rs:105-128 · Verified: cargo test net::fetch + manual blocklisted host`.
-- **`Could not reproduce`**: reviewer cited `middleware.ts:77` leak; current tree shows no such path/commit — note commit inspected and bail with evidence, do **not** invent a finding to satisfy the report.
+- `review-spec-related-changes`：驗證修復後仍符合 spec / plan
+- `review-change-set`：修復後的 code-affecting 差異重審
+- `systematic-debug`：修復過程中遇到不明測試或 runtime 問題時使用
+- `discover-security-issues`：清理安全 finding 時的 scoped proof
+- `discover-edge-cases`：清理 edge-case / hardening finding 時的 scoped proof
+- `commit-and-push`：使用者要求提交或推送時的最終交付流程

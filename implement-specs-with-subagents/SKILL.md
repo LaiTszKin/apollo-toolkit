@@ -1,92 +1,49 @@
 ---
 name: implement-specs-with-subagents
-description: >-
-  Coordinator-only workflow for multispec batches: ingest `coordination.md`/`preparation.md`, run prerequisite work yourself, derive topological phases, launch **`implement-specs-with-worktree`** workers (one `{change}` each; **full** `tasks.md` + **full** `checklist.md` wrap-up—no partial handoff), **`merge-changes-from-local-branches`** after every phase succeeds, ledger every branch/test/merge—not for solo specs unless user explicitly insists on delegation overload. **Multi-phase: do not declare done until every non-blocked spec is merged across all phases** (or pipeline stopped on explicit blocker).
-  Wrong tool for one directory without parallel mandate—pick **`implement-specs-with-worktree`** / **`implement-specs`** depending on isolation. Publication/versioning stays outside this orchestration layer unless another skill attaches.
-  Ledger sample: `oauth-scope | phase=1 | merged | npm test ✅`.
+description: 當有多份規格文檔需要被實作時，且環境允許使用subagents，建議使用本技能調度subagents完成任務
 ---
 
-# Implement Specs with Subagents (Multi-Phase)
+## 目標
 
-## Dependencies
+調度多個subagents完成規格文檔的實作。
 
-- Required: `implement-specs-with-worktree` (every implementation subagent **MUST** follow this skill for its assigned directory); `merge-changes-from-local-branches` (phase integration **MUST NOT** skip this between phases); **`commit-and-push`** (integration-branch **preparation** commits and **any** post-merge submission the user expects on that branch—**MUST NOT** bypass for bare `git commit` / ungated push when this skill owns the branch).
-- Conditional: `generate-spec` if the batch is not implementation-ready; `review-change-set` only when the user asks for post-merge review.
-- Fallback: If independent subagents cannot run, **MUST** report that limitation. Serial `implement-specs-with-worktree` across specs is allowed **only** after the user explicitly approves that fallback.
+## 驗收條件
 
-## Non-negotiables
+- 在所有被用戶要求實作的spec之中，所有的 `checklist.md`, `tasks.md`, `spec.md` 當中所有非用戶填寫的checkboxes全部被勾選為完成狀態
+- 所有變更已經從各個subagents的工作分支合併回當前所在分支
+- 所有subagents創建的工作分支及工作樹已經被清理
 
-- **MUST NOT** delegate until `coordination.md`, when present, explicitly allows parallel implementation—or when absent, until you have verified no contradiction to parallel work.
-- **MUST** enumerate exact in-scope spec directories **before** any subagent starts; **MUST NOT** delegate archived, sibling, or “nearest guess” directories unless the user explicitly includes them.
-- **MUST** verify each delegated directory contains `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` before launch.
-- **MUST** complete, verify, and **finalize** documented shared preparation on the integration branch **through `commit-and-push`** before any implementation subagent starts when `preparation.md` exists or specs mandate pre-work; the coordinating agent **MUST NOT** delegate that preparation. Subagents **MUST NOT** start until this branch is clean at the preparation commit (or there is no required preparation).
-- **MUST** build a directed dependency graph from `coordination.md` plus each spec’s `spec.md` / `design.md` (edges: *provider spec must merge before consumer spec*). **MUST** partition specs into phases by topological **layers**: Phase 1 = specs with **no** in-batch prerequisites; for *k* ≥ 2, Phase *k* = specs whose in-batch prerequisites all appear in phases before *k*. **MUST NOT** start phase *k* until phase *k − 1* is fully merged into the integration branch (or you have an explicit user override). If the graph has a cycle, **MUST** stop and report it.
-- **MUST** assign **exactly one** spec directory per implementation subagent; **MUST NOT** assign multiple directories to one implementation subagent.
-- **`tasks.md` + `checklist.md` completeness (hard stop)**: Every implementation subagent **MUST** finish **all** actionable items in its assigned directory’s `tasks.md` **and** **all** `checklist.md` wrap-up, acceptance, verification, and closing obligations before reporting success—**no** partial completion, **no** “good enough” stops for large batches, **no** deferrals disguised as done. The coordinating agent **MUST NOT** merge a phase branch, advance the ledger to **`merged`**, or treat a spec as complete while **any** in-scope `tasks.md` line **or** checklist-defined closing item remains undone unless the batch is explicitly **`blocked`** with documented user/contract halt. **MUST** repeat this mandate in **every** subagent envelope so workers cannot interpret scope loosely.
-- **MUST** give each subagent only task-local context (repo root, exact spec path, `coordination.md` path if relevant, instruction to run `implement-specs-with-worktree`, explicit **`tasks.md` full-completion** and **`checklist.md` wrap-up full-completion** requirements, baseline commit when preparation exists, requirement to read the full bundle before edits, worktree isolation, tests, backfill, local commit, and reporting branch/worktree/commit/tests/blockers). **MUST NOT** leak unrelated reasoning or other subagents’ private diffs unless resolving a concrete conflict.
-- After each phase: **MUST** merge every **completed** spec branch from that phase into the integration branch via `merge-changes-from-local-branches` before starting the next phase; **MUST** resolve conflicts using spec contracts as the correctness tie-breaker; **MUST** record merge result in the ledger; if merge is blocked, **MUST** stop the pipeline and report.
-- **Multi-phase completion**: When the planned ledger has **more than one** phase, **MUST** loop steps **5→6→7** until **every** in-scope spec is either **`merged`** on the integration branch or explicitly **`blocked`** with a documented stop (user abort, irresolvable conflict, failed dependency, etc.). **MUST NOT** yield, summarize as “phase complete”, or imply the batch is finished while **any** phase still has a successful, unmerged branch or **`pending`** / **`in_progress`** rows for specs that should run—unless the coordinating agent is halted by a preceding Non-negotiable blocker **and** that halt is stated plainly.
-- Model: If the user names a model, **MUST** use it for implementation subagents when the platform allows; if not supported, **MUST** state that fact and continue only if the default is acceptable to the user’s intent.
+## 工作流程
 
-## Standards (summary)
+### 1. 定位實作範圍
 
-- **Evidence**: Batch read (`coordination.md`, `preparation.md`, every in-scope `spec.md` / `design.md`) before scheduling; ledger stays live.
-- **Execution**: Preparation → dependency graph → **repeat** (run phase *k* → merge phase *k*) until all phases reconciled on the integration branch; never skip merges between dependent phases; **multi-phase ⇒ no early “done” narrative** until ledger proves full merge-set (or documented blockers).
-- **Quality**: No duplicate delegation; subagents base on the branch that already contains preparation (and prior phases); **every** spec lands with **complete** `tasks.md` execution **and** **complete** `checklist.md` wrap-up, or a documented **blocked** state—workload is never a merge excuse; pause on shared file collisions, batch-wide defects, or rate-limit pressure.
-- **Output**: Concise ledger: per spec → phase, depends-on, subagent id/label, branch/worktree, commit or blocker, tests, merge status.
+閱讀用戶指定的spec：
 
-## Workflow
+- `spec.md` 定義了用戶的需求
+- `tasks.md` 定義了詳細的實作任務
+- `checklist.md` 定義了任務的完成和驗收條件
+- `contract.md` 定義了spec的外部依賴
+- `design.md` 定義了相關業務鏈路的架構設計
+- `coordination.md`（如有）定義了batch spec之中各份spec各自的實作邊界
+- `preparation.md`（如有）定義了實作batch spec之前各spec的共用準備工作
 
-**Chain-of-thought:** After **each** numbered step below, briefly answer **`Pause →`** items; escalate to halt or revise the plan whenever the answer violates Non-negotiables or exposes a blocker.
+按照以上文件，閱讀repo，理解本次spec的實作範圍。
 
-1. **Batch intake** — Resolve `docs/plans/{YYYY-MM-DD}/{batch_name}/`. Read `coordination.md` (first) and `preparation.md` when present. List only in-scope spec directories; verify the five required files each. If coordination blocks parallel work, **stop** and report. If preparation is required, go to step 2; else go to step 3.
-   - **Pause →** Can I quote **verbatim** why each enumerated directory is in scope—not “probably related”?
-   - **Pause →** What **exact sentence** from `coordination.md` gates parallel readiness, if any—or what absence did I infer from—and is that justified?
+### 2. 完成前置準備工作（如有）
 
-2. **Preparation (blocking when required)** — Coordinating agent executes shared prep only: read tasks/outputs/verification hooks, satisfy scope, run listed checks, **finalize on the integration branch through `commit-and-push`** (push only if the user requested remote update), record prep commit hash in ledger, leave working tree clean. If prep fails, **stop** (no subagents).
-   - **Pause →** Am I silently delegating preparation to a **subagent** when the coordinating agent owns it—is that happening?
-   - **Pause →** What **commit hash** and **clean-tree** confirmation will subagents inherit as baseline?
+如果實作的batch spec 有 `preparation.md`，你需要在開始實作之前需要先完成 `preparation.md` 之中所規定的任務內容，並在驗收條件滿足之後回填 `preparation.md`。使用 `commit-and-push` 技能並遵守當中的流程將前置準備工作提交，不需要推送到remote。
 
-3. **Dependency graph** — Extract ordering obligations; assign each spec a phase index via topological layering. Persist `depends-on` / `depended-by` in the ledger. Cycles ⇒ **stop**.
-   - **Pause →** For each edge (A must land before B), what **sentence** from spec/design/coordination supports it?
-   - **Pause →** If I flattened phases wrong, which later spec would start **without** its merged predecessor—how do I detect that now?
+### 3. 規劃subagents調度順序
 
-4. **Plan launches** — For each phase, queue one item per spec. Ledger fields: phase, paths, deps, planned branch/worktree basename, status (`pending` / `in_progress` / `merged` / `blocked`), commit, tests, blockers, prep-commit baseline note. Fix model policy per Non-negotiables.
-   - **Pause →** Is there **exactly one** spec directory per queued subagent—never two in one prompt?
-   - **Pause →** What will I **repeat** in every subagent envelope so they cannot “improvise” the wrong skill or wrong path?
+識別各份spec之間的依賴關係，並建立調度順序。將多份spec的實作切分為多個實作批次。每一個實作批次內部的spec之間沒有互相依賴。完成實作批次的建立之後，為每一個subagents分配僅一份spec，並且開始實作。
 
-5. **Run phase *k*** — Launch subagents for each spec in the phase with task-local payloads (see Non-negotiables). Monitor ledger; pause new launches on shared blockers; on conflicting edits to shared files, resolve ownership using `coordination.md` before more launches; if one spec fails and others depend on it, **MUST NOT** start those dependents until resolved; batch-wide planning failure ⇒ stop all scheduling.
-   - **Pause →** Does every active subagent have a **distinct** spec directory assignment—no duplicate or overlapping paths?
-   - **Pause →** Did two running subagents report **overlapping** paths; if yes, did I stop launching until ownership is clear?
+在開始實作一個新的實作批次之前，你需要使用 `merge-changes-from-local-branches` 技能，遵守當中的流程，將前一個實作批次的變更從本地其他分支合併回來。
 
-6. **Merge phase *k*** — When every item in phase *k* is **done or explicitly blocked**, merge **each successful** branch via `merge-changes-from-local-branches`; rerun critical tests if your standards say so; update ledger. Merge failure ⇒ **stop** before phase *k+1*. **“Done”** here **requires** full `tasks.md` completion **and** full `checklist.md` wrap-up / acceptance per Non-negotiables—not merely a subagent “looks finished” report.
-   - **Pause →** For **each** spec I am about to merge, can I cite **evidence** (branch + `tasks.md` **and** `checklist.md` state) that **zero** applicable task lines **and** **zero** outstanding checklist closing items remain—or is this a documented **`blocked`** outcome instead?
-   - **Pause →** Has **every** successful branch in this phase been merged into the **same** integration branch I will use to **start** phase *k+1*?
-   - **Pause →** If a merge conflict touches a **contract** field, which spec’s `contract.md` / `design.md` is the tie-breaker I will apply?
+### 4. 驗收工作
 
-7. **Repeat until batch reconciled** — After step 6, if **any** later phase still has specs not yet run or not yet merged: **MUST** increment *k* and **return to step 5** on the **same** integration branch (now including phase *k* merges). Next phase starts only on that branch. **MUST NOT** end the coordinator run with a “wrapped up” message if the ledger still shows remaining phases or unmerged successful work. **Only** when every in-scope spec is **`merged`** or explicitly **`blocked`** may you treat implementation coordination as **complete** (then optional handoff to submit/review skills per user).
-   - **Pause →** How many phases remain after this merge—is the count **zero**? If not, **immediately** plan step 5 for *k+1*.
-   - **Pause →** Before launching phase *k+1*, can I **name** the merge commit or branch state that contains **all** prerequisites for every spec in that phase?
-   - **Pause →** Can I cite **ledger lines** proving **merged** for every non-blocked spec in **every** phase?
+完成所有實作批次的合併之後，你需要閱讀所有spec之中的 `checklist.md`, `tasks.md`, `spec.md`，並確保當中非用戶填寫的任務相關checkboxes都被勾選為完成。
 
-## Out of scope
+## 範例
 
-- **MUST NOT** use this skill for a single spec unless the user explicitly requests subagent delegation.
-
-**Repository regression check:** The coordinating agent must complete and commit explicitly documented prerequisite preparation on the integration branch before launching implementation subagents when `preparation.md` or equivalent mandates it.
-
-## Sample hints (subagent scheduling)
-
-- **Parallel batch (independent specs)** — The batch has multiple member directories and `coordination.md` allows parallel implementation with **no** in-batch prerequisites. Treat them as **one phase**: assign **exactly one** spec per subagent, launch one **`implement-specs-with-worktree`** worker per spec, each finishing **all** of its directory’s **`tasks.md`** and **`checklist.md`** before reporting success; when **every** branch in the phase is green, run **`merge-changes-from-local-branches`** to bring **every** member into the integration branch **before** declaring the batch done or starting a follow-on phase.
-
-- **Preparation plus A → {B, C}** — Specs **A**, **B**, and **C** share a batch with **`preparation.md`**; `coordination.md` / design shows **B** and **C** depend on merged work from **A**. Coordinating agent: (1) complete **preparation** on the integration branch and **`commit-and-push`** (push only if the user asked); (2) **Phase 1**: launch **one** subagent for **A** only; **`merge-changes-from-local-branches`** for **A** when it passes; (3) **Phase 2**: launch **two** subagents for **B** and **C** from the branch that already contains **A**’s merge; (4) merge **B** and **C** when both finish. **MUST NOT** start **B** or **C** until **A** is merged into the baseline they branch from.
-
-- **Ledger reminder** — One row per spec remains mandatory (`phase`, `depends-on`, branch/worktree, `merged` / `blocked`, tests); see Non-negotiables for full fields.
-
-## References
-
-- `implement-specs-with-worktree`: per-spec execution environment
-- `merge-changes-from-local-branches`: phase merge integration (and downstream submit flow when that skill is invoked)
-- `generate-spec`: repair planning when the batch is not ready
-- `coordination.md`, `preparation.md`: batch-level ordering and prerequisites
-- `review-change-set`: optional post-merge review
+- "用戶要求實作一份batch spec。該batch spec有5份spec。spec 2依賴於 spec 1，spec 4依賴於spec 3，spec 5依賴於spec 2, spec 4。" -> "將batch spec切分為3個實作批次。第一批，先派發兩個subagents各自實作spec 1, spec 3，並將變更合併回當前分支；第二批派發兩個subagents個字實作spec 2, spec 4，並將變更合併回當前分支；第三批派發subagent實作spec 5，並將變更合併回當前分支。完成驗證工作之後向用戶回報成果。"
+- "用戶要求實作一份batch spec。該batch spec有3份spec，並且存在 `preparation.md`。3份spec之間各自無依賴關係。" -> "先完成 `preparation.md` 的實作並提交。然後啟動三個subagents並行完成三份spec的任務。完成之後，將變更合併回當前分支。完成驗證工作之後向用戶回報結果。"

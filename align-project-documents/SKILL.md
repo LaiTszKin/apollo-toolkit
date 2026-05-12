@@ -1,86 +1,37 @@
 ---
 name: align-project-documents
-description: >-
-  Regenerate standardized tree `docs/features` (BDD zero code paths), `docs/architecture` (macro layer rules), `docs/principles` (evidence-backed conventions) after reading the ENTIRE production codebase—legacy scattered Markdown must migrate or be removed before finish then invoke **`maintain-project-constraints`** so AGENTS/CLAUDE indexes match disk.
-  Use for repo-wide doc realignments (“rebuild project docs from code”)—skip for single-file README nitpicks unless user explicitly requests full regeneration.
-  Violation examples: features mentioning `src/foo.ts`… acceptable feature: “Given signed-in user When export Then CSV downloads”… architecture stays stable if module renamed internally…
+description: 整理及維護項目文檔。當你需要管理項目說明文檔時，使用此技能。
 ---
 
-# Align Project Documents
+## 目標
 
-## Dependencies
+以整個生產repo為唯一主證據，建立或維護標準化的 `docs/features/`、`docs/architecture/`、`docs/principles/`，清理已失效或重複的舊文檔，並在完成後同步刷新根目錄約束文件。
 
-- Required: `maintain-project-constraints` after `docs/` work to refresh `AGENTS.md`/`CLAUDE.md` and the doc index.
-- Conditional: none.
-- Optional: none.
-- Fallback: If `maintain-project-constraints` cannot run, **MUST NOT** pretend the constraints files are refreshed—report the gap.
+## 驗收條件
 
-## Non-negotiables
+- repo的所有細節被仔細閱讀並轉化為標準化的 `docs/features/`、`docs/architecture/`、`docs/principles/`，以及同步後的 `AGENTS.md` / `CLAUDE.md`。
+- 舊的非標準文檔已被遷移、合併或移除。
 
-- **MUST** read the **entire** codebase (all meaningful source/config/test entrypoints—not a single-folder sample) **before** writing category docs; code is sole truth—existing prose is corroborating only.
-- **MUST NOT** ship `docs/features/` bullets that cite file paths, function names, or implementation detail—user-facing **BDD** only (`Given` / `When` / `Then`).
-- **`docs/architecture/`** stays **macro** (layers, boundaries, data-flow direction)—**MUST NOT** document code that will rot on every refactor.
-- **`docs/principles/`** **MUST** remain traceable to **concrete** repo patterns (with examples)—not aspirational platitudes without evidence.
-- **MUST** create or refresh `docs/features/`, `docs/architecture/`, `docs/principles/` with categorized files; **MUST** remove or migrate stale non-conforming docs (**MUST NOT** leave mixed legacy layout alongside new structure indefinitely).
-- **MUST** invoke **`maintain-project-constraints`** after category docs stabilize so `AGENTS.md`/`CLAUDE.md` indexes match disk.
-- Default doc **language**: match user preference or repo’s dominant README/docs language consistently per run.
+## 工作流程
 
-## Standards (summary)
+### 1. 建立對repo的基線認知
 
-- **Evidence**: Paths and reads logged while building claims; contradictory old docs flagged, not blindly merged.
-- **Execution**: Whole repo read → ingest old docs → write three pillars → prune → constraints refresh.
-- **Quality**: Features user-only; architecture stable abstractions; principles evidence-backed.
-- **Output**: Standardized tree + synced agent constraint files.
+閱讀項目現有文檔，建立對repo的初步理解，並將其作為對repo的基線認知，制定後續的閱讀策略
 
-## Target structure
+### 2. 比對repo及項目文檔
 
-```
-docs/
-├── features/       — User-facing capability, BDD only (no code paths)
-├── architecture/   — Layers/modules, boundaries, integration contracts (macro)
-└── principles/     — Style, tooling, conventions with codebase examples
-```
+按照上一步建立的閱讀策略，全面搜索、查找整個repo，驗證並確保現有項目文檔的描述正確、無遺漏。
+如果外部環境存在subagents功能，建議調度subagents完成對repo的閱讀。
 
-Extended rules and checklist: `references/templates/standardized-docs-template.md`.
+### 3. 制定文檔更新策略
 
-## Workflow
+根據上一步找到的所有遺漏或項目文檔與實際代碼脫節之處，制定文檔更新策略。將所有項目文檔更新為符合模板格式的標準化文檔，並移除除必要文檔（如 `CHANGELOG.md`, `CONTRIBUTION.md` ）外的舊有說明文檔。
 
-**Chain-of-thought:** **`Pause →`** after each major phase; ambiguity on “user-visible” vs “internal” ⇒ re-read callers before classifying.
+## 範例
 
-### 1) Read entire codebase
+- "根據當前repo重建整套專案文檔。" -> "完整讀碼後重建三類標準文檔，清理舊文檔並同步刷新 `AGENTS.md` / `CLAUDE.md`。"
+- "這個倉庫的 docs 很散，請重新對齊成統一結構。" -> "把可保留內容遷入 `docs/features/`、`docs/architecture/`、`docs/principles/`，移除重複或失效文件。"
+- "我要的不是 README 小修，而是整個文檔體系重整。" -> "以全倉庫證據為基礎重建標準化文檔樹，而不是只修改單一說明文件。"
 
-- Cover entrypoints (CLI/server/workers), public surfaces, boundaries, configs, integrations, tests as behavior specs.
-- Keep an **evidence notebook** (paths) for principles and architecture—not for features text.
-  - **Pause →** Did I skip generated/vendor/`node_modules`/binary blobs incorrectly included as “must read”?
-  - **Pause →** Can I name the **top five** externally visible behaviors from code alone?
-
-### 2) Read existing prose
-
-- List `README.md`, `docs/**`, `CONTRIBUTING.md`, etc.; extract facts that code confirms; flag obsolete sections.
-  - **Pause →** Where did I treat Markdown as authoritative over a contradicted implementation?
-
-### 3) Generate three pillars
-
-- **features/**: categories → one markdown per category → BDD scenarios only.
-- **architecture/**: one file per layer/module cluster → boundaries and flows, stable wording.
-- **principles/**: split files (`naming-conventions.md`, etc.) → each point ties to observable repo habit.
-  - **Pause →** Random feature paragraph: grep for `./src` or `` ` `` — if found, rewrite for user observable outcome only.
-
-### 4) Remove non-conforming legacy
-
-- Delete or migrate files fully superseded; if uncertain, **keep** file list in report as migration backlog — **do not** silently duplicate two competing truths forever.
-
-### 5) Refresh constraints
-
-- Run **`maintain-project-constraints`** so Commands / Business Goals / Doc Index mirror new files.
-
-### 6) Gates before finish
-
-- No code paths in features; architecture still macro after imagined small refactor; principles cite real examples; index lists every file under the three dirs; constraints skill executed.
-
-## Sample hints
-
-- **Feature OK**: “Given a signed-in user When they export Then a CSV download starts” — no `handlers/export.rs` references.
-- **Feature bad**: “Call `ExportService.run` …” — violates Non-negotiables (implementation leak).
-- **Architecture OK**: “API layer handles I/O only; domain module owns business rules” — stable across internal renames.
-- **Principle OK**: “TypeScript files use kebab-case — see `src/user-profile/`” — traceable pattern.
+## 參考資料
+- `references/templates/standardized-docs-template.md` - 三類文檔的目標結構、分類規則與清理檢查表。

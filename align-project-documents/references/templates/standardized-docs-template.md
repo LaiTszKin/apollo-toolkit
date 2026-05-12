@@ -86,7 +86,7 @@ Every principles file must:
 
 **理由**: <為什麼採用此慣例>
 
-**範例**: <從代碼庫提取的具體範例>
+**範例**: <從repo提取的具體範例>
 ```
 
 ### Principles classification guide

@@ -1,91 +1,32 @@
 ---
 name: discover-edge-cases
-description: >-
-  Diff-first (or full-repo) discovery of **reproducible** edge-case risks: boundaries, null/empty, failure paths, concurrency, observability; evidence via code/tests/runtime—**no edits, no new tests, no PRs**. For code-affecting scope, cross-check with **`discover-security-issues`** before final report.
-  Use for edge-case review, hardening gaps, unusual inputs/error paths, pre-merge risk pass **STOP** implementation or “just fix it here”… BAD unproven alarm list… GOOD path:line + double repro…
+description: 審查代碼在邊界狀況時可能會出現的問題。當你需要進行代碼審查時，調用此技能
 ---
 
-# Discover Edge Cases
+## 目標
 
-## Dependencies
+審查代碼並輸出一份代碼邊界問題審查報告，僅保留可重現、可驗證的風險。報告需要按優先級列出問題標題、證據、重現方式、受影響不變式、風險評估、加固建議與剩餘不確定性。
 
-- Required: none.
-- Conditional: **`discover-security-issues`** on **code-affecting** scope before finalizing the report (adversarial security pass).
-- Optional: none.
-- Fallback: If that security cross-check is **required** but unavailable, **MUST** stop and report the missing dependency.
+## 驗收條件
 
-## Non-negotiables
+- 完整的代碼審查報告與建議修正。包括但不限於對代碼進行：資料完整性、靜默失敗、重試風暴、資源耗盡、部分提交/回滾失敗與跨模組傳播等審查結果。
 
-- **Discovery-only**: **MUST NOT** edit code, add/modify tests, or open PRs.
-- **MUST** keep only **reproducible** findings; label guesses as **hypotheses**.
-- **MUST** reproduce each **confirmed** issue **at least twice** (same trigger); vary neighbors (empty vs null, malformed vs wrong-type).
-- **MUST** discard authorship bias—including code from earlier in the conversation.
-- If remediation is requested: finish this pass first; hand off **confirmed** items to an implementation workflow.
+## 工作流程
 
-## Standards (summary)
+### 1. 深入閱讀相關代碼
 
-- **Evidence**: `path:line`, commands/inputs, test output, or runtime symptoms—no intent-only claims.
-- **Execution**: Scope → baseline read → focused probes (2–5 high-impact) → validate → prioritize → report.
-- **Quality**: Prefer fewer strong findings; flag data integrity, silent failure, retry storms, cross-module propagation.
-- **Output**: Prioritized findings, reproduction, risk, hardening **advice**, residual risk/hypotheses.
+通過用戶指引或目前git變更狀態，定義審查範圍。完整閱讀並閱讀相關代碼片段並理解代碼。重點關注常見邊界問題。
 
-## Workflow
+### 2. 報告整理及輸出
 
-**Chain-of-thought:** Answer **`Pause →`** each step; if scope is wrong, fix before probing.
+將發現的邊界問題按嚴重程度排序，並輸出一份完整的審查報告
 
-### 1) Determine scan scope
+## 使用範例
 
-- `git diff --name-only` first.
-- **With diff**: changed files + minimum dependency chain to validate suspected edges.
-- **No diff**: whole project, prioritizing domain logic, external boundaries, stateful/concurrent modules.
-- If nothing actionable after honest pass: report `No actionable edge-case finding identified` and stop.
-   - **Pause →** Can I name the **smallest file set** I must read—not the whole monorepo by default?
+- "幫我檢查這次 parser 改動有沒有邊界風險" -> "閱讀本次改動的相關代碼，檢查常見邊界問題是否存在，並輸出完整的驗證報告"
+- "看看這個支付狀態機還有哪些不容易被測到的問題" -> "優先檢查重試、部分提交、回滾、併發重入、順序依賴與可觀測性缺口。"
 
-### 2) Build factual baseline
+## 參考資料索引
 
-- Read end-to-end before judging; derive behavior from code, tests, runtime only.
-- Clarify contracts: types, ranges, null, ordering, retries, state transitions.
-   - **Pause →** What did I **execute** (test/command) vs only read?
-
-### 3) Focused probes (prioritize 2–5)
-
-Target high-risk patterns tied to scope:
-
-- Empty/null/malformed/unexpected types; boundaries (0, 1, min/max, overflow); duplicates/order.
-- Dependency failure: timeout, partial data, retry loops; invalid formats.
-- Concurrency/reentrancy; architecture edges: backpressure, exhaustion, partial commit/rollback.
-- **HTTP/API** (if in scope): 429/500 behavior; logging with status/id/retry/latency (no silent fails).
-
-Load as needed: `references/architecture-edge-cases.md`, `references/code-edge-cases.md`.
-   - **Pause →** Would **discover-security-issues** flag this sink if it is auth/input injection—did I schedule that pass for code changes?
-
-### 4) Confirm reproducibility
-
-- Two passes per confirmed issue; note variants tried; keep unconfirmed as hypotheses.
-
-### 5) Prioritize
-
-- User impact, frequency/exploitability, blast radius; call out integrity, state corruption, silent failure.
-
-### 6) Security cross-check (code-affecting)
-
-- Run **`discover-security-issues`** on the **same** scope; integrate **confirmed** security items (do not duplicate as edge trivia unless distinct).
-
-### 7) Report only
-
-Deliver: (1) Findings—title, severity, evidence, repro, broken invariant; (2) Edge evidence—preconditions, observation, variants; (3) Risk—impact/likelihood/scope; (4) Hardening guidance (advisory); (5) Residual risk—hypotheses, next checks.
-
-## Minimum coverage (apply what fits scope)
-
-- Input validation; boundary behavior; failure/degraded modes; state/idempotency/concurrency/rollback; actionable observability.
-
-## Sample hints
-
-- **Diff**: One new parser → empty string + max length + malformed delimiter **before** “maybe SQL.”
-- **No diff**: Start at payment/state machine module—highest consequence.
-- **Handoff**: Five confirmed edges → remediation skill gets **numbered list + repro**—not this skill patching.
-
-## References
-
-- `references/architecture-edge-cases.md` — system-level checklist.
-- `references/code-edge-cases.md` — code-level input/error/concurrency checklist.
+- `references/architecture-edge-cases.md`：常見系統級邊界情況清單，涵蓋併發、背壓、分散式一致性、超時取消、回滾與部署漂移。
+- `references/code-edge-cases.md`：常見代碼級邊界情況清單，涵蓋輸入、數值、排序、錯誤處理、狀態污染、安全驗證與性能上限。

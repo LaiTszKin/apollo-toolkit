@@ -1,71 +1,55 @@
 ---
 name: systematic-debug
-description: "Systematic debugging workflow for program issues: understand observed vs expected behavior, inspect codebase paths, reproduce all plausible causes with tests, diagnose the real root cause, and complete a validated fix. Auto-invoke whenever behavior does not match expectations (even if the user did not explicitly request debugging), including bugs, errors, crashes, regressions, flaky behavior, and failing tests."
+description: >-
+  用於系統化排查程式問題。先釐清預期與實際行為，再對所有合理原因做可重現驗證，
+  找出真正根因並以最小修復完成驗證；凡是出現 observed-vs-expected mismatch 都應優先使用。
 ---
 
-# Systematic Debug
+# 系統化除錯
+
+## Dependencies
+
+- Required: 無
+- Conditional: 視情況可搭配 `test-case-strategy`、`analyse-app-logs`、`scheduled-runtime-health-check`
+- Optional: 無
+- Fallback: 無
 
 ## Standards
 
-- Evidence: Gather expected versus observed behavior from code and runtime facts before deciding on a cause, and when the issue involves a runtime pipeline or bounded run, anchor the investigation to one canonical artifact root or run directory instead of mixed terminal snippets from multiple runs; if generated reports or databases drift into an older run directory, capture that mismatch explicitly before treating any artifact as evidence.
-- Execution: Inspect the relevant paths, reproduce every plausible cause with tests or bounded reruns, choose a reproduction mode whose fidelity matches the user's claim, map each observed failure to a concrete pipeline stage, distinguish toolchain/platform faults from application-logic faults, classify failing tests as stale test contract vs test-harness interference vs real product bug, and when tuning a stress, chaos, or edge-case profile preserve a minimal executable path so the rerun still exercises the target lifecycle stage before applying the minimal fix at the true owner.
-- Quality: Keep scope focused on the bug, prefer existing test patterns, explicitly rule out hypotheses that could not be reproduced, treat shared-state or parallel-test interference as a first-class hypothesis when failures disappear in isolated reruns, and when a fault-injection profile wipes out all execution opportunities first classify that as toolchain, harness, or profile invalidation before blaming product logic.
-- Output: Deliver the plausible-cause list, the canonical evidence source, reproduction tests or reruns, the final failure classification for each investigated symptom, validated fix summary, passing-test confirmation, and when runtime profile tuning was involved state whether the final scenario still preserves meaningful executability.
+- Evidence: 先收集預期與實際行為、程式碼路徑、測試輸出與單一可信 runtime artifact，再判斷原因
+- Execution: 為每個合理假設建立可重現證據，定位最後一個成功階段，再區分工具鏈、測試契約、測試隔離與產品邏輯問題
+- Quality: 修復只針對真實根因；不能重現的假設必須明確排除；不得混用不同執行批次的證據
+- Output: 產出根因候選、重現方式、最終分類、最小修復、驗證結果，以及在 runtime 問題中使用的 canonical evidence
 
-## Core Principles
+## 技能目標
 
-- Gather facts from user reports and code behavior before changing implementation.
-- Cover all plausible causes with reproducible tests instead of guessing a single cause.
-- Keep fixes minimal, focused, and validated by passing tests.
-- When logs or runtime artifacts exist, treat one run as canonical and compare every conclusion against that same run's generated artifacts, not against ad hoc console recollection.
-- When comparing runtime runs, first verify the baseline run is complete enough for the requested comparison: same command or scenario, same runtime mode, same bounded duration, and matching structured artifacts. If the baseline is incomplete, report that the only proven change is artifact/run completeness and avoid drawing strategy or performance conclusions from missing data.
-- When a repository has both scenario or harness runs and a production-like runtime, do not treat the lower-fidelity mode as proof about the higher-fidelity mode unless you explicitly state that limitation and the user agrees.
-- When the failing flow crosses multiple layers, identify the last confirmed successful stage before assigning blame.
-- When debugging a stress, chaos, or edge-case profile, keep the profile adversarial but not globally disabling: preserve at least one realistic path that can reach the target stage so the rerun measures product behavior under pressure instead of only proving the harness can self-sabotage.
-- If a profile adjustment restores some execution but the target stage is still unobserved, classify the remaining blocker precisely by stage instead of reporting a blanket recovery.
-- When tests fail, separate stale assertions and fixture drift from real implementation regressions before changing product code.
-- If failures only appear under parallel execution or shared shell-out paths, investigate test isolation, shared locks, temp directories, run-name collisions, and environment leakage before blaming the product.
+把「它應該做 X，實際卻做了 Y」這類問題轉成可驗證的除錯流程，避免靠猜測改碼，並確保最後交付的是已被重現、已被證明、已被驗證的修復。
 
-## Trigger Conditions
+## 驗收條件
 
-Use this skill by default whenever the request indicates a program problem, including:
+- 已清楚記錄預期行為、實際行為、受影響路徑，以及 runtime 問題使用的單一 canonical 證據來源
+- 所有合理根因都已被重現、驗證或明確排除，而不是只修第一個看起來像的原因
+- 已區分問題屬於工具鏈 / 平台、測試契約過期、測試干擾、流程編排，還是真正的產品邏輯缺陷
+- 最終修復是最小且聚焦的，並由失敗後轉成功的測試或 bounded rerun 證明有效
 
-- bug, defect, regression, broken behavior
-- error, exception, crash, 4xx/5xx failure
-- failing/flaky tests, intermittent failures, unstable behavior
-- "why is this not working" style troubleshooting requests
-- explicit or implicit observed-vs-expected mismatch ("it should do X but does Y")
+## 工作流程
 
-Also auto-invoke this skill when mismatch evidence appears during normal execution (logs, test output, runtime output), even if the original request was not phrased as a debugging task.
+1. 先整理使用者回報、測試輸出、日誌與程式碼路徑，明確寫出預期與實際差異；若問題涉及 runtime artifact，先指定一個 canonical run 或輸出目錄
+2. 把流程拆成具體階段，例如 setup、startup、readiness、steady-state、persistence、shutdown，找出最後一個已確定成功的階段
+3. 為每個合理根因建立重現方式；能用測試重現就優先用測試，涉及真實執行流程時則用相同模式的 bounded rerun，而不是中途切換到不同 fidelity 的環境
+4. 若失敗只在平行執行、共享 shell-out、共享暫存路徑或舊報告路徑下出現，先調查測試隔離、共享狀態與 artifact routing 問題
+5. 用重現證據確認真正根因，並明確排除非原因；若測試失敗其實來自 stale assertion 或 fixture drift，先修正測試契約，不要反向削弱產品行為
+6. 實作最小修復並反覆驗證，直到所有重現案例、相關測試或 bounded rerun 都通過
+7. 向使用者回報根因清單、最終分類、修復摘要、驗證結果，以及任何仍受限於執行環境或資料品質的部分
 
-## Required Workflow
+## 使用範例
 
-1. **Understand and inspect**: Parse expected vs observed behavior, explore relevant code paths, record the canonical failing run or artifact root when runtime output is involved, and build a list of plausible root causes.
-2. **Map the failure boundary**: Break the flow into concrete stages such as setup, startup, readiness, steady-state execution, persistence, and shutdown, then identify the last stage that is confirmed to have succeeded.
-3. **Reproduce with tests or bounded reruns**: Write or extend tests that reproduce every plausible cause, and when the bug depends on runtime orchestration rerun the same bounded command or the same runtime mode instead of switching contexts mid-investigation. If the user is asking about real runtime or market behavior, prefer the production-like bounded run over a synthetic scenario replay unless safety or tooling constraints make that impossible. When a failing test passes in isolation, rerun it under the original suite shape to determine whether the real cause is stale expectations, fixture drift, or shared-state interference. When stress or chaos configuration is part of the reproduction, keep the pressure profile strong enough to preserve the intended edge cases while still allowing at least partial traversal of the target lifecycle stage.
-4. **Diagnose and confirm**: Use reproduction evidence to confirm the true root cause, explicitly rule out non-causes, and classify whether each investigated failure belongs to the toolchain/platform layer, test contract drift, test-harness interference, orchestration, or application logic.
-5. **Fix and validate**: Implement focused fixes and iterate until all reproduction tests or bounded reruns pass.
+- 「這個 API 應該回 200，現在卻變成 500」-> 先確認預期契約，再重現所有合理根因，最後定位是 handler 邏輯、依賴服務還是測試 fixture 問題
+- 「測試單獨跑會過，但整個 suite 會 flaky」-> 優先排查共享狀態、鎖、暫存目錄與環境污染，而不是先改產品邏輯
+- 「bounded run 幾乎沒有事件發生」-> 先沿著 lifecycle funnel 判斷停在哪個階段，再確認是 profile 過度破壞、編排錯誤，還是實際業務邏輯問題
 
-## Implementation Guidelines
+## 參考資料索引
 
-- Read related modules end-to-end before editing.
-- Prefer existing test patterns and fixtures over creating new frameworks.
-- Keep the scope to bug reproduction and resolution; avoid unrelated refactors.
-- If a hypothesized cause cannot be reproduced, document why and deprioritize it explicitly.
-- For long-running or generated-artifact workflows, record the exact command, timestamps, and artifact paths before inspecting outputs so later comparisons stay on the same evidence set.
-- Do not mix baseline data and rerun data casually; compare the same scenario or command across runs and call out when a conclusion comes from a rerun rather than the original failure.
-- When rerun artifacts land in the wrong directory because a wrapper or inherited environment reused a previous report path, fix the evidence layout first and only then compare metrics; otherwise classify the result as an artifact-routing problem rather than a performance delta.
-- For post-run "why did most events not happen" questions, derive the answer from a funnel over structured artifacts first, then corroborate with logs: discovered or eligible candidates, admission blocks, stale or skipped decisions, queue/governor outcomes, execution attempts, confirmations, retries, and persisted event rows.
-- For speed questions, compute per-stage timings from available event timestamps and state which stages are measured versus unavailable; avoid treating wall-clock bounded duration as pipeline latency, and separately report bounded execute time versus provisioning/readiness/cleanup overhead when both are present.
-- When a runtime profile adds extreme faults, distinguish "edge cases are present" from "the harness globally disabled execution"; if every candidate dies before the claimed stage, reduce only the globally disabling parts, keep representative faults, and rerun the same bounded scenario to prove the profile still exercises the target path.
-- When test fixtures or assertions no longer match the implemented contract, update the tests instead of weakening the product behavior to satisfy stale expectations.
-- When tests shell out to shared local infrastructure, add deterministic isolation such as mutexes, unique temp roots, or serialized sections before accepting flakes as inevitable.
-
-## Deliverables
-
-- Plausible root-cause list tied to concrete code paths
-- Canonical failing run or artifact root when runtime evidence exists
-- Reproduction tests or bounded reruns for each plausible cause
-- Failure classification for each symptom: stale contract, harness interference, or real bug
-- Fix summary mapped to failing-then-passing tests
-- Final confirmation that all related tests pass
+- `test-case-strategy`：需要補重現測試或 drift check 時使用
+- `analyse-app-logs`：問題主要來自應用日誌時使用
+- `scheduled-runtime-health-check`：需要有界執行與執行後分析時使用

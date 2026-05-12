@@ -1,130 +1,42 @@
 ---
 name: init-project-html
 description: >-
-  Declare the project HTML architecture atlas through `apltk architecture` instead of hand-writing SVG/HTML. Two acceptance criteria gate completion: (1) the macro diagram clearly shows feature × sub-module relationships — data flow, call/return interaction logic, error handling, rollback — all expressed as cross-sub-module edges with kinds `call`, `return`, `data-row`, and `failure`; (2) each sub-module’s internal diagram shows function-level flow (`dataflow` steps may reference a declared function plus `reads`/`writes` of declared variables). The tool owns layout, CSS, pan/zoom, and validation. **Subagents only:** one write-capable subagent per feature declares every intra-feature change; the main agent **waits until all subagents finish**, then wires **only** cross-feature seams. **Exact CLI spelling:** always `apltk architecture --help` — never treat prose in this file as the command list. Anchor every declaration to repo evidence.
+  使用 `apltk architecture` 初始化專案 HTML 架構圖譜，生成基礎 atlas YAML 與渲染後的 HTML 頁面。所有宣告必須基於倉庫證據，跨模組關係只能用 `call`、`return`、`data-row`、`failure` 邊表達；每個功能模組由一個可寫子 agent 負責，主 agent 必須等待全部子 agent 完成後，才能補跨功能連接並執行 `render` 與 `validate`。
 ---
 
-# Init Project HTML
+# 初始化專案 HTML 架構圖
 
-## Dependencies
+## 技能目標
 
-- Required: none (the CLI ships its own layout engine, CSS, and pan/zoom client; `apltk architecture` is installed with this toolkit).
-- Conditional: `spec-to-project-html` when the same atlas needs spec-driven refresh — that skill uses the same CLI with `--spec`.
-- Optional: `align-project-documents` when `docs/features` already names the user-visible capabilities.
-- Fallback: codebase too large for one pass → use the **subagent** strategy below; document scanned roots and explicit omissions in `meta.summary`. **MUST NOT** declare components for code paths that were never read.
+透過 `apltk architecture` 為目前倉庫建立基礎專案架構圖譜，產出受 CLI 管理的 `resources/project-architecture/atlas/` 狀態檔與對應 HTML 頁面，而不是手寫 SVG 或 HTML。
 
-## Non-negotiables
+## 驗收條件
 
-### Rule 1 — Use the CLI; never hand-author atlas HTML
+- 只透過 `apltk architecture` 修改圖譜；不得手改 `resources/project-architecture/**/*.html`。
+- 渲染後的宏觀圖完整表達功能與子模組關係；所有跨邊界互動都必須落在 `call`、`return`、`data-row`、`failure` 邊上，不能藏在子模組頁面文案裡。
+- 每個非平凡子模組都具備足夠的內部結構：已宣告的 `function`、`variable`、有序 `dataflow`、必要時的 `error`，且 `dataflow` 中的函式與讀寫變數引用可被校驗通過。
+- 所有宣告都能追溯到真實程式碼、設定、SQL 或外部邊界；無法確認的部分用 `TBD` 或在 `meta.summary` 中明確記錄遺漏原因。
+- 採用「每個功能一個可寫子 agent」的分工；主 agent 必須等所有子 agent 完成後，才允許補跨功能邊並執行 `apltk architecture validate`，且驗證結果為通過。
 
-The atlas state lives in `resources/project-architecture/atlas/` (`atlas.index.yaml` + per-feature YAMLs). Every change goes through the CLI (exact verbs/flags: **`apltk architecture --help`**). After any mutation, the CLI re-renders `resources/project-architecture/**/*.html` with the correct layout, CSS, pan/zoom, and ARIA — agents **MUST NOT** edit those HTML files by hand or invent additional ones.
+## 工作流程
 
-### Rule 2 — Sub-module pages describe only themselves; the internal-dataflow diagram is zoomable and structurally typed
+1. 先執行 `apltk architecture --help`，把 CLI 說明當作唯一命令真源；本技能只定義語義規則，不重複維護參數細節。
+2. 先做整倉淺層盤點，只列出功能模組的 `slug`、使用者視角職責、入口點與主要邊界資源；此階段不要深讀函式實作。
+3. 為每個待建圖功能派發一個可寫子 agent。每個子 agent 只深讀自己負責的功能，並負責宣告該功能內的全部子模組、函式、變數、資料流、本地錯誤，以及所有功能內邊。
+4. 子 agent 返回的內容只能是：子模組摘要，以及需要由主 agent 稍後補上的跨功能邊界資訊；主 agent 不得回頭重讀已委派功能原始碼，也不得重複宣告子 agent 已擁有的功能內元件。
+5. 等全部子 agent 完成後，主 agent 統一補齊跨功能 `edge`，必要時補共享 `meta` 或 `actor`，隨後執行 `apltk architecture render` 與 `apltk architecture validate`。
+6. 打開渲染結果進行抽查，確認宏觀圖和至少一個代表性子模組頁都滿足驗收條件，並在彙報中記錄功能數、子模組數、邊數量、未覆蓋路徑與原因。
 
-What the CLI emits on each sub-module page is fixed in *role* (not in exact flag names — those live in `--help`):
+## 使用範例
 
-- **Function I/O table** — one row per declared function/side-effect entry point.
-- **Variables table** — business-purpose identifiers (`scope` enum and `purpose` text).
-- **Internal dataflow** — ordered steps inside a pan/zoom viewport (+/−/Fit), same interaction model as the macro SVG. Steps may attach a declared function name and comma-separated read/write variable names; the renderer shows them as a function pill and read/write chips so **function-to-function flow** and **variable state** are visible in one diagram.
-- **Local errors** — symbolic error rows (`when` / `means`).
+- 「替這個倉庫首次生成 HTML 架構圖。」 -> 「先梳理功能模組，再按功能分派子 agent，最後彙總跨功能邊，生成基礎 atlas 與渲染頁面。」
+- 「把系統的資料流、呼叫關係和回滾路徑視覺化。」 -> 「使用 `call` / `return` / `data-row` / `failure` 邊表達跨邊界關係，並為每個關鍵子模組補齊內部 `dataflow`。」
 
-**Structural constraints** (enforced by `validate`):
+## 參考資料索引
 
-- Any function name referenced from a dataflow step must already exist on **that** sub-module (`function` row).
-- Any variable name in reads/writes must already exist on **that** sub-module (`variable` row).
-- Purely descriptive steps without fn/reads/writes are allowed, but non-trivial sub-modules **MUST** fill the structure so the diagram is not hollow.
-
-Cross-boundary narratives (“I call X”, “Y calls me”) **MUST** be **edges** between `feature/submodule` endpoints with a `kind` of `call`, `return`, `data-row`, or `failure` — never as extra prose on a sub-module page. There is no CLI path to smuggle cross-boundary text onto sub-module pages.
-
-### Rule 3 — Read order: subagents only; wait for all workers before cross-feature wiring
-
-Real production codebases dwarf the main agent’s context. **MUST** use this pattern only:
-
-1. Enumerate the **feature-module list** (slug + entry + boundary resources only) — **no** function-body deep reads at this stage.
-2. Dispatch **one write-capable subagent per feature** (every feature in scope that needs atlas work). Each subagent:
-   - deep-reads **only** its feature;
-   - declares **everything intra-feature** via `apltk architecture` scoped with `--feature <slug>` where the CLI allows (exact scoping flags: **`--help`**): sub-modules, per-sub-module functions / variables / ordered dataflow / errors, and **every intra-feature edge** (calls, returns, data-rows, failures, rollback/compensation **between sub-modules of the same feature**);
-   - returns **ONLY** a structured summary of (i) sub-module list (slug + kind + one-line role) and (ii) **outbound boundaries** the orchestrator must wire later (calls / data-rows / failures **to other features’** sub-modules — direction, endpoints, suggested kind/label).
-
-3. **Gate — all subagents complete:** The main agent **MUST NOT** declare any **cross-feature** `edge`, shared `meta` that encodes multi-feature narrative, nor any `actor` that exists only to stitch features together, **until every dispatched subagent has finished** (success **or** an explicit failure report). Partial summaries are for note-taking only — **not** for mutating cross-feature atlas state.
-
-4. After the gate: the main agent aggregates outbound boundary notes, declares **only** cross-feature edges (and optional shared `meta` / `actor` if needed), then runs **`apltk architecture render`** (if batched with `--no-render`) and **`apltk architecture validate`**.
-
-The main agent **MUST NOT** re-read source for a delegated feature and **MUST NOT** re-declare intra-feature components a subagent already owns.
-
-### Rule 4 — Evidence over invention
-
-- **MUST** anchor every declared feature, sub-module, function, variable, dataflow step, and edge to a concrete path / symbol / SQL / config; record scanned roots and any deliberate omissions in `meta.summary` via the CLI (`meta` verbs — flags: **`--help`**).
-- **MUST NOT** invent modules, integrations, or sub-modules just because the diagram “looks balanced”. Empty rows are valid; lies are not.
-
-## Standards (summary)
-
-- **Evidence**: every CLI declaration traces to a path/symbol/SQL/config; uncertain areas surface as `TBD` strings or are omitted with a recorded reason.
-- **Execution**: shallow feature-module list → subagent fan-out per feature → **wait for all** → cross-feature edges / meta → `validate` → handover.
-- **Quality**: macro SVG carries every cross-feature data-row edge that exists in the system; sub-module declarations are self-only; pan/zoom + Fit work in the rendered HTML; `apltk architecture validate` returns OK.
-- **Output**: `resources/project-architecture/atlas/` (YAML state) + `resources/project-architecture/**/*.html` (renderer output) — both managed by the CLI.
-
-## Acceptance criteria
-
-The atlas is only complete when both of the following are demonstrably true on the rendered HTML (open `resources/project-architecture/index.html` and one representative sub-module page to verify):
-
-1. **Macro diagram clearly shows the relationships between features and sub-modules**, including:
-   - **Data flow** — every cross-feature DB row, queue topic, or cache key hand-off is a `data-row` **edge** between producing and consuming sub-modules (not free-form prose).
-   - **Interaction logic** — synchronous request/response paths use paired **`call`** (outbound) and **`return`** edges with a label that names the call site or response shape.
-   - **Error handling and rollback** — every failure / compensation / retry path that crosses a sub-module boundary is a **`failure`** edge with a label that names what is rolled back or compensated.
-   - No cross-boundary interaction exists **only** in sub-module page prose — it **MUST** appear as an edge on the macro SVG.
-2. **Each sub-module’s internal diagram clearly shows the function-level interactions inside the sub-module**, including:
-   - **Function-to-function flow** — non-trivial steps reference a declared function on that sub-module.
-   - **Variable state transitions** — variables read or written by a step are declared first, then referenced on the step; reading top-to-bottom traces lifecycle.
-   - **Local data flow** — ordered steps read as a directed flowchart to the sub-module boundary.
-
-`apltk architecture validate` **MUST** return OK before reporting completion.
-
-## CLI reference
-
-Run **`apltk architecture --help`** and the deeper `apltk architecture <verb> [subverb] --help` pages for the authoritative command tree, required flags, examples, and expected results. This skill keeps only the semantic rules, acceptance criteria, and subagent coordination rules so the documentation does not drift when the CLI evolves.
-
-**Cross-feature work timing:** only after **all** feature subagents have returned (Rule 3).
-
-## Workflow
-
-### 1) Whole-repo inventory — list feature modules, not function bodies
-
-Scan the shipped source for **user-visible capabilities** (each one = one feature module): entry routes, CLI commands, UI pages, cron jobs, runners, event handlers, CDC streams. Record only kebab-case slug + one-line user story + boundary points (entry symbol, outbound DB tables / queue topics / external services).
-
-- **Pause →** Is the list actually complete? Note skipped roots with reason; no silent skips.
-- **Pause →** Did I dive into function bodies here? Roll back — keep only structural notes.
-
-### 2) Subagent fan-out — workers own features; orchestrator owns cross-feature seams **after** all workers finish
-
-Dispatch one **write-capable** subagent per feature. Hand each subagent: its feature slug, the feature-module list from step 1 (so it knows other features’ slugs for outbound edges), and **`apltk architecture --help`** as the flag reference.
-
-> **Feature `<slug>` subagent contract**
-> - Read every sub-module of this feature.
-> - Declare the feature and its sub-modules (`feature` / `submodule` — exact flags: **`--help`**).
-> - For every sub-module: add **function**, **variable**, ordered **dataflow**, and **error** rows as needed.
-> - For every intra-feature interaction between sub-modules, add an **edge** whose endpoints stay **inside** this feature.
-> - Run **`apltk architecture validate`** before returning (same project root; use **`--help`** for project/spec flags).
-> - **Return ONLY**: (i) sub-module list (slug + kind + one-line role), (ii) outbound boundaries to *other* features’ sub-modules (direction + edge kind + suggested label). No source dumps.
-
-**Orchestrator — after every subagent has completed:** declare only the cross-feature `apltk architecture` mutations reported by the workers, then render and validate once.
-
-The main agent **MUST NOT** re-declare a subagent’s intra-feature components, and **MUST NOT** open source files for any feature it delegated.
-
-### 3) Handover report
-
-Report: feature count, sub-module count, macro edge counts (call / return / data-row / failure), uncovered paths + reasons, confirmation that **all subagents completed before cross-feature wiring**, and the location of the rendered atlas (`resources/project-architecture/index.html`).
-
-## Sample hints
-
-- Multiple SQL paths on `service ↔ db` → one **`edge`** per SQL path so the macro shows distinct strokes.
-- Retry loops between `service ↔ generator(pure)` → **`call` / `return`** pair on the macro plus ordered **`dataflow`** steps on the service that show retry budget and persistence.
-- Cross-feature DB hand-off (A writes, B reads) → both sides declare DB-oriented functions, then a **`data-row`** edge from producer to consumer.
-- Rollback / compensation across sub-modules → **`failure`** edge with an explicit label; cleanup *inside* a single sub-module belongs in ordered **`dataflow`** steps.
-- Third-party systems → **`external`** kind sub-modules so the trust boundary is visible in styling.
-
-## References
-
-- `lib/atlas/schema.js` — fields, enums, validation. `references/TEMPLATE_SPEC.md` mirrors the schema as a cheat sheet (not a substitute for **`apltk architecture --help`**).
-- `lib/atlas/cli.js` — implementation of dispatch (`apltk architecture --help` prints usage).
-- `init-project-html/sample-demo/` — end-to-end YAML + rendered HTML for two features.
+- `references/TEMPLATE_SPEC.md`：atlas 欄位、列舉和 CLI 寫入形狀速查表。
+- `lib/atlas/cli.js`：`apltk architecture` 的實作入口。
+- `lib/atlas/schema.js`：圖譜資料結構與校驗規則。
+- `sample-demo/`：完整示例輸出，可用於理解基礎 atlas 的最終形態。
+- `spec-to-project-html/SKILL.md`：面向規劃文件的 overlay 版本。
+- `update-project-html/SKILL.md`：面向已存在基礎 atlas 的增量刷新版本。

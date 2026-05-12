@@ -1,103 +1,46 @@
 ---
 name: review-codebases
-description: Repository-wide code review workflow that requires reading the full codebase before judging, prioritizes architecture findings over implementation details, and publishes one GitHub issue per confirmed finding through open-github-issue. Use when users ask for a code review, repository audit, architecture review, maintainability review, or complete codebase inspection.
+description: >-
+  面向整個倉庫的只讀代碼審查技能。要求先讀完整個人類編寫的repo，再按「架構 → 代碼品質 → 邊界情況」的優先順序做判斷；一旦在更高層級發現已確認問題，就停止下探。若需要對外追蹤，為每個已確認且非重複的發現建立 GitHub issue，否則至少輸出可直接發布的草稿內容。
 ---
 
-# Review Codebases
+## 目標
+輸出一份面向整個倉庫的審查報告，先交付最有價值的根因級問題，而不是零散表象。報告需要說明覆蓋範圍、實際審查到的層級、已確認發現、是否已檢查重複 issue、是否已發布 issue，以及因高優先級問題而延後的後續檢查。
 
-## Dependencies
+## 驗收條件
+- 在做任何設計或實作判斷前，已完整閱讀所有會影響行為的人類編寫檔案，包括原始碼、測試、配置、建置腳本、遷移與關鍵文檔。
+- 對生成檔、vendor 檔與 snapshot 檔先確認其性質；只有在性質明確時才可排除深讀，且必須在報告中明確列出排除項與原因。
+- 每個發現都附帶具體檔案與因果說明，不做無證據推測；同一根因導致的多個症狀必須合併成一條發現。
+- 審查順序固定為「架構 → 代碼品質 → 邊界情況」；若在較高層級已確認問題，必須停止更低層級審查並在報告中說明原因。
+- 若需要發布 issue，必須先做重複檢查；每個已確認且非重複的發現都要有發布結果，若無法發布則提供可直接使用的草稿內容。
+- 最終交付物必須包含覆蓋範圍、審查層級、已確認發現、issue 發布狀態與延後檢查項。
 
-- Required: none.
-- Conditional: `read-github-issue` when issue publication requires duplicate checks; `open-github-issue` when confirmed findings should be tracked as GitHub issues.
-- Optional: none.
-- Fallback: If publication is needed and `open-github-issue` is unavailable, return draft issue bodies instead of inventing another publisher.
+## 工作流程
+1. 映射倉庫。
+   - 先識別頂層目錄、入口點、核心模組、測試區、配置、腳本與疑似生成/vendor 區域。
+   - 同時記錄哪些內容會被排除深讀，以及排除理由。
+2. 完整閱讀repo。
+   - 逐個讀完所有相關的人類編寫檔案。
+   - 建立全倉視角的模組邊界、資料流、責任歸屬、不變式與失敗處理模型。
+3. 先做架構審查。
+   - 優先尋找模組邊界錯位、跨層洩漏、循環依賴、重複工作流、抽象滲漏、責任混亂與領域模型不一致。
+   - 若已確認任何架構問題，直接停止後續較低層級審查，專注輸出架構發現。
+4. 若架構層沒有問題，再做代碼品質審查。
+   - 檢查可讀性、重複代碼、死碼、錯誤處理、危險狀態變更、契約不清與關鍵邏輯缺少測試保護等問題。
+   - 若已確認任何代碼品質問題，停止邊界情況審查。
+5. 僅在前兩層都沒有問題時，才審查邊界情況。
+   - 檢查空值、邊界值、部分失敗、重試、併發、順序假設、冪等性與非法狀態轉移。
+6. 需要發布時，先做重複檢查再逐條發布。
+   - 使用 `read-github-issue` 檢查是否已有相同根因、相同邊界或相同結果導向的 open / recently closed issue。
+   - 對每個已確認且非重複的發現，使用 `open-github-issue` 發布；若發布依賴不可用，改為返回對應 issue 草稿。
+   - issue 標題前綴遵循審查層級，例如 `[Architecture]`、`[Code Quality]`、`[Edge Case]`。
 
-## Standards
+## 使用範例
+- 「幫我做一次整倉 code review」-> 先讀完整個人類編寫的repo，再按架構、代碼品質、邊界情況的順序輸出審查報告。
+- 「幫我做 maintainability audit，找到最值得開 issue 的問題」-> 聚焦根因級問題，必要時先做 duplicate check，再為每個非重複發現準備或發布 issue。
+- 「請做 architecture review，不要陷入 style nit」-> 先完成全倉閱讀，只報告有明確邊界與責任證據的架構問題。
+- 「如果 issue 發布不了，也要把內容整理好」-> 仍然完成重複檢查，並輸出可直接發布的 issue 草稿，而不是臨時改用其他未定義發佈方式。
 
-- Evidence: Read the full human-authored repository before judging and cite concrete files for every finding.
-- Execution: Review architecture first, code quality second, and edge cases last, stopping when a higher-priority tier has confirmed findings.
-- Quality: Prefer root-cause findings over scattered symptoms, merge duplicates, and keep hypotheses out of published results.
-- Output: Return coverage, review tier reached, confirmed findings, publication status, and deferred lower-tier follow-up.
-
-## Core rules
-
-- Read the full repository before judging any design or implementation choice.
-- Inspect every human-authored file that affects behavior: source code, tests, build scripts, configuration, migrations, and key docs.
-- For generated, vendored, or snapshot files, verify what they are first; exclude them from deep review only when that status is clear, and list those exclusions explicitly.
-- Do not speculate. Every finding must cite concrete files and causal reasoning.
-- Prefer root-cause findings over scattered symptoms or style nits.
-- Merge duplicate symptoms into one finding when they come from the same underlying issue.
-
-## Workflow
-
-1. Map the repository
-   - List top-level directories and identify entrypoints, domain modules, test suites, configuration, scripts, and generated/vendor areas.
-   - Record any files or folders excluded from deep review and why.
-2. Read the whole codebase
-   - Read all relevant human-authored files end to end.
-   - Build a repository-wide model of boundaries, data flow, ownership, invariants, and failure handling.
-3. Review architecture first
-   - Check module boundaries, layering, hidden coupling, circular dependencies, duplicated workflows, leaky abstractions, ownership confusion, and inconsistent domain models.
-   - If any confirmed architecture findings exist, stop the lower-level review and report only architecture findings.
-4. Review code quality second
-   - Run this step only when there are no architecture findings.
-   - Check readability, duplication, dead code, error handling, unsafe state changes, unclear contracts, missing tests around critical logic, and maintainability risks.
-   - If any confirmed code-quality findings exist, stop before edge-case review and report only these findings.
-5. Review edge cases last
-   - Run this step only when there are no architecture or code-quality findings.
-   - Check null or empty inputs, boundary values, partial failures, retries, concurrency, ordering assumptions, idempotency, and invalid state transitions.
-6. Check for duplicate issues before publication
-   - When findings will be published, use `read-github-issue` to search the target repository for open and recently closed issues that match the same module, failure mode, or architectural boundary.
-   - Treat an existing issue as a duplicate when the underlying root cause, affected boundary, and requested outcome materially overlap, even if the wording differs.
-   - If a duplicate exists, cite it in the final report and do not publish a new issue for that finding.
-7. Publish each confirmed non-duplicate finding
-   - Invoke `open-github-issue` once per finding.
-   - Use a tier-specific title prefix:
-     - `[Architecture] <short finding>`
-     - `[Code Quality] <short finding>`
-     - `[Edge Case] <short finding>`
-   - Pass these fields to the dependency skill:
-     - `title`
-     - `problem-description`: symptom, impact, and repository evidence
-     - `suspected-cause`: file references, causal chain, and confidence
-     - `reproduction`: concrete trigger or conditions when known; otherwise leave empty
-     - `repo`: target repository in `owner/repo` format when known
-   - If invoking the publisher CLI directly, pass finding details through `apltk open-github-issue --payload-file <json>` or `@file` inputs rather than inline shell arguments so code snippets and backticks survive unchanged.
-
-## Evidence standard
-
-Each finding must include:
-
-- affected files or modules
-- why the current design or code is problematic
-- impact on correctness, maintenance, performance, or future change safety
-- confidence level with a short reason
-
-If evidence is incomplete, keep it as a hypothesis and do not publish a GitHub issue for it.
-
-## Output format
-
-Use this structure in responses:
-
-1. Codebase coverage
-   - reviewed areas
-   - explicit exclusions
-2. Review tier reached
-   - architecture / code quality / edge cases
-   - why lower tiers were skipped, if applicable
-3. Confirmed findings
-   - title
-   - affected files
-   - evidence and reasoning
-   - impact
-   - confidence
-4. GitHub issue publication status
-   - duplicate-check status and any matching existing issue URLs
-   - publication mode (`gh-cli` / `github-token` / `draft-only`)
-   - created issue URL or draft output per finding
-5. Deferred follow-up
-   - list lower-tier checks that were intentionally not performed because a higher-tier issue already exists
-
-## Resources
-
-- Dependency skill: `open-github-issue` for deterministic GitHub issue publication with auth fallback and README language detection.
+## 參考資料索引
+- `read-github-issue`：在發布前檢查目標倉庫中是否已存在相同根因的 issue，避免重複建單。
+- `open-github-issue`：為每個已確認且非重複的發現建立 GitHub issue；若不可用，則返回 issue 草稿內容。

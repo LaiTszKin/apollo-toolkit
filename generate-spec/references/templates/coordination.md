@@ -9,7 +9,6 @@
 
 - Batch members: [[spec-name-1], [spec-name-2]]
 - Shared outcome: [what the batch delivers when all spec sets land]
-- Parallel readiness: [Yes / No; if No, list blocking items or link to preparation.md]
 - Out of scope: [shared exclusions for the batch]
 
 ## Design Principles

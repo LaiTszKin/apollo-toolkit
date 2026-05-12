@@ -1,74 +1,29 @@
 ---
 name: develop-new-features
-description: >-
-  Net-new or materially new product behavior: **`generate-spec`** is mandatory (clarify → approve → only then code) with **`test-case-strategy`** backing every serious logic change—property tests required unless documented `N/A`, add adversarial/auth/idempotency/concurrency/mocks for external services, cap each spec at three modules and split coordinated batches via `coordination.md`, finish every approved `tasks.md`/`checklist.md` item or document deferrals.
-  Use when users ask for “new feature”, “greenfield slice”, “plan-first delivery”. Reroute typo-only UI, bug restores, or internal refactors without product impact to **`enhance-existing-features`** / **`systematic-debug`**.
-  Bad: editing `src/api.ts` before approval exists… Good: spec records risk → tests map to requirement IDs… Typo fix in footer copy → wrong skill…
+description: 用於從零開始打造新專案。當你需要從零開始打造一個新專案時，請使用這個技能。
 ---
 
-# Develop New Features
+## 技能目標
 
-## Dependencies
+把新的產品需求轉成一套可批准、可實作、可驗證的交付流程，避免在需求未定稿前直接寫產品程式碼，並確保最終功能、測試與規劃文件彼此一致。
 
-- Required: `generate-spec` for shared planning artifacts and `test-case-strategy` for risk-driven test selection, oracles, and unit drift checks before coding.
-- Conditional: **`commit-and-push`** when the user requests **git commit** and/or **push** after delivery—**MUST** delegate final submission to **`commit-and-push`** (implementation detail: often via **`implement-specs`**, which already requires it).
-- Optional: none.
-- Fallback: **`generate-spec`** **or** **`test-case-strategy`** missing ⇒ **stop** (no improvised planning/tests). If the user requested **commit/push** and **`commit-and-push`** is unavailable, **MUST** stop and report.
+## 驗收條件
 
-## Non-negotiables
+- 產生了完全符合用戶需求的spec，通過spec將用戶的需求精確定義為可實作的工程指導文檔。
+- 遵照可實作的spec，實作了用戶的需求。
 
-- This skill applies to **non-trivial new behavior / greenfield**. **MUST NOT** activate for: pure bug restore; style/copy-only tweaks; trivial one-pocket config/constants; internal-only refactors/no visible behavior—these routes belong to **`enhance-existing-features`**, **`systematic-debug`**, etc., **without** new specs here.
-- **When this skill applies**, **`generate-spec` is mandatory** before product code: create/update plans, BDD reqs, contracts, design, optional batch **`coordination.md`**, obtain **explicit approval**, then implement.
-- **≤3 modules** per spec set; wider work ⇒ multiple **independent** spec sets under batch + **`coordination.md`** (no hidden cross-deps).
-- **MUST NOT** modify product code **before** approval.
-- Post-approval: **all** in-scope **`tasks.md`/`checklist.md`** items complete unless deferral/blocker documented in artifacts.
-- **`test-case-strategy`**: risk-first; property-based logic **required** unless documented **`N/A`**; adversarial/auth/idempotency/concurrency where relevant; mocks for externals in logic chains; oracles tied to requirements.
-- Backfill all plan files + coordination when batch; no fake-completed template branches.
+## 工作流程
 
-## Standards (summary)
+### 1. 理解用戶需求
 
-- **Evidence**: Official docs + repo architecture pass before plan lock.
-- **Execution**: Route-out trivial work → spec → implement → test → backfill.
-- **Quality**: Plans trace to tests; minimal speculative code.
-- **Output**: Approved scope shipped + honest plan status.
+分析用戶需求，並使用 `generate-spec` 技能建立spec。
 
-## Workflow
+### 2. 實作spec
 
-**Chain-of-thought:** If request is maintenance-sized, **`Pause →`** “Should I reroute?” before spending tokens on **`generate-spec`**.
+在明確獲取用戶的同意之後，使用 `implement-specs` 技能實作spec。
+如果spec是batch spec（存在多份spec），且外部環境允許使用subagents，建議使用 `implement-specs-with-subagents` 技能調度subagents實作spec。
 
-### 1) Docs & routing
+## 使用範例
 
-- Stack/deps discovery; verify using official sources.
-  - **Pause →** Is this truly greenfield/feature vs fix/polish—if latter, bail to other skill?
-
-### 2) `generate-spec`
-
-- Full workflow: dirs `docs/plans/{YYYY-MM-DD}/…`, batch/coord flags, clarification, **`MUST`** approval before code.
-  - **Pause →** Did I secretly start coding “just the types”—**hard violation**?
-
-### 3) Architecture map
-
-- Reuse seams; list likely files **after** approval to stay honest to plan.
-
-### 4) Implement (post-approval)
-
-- Execute tasks/checklist exhaustively unless blocker recorded with user-visible deferrals.
-
-### 5) Testing
-
-- **`test-case-strategy`** mapping requirement IDs ↔ tests; drift checks/`N/A` discipline; run and fix reds.
-
-### 6) Completion
-
-- Backfill **`generate-spec`**-style across **`spec/tasks/checklist/contract/design`** (+ **`coordination.md`**); requirement-level status in **`spec.md`**; strip template illusions; final report with scope + tests + `N/A`.
-
-## Sample hints
-
-- **Wrong skill**: “Fix typo in footer string” ⇒ not here.
-- **Right skill**: “Add export-to-CSV for dashboard” ⇒ **`generate-spec`** then code + property tests on CSV invariants maybe.
-- **Split**: Touches CLI + server + terraform module boundaries—three modules cap ⇒ **two spec dirs** coordinated.
-
-## References
-
-- **`generate-spec`**: planning/backfill authority
-- **`test-case-strategy`**: breadth/depth of tests
+- "現有repo完全不存在任何的CSV解析、讀取、會出功能。用戶要求替 dashboard 新增 CSV 匯出功能。-> "建立spec並等待用戶批准，再實作匯出流程，並用 property tests 驗證欄位順序、編碼與內容不變量"
+- "原repo不存在任何cli功能。用戶要求同時新增 CLI、後端與基礎設施的新能力" -> "拆成多份 spec，用 `coordination.md` 管理跨模組依賴，並使用 `implement-specs-with-subagents` 技能調度subagents實作spec。"

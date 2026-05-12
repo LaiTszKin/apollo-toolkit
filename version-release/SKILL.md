@@ -1,94 +1,59 @@
 ---
 name: version-release
 description: >-
-  End-to-end semver delivery: prerequisites mirror **`commit-and-push`** gates (**`submission-readiness-check`**, reviews, changelog hygiene, optional `archive-specs`), derive next version/tag from tracked files plus explicit user semver words, relocate `CHANGELOG.md` Unreleased into dated release bump package/project metadata evenly commit tag push **`gh release create`** honoring prerelease/retarget rules verify remote refs **NEVER STOP at tag omitting GitHub release unless user waived publication**.
-  Keywords patch minor major release tag GH publish semver… misroute plain “push” absent release vocabulary **use commit-and-push**… BAD guessing version… GOOD inspect package.json+Cargo.toml… retarget prerelease relocate tag `--force-with-lease`… Unreleased emptiness ⇒ halt curated notes…
+  用於明確的 semver 發版流程。必須先完成 `commit-and-push` 共用 gate 與
+  `submission-readiness-check`，再決定版本、更新 changelog、建立 tag、推送並發布 GitHub Release。
 ---
 
-# Version Release
+# 版本發佈
 
 ## Dependencies
 
-- Required: **`commit-and-push`** (shared inspect/classify/readiness/commit/push mechanics); **`submission-readiness-check`** **before** version files, tags, or publication mutate.
-- Conditional: **`archive-specs`** when specs/docs need alignment; **`review-change-set`** on **code-affecting** release scope **before** version churn—blocking while findings open.
-- Optional: none.
-- Fallback: Missing required skill ⇒ stop and report.
+- Required: `commit-and-push`、`submission-readiness-check`
+- Conditional: `review-change-set`、`archive-specs`
+- Optional: 無
+- Fallback: 缺少必需技能時必須停止，不能憑印象手動補一個發版流程
 
-## Non-negotiables
+## Standards
 
-- **ONLY** enter this workflow when release intent is **explicit** (semver bump wording, tag/release request, CI “publish release”—not a bare “push”). Else **`commit-and-push`** only.
-- **MUST NOT** guess versions—read workspace version files + user-stated bump; state **current → next** + exact **tag string** before editing.
-- **MUST NOT** publish if root **`CHANGELOG.md` `Unreleased`** is empty/has nothing to ship—stop or curate notes first.
-- **MUST** align all version-bearing files consistently; formatting-only deltas elsewhere.
-- **Tag format** (`v1.2.3` vs `1.2.3`) inferred from repo history—not invented per release ad hoc unless user dictates.
-- **GitHub Release**: prefer `gh release create` / repo tooling; **MUST NOT** substitute “opened PR URL” as release completion. Draft vs prerelease vs **latest** follows **explicit** user/repo convention—not tag shape alone.
-- **Prerelease retarget**: same version, **move** tag/release to new SHA when user asks; use force-with-lease **for tag only** as needed; if API rejects SHA for `target_commitish`, use branch identifier per GitHub rules.
-- **MUST** verify **remote** has commit + tag before calling release **done**; **MUST NOT** trust UI git shortcuts.
-- **Done** = version files + changelog section + **pushed** commit + **remote** tag + **published** GitHub release (unless user explicitly skips publication—then say so).
+- Evidence: 以版本檔、`CHANGELOG.md`、本地/remote tag、既有 GitHub Release 與使用者明確的 bump 意圖作為依據
+- Execution: 先確認這真的是 release 請求，再完成所有 gate，之後才更新版本、切 changelog、打 tag、推送與發布 Release
+- Quality: 不猜版本、不重複發版、不用原始 diff 臨時拼 release notes；所有版本入口必須同步一致
+- Output: 交付可驗證的版本發佈結果，包含版本號、tag、remote驗證與 GitHub Release URL
 
-**Repository regression checks:** Before creating release metadata, inspect existing local and remote tags plus any existing GitHub Release for the target version so duplicates are caught early. Do not continue until you can state the current version, the intended next version, and the exact tag name that will be created. **`review-change-set` is required for code-affecting releases**—run `review-change-set` for the same release scope before continuing; treat unresolved review findings as blocking. Any conditional gate whose trigger is confirmed by this classification becomes mandatory before version bumping, tagging, or release publication. Treat every scenario-matched gate as blocking before versioning or release publication. Never stop after the release commit or tag alone; creating the matching GitHub release is part of done criteria unless the user explicitly says to skip release publication.
+## 技能目標
 
-## Standards (summary)
+把明確的發版需求轉成一條完整、可驗證、可追溯的 semver 流程，確保版本檔、changelog、git tag、remote狀態與 GitHub Release 彼此一致。
 
-- **Evidence**: Version files, tags local/remote, `Unreleased`, existing GH releases.
-- **Execution**: Intent → gates (`commit-and-push` pattern) → semver → files → changelog move → commit/tag → push → GH release.
-- **Quality**: No duplicate releases; notes from curated changelog, not raw diff guesswork.
-- **Output**: Announced version, tag URL, release URL, automation status if any.
+## 驗收條件
 
-## References
+- 已先確認這是明確的 release / semver 請求；若只是 commit 或 push，必須改走 `commit-and-push`
+- 在修改任何版本相關檔案前，已清楚說出 current -> next 版本與將建立的 tag 字串
+- `submission-readiness-check`、必要的 `review-change-set` 與 `archive-specs` 都已完成，且 `CHANGELOG.md` 的 `Unreleased` 內容足以支撐本次發版
+- 最終已同步版本檔、發布說明、commit、tag、remote refs 與 GitHub Release；若使用者明確要求不發布 Release，需在結果中清楚註明
 
-- `references/semantic-versioning.md`
-- `references/commit-messages.md`
-- `references/branch-naming.md`
-- `references/changelog-writing.md`
-- `references/readme-writing.md`
+## 工作流程
 
-## Workflow
+1. 先確認使用者是否真的要求 release、publish、tag、patch、minor、major 或其他明確 semver 動作；若沒有，改用 `commit-and-push`
+2. 檢查目前 git 狀態、版本檔、既有 tag、本地與remote是否已有同版本 tag，以及 GitHub 上是否已有同版本 Release，避免重複發版
+3. 對 code-affecting 範圍先完成 `review-change-set`，再執行 `submission-readiness-check`；若它要求 `archive-specs` 或 changelog/文件同步，必須先完成
+4. 根據版本檔、repo 歷史與使用者指示決定 current -> next 版本與 tag 格式；若語意不明，優先選較小 bump 並請使用者確認
+5. 一致更新所有版本入口，並把 `CHANGELOG.md` 的 `Unreleased` 移到新的版本區塊；release notes 只能來自整理過的 changelog 內容
+6. 建立 release commit 與 tag；若是 prerelease retarget，保留版本號不變，只把 tag / Release 移到新的 commit
+7. 推送分支與 tag，並驗證remote commit 與 tag 都已正確存在
+8. 使用 `gh release create` 或 repo 慣用工具建立或更新 GitHub Release，最後回報版本號、tag 與 release URL
 
-**Chain-of-thought:** Reuse **`commit-and-push`** for git inspection, classification, conditional reviews, **`submission-readiness-check`**, commit discipline, push verification—**do not duplicate** those rules here; **`Pause →`** applies to release-only decisions.
+## 使用範例
 
-### 1) Inspect git state
+- 「發 patch release」-> 先確認目前版本與 changelog，再更新到下一個 patch、建立 tag 並發布 Release
+- 「把 prerelease tag 移到最新修正」-> 不增加版本號，只重新對準 tag 與對應 Release
+- 「幫我 commit 然後 push」-> 不使用本技能，改走 `commit-and-push`
 
-- Follow **`commit-and-push`** step 1 (status/diff/clean semantics).
+## 參考資料索引
 
-### 2) Confirm release intent
-
-- Explicit semver/release language—or stop and use **`commit-and-push`**.
-   - **Pause →** Did the user only ask “commit”? If yes, **exit** this skill.
-
-### 3) Gates before version churn
-
-- Classify scope; code-affecting ⇒ `review-change-set`; **`submission-readiness-check`** (+ **`archive-specs`** when indicated). All blocking items closed.
-   - **Pause →** Am I versioning while `Unreleased`/readiness still wrong?
-
-### 4) Decide version & tag
-
-- Read files; inspect local/remote tags + existing GH release for collision; prerelease vs stable per user/doc; retarget flow leaves version unchanged.
-   - **Pause →** If tag+release already correct on intended SHA—report satisfied, duplicate nothing.
-
-### 5) Bump files
-
-- Every locator of version bumped consistently.
-
-### 6) Release docs
-
-- Move **`Unreleased`** → new dated heading; reset `Unreleased` scaffold; **`README`** / **`AGENTS.md`**/`CLAUDE.md` only if behavior/agent workflow changed materially.
-
-### 7) Commit & tag
-
-- Message e.g. `chore(release): publish X.Y.Z` per repo habit; tag after commit; retarget ⇒ move existing tag deliberately with hash discipline.
-
-### 8) Push
-
-- Push branch **and** tag; verify remote refs; retarget ⇒ `--force-with-lease` for tag only where appropriate, then verify.
-
-### 9) Publish GitHub Release
-
-- Create/update matching release body from changelog section; prerelease flag per explicit instruction; confirm non-draft unless automation needs draft—but user asked “publish” ⇒ actually publish.
-   - **Pause →** Can I paste **release URL** + prove tag points at **`HEAD`**?
-
-## Sample hints
-
-- **`Unreleased` empty** ⇒ cannot ship “2.5.0” with honest notes—curate first.
-- **Duplicate**: Tag `v2.5.0` exists on GH → **inspect SHA** before re-creating.
-- **Retarget**: User “move prerelease to latest fix”—**no** semver bump; rewrite tag carefully.
+- `references/semantic-versioning.md`：版本號選擇規則
+- `references/commit-messages.md`：release commit 訊息格式
+- `references/branch-naming.md`：分支命名慣例
+- `references/changelog-writing.md`：`CHANGELOG.md` 與 `Unreleased` 維護規則
+- `references/readme-writing.md`：README 只在必要時同步更新
+- `commit-and-push`：共享的 git 檢查、提交與推送 discipline

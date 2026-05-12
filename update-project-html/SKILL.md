@@ -1,109 +1,40 @@
 ---
 name: update-project-html
 description: >-
-  Refresh the base project HTML architecture atlas to reflect the latest code changes: read the existing atlas, resolve diff scope (`git diff --stat` + staged by default, or `git diff --stat <base>..HEAD` when a ref is named), filter to code-affecting hunks, and update affected feature/sub-module declarations through `apltk architecture` (no `--spec` — base atlas, not spec overlays). **Subagents only:** dispatch ONE write-capable subagent per affected feature; each deep-reads only its own changed files, applies every intra-feature delta (function/variable/dataflow/error/intra-feature edge add|set|remove|reorder), and returns ONLY (i) sub-module change summary and (ii) outbound boundary deltas. The main agent waits until every subagent finishes before declaring cross-feature edges, then `apltk architecture render` + `validate`. Exact CLI: `apltk architecture --help`. Anchor every change to the actual diff. For unshipped spec work use `spec-to-project-html`; first-time bootstrap use `init-project-html`.
+  使用 `apltk architecture` 按真實程式碼 diff 刷新基礎專案 HTML 架構圖譜。先確定 diff 範圍並過濾出真正影響執行時行為的變更，再按受影響功能分派可寫子 agent 處理功能內更新；主 agent 必須等待全部子 agent 完成後，才能補跨功能邊並執行 `render` 與 `validate`。該技能只更新基礎 atlas，不使用 `--spec`。
 ---
 
-# Update Project HTML
+# 更新專案 HTML 架構圖
 
-## Dependencies
+## 技能目標
 
-- Required: **`init-project-html`** — its `SKILL.md` is the semantic rulebook (acceptance criteria, two-layer rule, `edge.kind` enum, function/variable referencing rules); **`apltk architecture --help`** is the verb/flag source of truth.
-- Conditional: **`spec-to-project-html`** when the user actually wants an overlay scoped to a `docs/plans/...` spec rather than the base atlas — that skill uses `--spec`.
-- Optional: **`align-project-documents`** when feature names in the atlas no longer match the `docs/features` set after the diff.
-- Fallback: changed code references components that are absent from the atlas → declare new sub-modules / functions / variables before referencing them; if a single feature’s diff is too large for one subagent context, split that feature’s subagent by sub-module folder. **MUST NOT** invent components for code paths that were never read.
+根據目前分支、工作區或指定提交範圍內的真實程式碼變更，增量刷新 `resources/project-architecture/` 下的基礎 atlas 與渲染 HTML，使圖譜持續和實際程式碼保持一致。
 
-## Non-negotiables
+## 驗收條件
 
-- **MUST** mutate atlas state only through the CLI (`apltk architecture …`). The renderer owns `resources/project-architecture/**/*.html` — agents **MUST NOT** hand-edit those files.
-- **MUST** target the **base atlas** (no `--spec` flag). This skill is for code that has *already shipped* (or is about to be committed) and therefore belongs in the canonical diagram. For planned/unmerged work scoped to a spec, redirect to **`spec-to-project-html`**. For repos with no atlas yet, redirect to **`init-project-html`**.
-- **MUST** decide the diff scope **before** reading any source files: working tree (`git diff --stat`) + staged (`git diff --cached --stat`) by default; an explicit ref/range when the user names one (e.g. `git diff --stat $(git merge-base HEAD origin/main)..HEAD` for a PR refresh). Print the literal command(s) you ran in the report so the run is reproducible.
-- **MUST** filter to **code-affecting** hunks — exclude pure docs/markdown/asset edits, generated files, lockfiles, and formatting-only diffs that do not change runtime behavior. Record skipped buckets in the report so reviewers can audit the filter.
-- **MUST** preserve the existing atlas structure for parts the diff did not touch — never delete features, sub-modules, or edges just because the current diff is silent about them. Only mutate what the diff actually changed (rename, move, remove, add, behavior change).
-- **MUST** use the **subagent fan-out** pattern from `init-project-html` Rule 3:
-  1. Enumerate **affected features** from the filtered diff (path → feature mapping using existing atlas YAML + folder layout). No function-body deep reads at this stage.
-  2. Dispatch **one write-capable subagent per affected feature**. Each deep-reads only its own changed files (use `git diff` for exact deltas plus the post-change source for context), applies every intra-feature mutation via `apltk architecture` (`function`, `variable`, `dataflow`, `error`, intra-feature `edge` add|set|remove|reorder), and returns ONLY (i) sub-module change summary and (ii) outbound boundary deltas (cross-feature edges to add/change/remove with endpoints + suggested kind/label).
-  3. **HARD GATE:** the main agent **MUST** wait until **every** dispatched subagent has finished (success or explicit failure report) before declaring any cross-feature `edge`, shared `meta` that stitches multiple features, or `actor` that exists only for cross-feature context.
-- **MUST** run `apltk architecture render` (when subagents batched with `--no-render`) and `apltk architecture validate` after the cross-feature wiring; resolve every reported error before reporting completion.
-- **MUST NOT** re-read source for a delegated feature in the main agent and **MUST NOT** re-declare intra-feature components a subagent already owns.
-- **MUST NOT** generate spec overlay artifacts (`<spec_dir>/architecture_diff/atlas/`) — that is **`spec-to-project-html`**’s job.
+- 只透過 `apltk architecture` 更新基礎 atlas；不得手改 `resources/project-architecture/**/*.html`，也不得寫入任何 `--spec` overlay 產物。
+- 在讀取原始碼前就明確本次 diff 範圍，並在報告中保留所執行的原始命令；過濾掉純文件、靜態資源、鎖檔、生成物和純格式化變更，同時記錄被跳過的類別與原因。
+- 選定範圍內每個真正影響行為的 hunk，都要麼體現在功能內元件更新或跨功能邊變化上，要麼在交付報告中明確標註「對圖譜無影響」及原因。
+- 按「每個受影響功能一個可寫子 agent」執行；主 agent 必須等全部子 agent 完成後，才允許修改跨功能 `edge`、共享 `meta` 或補充跨功能上下文。
+- 更新後的圖譜繼續滿足 `init-project-html` 的語義要求，且 `apltk architecture validate` 通過。
 
-## Standards (summary)
+## 工作流程
 
-- **Evidence**: every CLI mutation traces to a specific file + diff hunk; record the chosen diff scope and skipped buckets in `meta.summary` via the CLI.
-- **Execution**: read base atlas → resolve diff scope → filter to code-affecting hunks → map paths to features → subagent fan-out → wait for all → cross-feature edges → `render` → `validate` → handover.
-- **Quality**: macro SVG still reflects every cross-feature data-row that exists in the *new* code; sub-module declarations stay self-only; `apltk architecture validate` returns OK.
-- **Output**: updated `resources/project-architecture/atlas/**/*.yaml` + re-rendered `resources/project-architecture/**/*.html` + a report listing affected features, mutation counts, skipped diff buckets, and the `validate` outcome.
+1. 先確認基礎 atlas 已存在，並執行 `apltk architecture --help` 取得最新 CLI 用法；如果倉庫還沒有 atlas，改用 `init-project-html`；如果需求針對規劃文件 overlay，改用 `spec-to-project-html`。
+2. 在讀取原始碼前先決定 diff 範圍。預設同時檢查未暫存與已暫存改動；若使用者明確指定基線、提交或區間，則按使用者指定範圍執行。
+3. 僅保留真正影響程式碼行為的變更，並把這些路徑映射到受影響功能；此階段只做結構映射，不深讀函式實作。
+4. 為每個受影響功能派發一個可寫子 agent。每個子 agent 只讀取自己負責功能的現有 atlas 與變更檔案，完成全部功能內更新：子模組、函式、變數、資料流、錯誤以及功能內邊，並返回子模組變更摘要與跨功能邊界增量。
+5. 主 agent 不得重讀已委派功能的原始碼，也不得重複宣告子 agent 已處理的功能內元件；只能在全部子 agent 完成後，統一補跨功能邊、必要的共享 `meta`，再執行 `apltk architecture render` 與 `apltk architecture validate`。
+6. 最終報告至少包含：diff 範圍命令、受影響功能列表、各功能更新摘要、跨功能邊變化、被跳過的 diff 類別及原因、驗證結果，以及渲染輸出位置。
 
-## Acceptance criteria
+## 使用範例
 
-The atlas update is only complete when **all** of the following hold:
+- 「把目前分支的程式碼變化同步到基礎架構圖。」 -> 「按分支 diff 識別受影響功能，分別更新功能內宣告，再統一補跨功能連接並重新渲染。」
+- 「刷新這次 PR 的專案 HTML atlas。」 -> 「先鎖定 PR 的 diff 基線，再僅處理有執行時影響的變更，避免無關文件改動污染圖譜。」
 
-1. Every code-affecting hunk in the chosen diff scope is reflected in either an intra-feature mutation (function/variable/dataflow/error/edge) or a cross-feature edge — or is explicitly listed under "no diagram impact" in the handover report with a one-line reason.
-2. `apltk architecture validate` returns OK.
-3. Macro acceptance criteria from `init-project-html` still hold: cross-boundary interaction expressed as `call`/`return`/`data-row`/`failure` edges (never sub-module page prose); each touched sub-module’s internal diagram has function-to-function flow plus declared variable reads/writes for non-trivial steps.
-4. The handover report cites: chosen diff scope (literal commands), affected feature list, per-feature mutation counts, skipped diff buckets (with reasons), and confirmation that **all subagents completed before cross-feature wiring**.
+## 參考資料索引
 
-## CLI reference
-
-Use `apltk architecture --help` and deeper `apltk architecture <verb> [subverb] --help` pages as the authoritative command references. This skill keeps the diff-filtering rules, subagent ownership rules, and base-atlas-only scope; it does not duplicate the flag catalog.
-
-This skill **never** uses `--spec`. If the user wants overlay diagrams for a planning doc, redirect to **`spec-to-project-html`**.
-
-## Workflow
-
-**Chain-of-thought:** Answer **`Pause →`** before moving on. Validator red **MUST** block "done."
-
-### 1) Read the current atlas (no source code yet)
-
-- Open `resources/project-architecture/index.html` to confirm the atlas exists and renders. If it does not, redirect to **`init-project-html`** — this skill is for refreshes, not bootstraps.
-- List `resources/project-architecture/atlas/atlas.index.yaml` and the per-feature YAMLs to learn the current feature set, sub-modules, and edge ids.
-   - **Pause →** Do I actually have a base atlas to update? If not — stop and route to **`init-project-html`**.
-
-### 2) Resolve diff scope
-
-- Default: **uncommitted** (`git diff --stat`) + **staged** (`git diff --cached --stat`); show both. If the user pointed at a ref/range/commit, use that instead (`git diff --stat <base>..HEAD`, `git diff --stat HEAD~N`, `git show --stat <sha>`, etc.).
-- Print the chosen diff scope as the literal command(s) you ran so the report is reproducible.
-   - **Pause →** Is this the diff the user actually meant — or am I about to refresh the atlas against the wrong baseline?
-
-### 3) Filter to code-affecting changes
-
-- Drop pure docs/markdown/assets/lockfiles/generated/format-only diffs. Keep source files in language directories the project actually treats as code (open the project layout if uncertain).
-- Group remaining files into **affected features** using the per-feature YAML’s declared paths plus folder/package heuristics. Record the path → feature mapping.
-   - **Pause →** Did I drop a hunk that actually changes runtime behavior (e.g. a config file the runtime reads)? Re-include if so.
-   - **Pause →** Are there changed files I cannot map to any existing feature — do they create a new feature, or do they extend an existing one? Decide explicitly before delegating.
-
-### 4) Subagent fan-out — workers own features; orchestrator owns cross-feature seams **after** all workers finish
-
-Dispatch one **write-capable** subagent per affected feature. Hand each subagent: its feature slug, the list of changed files in that feature, the diff scope command(s), the existing feature-module list (so it knows other features’ slugs for outbound edges), and **`apltk architecture --help`** as the flag reference.
-
-> **Feature `<slug>` subagent contract**
-> - Read the existing per-feature YAML and every changed file in this feature E2E (with `git diff` for the exact delta plus the post-change source for context).
-> - For every behavior change in this feature, apply the matching CLI mutation: structural (`feature` / `submodule`), rows (`function`, `variable`, `dataflow`, `error`), and intra-feature **`edge`** add/set/remove/reorder.
-> - Declare new functions / variables **before** referencing them from `dataflow`.
-> - Run **`apltk architecture validate`** before returning.
-> - **Return ONLY**: (i) sub-module change list (slug + change kind + one-line reason) and (ii) outbound boundary deltas (cross-feature edges to add/change/remove with endpoints + suggested kind/label). No source dumps.
-
-**Orchestrator — after every subagent has completed:** apply only the cross-feature `apltk architecture` mutations that the subagents reported, then render and validate the base atlas.
-
-The main agent **MUST NOT** re-declare a subagent’s intra-feature components, and **MUST NOT** open source files for any feature it delegated.
-   - **Pause →** Did every subagent return — or am I about to wire cross-feature edges from partial summaries?
-
-### 5) Handover report
-
-Report: chosen diff scope (literal commands), affected features (count), per-feature mutation summary, cross-feature edge deltas (added / removed / changed), skipped diff buckets (with reasons), `validate` outcome, and the location of the rendered atlas (`resources/project-architecture/index.html`).
-
-## Sample hints
-
-- **Renamed function**: subagent removes the old `function` row, adds the new one, and updates every `dataflow` step that referenced it — do **not** silently leave the old row.
-- **Deleted sub-module**: subagent uses `submodule remove` (see `--help`) and reports the outbound edges to drop; the orchestrator removes the cross-feature edges by stable `--id` after the gate.
-- **New cross-feature data-row**: only one subagent will see the producing side and another only the consumer side — both subagents flag it as an outbound boundary; the orchestrator declares the single `data-row` edge **after** the gate.
-- **Pure formatting diff**: skip entirely; record under "no diagram impact" in the report so future runs do not re-litigate the file.
-- **PR refresh against `main`**: when the user asks to refresh the atlas to reflect "everything on this branch", use `git diff --stat $(git merge-base HEAD origin/main)..HEAD` and state the resolved base SHA in the report.
-
-## References
-
-- **`init-project-html/SKILL.md`** — semantic rulebook, two-layer rule, acceptance criteria, full subagent contract.
-- **`init-project-html/references/TEMPLATE_SPEC.md`** — schema cheat sheet (fields/enums).
-- **`spec-to-project-html/SKILL.md`** — overlay flow when work is still in spec form.
-- **`apltk architecture --help`** — live CLI reference; trust this over any prose.
+- `init-project-html/SKILL.md`：基礎 atlas 的語義規則、子模組表達約束與總體驗收標準。
+- `spec-to-project-html/SKILL.md`：當需求針對 `docs/plans/...` overlay 而非基礎 atlas 時使用。
+- `README.md`：本技能的簡要用途說明。
+- `apltk architecture --help`：命令、參數和子命令的唯一真源。

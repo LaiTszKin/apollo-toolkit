@@ -1,114 +1,51 @@
 ---
 name: merge-changes-from-local-branches
 description: >-
-  Read changes from local branches identified by branch name and merge them back into the current local branch. Resolve conflicts by composing correct behavior (prefer the more recent change on the same line or the variant that preserves working behavior), using **`merge-conflict-resolver`** when needed. Verify after merges; remove successfully merged source branches and detached worktrees only after merge + verification succeed. Finalize through **`commit-and-push`** for submission-readiness gates and the **final local commit** on the same branch—**do not** push unless the user explicitly requested remote update in this thread (**`commit-and-push`** step 7). **Does not** run **`archive-specs`** as part of this skill.
-  Use when consolidating named local branch work into the current branch or preparing integration on that branch.
+  將使用者指定的本地分支合併回當前分支，按既定順序完成衝突處理、驗證、
+  安全清理與最終提交準備；除非本次對話中有明確要求，否則不推送遠端。
 ---
 
-# Merge Changes from Local Branches
+## 目標
+在工作開始時的當前本地分支上，整合使用者指定的本地分支，或由現有 spec / batch
+規劃可無歧義對應出的本地分支，完成合併、驗證、清理與提交流程銜接，並確保整合結果
+可安全交由 `commit-and-push` 收尾。
 
-## Dependencies
+## 驗收條件
+- 所有實際合併的變更都落在流程開始時的原始當前分支，且不會未經使用者允許改換目標分支。
+- 合併範圍只包含使用者明確指定，或可由 `coordination.md` / spec 上下文無歧義映射出的分支；若映射不清楚，流程會停止並回報。
+- 當 batch 規劃存在 `Merge order` / landing order 時，實際整合順序與規劃一致；若順序衝突或不明確，不會猜測執行。
+- 所有衝突都以保留正確行為為原則完成解決，並在刪除來源分支或交給 `commit-and-push` 前完成必要驗證。
+- 只清理已成功合併且已驗證的來源分支或 worktree；不會強制刪除尚未真正合入目標分支的來源。
+- 最終交付是原始當前分支上的整合結果與簡潔摘要，並只在使用者於本次對話明確要求時才推送遠端；本技能不單獨執行 `archive-specs`。
 
-- Required: **`commit-and-push`** for submission-readiness, mandated reviews, and the **final** commit on the original current branch (push **only** when the user explicitly asked for remote update in this thread—otherwise stop after commit).
-- Conditional: **`merge-conflict-resolver`** when merge conflicts require deterministic resolution.
-- Optional: none.
-- Fallback: If **`commit-and-push`** is unavailable, **MUST** stop and report—**MUST NOT** improvise readiness or use a bare `git commit` shortcut. If git merge operations fail irreparably, stop and report.
+## 工作流程
+1. 確認目標分支與合併範圍  
+將流程開始時的當前分支視為唯一權威目標分支。優先使用使用者明確提供的分支名稱建立合併集合；只有在 spec 或 batch `coordination.md` 能無歧義對應時，才可從規劃文件補足分支映射與整合順序。
 
-## Non-negotiables
+2. 確認可安全開始整合  
+在原始目標分支上確認工作樹適合執行合併。若存在會干擾整合的未提交變更，停止並回報；不要自行 stash、丟棄變更，或切換到其他目標分支。
 
-- **MUST** treat the branch that was current at workflow start as the **authoritative merge target** for the whole workflow; **MUST NOT** silently switch the destination to **`main`** or another branch unless the user explicitly rescopes.
-- **MUST** determine in-scope branches from **explicit branch names** the user gives **or** from unambiguous mappings from active spec / `coordination.md` context—**MUST NOT** infer the merge set from ancestry heuristics alone when names already define intent.
-- **MUST** read active batch **`coordination.md`** when present and honor a documented **`Merge order` / landing order**; if multiple batches conflict or branch-to-spec mapping is ambiguous, **MUST** stop and report instead of guessing order.
-- **MUST** resolve conflicts by reading both sides and editing merged results that preserve shipped behavior—**MUST NOT** rely on blanket **`-X ours` / `-X theirs`** or timestamp guesses as the primary strategy.
-- **`archive-specs`**: **MUST NOT** invoke **`archive-specs`** from this skill. Any archival or doc-sync routing belongs to **`commit-and-push`** (via **`submission-readiness-check`**) when that workflow’s gates require it—not a separate mandated step immediately after merges here.
-- **MUST** verify the merged tree (targeted checks after conflictful merges; broader **`npm test` / equivalent** when the repo provides a standard command) before deleting source branches or handing off to **`commit-and-push`**.
-- **MUST NOT** **`git push`**, tag, or release **from this skill**; **`commit-and-push`** owns push **only** when the user explicitly requested remote publication in this thread (**same rule as **`commit-and-push`** step 7**).
-- **MUST** finalize through **`commit-and-push`** after staging the post-merge intent—**MUST NOT** bypass **`submission-readiness-check`** / mandated gates with a stray local commit path.
-- **MUST NOT** force-delete merged branches (**`-D`**) when **`-d`** refuses; **MUST** stop and report branches that are not actually merged into the target.
+3. 依既定順序逐一合併  
+按照使用者指定順序，或 `coordination.md` 中明確記錄的 landing order，逐一整合 in-scope 分支。對沒有新增內容或已經合入的分支，跳過並記錄原因。發生衝突時，閱讀雙方內容並編輯出能保留正確行為的結果；必要時使用 `merge-conflict-resolver`。若衝突無法在不猜測意圖的前提下解決，停止並回報。
 
-## Standards (summary)
+4. 驗證整合結果  
+先對衝突區域或高風險改動執行對應驗證，再對整體整合結果執行倉庫慣用的標準驗證。任何驗證失敗都必須先在當前分支修正，之後才能進入清理或提交階段。
 
-- **Evidence**: `git branch`, `git log` / diff stats vs current branch, conflict file contents, `coordination.md` merge order when present.
-- **Execution**: Inventory → clean target branch → sequential merges → verify → prune merged branches/worktrees → **`commit-and-push`** through local commit (push only if user asked).
-- **Quality**: Scope strictly to named / mapped branches; no unrelated branch sweeps; no push-by-default from this workflow.
-- **Output**: Integrated current branch ready for **`commit-and-push`**; concise report of merged/skipped branches, conflicts resolved, verification commands.
+5. 清理已成功整合的來源  
+僅清理已完成合併且已通過驗證的來源分支與對應 worktree。若安全刪除被拒絕，保留來源並回報，不使用強制刪除。
 
-## Workflow
+6. 交給 `commit-and-push` 完成收尾  
+整理合併後的最終提交意圖，並交由 `commit-and-push` 執行必要審查、submission-readiness gate 與最終本地提交。若 `commit-and-push` 不可用，必須停止並回報，不可改走裸 `git commit`。本技能不負責 push、tag、release，也不另外觸發 `archive-specs`；只有使用者在本次對話中明確要求遠端更新時，才允許後續推送。
 
-**Chain-of-thought:** Before each numbered step, answer the **`Pause →`** prompts. Validator or verification red **blocks** advancing to pruning or **`commit-and-push`**.
+7. 回報結果  
+總結已合併與跳過的分支、使用的順序依據、衝突處理原則、驗證結果，以及流程最終停在本地 `HEAD` 還是包含遠端推送。
 
-### 1) Inventory the current branch and in-scope named branches
+## 範例
+- 「把 `feature/api-layer` 和 `feature/cli-wrapper` 合回目前分支」 -> 以目前分支為唯一目標，依指定順序完成整合、驗證與安全清理，再交給 `commit-and-push` 做最終本地提交。
+- 「根據這個 batch 的 `coordination.md` 把各 worktree 分支合回來，但先不要 push」 -> 先從 batch 規劃確認無歧義分支映射與 landing order，再依序合併、驗證、清理，最後只做到本地提交。
+- 「把那幾個應該相關的分支一起合一下」 -> 若無法從使用者輸入或規劃文件明確判定分支集合與順序，停止並回報需要補充資訊，而不是依 ancestry 或名稱猜測。
 
-- Run `git branch`; capture `git branch --show-current` and `git status -sb`.
-- Inspect `docs/plans/` for active batch roots that include **`coordination.md`**; read merge-order guidance **before** choosing sequence.
-- Build the merge set from **user branch names**, else from unambiguous spec-name / **`coordination.md`** mappings—if a required name cannot be matched, stop and report.
-- For each candidate: `git log --oneline <current>..<candidate>` and `git diff --stat <current>...<candidate>` (or equivalent); skip empty / already-up-to-date branches and record why.
-- Per branch, note: name, match rationale, commits ahead, `git log -1 --oneline`.
-  - **Pause →** Is every in-scope branch matched **unambiguously**, not by “probably related” ancestry?
-  - **Pause →** If **`coordination.md`** gives a merge order, does my sequence match it literally?
-
-### 1.5) Resolve merge order from active batch specs
-
-- When **`coordination.md`** defines **`Merge order` / landing order**, merge **only** in that order after mapping branch names to specs/worktrees without guessing.
-- When multiple active batches disagree or mapping is unclear, stop and report.
-- When no explicit order exists, use the user’s branch list order sequentially.
-  - **Pause →** Would merging in a different order violate a written batch plan?
-
-### 2) Ensure clean state on the original current branch
-
-- Inspect `git status`. If unrelated uncommitted changes block a safe merge, stop and report—**MUST NOT** stash or discard without user direction.
-  - **Pause →** Am I still on the **same** authoritative target branch I started with?
-
-### 3) Merge branches sequentially in the resolved order
-
-For each in-scope branch:
-
-1. `git checkout <current-branch>`
-2. `git merge <branch-name> --no-ff -m "Merge branch '<branch-name>' into <current-branch>"`
-3. On conflicts: use **`merge-conflict-resolver`**; then `git add` resolved paths.
-4. If resolution is ambiguous, prefer behavior that preserves tests, documented intent, and minimal semantic drift.
-5. Complete the merge commit if Git did not auto-complete.
-
-### 4) Verify merged state
-
-- After conflictful merges, run the most relevant targeted tests or builds for touched areas.
-- After all merges, run the repo’s usual validation (`npm test`, `cargo test`, etc.) when applicable.
-  - **Pause →** Did verification fail? **MUST** fix on the current branch before pruning or **`commit-and-push`**—**do not** hide red tests behind a merge report.
-
-### 5) Prune merged sources (after verified success only)
-
-- `git worktree list`; remove worktrees for successfully merged branches when safe.
-- `git branch -d <branch-name>` only for verified merges; refuse **`-D`** when **`-d`** fails—report instead.
-- **Never** delete the original target branch, the checked-out branch, or branches that failed / were skipped.
-
-### 6) Submit via **`commit-and-push`** (local commit; push optional)
-
-- Stage the post-merge / fix-up intent per user scope.
-- Run **`commit-and-push`** through **commit**: inspect, classify gates, mandated reviews where applicable, **`submission-readiness-check`**, then commit with conventional message—**omit push** unless the user explicitly requested remote update in this thread ( **`commit-and-push`** step **7**).
-- **MUST NOT** reintroduce **`archive-specs`** as a sibling step controlled by **this** skill; if **`submission-readiness-check`** routes archival work, **`commit-and-push`** owns that decision.
-  - **Pause →** Am I about to push without an explicit user request for remote publication?
-  - **Pause →** Does `git diff --cached` match intended merge scope—no stray unrelated paths?
-
-### 7) Report
-
-- List merged vs skipped branches and why.
-- Current branch name; confirmation merges landed on original target.
-- Conflicts resolved and brief rationale.
-- Verification commands executed.
-- State whether completion stopped at **local HEAD** (**no push**) or included push per explicit user ask.
-
-## Sample hints
-
-- **Skip**: candidate shows no commits ahead of current—record “already merged / empty”.
-- **`coordination.md`**: landing order **`api-layer`** then **`cli-wrapper`** ⇒ merge matching branches in that sequence even if creation dates differ.
-- **`commit-and-push` without push**: user said “merge and commit locally”—run **`commit-and-push`** gates and commit; report `HEAD` hash; **no** **`git push`**.
-
-## Working Rules
-
-- Never force-push from this workflow.
-- Preserve functionality over winning either branch’s raw diff verbatim.
-- Do not merge ambiguously matched or unrelated branches.
-- Do not delete merged sources until merge commit **and** verification succeed.
-- When batch merge-order documentation applies, follow it unless you stop with evidence it is stale.
-
-Resolve conflicts using **`merge-conflict-resolver`**.
+## 參考資料
+- `commit-and-push/SKILL.md`：最終提交、submission-readiness 與是否允許推送的權威流程。
+- `merge-conflict-resolver/SKILL.md`：衝突需要精確合成時的輔助技能。
+- `docs/plans/**/coordination.md`：batch 規劃存在時的 landing order 與分支映射依據。

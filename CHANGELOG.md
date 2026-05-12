@@ -10,6 +10,21 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.12.0] - 2026-05-13
+
+### Added
+
+- `maintain-project-constraints` now ships `references/constraint-file-reference.md`, a shared contract/checklist/template for keeping root `AGENTS.md` / `CLAUDE.md` limited to the three required sections.
+
+### Changed
+
+- Rewrite a broad set of shipped skills into a more compact Chinese-first structure built around explicit goal, acceptance, workflow, examples, and reference sections, covering documentation alignment, submission/release, planning, implementation, review, debugging, testing, security, and architecture-atlas workflows.
+- Simplify supporting references and wording across the catalog to prefer `repo` / `spec` terminology, point `maintain-project-constraints` at its new shared reference file, and tighten example phrasing in `optimise-skill` plus the standardized docs template.
+
+### Removed
+
+- Remove the now-redundant `archive-specs` reference templates for `architecture`, `docs-index`, `features`, and `principles` after delegating standardized documentation structure guidance to `align-project-documents`.
+
 ## [v3.11.8] - 2026-05-12
 
 ### Added

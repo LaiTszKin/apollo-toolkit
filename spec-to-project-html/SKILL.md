@@ -1,91 +1,42 @@
 ---
 name: spec-to-project-html
 description: >-
-  Sync the project HTML architecture atlas to active planning specs by driving `apltk architecture --spec <spec_dir>`. Single specs write overlay YAML under `<spec_dir>/architecture_diff/atlas/`; batch member paths resolve to the shared batch-root `architecture_diff/` beside `coordination.md`. The CLI re-renders only the affected proposed-after HTML pages — macro SVG and per-sub-module internal-dataflow diagrams stay zoomable like the base atlas — so `apltk architecture diff` pairs before/after by path under `docs/plans/**/architecture_diff/`. Preserve the two-layer rule and the responsibility split: **subagents only** — each subagent reads ONE affected feature and declares EVERY intra-feature overlay change; the main agent **waits until all subagents finish**, then aggregates outbound summaries and declares **only** cross-feature edges. **Exact CLI spelling:** always `apltk architecture --help`. Ground every declaration in repo evidence; mark `TBD` when code is missing.
+  使用 `apltk architecture --spec <spec_dir>` 將專案 HTML 架構圖同步到活躍規劃文件。單個 spec 寫入 `<spec_dir>/architecture_diff/`，批量 spec 寫入 `coordination.md` 旁的共享 overlay；每個受影響功能由一個可寫子 agent 負責功能內 overlay 更新，主 agent 必須等待全部子 agent 完成後，才能補跨功能邊、渲染並驗證。基礎 atlas 不得被此技能修改。
 ---
 
-# Spec To Project HTML
+# 規劃文件同步到專案 HTML 架構圖
 
-## Dependencies
+## 技能目標
 
-- Required: **`init-project-html`** — its `SKILL.md` is the semantic rulebook; **`apltk architecture --help`** is the verb/flag source of truth. Reuse the same CLI here with `--spec`.
-- Conditional: **`recover-missing-plan`** if a spec pointer is missing.
-- Conditional: **`generate-spec`** / **`implement-specs*`** terminology for requirement IDs.
-- Optional: **`review-spec-related-changes`** when verifying diagram updates against specs.
-- Fallback: spec demands components that are absent from code → declare them but use `TBD` strings or a `gap` token in the role/purpose/dataflow fields; **MUST NOT** mark them as implemented.
+根據 `docs/plans/...` 下的規劃文件，為專案架構圖生成或更新 spec overlay，使評審者能夠透過 `apltk architecture diff` 直接查看 proposed-after 架構變化，同時保持基礎 atlas 不被污染。
 
-## Non-negotiables
+## 驗收條件
 
-- **MUST** read specs in order unless the user directs otherwise: `spec.md` → `design.md` → `contract.md` → coordination notes.
-- **MUST** declare every change through the CLI with `--spec <spec_dir>` (exact verbs/flags: **`apltk architecture --help`**). Single specs write overlay YAML to `<spec_dir>/architecture_diff/atlas/` and re-render only the affected proposed-after HTML pages there. Batch member paths resolve to the shared batch-root `architecture_diff/` beside `coordination.md`, so the whole batch keeps one overlay and one rendered diff. **MUST NOT** hand-edit `architecture_diff/**/*.html` — the renderer owns those files.
-- **MUST** obey the semantic rules from `init-project-html/SKILL.md`:
-  - Sub-module pages stay self-only — express cross-boundary interactions via **edges** (cross-feature or intra-feature), never as sub-module page prose.
-  - Feature pages stay lightweight — cross-sub-module choreography belongs in **edges**, not in `dataflow` prose that pretends to cross features.
-- **MUST** reconcile deltas through the CLI families described in **`apltk architecture --help`**. Keep the meaning in this skill, but take the exact verbs, subverbs, and flags from the CLI itself.
-- **MUST NOT** drop modules that are still present in code just because the spec omits them — keep them, or rewrite role/purpose to flag “out of spec scope”.
-- **MUST** scope reads to the **affected feature modules** from the spec/design diff (plus any feature owning the other end of a cross-feature edge into an affected one). **Subagents own intra-feature overlay writes; the main agent owns cross-feature seams — after all subagents finish:**
-  - Dispatch **one write-capable subagent per affected feature**. Each applies every intra-feature overlay mutation via `apltk architecture ... --spec <spec_dir>` (exact flags: **`--help`**). Each returns **ONLY** a structured summary: sub-module change list, outbound boundary changes (cross-feature edges to add/change/remove), and any `planned` / `gap` markers.
-  - **MUST** wait until **every** dispatched subagent has completed before running any cross-feature **`edge`** mutation, overlay-wide **`meta`** that stitches multiple features, or shared **`actor`** that exists only for cross-feature context.
-  - **Forbidden:** loading every affected feature’s source into the main agent before delegating — that explodes context and produces contradictory overlays.
-- **MUST** run `apltk architecture validate --spec <spec_dir>` after the final mutation. Resolve every reported error before reporting completion.
+- 只透過 `apltk architecture --spec <spec_dir>` 寫入 overlay；單個 spec 產物位於 `<spec_dir>/architecture_diff/`，批量 spec 則寫入 `coordination.md` 同級的共享 overlay；不得手改 `architecture_diff/**/*.html`。
+- 讀取規劃文件時遵循 `spec.md` → `design.md` → `contract.md` → `coordination.md` 的順序；所有重要宣告都能同時回溯到 spec 語句和相關程式碼或設計證據。
+- 對於程式碼尚未實作、但規劃中已經提出的結構，必須顯式使用 `planned`、`gap` 或 `TBD` 標記，而不能偽裝成已落地實作。
+- 按「每個受影響功能一個可寫子 agent」執行 overlay 更新；主 agent 必須等全部子 agent 完成後，才允許補跨功能邊、共享 `meta` 或共享 `actor`。
+- `apltk architecture validate --spec <spec_dir>` 通過，且 `apltk architecture diff` 中的頁面配對正確，沒有懸空邊、孤兒頁面或錯誤的 add/remove 配對。
 
-## Standards (summary)
+## 工作流程
 
-- **Evidence**: cite the spec passage (design subsystem entry) alongside the code path; record the citation in `meta.summary` or in sub-module purposes when relevant.
-- **Execution**: locate the plan set → list affected feature modules → subagent fan-out → **all complete** → cross-feature edges → `render --spec` if batched → `validate --spec` → `diff` check → handover.
-- **Quality**: macro overlay still shows every cross-feature data-row the spec requires; sub-module declarations stay self-only; `apltk architecture diff` opens cleanly with no orphan pages; no dangling edges.
-- **Output**: single specs touch only `<spec_dir>/architecture_diff/atlas/**` (overlay state) and `<spec_dir>/architecture_diff/**/*.html` (renderer output); batch specs write the same artifacts under the batch root beside `coordination.md`. Base `resources/project-architecture/` is **NEVER** mutated.
+1. 先定位本次規劃目錄；使用者明確給出路徑時優先使用，否則結合 `coordination.md` 或 `recover-missing-plan` 找到正確 plan 集，並整理相關需求編號用於追蹤。
+2. 執行 `apltk architecture --help` 取得最新命令形態，然後按 `spec.md`、`design.md`、`contract.md`、`coordination.md` 的順序讀取內容，確定哪些功能、子模組、邊、變數或錯誤語義會發生變化。
+3. 先只列出受影響功能，不要提前把所有原始碼塞進主 agent。除了直接變更的功能，也要納入跨功能邊另一端的功能，確保 overlay 中的跨邊界關係完整。
+4. 為每個受影響功能派發一個可寫子 agent。每個子 agent 只負責自己功能內的 overlay 寫入：子模組、函式、變數、資料流、錯誤，以及功能內邊；若規劃領先於程式碼，則在角色、用途或資料流文案中明確標註 `planned`、`gap` 或 `TBD`。
+5. 子 agent 只返回功能內變更摘要、跨功能邊界變化和待記錄的 `planned/gap` 標記；主 agent 不得重讀已委派功能原始碼，也不得重複寫功能內元件。
+6. 等全部子 agent 完成後，主 agent 統一補跨功能 `edge`、必要的共享 `meta` / `actor`，再執行 `apltk architecture validate --spec <spec_dir>`，並透過 `apltk architecture diff` 檢查 overlay 頁面是否正確映射到 before/after 視圖。
+7. 最終報告至少包含：觸及的 overlay 檔案或 CLI 變更類別、`modified` / `added` / `removed` 數量、所有子 agent 已完成後才開始跨功能連線的確認、未解決的 spec 與程式碼差距，以及後續跟進行動。
 
-## Acceptance criteria (mirrors `init-project-html`)
+## 使用範例
 
-Open the proposed-after viewer (`apltk architecture diff`) and verify both criteria on the overlay pages before reporting completion:
+- 「把這份新 spec 的架構變化渲染成 before/after HTML 對照。」 -> 「讀取 plan 集，按受影響功能分派子 agent，寫入 `architecture_diff/` overlay，並用 `apltk architecture diff` 驗證。」
+- 「批量規劃下多個 spec 共用一份架構 overlay。」 -> 「仍以成員 spec 路徑呼叫 `--spec`，但讓 CLI 自動彙總到 `coordination.md` 同級的共享 overlay 根目錄。」
 
-1. **The macro overlay clearly shows the proposed-after feature × sub-module relationships**, including data flow (**`data-row`**), interaction logic (**`call`** + **`return`**), error handling and rollback (**`failure`**). Any new / changed / removed cross-boundary path the spec implies **MUST** exist as an edge mutation in the overlay — not as sub-module prose.
-2. **Each touched sub-module’s internal overlay diagram clearly shows the function-level interactions inside it**, including function references and variable reads/writes on `dataflow` steps. Declare `function` / `variable` before referencing them so `validate --spec` passes.
+## 參考資料索引
 
-## Workflow
-
-### 1) Resolve spec inputs
-
-User-pointed path wins; otherwise use the batch `coordination.md` or `recover-missing-plan` to find the most recent plan; collect `R…` / `INT-…` IDs for traceability.
-
-### 2) List the affected feature modules (no function bodies yet)
-
-Derive from the spec/design diff which feature modules change: new sub-modules, edge changes, variable changes, error changes, retired sub-modules… **Also** include any feature owning the other end of a cross-feature edge that is being changed (even if that feature’s own spec is untouched). Record only `slug + change-kind`; do not enter function bodies yet.
-
-### 3) Subagents patch features; orchestrator patches cross-feature seams **after** all workers finish
-
-Dispatch one **write-capable subagent per affected feature**. Each subagent owns every intra-feature overlay write and reports outbound boundaries upward. Use **`apltk architecture --help`** for exact `add|set|remove|reorder` spelling.
-
-> **Feature `<slug>` subagent contract (overlay)**
-> - Read this feature’s affected sub-modules and the cited spec passages / requirement IDs.
-> - Apply every intra-feature overlay mutation with `--spec <spec_dir>`: structural (`feature` / `submodule`), rows (`function`, `variable`, `dataflow`, `error`), and intra-feature **`edge`** changes (including failure / rollback between this feature’s own sub-modules). Order `dataflow` so **variable state** reads end-to-end.
-> - Run `apltk architecture validate --spec <spec_dir>` before returning.
-> - **Return ONLY**: (i) sub-module change list, (ii) outbound boundary changes (cross-feature edges add/change/remove with endpoints and suggested kind/label), (iii) any `planned` / `gap` flags for `meta.summary`.
-
-**After every subagent has completed**, the main agent declares **only** the cross-feature seams through `apltk architecture ... --spec <spec_dir>`, then renders and validates the overlay.
-
-- **Pause →** Do `planned` / `gap` markers read consistently across affected sub-modules?
-- The main agent **MUST NOT** re-declare a subagent’s intra-feature components, and **MUST NOT** open source files for any feature it delegated.
-
-- **Pause →** Does `apltk architecture diff` pair every changed page correctly? If a page shows as add + remove instead of modified, you renamed a slug somewhere — re-check.
-
-### 4) Traceability (suggested)
-
-Use `feature-trace` (or `meta.summary` for spec-only changes) to map spec IDs to implementation status: `met` / `partial` / `planned` / `gap`.
-
-### 5) Report
-
-List overlay files touched (or verb families used), the diff counts (`modified` / `added` / `removed`) from `apltk architecture diff`, confirmation that **all subagents finished before cross-feature wiring**, unresolved spec-vs-code gaps, and any follow-ups.
-
-## Sample hints
-
-- **Batch merge**: each member spec still calls `--spec <member_dir>`, but the CLI resolves writes to the shared batch-root overlay beside `coordination.md`; `diff` shows the batch as one combined architecture delta.
-- **Spec shrinks scope**: prefer `submodule set --role "deprecated: ..."` before `submodule remove` so reviewers see intent.
-- **Design-only change**: still review edges — order shifts surface as edge mutations; `validate --spec` catches dangling references.
-
-## References
-
-- `init-project-html/SKILL.md` — semantic contracts and acceptance criteria.
-- `init-project-html/references/TEMPLATE_SPEC.md` — schema cheat sheet (fields/enums), not a command list.
-- **`apltk architecture --help`** — live CLI reference.
+- `init-project-html/SKILL.md`：基礎語義規則、邊類型與子模組表達約束。
+- `references/TEMPLATE_SPEC.md`：overlay 模式下的欄位、列舉與 diff 配對規則速查表。
+- `recover-missing-plan`：當 plan 路徑缺失或不明確時用於恢復正確 spec 集。
+- `generate-spec`、`implement-specs*`：需求編號和規劃流程的上游來源。
+- `apltk architecture --help`：`--spec` 模式命令與參數的唯一真源。
