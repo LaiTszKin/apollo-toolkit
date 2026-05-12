@@ -10,7 +10,7 @@ This skill:
 2. Rejects authorship bias, including confidence in code written earlier in the same conversation.
 3. Looks for architecture-level abstraction opportunities.
 4. Looks for code that can be simplified without changing behavior.
-5. Runs `discover-security-issues` as a required adversarial cross-check for code-affecting changes.
+5. For multi-file or multi-module diffs, dispatches one read-only subagent per coherent scope cluster and aggregates structured findings on the main agent.
 
 ## When to use
 
@@ -27,7 +27,7 @@ Use this skill when the task asks you to:
 - Treat recent edits as untrusted until evidence proves otherwise.
 - Prefer fewer, stronger findings over broad speculative advice.
 - Focus on architecture and simplification, not cosmetic style feedback.
-- Reuse confirmed security findings from `discover-security-issues` instead of hand-waving about risk.
+- For wide diffs, prefer parallel read-only subagents over loading every file into one context.
 
 ## Example
 
@@ -44,7 +44,7 @@ Expected behavior:
 - changed files are read before conclusions,
 - findings cite exact evidence,
 - architecture issues are prioritized over style comments,
-- security-sensitive changes are cross-checked through `discover-security-issues`.
+- multi-module diffs are reviewed by parallel read-only subagents and aggregated into one report.
 
 ## References
 

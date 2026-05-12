@@ -49,18 +49,56 @@ test('scenario-matched conditional gates become blocking', () => {
   assert.match(releaseAgent, /Treat every conditional gate whose scenario is met as blocking before any version bump, tag, or release step/i);
 });
 
-test('risk-driven edge and security reviews are blocking when applicable', () => {
+test('commit-and-push and version-release no longer chain discover-edge-cases or discover-security-issues', () => {
   const commitSkill = read('commit-and-push/SKILL.md');
   const releaseSkill = read('version-release/SKILL.md');
   const commitAgent = read('commit-and-push/agents/openai.yaml');
   const releaseAgent = read('version-release/agents/openai.yaml');
 
-  assert.match(commitSkill, /`discover-edge-cases` and `discover-security-issues` are important review gates/i);
-  assert.match(commitSkill, /treat them as blocking review gates, not optional polish/i);
-  assert.match(releaseSkill, /`discover-edge-cases` and `discover-security-issues` are important review gates/i);
-  assert.match(releaseSkill, /treat them as blocking review gates, not optional polish/i);
-  assert.match(commitAgent, /run \$discover-edge-cases and \$discover-security-issues as blocking gates too/i);
-  assert.match(releaseAgent, /run \$discover-edge-cases and \$discover-security-issues as blocking gates too/i);
+  assert.doesNotMatch(commitSkill, /discover-edge-cases/i);
+  assert.doesNotMatch(commitSkill, /discover-security-issues/i);
+  assert.doesNotMatch(releaseSkill, /discover-edge-cases/i);
+  assert.doesNotMatch(releaseSkill, /discover-security-issues/i);
+  assert.doesNotMatch(commitAgent, /discover-edge-cases/i);
+  assert.doesNotMatch(commitAgent, /discover-security-issues/i);
+  assert.doesNotMatch(releaseAgent, /discover-edge-cases/i);
+  assert.doesNotMatch(releaseAgent, /discover-security-issues/i);
+});
+
+test('review-change-set no longer chains discover-security-issues and recommends subagent fan-out', () => {
+  const skill = read('review-change-set/SKILL.md');
+  const agent = read('review-change-set/agents/openai.yaml');
+
+  assert.doesNotMatch(skill, /discover-security-issues/i);
+  assert.doesNotMatch(agent, /discover-security-issues/i);
+  assert.doesNotMatch(agent, /security cross-check/i);
+  assert.match(skill, /read-only subagent/i);
+  assert.match(skill, /per coherent scope cluster|per scope cluster/i);
+  assert.match(agent, /one read-only subagent per coherent scope cluster/i);
+});
+
+test('review-spec-related-changes recommends parallel subagents for secondary reviews', () => {
+  const skill = read('review-spec-related-changes/SKILL.md');
+  const agent = read('review-spec-related-changes/agents/openai.yaml');
+
+  assert.match(skill, /one read-only subagent per secondary skill/i);
+  assert.match(skill, /\$review-change-set|`review-change-set`/);
+  assert.match(skill, /\$discover-edge-cases|`discover-edge-cases`/);
+  assert.match(skill, /\$discover-security-issues|`discover-security-issues`/);
+  assert.match(agent, /one read-only subagent per secondary skill in parallel/i);
+});
+
+test('update-project-html refreshes the base atlas via apltk architecture with subagent fan-out', () => {
+  const skill = read('update-project-html/SKILL.md');
+  const agent = read('update-project-html/agents/openai.yaml');
+
+  assert.match(skill, /apltk architecture/);
+  assert.match(skill, /git diff --stat/);
+  assert.match(skill, /one write-capable subagent per affected feature/i);
+  assert.match(skill, /init-project-html/);
+  assert.match(skill, /spec-to-project-html/);
+  assert.match(agent, /\$update-project-html/);
+  assert.match(agent, /apltk architecture --help/);
 });
 
 test('version-release requires version inspection and matching tag plus release', () => {

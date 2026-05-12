@@ -31,6 +31,4 @@ When the diff includes code changes, `review-change-set` is still a conditional 
 
 Apply the same rule to every other conditional gate: if its scenario is met during classification, it becomes blocking before commit rather than a best-effort follow-up.
 
-That includes risk-driven review gates such as `discover-edge-cases` and `discover-security-issues` whenever the change surface makes them applicable.
-
 For release workflows, use `version-release`.

@@ -10,6 +10,22 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.5] - 2026-05-12
+
+### Added
+
+- New skill `update-project-html`: refreshes the base project HTML architecture atlas (`resources/project-architecture/`) to reflect the latest code changes by reading the existing atlas, resolving the diff scope (`git diff --stat` + staged by default, or against a user-named ref), filtering to code-affecting hunks, and dispatching one write-capable subagent per affected feature to update declarations through `apltk architecture` (no `--spec`); the main agent waits until every subagent finishes before declaring cross-feature edges, then runs `apltk architecture render` and `apltk architecture validate`.
+- README: notes for `update-project-html`, the `commit-and-push` / `version-release` decoupling, the `review-change-set` decoupling + subagent guidance, and the `review-spec-related-changes` parallel secondary-subagent pattern. AGENTS.md: new business-flow bullet for `update-project-html`.
+- Tests (`test/skill-workflows.test.js`): assertions for the four behavior changes above (decoupling and subagent recommendations).
+
+### Changed
+
+- `commit-and-push` and `version-release` no longer chain `discover-edge-cases` or `discover-security-issues` automatically. The `review-change-set` gate stays mandatory for code-affecting scope, and other conditional gates (e.g. `archive-specs`) remain unchanged. Invoke security or edge-case skills explicitly when their scenario applies.
+- `review-change-set` no longer chains `discover-security-issues` and now recommends dispatching one read-only subagent per coherent scope cluster for multi-file diffs; the main agent aggregates structured architecture + simplification findings without re-reading delegated files. Tiny diffs are still reviewed inline.
+- `review-spec-related-changes` keeps its three secondary dependencies (`review-change-set`, `discover-edge-cases`, `discover-security-issues`) but now prefers running each one in its own read-only subagent in parallel, and may also fan out independent business-goal requirement clusters to read-only subagents.
+
+### Fixed
+
 ## [v3.11.4] - 2026-05-12
 
 ### Added

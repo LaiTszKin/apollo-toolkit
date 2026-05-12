@@ -1,9 +1,9 @@
 ---
 name: review-spec-related-changes
 description: >-
-  Read-only spec compliance versus governing docs/plans: score each business-oriented requirement Met/Partial/Not-met using code/tests/commands—checked `tasks.md` boxes are never sufficient proof; ambiguity between two plausible plan roots halts execution; when runtime code exists, sequentially run **`review-change-set`**, **`discover-edge-cases`**, and **`discover-security-issues`** on the same scoped diff afterward.
-  Use for questions like “does this PR satisfy coordination.md + spec.md R2?” or user pins a `{change}` folder.
-  Do not mutate repositories, reorder reports to bury missing goals, skip the tertiary review bundle on code-bearing diffs, or rely on intent without file evidence **BAD**, lead with refactor comments while R1 failing **FORBIDDEN**… GOOD pair every Not-met cite with `spec.md` ref + concrete path:test gap…
+  Read-only spec compliance vs governing docs/plans: score every business requirement Met/Partial/Not-met from code/tests/commands—checked `tasks.md` boxes never count; ambiguity between two plan roots halts execution; on code-bearing diffs run **`review-change-set`**, **`discover-edge-cases`**, **`discover-security-issues`** on the same scope afterward — **prefer one read-only subagent per secondary skill in parallel** so the main agent aggregates without re-reading. Independent requirement clusters may also be scored by parallel read-only subagents.
+  Use for “does this PR satisfy coordination.md + spec.md R2?” or a user-pinned `{change}` folder.
+  Do not mutate repos, bury missing goals, skip the tertiary bundle on code-bearing diffs, or rest on intent without evidence; FORBIDDEN to lead with refactor comments while R1 is failing. GOOD: pair every Not-met cite with a `spec.md` ref + concrete path:test gap.
 ---
 
 # Review Spec Related Changes
@@ -23,14 +23,17 @@ description: >-
 - **MUST** classify each business goal / acceptance item as `Met`, `Partially met`, `Not met`, or `Deferred/N/A` **only** using verifiable evidence (code, tests, commands, traces)—checked boxes in `tasks.md` are **not** proof by themselves.
 - **MUST** treat **unmet or partially met required business goals** as **highest severity**. **MUST NOT** let edge-case, security, or style findings **outrank** those gaps in the reported order or implied priority.
 - **MUST** finish the business-goal verdict **before** invoking secondary skills; **MUST** still run `review-change-set`, `discover-edge-cases`, and `discover-security-issues` on the **same** implementation scope when code is involved (after step 1 verdict is written).
+- **SHOULD** parallelize the secondary reviews when code is involved by dispatching **one read-only subagent per secondary skill** (one for `review-change-set`, one for `discover-edge-cases`, one for `discover-security-issues`). Each subagent receives the same diff scope, follows that skill’s own SKILL.md, and returns ONLY its structured findings; the main agent aggregates them in the fixed report order without re-running the underlying analysis. Single-file or trivial diffs may be reviewed inline without subagents.
+- For business-goal scoring itself, **MAY** parallelize by dispatching one read-only subagent per **independent requirement cluster** (requirements that share no owned paths and no shared spec section), each returning Met/Partial/Not-met with cited evidence. The main agent owns final ordering, severity, and any cross-requirement reconciliation. Tightly coupled requirements stay on the main agent.
 - **MUST NOT** rest conclusions on author intent, branch names, or chat memory unless **repository evidence** agrees.
+- **MUST NOT** let subagents mutate repositories, archive specs, or commit — every dispatched subagent runs in **read-only** mode.
 - Prefer **fewer confirmed findings** over broad speculation; unproven items belong under **Residual uncertainty**, not as faux defects.
 
 ## Standards (summary)
 
 - **Evidence**: Full read of governing docs + minimal code/diff context + spec-named verification commands when safe to run.
-- **Execution**: Scope resolution → business compliance → required secondary reviews → ordered report.
-- **Quality**: Business-first severity; secondary findings separated unless they also block an acceptance criterion.
+- **Execution**: Scope resolution → business compliance (optionally fanned out by independent requirement cluster) → parallel secondary reviews via per-skill read-only subagents → aggregated ordered report.
+- **Quality**: Business-first severity; secondary findings separated unless they also block an acceptance criterion; subagent reports stay strictly within their assigned skill’s scope.
 - **Output**: Ordered list: business gaps → edge cases → security → code review → passing summary → residual uncertainty.
 
 ## Scope resolution
@@ -53,17 +56,19 @@ description: >-
    - **Pause →** Which items are **mandatory** acceptance vs explicitly **out of scope** or deferred?
    - **Pause →** What observable failure would make me change a `Met` to `Not met` for the top risk requirement?
 
-2. **Implementation evidence** — Read the relevant diff/staged/commits/files. Trace the minimum code path to validate claims. Run spec-named checks when available and safe.
+2. **Implementation evidence** — Read the relevant diff/staged/commits/files. Trace the minimum code path to validate claims. Run spec-named checks when available and safe. When the spec contains **independent requirement clusters** (disjoint owned paths, disjoint spec sections), **MAY** dispatch one read-only subagent per cluster to score Met/Partial/Not-met with cited evidence; the main agent reconciles cross-requirement effects and owns the final verdict ordering. Tightly coupled requirements stay on the main agent.
    - **Pause →** What is the **smallest** code path I have not yet read that could still falsify a `Met`?
    - **Pause →** Am I about to score `Met` from **intent** or from **tests/commands** I actually ran or inspected?
+   - **Pause →** If I clustered, is every cluster genuinely disjoint, or am I about to lose a cross-requirement contradiction by running them in isolation?
 
 3. **Business-goal verdict first** — Emit every `Not met` / `Partially met` **before** secondary findings, with **exact** spec cites and code/test evidence. While required goals stay failed, **MUST NOT** frame archival, release, or “done” narratives that imply compliance.
    - **Pause →** If I sorted findings by “interesting” instead of business impact, which line would unfairly rise above a missing goal?
    - **Pause →** For each `Partially met`, what single **missing proof** (test, wire-up, error path) am I naming explicitly?
 
-4. **Secondary reviews (code-affecting)** — On the same scope: `review-change-set` (architecture/simplification), `discover-edge-cases` (reproducible edge/observability risks), `discover-security-issues` (reproducible security). Keep outputs labeled so they do not read as business-goal substitutions.
+4. **Secondary reviews (code-affecting)** — On the same scope: `review-change-set` (architecture/simplification), `discover-edge-cases` (reproducible edge/observability risks), `discover-security-issues` (reproducible security). **Prefer dispatching one read-only subagent per skill in parallel** so each runs in its own context with the full SKILL.md it owns; hand each subagent the same diff scope and the structured-report contract from that skill. The main agent waits for every subagent to return, then keeps outputs labeled so they do not read as business-goal substitutions. Trivial single-file diffs may run inline without subagents. The main agent **MUST NOT** re-run a secondary skill it already delegated, and subagents **MUST NOT** mutate the repository.
    - **Pause →** Does this secondary finding **force** a business re-score—if yes, did I revise step 3 before publishing?
    - **Pause →** Is the diff scope identical to what I used for business mapping (no silent file creep)?
+   - **Pause →** Did every dispatched secondary subagent return — or am I about to publish from partial summaries?
 
 5. **Final report (fixed order)** — (1) Business-goal failures (always top severity for required gaps). (2) Edge-case. (3) Security. (4) Code-review / maintainability. (5) Passing evidence for goals confirmed `Met`. (6) Residual uncertainty (skipped commands, unmapped spec text, unverifiable externals). If nothing actionable: state that explicitly **and** still cite docs and evidence reviewed.
    - **Pause →** What commands or spec paragraphs remain **unverified**—are they all listed under residual uncertainty?

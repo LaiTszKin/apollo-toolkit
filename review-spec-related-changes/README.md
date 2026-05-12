@@ -9,7 +9,7 @@ This skill:
 1. Resolves the governing `docs/plans/...` spec scope from user input or recent repository changes.
 2. Checks whether each business goal and acceptance criterion is actually implemented.
 3. Treats unmet business goals as the most severe review findings.
-4. Runs secondary code-practice review through `review-change-set`, `discover-edge-cases`, and `discover-security-issues` for code-affecting scopes.
+4. Runs secondary code-practice review through `review-change-set`, `discover-edge-cases`, and `discover-security-issues` for code-affecting scopes — preferably as parallel read-only subagents (one per skill) that report back to the main agent.
 5. Reports business-goal gaps separately from edge-case, security, and maintainability findings.
 
 ## When to use
@@ -27,6 +27,7 @@ Use this skill when the task asks you to:
 - Missing required behavior is more severe than ordinary code-practice issues.
 - Secondary edge-case, security, and code-review findings remain clearly separated.
 - Findings must cite concrete spec and code evidence.
+- For multi-skill reviews, prefer parallel read-only subagents (one per secondary skill) over chaining the skills sequentially on the main agent.
 
 ## Example
 
@@ -41,7 +42,7 @@ Expected behavior:
 
 - the named spec set is read before judging the code,
 - business-goal gaps are listed first and treated as highest severity,
-- secondary review skills are invoked for the same implementation scope,
+- secondary review skills are invoked for the same implementation scope, preferably as one read-only subagent per skill running in parallel,
 - the final report separates spec-compliance findings from edge-case, security, and code-review findings.
 
 ## References

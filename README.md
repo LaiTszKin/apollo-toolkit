@@ -56,6 +56,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - systematic-debug
 - test-case-strategy
 - text-to-short-video
+- update-project-html
 - version-release
 - video-production
 - weekly-financial-event-report
@@ -210,7 +211,10 @@ Compatibility note:
 - `recover-missing-plan` is a local skill used by `enhance-existing-features` and `ship-github-issue-fix` when a referenced `docs/plans/...` spec set is missing or archived.
 - `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the table.
 - `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.
-- `review-spec-related-changes` is a local skill that depends on `review-change-set`, `discover-edge-cases`, and `discover-security-issues` for secondary code-practice checks after business-goal completion is reviewed against the governing specs.
+- `review-spec-related-changes` is a local skill that depends on `review-change-set`, `discover-edge-cases`, and `discover-security-issues` for secondary code-practice checks after business-goal completion is reviewed against the governing specs; it prefers running each secondary skill in its own read-only subagent in parallel.
+- `update-project-html` is a local skill that depends on `init-project-html` for semantic rules and on the `apltk architecture` CLI to refresh the base atlas after code changes; for spec overlay diagrams use `spec-to-project-html` instead.
+- `commit-and-push` and `version-release` no longer chain `discover-edge-cases` or `discover-security-issues`; invoke those skills explicitly when the review surface needs them.
+- `review-change-set` no longer chains `discover-security-issues`; for multi-file diffs it prefers dispatching one read-only subagent per scope cluster.
 
 ## Release publishing
 

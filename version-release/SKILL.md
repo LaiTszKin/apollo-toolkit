@@ -10,7 +10,7 @@ description: >-
 ## Dependencies
 
 - Required: **`commit-and-push`** (shared inspect/classify/readiness/commit/push mechanics); **`submission-readiness-check`** **before** version files, tags, or publication mutate.
-- Conditional: **`archive-specs`** when specs/docs need alignment; **`review-change-set`** (+ **`discover-edge-cases`** / **`discover-security-issues`** when risk triggers) on **code-affecting** release scope **before** version churn—blocking while findings open.
+- Conditional: **`archive-specs`** when specs/docs need alignment; **`review-change-set`** on **code-affecting** release scope **before** version churn—blocking while findings open.
 - Optional: none.
 - Fallback: Missing required skill ⇒ stop and report.
 
@@ -26,7 +26,7 @@ description: >-
 - **MUST** verify **remote** has commit + tag before calling release **done**; **MUST NOT** trust UI git shortcuts.
 - **Done** = version files + changelog section + **pushed** commit + **remote** tag + **published** GitHub release (unless user explicitly skips publication—then say so).
 
-**Repository regression checks:** Before creating release metadata, inspect existing local and remote tags plus any existing GitHub Release for the target version so duplicates are caught early. Do not continue until you can state the current version, the intended next version, and the exact tag name that will be created. **`review-change-set` is required for code-affecting releases**—run `review-change-set` for the same release scope before continuing; treat unresolved review findings as blocking. Any conditional gate whose trigger is confirmed by this classification becomes mandatory before version bumping, tagging, or release publication. Treat every scenario-matched gate as blocking before versioning or release publication. **`discover-edge-cases` and `discover-security-issues` are important review gates**—when their scenario is met, treat them as blocking review gates, not optional polish. Never stop after the release commit or tag alone; creating the matching GitHub release is part of done criteria unless the user explicitly says to skip release publication.
+**Repository regression checks:** Before creating release metadata, inspect existing local and remote tags plus any existing GitHub Release for the target version so duplicates are caught early. Do not continue until you can state the current version, the intended next version, and the exact tag name that will be created. **`review-change-set` is required for code-affecting releases**—run `review-change-set` for the same release scope before continuing; treat unresolved review findings as blocking. Any conditional gate whose trigger is confirmed by this classification becomes mandatory before version bumping, tagging, or release publication. Treat every scenario-matched gate as blocking before versioning or release publication. Never stop after the release commit or tag alone; creating the matching GitHub release is part of done criteria unless the user explicitly says to skip release publication.
 
 ## Standards (summary)
 
@@ -58,7 +58,7 @@ description: >-
 
 ### 3) Gates before version churn
 
-- Classify scope; code-affecting ⇒ `review-change-set` (+ conditional edge/security same as **`commit-and-push`**); **`submission-readiness-check`** (+ **`archive-specs`** when indicated). All blocking items closed.
+- Classify scope; code-affecting ⇒ `review-change-set`; **`submission-readiness-check`** (+ **`archive-specs`** when indicated). All blocking items closed.
    - **Pause →** Am I versioning while `Unreleased`/readiness still wrong?
 
 ### 4) Decide version & tag
