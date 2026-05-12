@@ -35,7 +35,6 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - learning-error-book
 - marginfi-development
 - maintain-project-constraints
-- maintain-skill-catalog
 - novel-to-short-video
 - open-github-issue
 - open-source-pr-workflow
@@ -210,7 +209,6 @@ Compatibility note:
 - `generate-spec` is a local skill used by `develop-new-features` and `enhance-existing-features`, and it can produce either a single spec set under `docs/plans/{YYYY-MM-DD}/{change_name}/` or a coordinated parallel batch under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with shared `coordination.md`.
 - `implement-specs-with-subagents` coordinates one `implement-specs-with-worktree` subagent per spec directory for approved multi-spec batches.
 - `recover-missing-plan` is a local skill used by `enhance-existing-features` and `ship-github-issue-fix` when a referenced `docs/plans/...` spec set is missing or archived.
-- `maintain-skill-catalog` can conditionally use `find-skills`, but its install source is not verified in this repository, so it is intentionally omitted from the table.
 - `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.
 - `review-spec-related-changes` is a local skill that depends on `review-change-set`, `discover-edge-cases`, and `discover-security-issues` for secondary code-practice checks after business-goal completion is reviewed against the governing specs; it prefers running each secondary skill in its own read-only subagent in parallel.
 - `update-project-html` is a local skill that depends on `init-project-html` for semantic rules and on the `apltk architecture` CLI to refresh the base atlas after code changes; for spec overlay diagrams use `spec-to-project-html` instead.

@@ -29,30 +29,7 @@ const DEFAULT_OUT_REL = path.join('.apollo-toolkit', 'architecture-diff');
 
 const LEGACY_VERBS = new Set(['open', 'diff']);
 
-const USAGE = `apltk architecture — declarative atlas CLI.
-
-Usage:
-  apltk architecture                          Open resources/project-architecture/index.html
-  apltk architecture open                     Same as above
-  apltk architecture diff                     Render every architecture_diff/ as one paginated viewer
-  apltk architecture render                   Regenerate atlas HTML from current YAML state
-  apltk architecture validate                 Run schema + referential checks
-  apltk architecture feature add|set|remove   Manage feature modules
-  apltk architecture submodule add|set|remove Manage sub-modules
-  apltk architecture function|variable|dataflow|error|edge add|remove
-                                              Manage component rows and edges
-  apltk architecture meta set                 Update meta.title / meta.summary
-  apltk architecture actor add|remove         Manage top-level actors
-  apltk architecture undo [--steps <n>]      Revert the most recent mutation or roll back multiple steps
-  apltk architecture --help                   Show this help
-
-Global flags:
-  --project <root>   Project root (default: nearest ancestor with resources/project-architecture/, else cwd); missing layout dirs are created when needed
-  --spec <spec_dir>  Single specs write locally; batch member paths write to the coordination.md root architecture_diff/atlas/
-  --no-render        Skip auto-render after a mutation
-  --no-open          For open/diff: skip launching the browser
-  --out <dir>        For diff: override viewer output directory
-  -h, --help         Show this help`;
+const USAGE = newCli.buildArchitectureHelpPage();
 
 function parseArgs(argv) {
   const args = [...argv];
@@ -277,7 +254,9 @@ function main(argv, io = { stdout: process.stdout, stderr: process.stderr }) {
     return 1;
   }
   if (opts.help) {
-    io.stdout.write(`${USAGE}\n`);
+    const explicitLegacyVerb = argv.length > 0 && !argv[0].startsWith('-') && LEGACY_VERBS.has(argv[0]);
+    const helpText = explicitLegacyVerb ? newCli.buildArchitectureHelpPage(argv[0]) : USAGE;
+    io.stdout.write(`${helpText}\n`);
     return 0;
   }
   if (opts.subcommand === 'open') return runOpen(opts, io);

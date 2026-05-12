@@ -78,6 +78,26 @@ test('buildHelpText surfaces architecture examples', () => {
   const text = buildHelpText({ version: '0.0.0', colorEnabled: false });
   assert.match(text, /apltk architecture/);
   assert.match(text, /architecture diff/);
+  assert.match(text, /Result:/);
+});
+
+test('legacy architecture help routes to verb-specific help pages', () => {
+  const io = makeIo();
+  const code = architecture.main(['diff', '--help'], io);
+  assert.equal(code, 0);
+  assert.match(io.stdout_text, /apltk architecture diff/);
+  assert.match(io.stdout_text, /Use this when:/);
+  assert.match(io.stdout_text, /Examples:/);
+});
+
+test('atlas CLI returns action-specific help for nested verbs', async () => {
+  const io = makeIo();
+  const code = await atlasCli.dispatch(['edge', 'add', '--help'], io);
+  assert.equal(code, 0);
+  assert.match(io.stdout_text, /apltk architecture edge add/);
+  assert.match(io.stdout_text, /--from/);
+  assert.match(io.stdout_text, /Examples:/);
+  assert.match(io.stdout_text, /atlas: edge add applied/);
 });
 
 test('parseArgs supports default open, explicit diff, and flags', () => {

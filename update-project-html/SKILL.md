@@ -44,15 +44,9 @@ The atlas update is only complete when **all** of the following hold:
 3. Macro acceptance criteria from `init-project-html` still hold: cross-boundary interaction expressed as `call`/`return`/`data-row`/`failure` edges (never sub-module page prose); each touched sub-module’s internal diagram has function-to-function flow plus declared variable reads/writes for non-trivial steps.
 4. The handover report cites: chosen diff scope (literal commands), affected feature list, per-feature mutation counts, skipped diff buckets (with reasons), and confirmation that **all subagents completed before cross-feature wiring**.
 
-## How to use `apltk architecture`
+## CLI reference
 
-**Authoritative command tree:** run **`apltk architecture --help`** (same output as `apltk architecture help`). Same families as `init-project-html`:
-
-- `feature` / `submodule` — structural mutations (use **`set`** for label/role updates, **`remove`** when code deleted the entry point, **`add`** when the diff introduced a new module).
-- `function` / `variable` / `dataflow` / `error` — per-sub-module rows. Declare new symbols **before** referencing them in `dataflow`. Use the row-level `remove` (see `--help`) to delete obsolete rows the diff dropped.
-- `edge` — intra- or cross-feature seams. Prefer stable **`--id`** when re-applying the same edge after a mutation cycle. `kind` ∈ `call` | `return` | `data-row` | `failure`.
-- `meta` / `actor` — only when the diff actually changed the macro narrative (e.g. summary now needs to record the diff scope or new omissions).
-- `render` (when you batched with `--no-render`) → `validate` → done.
+Use `apltk architecture --help` and deeper `apltk architecture <verb> [subverb] --help` pages as the authoritative command references. This skill keeps the diff-filtering rules, subagent ownership rules, and base-atlas-only scope; it does not duplicate the flag catalog.
 
 This skill **never** uses `--spec`. If the user wants overlay diagrams for a planning doc, redirect to **`spec-to-project-html`**.
 
@@ -90,17 +84,7 @@ Dispatch one **write-capable** subagent per affected feature. Hand each subagent
 > - Run **`apltk architecture validate`** before returning.
 > - **Return ONLY**: (i) sub-module change list (slug + change kind + one-line reason) and (ii) outbound boundary deltas (cross-feature edges to add/change/remove with endpoints + suggested kind/label). No source dumps.
 
-**Orchestrator — after every subagent has completed:**
-
-```bash
-# only when meta.summary needs to record the diff scope or new omissions
-apltk architecture meta set --summary "..." --no-render
-# one edge mutation per cross-feature interaction reported by the subagents
-apltk architecture edge add --from <featA>/<subA> --to <featB>/<subB> --kind call|return|data-row|failure --label "..." --no-render
-apltk architecture edge remove --id <stable_id> --no-render
-apltk architecture render
-apltk architecture validate
-```
+**Orchestrator — after every subagent has completed:** apply only the cross-feature `apltk architecture` mutations that the subagents reported, then render and validate the base atlas.
 
 The main agent **MUST NOT** re-declare a subagent’s intra-feature components, and **MUST NOT** open source files for any feature it delegated.
    - **Pause →** Did every subagent return — or am I about to wire cross-feature edges from partial summaries?

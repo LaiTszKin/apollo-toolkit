@@ -33,44 +33,16 @@ description: Read and search remote GitHub issues via GitHub CLI (`gh`). Use whe
 
 ### 2) Find candidate issues with the bundled CLI
 
-- Preferred command:
-
-```bash
-apltk find-github-issues --limit 50 --state open
-```
-
-- Optional filters:
-  - `--repo owner/name`
-  - `--label bug`
-  - `--search "panic in parser"`
+- Use `apltk find-github-issues --help` as the live command reference for filters, output modes, and examples.
 - Raw `gh` fallback when the script is missing or broken:
-
-```bash
-gh issue list --limit 50 --state open
-```
-
-- Add `--repo <owner>/<repo>`, `--label <label>`, or `--search "<text>"` as needed.
+- `gh issue list --limit 50 --state open`
 - If the issue target is still unclear, present top candidates and ask which issue number or URL should be inspected next.
 
 ### 3) Read a specific issue in detail
 
-- Preferred command:
-
-```bash
-apltk read-github-issue 123 --comments
-```
-
-- Optional flags:
-  - `--repo owner/name`
-  - `--json`
-  - `--comments`
+- Use `apltk read-github-issue --help` as the live command reference for issue selection, comments, JSON output, and examples.
 - Raw `gh` fallback when the script is missing or broken:
-
-```bash
-gh issue view 123 --comments
-```
-
-- Use `--repo <owner>/<repo>` when targeting a different repository.
+- `gh issue view 123 --comments`
 - Use the returned title, body, labels, assignees, state, timestamps, and comments to summarize the issue precisely.
 
 ### 4) Summarize gaps before any follow-up action
@@ -78,18 +50,6 @@ gh issue view 123 --comments
 - Identify missing acceptance criteria, repro details, affected components, or environment context.
 - If issue text and comments are insufficient, state exactly what is missing instead of inventing a fix plan.
 
-## Included CLI
+## CLI reference
 
-### `apltk find-github-issues`
-
-- Purpose: consistent remote issue listing via `gh issue list`.
-- Outputs a readable table by default, or JSON with `--output json`.
-- Uses only GitHub CLI so it reflects remote GitHub state.
-- Treat it as a convenience wrapper, not a hard dependency.
-
-### `apltk read-github-issue`
-
-- Purpose: deterministic issue detail retrieval via `gh issue view`.
-- Outputs either a human-readable summary or full JSON for downstream automation.
-- Can include issue comments so the agent can read the latest discussion before taking any other step.
-- Treat it as a convenience wrapper, not a hard dependency.
+Use `apltk find-github-issues --help` and `apltk read-github-issue --help` as the authoritative command references. This skill keeps the retrieval workflow and fallback rules, not the flag catalog.

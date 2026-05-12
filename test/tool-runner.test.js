@@ -1,8 +1,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { EventEmitter } = require('node:events');
+const { PassThrough } = require('node:stream');
+const path = require('node:path');
 
-const { parseArguments, buildToolsHelp, run } = require('../lib/cli');
-const { listToolCommands, resolveToolCommand } = require('../lib/tool-runner');
+const { parseArguments, buildHelpText, buildToolsHelp, run } = require('../lib/cli');
+const { listToolCommands, resolveToolCommand, runTool } = require('../lib/tool-runner');
 
 test('tool registry exposes bundled skill tools', () => {
   const tools = listToolCommands();
@@ -42,8 +45,62 @@ test('parseArguments keeps tools help separate from install help', () => {
 test('buildToolsHelp lists bundled tools', () => {
   const help = buildToolsHelp({ version: '1.2.3', colorEnabled: false });
   assert.match(help, /apltk tools/);
+  assert.match(help, /Common goals:/);
   assert.match(help, /filter-logs/);
   assert.match(help, /open-github-issue/);
+  assert.match(help, /Examples:/);
+});
+
+test('buildHelpText provides task-oriented overview help', () => {
+  const help = buildHelpText({ version: '1.2.3', colorEnabled: false });
+  assert.match(help, /Common goals:/);
+  assert.match(help, /apltk tools --help/);
+  assert.match(help, /Examples:/);
+});
+
+test('parseArguments distinguishes overview, install, and uninstall help', () => {
+  assert.equal(parseArguments(['--help']).helpTopic, 'overview');
+  assert.equal(parseArguments(['codex', '--help']).helpTopic, 'install');
+  assert.equal(parseArguments(['uninstall', '--help']).helpTopic, 'uninstall');
+});
+
+test('runTool renders curated top-level help before native help and examples', async () => {
+  let stdoutText = '';
+  let stderrText = '';
+  const repoRoot = path.resolve(__dirname, '..');
+  const exitCode = await runTool('validate-skill-frontmatter', ['--help'], {
+    sourceRoot: repoRoot,
+    stdout: {
+      write(chunk) {
+        stdoutText += chunk;
+        return true;
+      },
+    },
+    stderr: {
+      write(chunk) {
+        stderrText += chunk;
+        return true;
+      },
+    },
+    spawnCommand(command, args) {
+      assert.equal(command, 'python3');
+      assert.deepEqual(args, [path.join(repoRoot, 'scripts/validate_skill_frontmatter.py'), '--help']);
+      const child = new EventEmitter();
+      child.stdout = new PassThrough();
+      child.stderr = new PassThrough();
+      process.nextTick(() => {
+        child.stdout.end('native validator help\n');
+        child.emit('close', 0);
+      });
+      return child;
+    },
+  });
+
+  assert.equal(exitCode, 0, stderrText);
+  assert.match(stdoutText, /Purpose:/);
+  assert.match(stdoutText, /Use this when:/);
+  assert.match(stdoutText, /native validator help/);
+  assert.match(stdoutText, /Examples:/);
 });
 
 test('run dispatches tool commands without installer flow', async () => {

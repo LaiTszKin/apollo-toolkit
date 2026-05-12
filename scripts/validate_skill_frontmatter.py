@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -12,6 +13,11 @@ import yaml
 NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 REQUIRED_KEYS = {"name", "description"}
 MAX_DESCRIPTION_LENGTH = 1024
+
+HELP_EPILOG = """Examples:
+  apltk validate-skill-frontmatter
+    Result: prints either a pass summary or one error per invalid top-level SKILL.md frontmatter file.
+"""
 
 
 def repo_root() -> Path:
@@ -91,7 +97,16 @@ def validate_skill(skill_dir: Path) -> list[str]:
     return errors
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
+    return argparse.ArgumentParser(
+        description="Validate SKILL.md frontmatter for all top-level skills.",
+        epilog=HELP_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    build_parser().parse_args(argv)
     root = repo_root()
     skill_dirs = iter_skill_dirs(root)
     if not skill_dirs:

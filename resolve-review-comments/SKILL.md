@@ -40,20 +40,11 @@ description: Read GitHub pull request review comments, analyze each thread, deci
 
 - If user provides PR number, use it directly.
 - If user does not provide PR number, infer from current branch context.
-
-```bash
-apltk review-threads list --repo <owner>/<repo> --pr <number>
-apltk review-threads list
-```
+- Use `apltk review-threads --help` as the live command reference for PR inference and explicit repo selection.
 
 ## 2) Read unresolved review threads
 
 Use table view for quick scan, then JSON when you need full details.
-
-```bash
-apltk review-threads list --pr <number> --state unresolved --output table
-apltk review-threads list --pr <number> --state unresolved --output json > /tmp/pr_threads.json
-```
 
 The JSON output contains `thread_id`, `path`, `line`, and comment bodies for decision and resolution.
 
@@ -91,16 +82,7 @@ Track adopted thread IDs in a JSON file:
 ## 7) Resolve addressed threads
 
 Resolve only threads you actually addressed in code.
-
-```bash
-apltk review-threads resolve --pr <number> --thread-id-file adopted_threads.json
-```
-
-Optional preview without mutating GitHub state:
-
-```bash
-apltk review-threads resolve --pr <number> --thread-id-file adopted_threads.json --dry-run
-```
+- Use `apltk review-threads --help` as the live command reference for listing, resolving, dry-run behavior, and thread-id file input.
 
 ## 8) Handle non-adopted comments
 
@@ -108,10 +90,6 @@ apltk review-threads resolve --pr <number> --thread-id-file adopted_threads.json
 - Reply with a concise technical reason and, if needed, a proposed follow-up.
 - Never resolve rejected or unhandled feedback threads.
 
-## CLI
+## CLI reference
 
-### `apltk review-threads`
-
-- `list`: fetch PR review threads via GitHub GraphQL (`gh api graphql`), supports repo/PR inference.
-- `resolve`: resolve selected review threads by thread IDs.
-- Supports thread IDs from flags, JSON files, or `--all-unresolved`.
+Use `apltk review-threads --help` as the authoritative command reference. This skill preserves the adopt/reject workflow and submission rules, not the flag catalog.

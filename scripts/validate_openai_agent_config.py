@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -20,6 +21,11 @@ INTERFACE_ALLOWED_KEYS = {
     "brand_color",
 }
 HEX_COLOR_PATTERN = re.compile(r"^#[0-9A-Fa-f]{6}$")
+
+HELP_EPILOG = """Examples:
+  apltk validate-openai-agent-config
+    Result: prints either a pass summary or one error per invalid agents/openai.yaml file.
+"""
 
 
 def repo_root() -> Path:
@@ -169,7 +175,16 @@ def validate_skill(skill_dir: Path) -> list[str]:
     return errors
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
+    return argparse.ArgumentParser(
+        description="Validate agents/openai.yaml for all top-level skills.",
+        epilog=HELP_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    build_parser().parse_args(argv)
     root = repo_root()
     skill_dirs = iter_skill_dirs(root)
     if not skill_dirs:

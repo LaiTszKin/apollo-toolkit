@@ -52,104 +52,13 @@ Designed to be reusable by other skills that know the issue title and evidence b
 5. Return publication result
    - Always return publication mode, issue URL when created, rendered issue body, and any publish error.
 
-## Deterministic command
+## CLI reference
 
-Use the bundled command. Prefer `--payload-file` for all rich issue content because inline shell arguments can corrupt Markdown code spans such as `` `symbol` `` before the script starts.
+Run `apltk open-github-issue --help` for the live flag reference, examples, expected results, and issue-type-specific payload rules.
 
-Safe problem issue payload:
-
-```bash
-cat > /tmp/open-github-issue-payload.json <<'JSON'
-{
-  "issue_type": "problem",
-  "title": "[Log] <short symptom>",
-  "problem_description": "Expected Behavior (BDD)\nGiven ...\nWhen ...\nThen `literal_code_span` should remain unchanged\n\nCurrent Behavior (BDD)\nGiven ...\nWhen ...\nThen ...\n\nBehavior Gap\n- Expected: ...\n- Actual: ...\n- Difference/Impact: ...\n\nEvidence\n- symptom: ...\n- impact: ...\n- key evidence: ...",
-  "suspected_cause": "<path:line + causal chain + confidence>",
-  "reproduction": "<steps/conditions or leave empty>"
-}
-JSON
-
-apltk open-github-issue --payload-file /tmp/open-github-issue-payload.json --repo <owner/repo>
-```
-
-Safe feature proposal payload:
-
-```bash
-cat > /tmp/open-github-issue-payload.json <<'JSON'
-{
-  "issue_type": "feature",
-  "title": "[Feature] <short proposal>",
-  "proposal": "<what should be added or changed>",
-  "reason": "<why this matters now, user value, constraints>",
-  "suggested_architecture": "<modules, boundaries, implementation direction>"
-}
-JSON
-
-apltk open-github-issue --payload-file /tmp/open-github-issue-payload.json --repo <owner/repo>
-```
-
-Safe individual field files are also supported:
-
-```bash
-apltk open-github-issue --repo <owner/repo> \
-  --issue-type problem \
-  --title "[Log] <short symptom>" \
-  --problem-description @/tmp/problem-description.md \
-  --suspected-cause @/tmp/suspected-cause.md
-```
-
-Performance issue:
-
-```bash
-apltk open-github-issue \
-  --issue-type performance \
-  --title "[Performance] Slow dashboard query under large tenants" \
-  --problem-description @/tmp/performance-problem.md \
-  --impact @/tmp/performance-impact.md \
-  --evidence @/tmp/performance-evidence.md \
-  --suggested-action @/tmp/performance-action.md \
-  --repo <owner/repo>
-```
-
-Security issue:
-
-```bash
-apltk open-github-issue \
-  --issue-type security \
-  --title "[Security] Missing authorization check on admin export" \
-  --problem-description @/tmp/security-risk.md \
-  --severity high \
-  --affected-scope "/admin/export endpoint and exported customer data" \
-  --impact @/tmp/security-impact.md \
-  --evidence @/tmp/security-evidence.md \
-  --suggested-action @/tmp/security-action.md \
-  --repo <owner/repo>
-```
-
-Docs issue:
-
-```bash
-apltk open-github-issue \
-  --issue-type docs \
-  --title "[Docs] Deployment guide omits required Redis configuration" \
-  --problem-description @/tmp/docs-gap.md \
-  --evidence @/tmp/docs-evidence.md \
-  --suggested-action @/tmp/docs-action.md \
-  --repo <owner/repo>
-```
-
-Observability issue:
-
-```bash
-apltk open-github-issue \
-  --issue-type observability \
-  --title "[Observability] Missing request identifiers in payment retry logs" \
-  --problem-description @/tmp/observability-gap.md \
-  --impact @/tmp/observability-impact.md \
-  --evidence @/tmp/observability-evidence.md \
-  --suggested-action @/tmp/observability-action.md \
-  --repo <owner/repo>
-```
+- Prefer the bundled `apltk` command over calling the Python helper directly.
+- Prefer payload files or `@file` inputs for rich Markdown so shell quoting cannot corrupt the content before Python receives it.
+- Keep one confirmed issue or one accepted proposal per invocation.
 
 ## Output contract
 

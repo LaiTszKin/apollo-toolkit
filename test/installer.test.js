@@ -17,6 +17,8 @@ const {
 const {
   buildBanner,
   buildWelcomeScreen,
+  buildInstallHelpText,
+  buildUninstallHelpText,
   parseArguments,
   promptForModes,
   promptForUninstallModes,
@@ -82,6 +84,15 @@ test('buildWelcomeScreen shows branded setup overview', () => {
   assert.match(output, /Agents\s+~\/\.agents\/skills/);
   assert.match(output, /Claude Code\s+~\/\.claude\/skills/);
   assert.match(output, /Launching target selector/);
+});
+
+test('install and uninstall help pages end with examples', () => {
+  const installHelp = buildInstallHelpText({ version: '2.0.0', colorEnabled: false });
+  const uninstallHelp = buildUninstallHelpText({ version: '2.0.0', colorEnabled: false });
+  assert.match(installHelp, /Use this when:/);
+  assert.match(installHelp, /Examples:/);
+  assert.match(uninstallHelp, /Use this when:/);
+  assert.match(uninstallHelp, /Examples:/);
 });
 
 test('promptForModes TTY error lists every supported target', async () => {

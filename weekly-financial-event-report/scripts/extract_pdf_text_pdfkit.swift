@@ -3,6 +3,21 @@
 import Foundation
 import PDFKit
 
+let helpText = """
+apltk extract-pdf-text-pdfkit — extract PDF text with macOS PDFKit.
+
+Usage:
+  apltk extract-pdf-text-pdfkit /absolute/path/to/source.pdf
+  swift weekly-financial-event-report/scripts/extract_pdf_text_pdfkit.swift /absolute/path/to/source.pdf
+
+Use this when:
+  - You need a simple macOS PDFKit-based text extraction fallback.
+
+Examples:
+  apltk extract-pdf-text-pdfkit /absolute/path/to/source.pdf
+    Result: prints `PDF_PATH=...`, `PAGE_COUNT=...`, and one `=== PAGE N ===` section per extracted page.
+"""
+
 struct Arguments {
     let pdfPath: String
 }
@@ -15,7 +30,7 @@ enum ExtractionError: Error, CustomStringConvertible {
     var description: String {
         switch self {
         case .missingPath:
-            return "Usage: swift scripts/extract_pdf_text_pdfkit.swift /absolute/path/to/source.pdf"
+            return "Usage: swift scripts/extract_pdf_text_pdfkit.swift /absolute/path/to/source.pdf\nRun with --help for the full command guide."
         case .unsupportedPlatform:
             return "PDFKit extraction is only supported on macOS."
         case .unreadablePDF(let path):
@@ -24,19 +39,31 @@ enum ExtractionError: Error, CustomStringConvertible {
     }
 }
 
-func parseArguments() throws -> Arguments {
+enum ParseResult {
+    case help
+    case arguments(Arguments)
+}
+
+func parseArguments() throws -> ParseResult {
     let args = Array(CommandLine.arguments.dropFirst())
+    if args.contains("--help") || args.contains("-h") {
+        return .help
+    }
     guard let pdfPath = args.first, !pdfPath.isEmpty else {
         throw ExtractionError.missingPath
     }
-    return Arguments(pdfPath: pdfPath)
+    return .arguments(Arguments(pdfPath: pdfPath))
 }
 
 func main() throws {
     #if !os(macOS)
     throw ExtractionError.unsupportedPlatform
     #else
-    let arguments = try parseArguments()
+    switch try parseArguments() {
+    case .help:
+        print(helpText)
+        return
+    case .arguments(let arguments):
     let pdfURL = URL(fileURLWithPath: arguments.pdfPath)
 
     guard let document = PDFDocument(url: pdfURL) else {
@@ -59,6 +86,7 @@ func main() throws {
         } else {
             print(text)
         }
+    }
     }
     #endif
 }

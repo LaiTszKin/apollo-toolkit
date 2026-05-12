@@ -21,11 +21,7 @@ description: >-
 - **MUST** obey the semantic rules from `init-project-html/SKILL.md`:
   - Sub-module pages stay self-only — express cross-boundary interactions via **edges** (cross-feature or intra-feature), never as sub-module page prose.
   - Feature pages stay lightweight — cross-sub-module choreography belongs in **edges**, not in `dataflow` prose that pretends to cross features.
-- **MUST** reconcile deltas through the CLI families described in **`--help`**:
-  - Structural changes → `feature` / `submodule` (**add** / **set** / **remove** as appropriate).
-  - Per-sub-module rows → `function`, `variable`, `dataflow`, `error` (**add** / **remove** / **reorder** for dataflow where supported).
-  - Seams → `edge` **add** / **remove** (prefer stable **`--id`** when you may remove the same edge later).
-  - **`submodule remove`** / **`feature remove`** in spec mode populate removal manifests so `diff` can show **removed** pages; renames are usually **remove old slug + add new slug** so the viewer shows remove + add rather than a silent overwrite.
+- **MUST** reconcile deltas through the CLI families described in **`apltk architecture --help`**. Keep the meaning in this skill, but take the exact verbs, subverbs, and flags from the CLI itself.
 - **MUST NOT** drop modules that are still present in code just because the spec omits them — keep them, or rewrite role/purpose to flag “out of spec scope”.
 - **MUST** scope reads to the **affected feature modules** from the spec/design diff (plus any feature owning the other end of a cross-feature edge into an affected one). **Subagents own intra-feature overlay writes; the main agent owns cross-feature seams — after all subagents finish:**
   - Dispatch **one write-capable subagent per affected feature**. Each applies every intra-feature overlay mutation via `apltk architecture ... --spec <spec_dir>` (exact flags: **`--help`**). Each returns **ONLY** a structured summary: sub-module change list, outbound boundary changes (cross-feature edges to add/change/remove), and any `planned` / `gap` markers.
@@ -67,15 +63,7 @@ Dispatch one **write-capable subagent per affected feature**. Each subagent owns
 > - Run `apltk architecture validate --spec <spec_dir>` before returning.
 > - **Return ONLY**: (i) sub-module change list, (ii) outbound boundary changes (cross-feature edges add/change/remove with endpoints and suggested kind/label), (iii) any `planned` / `gap` flags for `meta.summary`.
 
-**After every subagent has completed**, the main agent declares **only** cross-feature seams, then renders and validates:
-
-```bash
-# exact flags per edge: see --help
-apltk architecture edge add --spec <spec_dir> --from <featA>/<subA> --to <featB>/<subB> --kind call|return|data-row|failure --label "..." --no-render
-apltk architecture edge remove --spec <spec_dir> --id <stable_id> --no-render
-apltk architecture render --spec <spec_dir>
-apltk architecture validate --spec <spec_dir>
-```
+**After every subagent has completed**, the main agent declares **only** the cross-feature seams through `apltk architecture ... --spec <spec_dir>`, then renders and validates the overlay.
 
 - **Pause →** Do `planned` / `gap` markers read consistently across affected sub-modules?
 - The main agent **MUST NOT** re-declare a subagent’s intra-feature components, and **MUST NOT** open source files for any feature it delegated.

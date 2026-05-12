@@ -80,21 +80,9 @@ The atlas is only complete when both of the following are demonstrably true on t
 
 `apltk architecture validate` **MUST** return OK before reporting completion.
 
-## How to use `apltk architecture`
+## CLI reference
 
-**Authoritative command tree:** run **`apltk architecture --help`** (same output as `apltk architecture help`). **MUST** use that output for every verb, subverb (`add` / `set` / `remove` / `reorder`), and required flag. This skill describes **semantics and constraints** only so documentation does not drift when the CLI adds flags or synonyms.
-
-**Typical global flags** (confirm in `--help`): `--project <root>`, `--spec <spec_dir>` (overlay under `<spec_dir>/architecture_diff/` — see `spec-to-project-html`), `--no-render`, `--no-open`, `--out` (for `diff`). Pass `--no-render` while batching mutations, then **`render`** once before `validate` if you batched.
-
-**Groupings — what each family is for:**
-
-| Family | Purpose | Key constraints |
-| --- | --- | --- |
-| **`open` / `diff` / `render` / `validate` / `undo` / `help`** | View, regenerate, check, revert, discover verbs | **`validate`** before “done”. **`diff`** after spec overlays to compare base vs proposed-after under `docs/plans/**/architecture_diff/`. |
-| **`meta` / `actor`** | Macro title, summary, optional top-level actors | Summary is the right place for scanned roots and omissions. |
-| **`feature` / `submodule`** | Feature modules and their sub-modules | **Remove** cascades references; in spec overlay mode, rename is usually **remove + add** so `diff` classifies correctly. |
-| **`function` / `variable` / `dataflow` / `error`** | Tables + ordered internal flow + local errors | Declare symbols **before** referencing them from `dataflow`. Use **`remove`** (see `--help`) to delete mistaken rows or steps. |
-| **`edge`** | Cross- **or** intra-feature seams | **`kind`** ∈ `call` \| `return` \| `data-row` \| `failure`. Intra-feature endpoints land in the feature file; cross-feature endpoints land in the index. Prefer stable **`--id`** on edges you may remove later in spec mode. |
+Run **`apltk architecture --help`** and the deeper `apltk architecture <verb> [subverb] --help` pages for the authoritative command tree, required flags, examples, and expected results. This skill keeps only the semantic rules, acceptance criteria, and subagent coordination rules so the documentation does not drift when the CLI evolves.
 
 **Cross-feature work timing:** only after **all** feature subagents have returned (Rule 3).
 
@@ -119,17 +107,7 @@ Dispatch one **write-capable** subagent per feature. Hand each subagent: its fea
 > - Run **`apltk architecture validate`** before returning (same project root; use **`--help`** for project/spec flags).
 > - **Return ONLY**: (i) sub-module list (slug + kind + one-line role), (ii) outbound boundaries to *other* features’ sub-modules (direction + edge kind + suggested label). No source dumps.
 
-**Orchestrator — after every subagent has completed:**
-
-```bash
-apltk architecture meta set --title "..." --summary "..." --no-render
-# only when an actor is shared across multiple features:
-apltk architecture actor add --id <id> --label "..." --no-render
-# one edge per cross-feature interaction reported by the subagents:
-apltk architecture edge add --from <featA>/<subA> --to <featB>/<subB> --kind call|return|data-row|failure --label "..." --no-render
-apltk architecture render
-apltk architecture validate
-```
+**Orchestrator — after every subagent has completed:** declare only the cross-feature `apltk architecture` mutations reported by the workers, then render and validate once.
 
 The main agent **MUST NOT** re-declare a subagent’s intra-feature components, and **MUST NOT** open source files for any feature it delegated.
 

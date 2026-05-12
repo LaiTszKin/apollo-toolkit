@@ -10,6 +10,24 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.8] - 2026-05-12
+
+### Added
+
+- `apltk` now provides task-oriented top-level help for bundled tools, and `apltk architecture --help` can route to action-specific help pages for the atlas CLI.
+- `optimise-skill` now ships a dedicated `references/definition.md` reference so the target skill output structure has a separate canonical definition.
+
+### Changed
+
+- Refresh the atlas-related planning docs and command guidance (`generate-spec`, `init-project-html`, `spec-to-project-html`, `update-project-html`) to rely on `apltk architecture --help` as the authoritative command tree and to better explain batch overlays plus subagent responsibilities.
+- Expand the bundled CLI help system so `apltk tools <tool> --help` shows curated purpose / use-when / examples before native script help, and align the validator / helper scripts with that layered help flow.
+- Refresh multiple shipped skills (`docs-to-voice`, `open-github-issue`, `read-github-issue`, `resolve-review-comments`, `optimise-skill`) and retire the standalone `maintain-skill-catalog` skill while keeping the validator commands available as bundled `apltk` tools.
+- Remove brittle text-level workflow assertions from the test suite so repository tests focus on executable CLI and rendering behavior instead of exact prompt wording.
+
+### Fixed
+
+- Keep the public skill inventory and bundled tool metadata consistent after removing `maintain-skill-catalog`, so validator commands no longer reference a deleted skill owner.
+
 ## [v3.11.7] - 2026-05-12
 
 ### Added

@@ -44,41 +44,14 @@ description: Convert text and document content into audio files and sentence-lev
 6. Return completion details.
    - Report absolute output audio path.
 
-## Script Reference
+## CLI reference
 
-`apltk docs-to-voice` flags:
-
-- `--project-dir` (required)
-- `--project-name` (optional)
-- `--text` or `--input-file` (exactly one required)
-- `--env-file` (optional, default: `skill_dir/.env`)
-- `--mode` (`say|api`, optional)
-- `--voice` (optional, say mode)
-- `--rate` (optional, say mode)
-- `--speech-rate` (optional, post-process speed multiplier)
-- `--api-endpoint` (optional, api mode)
-- `--api-model` (optional, api mode)
-- `--api-voice` (optional, api mode)
-- `--max-chars` (optional, auto chunking threshold for long text)
-- `--output-name` (optional)
-- `--no-auto-prosody` (optional, say mode)
-- `--force` (optional)
-
-Environment variables:
-
-- `DOCS_TO_VOICE_MODE`
-- `DOCS_TO_VOICE_VOICE`
-- `DOCS_TO_VOICE_API_ENDPOINT`
-- `DOCS_TO_VOICE_API_MODEL`
-- `DOCS_TO_VOICE_API_VOICE`
-- `DOCS_TO_VOICE_MAX_CHARS`
-- `DOCS_TO_VOICE_SPEECH_RATE`
-- `DASHSCOPE_API_KEY`
+Use `apltk docs-to-voice --help` as the live command reference for required inputs, mode-specific flags, environment variables, examples, and expected output paths.
 
 ## Troubleshooting
 
 - `say` mode: confirm `command -v say` and `command -v python3`.
 - `api` mode: confirm `command -v python3` and valid `DASHSCOPE_API_KEY`.
 - Long-text chunk merge (especially AIFF output): recommend `command -v ffmpeg`.
-- If output exists, use `--force` or a new `--output-name`.
+- If output exists, use the overwrite or rename options shown in `apltk docs-to-voice --help`.
 - `scripts/docs_to_voice.sh` is kept as a compatibility wrapper for existing workflows, but prefer `apltk docs-to-voice`.
