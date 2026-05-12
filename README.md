@@ -41,6 +41,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
 - openclaw-configuration
+- optimise-skill
 - recover-missing-plan
 - record-spending
 - resolve-review-comments

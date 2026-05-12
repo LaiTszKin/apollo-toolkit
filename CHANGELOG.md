@@ -10,6 +10,18 @@ All notable changes to this repository are documented in this file.
 
 ### Fixed
 
+## [v3.11.7] - 2026-05-12
+
+### Added
+
+- Add `optimise-skill`, a new catalog skill that reads a target skill and its supporting files, derives the intended deliverable and acceptance criteria, and rewrites the skill into a tighter `goal / acceptance criteria / workflow / examples / references` structure for higher-signal agent execution.
+
+### Changed
+
+- Catalog docs now include `optimise-skill`, and its bundled example reference path is normalized to match the shipped file name.
+
+### Fixed
+
 ## [v3.11.6] - 2026-05-12
 
 ### Added

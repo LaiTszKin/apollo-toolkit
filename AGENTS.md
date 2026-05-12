@@ -38,6 +38,7 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can run a shared submission-readiness pass that synchronizes changelog, project docs, `AGENTS.md`, and completed plan archives before commit, push, PR creation, or release.
 - Users can learn new or improved skills from recent Codex conversation history.
 - Users can audit and maintain the skill catalog itself, including dependency classification and shared-skill extraction decisions.
+- Users can optimize existing agent skills by deriving the intended deliverable, tightening acceptance criteria, and rewriting `SKILL.md` into a leaner structure backed by extracted references.
 - Users can implement approved spec planning sets directly in the current checkout and commit them to the active branch.
 - Users can implement approved spec planning sets inside isolated git worktrees and keep the parent checkout clean.
 - Users can coordinate approved multi-spec implementation batches by assigning each spec directory to an independent worktree-backed subagent with bounded concurrency.
