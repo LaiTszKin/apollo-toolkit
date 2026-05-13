@@ -2,6 +2,20 @@
 
 All notable changes to this repository are documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Further tighten SKILL.md files (`archive-specs`, `commit-and-push`, `generate-spec`, `init-project-html`, `maintain-project-constraints`, `merge-changes-from-local-branches`, `solve-issues-found-during-review`, `systematic-debug`, `test-case-strategy`, `update-project-html`, `version-release`) by removing inline examples, standardizing section headings, and simplifying descriptions.
+
+### Added
+
+- `generate-spec/references/definition.md`, `init-project-html/references/definition.md`, `update-project-html/references/definition.md` with shared terminology for feature modules and sub-modules.
+
+### Removed
+
+- Remove `iterative-code-performance`, `iterative-code-quality`, `merge-conflict-resolver`, `spec-to-project-html`, and `submission-readiness-check` skills that are no longer part of the curated catalog.
+
 ## [v3.12.1] - 2026-05-14
 
 ### Changed

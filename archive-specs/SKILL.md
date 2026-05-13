@@ -23,12 +23,6 @@ description: 將已完成的spec歸檔到 `docs/archive/` 下。當你需要將s
 
 使用 `align-project-documents`, `maintain-project-constraints` 技能，按照這兩個技能之中的指引，更新項目文檔。並將完成的spec全部移動到 `docs/archive/`。
 
-## 使用範例
-
-- "這批 spec 已經實作完成，幫我整理成正式文件並歸檔" -> "先同步 `docs/` 與 `AGENTS.md` / `CLAUDE.md`，再把已完成的 spec 移到 archive"
-- "只有批次中的兩個子 spec 做完，另外一個還在進行" -> "只歸檔完成的子目錄，保留仍在使用的 `coordination.md`"
-- "spec 寫了未來計畫，但 repo 還沒實作" -> "不把該內容當成正式文件，只在需要時標成 `TBD` 或保留在 active planning"
-
 ## 參考資料索引
 
 - `references/templates/readme.md`：README.md 模板
