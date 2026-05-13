@@ -7,7 +7,7 @@ description: Resolve a GitHub issue in an existing repository and submit the fix
 
 ## Dependencies
 
-- Required: `read-github-issue`, `enhance-existing-features`, `recover-missing-plan`, and `commit-and-push`.
+- Required: `read-github-issue`, `enhance-existing-features`, and `commit-and-push`.
 - Conditional: `systematic-debug` when the issue is primarily a bug investigation or failing behavior report.
 - Optional: none.
 - Fallback: If any required dependency is unavailable, stop and report which dependency blocked the workflow.
@@ -32,7 +32,7 @@ description: Resolve a GitHub issue in an existing repository and submit the fix
 ### 2) Explore the codebase and decide whether specs are required
 
 - After reading the issue, inspect the real entrypoints, affected modules, tests, and existing planning files.
-- If the user references an expected `docs/plans/...` path that is missing or archived unexpectedly, run `$recover-missing-plan` before treating the issue as unspecced work.
+
 - Run `$enhance-existing-features` to decide whether specs are required from the actual change surface.
 - Default to direct implementation for clearly localized bug fixes, regressions, narrow optimizations, or small workflow corrections, even when the issue wording sounds broad.
 - Require specs when the explored change touches critical money movement, permissions, high-risk concurrency, or multi-module behavior changes that need approval traceability.

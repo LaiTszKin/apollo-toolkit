@@ -1,6 +1,6 @@
 ---
 name: open-source-pr-workflow
-description: PR-focused workflow for open-source repositories. Use when the user asks to prepare a PR branch from existing changes, draft/open/update a PR, or push a ready contribution branch. Do not use this skill for implementing product features or editing business logic; use it after code changes are already prepared. Enforce branch naming as codex/{change_type}/{changes}, open PRs directly by default without waiting for draft confirmation, show drafts only when the user explicitly asks to review them first, default forked repositories to open PRs against the upstream parent repository unless the user explicitly requests the fork, and write PR content in English by default with required sections for related issues or motivation, engineering decisions with rationale, and test results with commands. For code-affecting changes, run discover-edge-cases first, resolve any confirmed findings, and run code-simplifier before opening the PR.
+description: PR-focused workflow for open-source repositories. Use when the user asks to prepare a PR branch from existing changes, draft/open/update a PR, or push a ready contribution branch. Do not use this skill for implementing product features or editing business logic; use it after code changes are already prepared. Enforce branch naming as codex/{change_type}/{changes}, open PRs directly by default without waiting for draft confirmation, show drafts only when the user explicitly asks to review them first, default forked repositories to open PRs against the upstream parent repository unless the user explicitly requests the fork, and write PR content in English by default with required sections for related issues or motivation, engineering decisions with rationale, and test results with commands. For code-affecting changes, run code-simplifier before opening the PR.
 ---
 
 # Open Source PR Workflow
@@ -8,7 +8,7 @@ description: PR-focused workflow for open-source repositories. Use when the user
 ## Dependencies
 
 - Required: **`commit-and-push`** before publishing the contribution branch (any remaining changes **MUST** be committed/readiness-checked through that skill; **push** only when the user requested remote update—then continue to PR steps).
-- Conditional: `discover-edge-cases` and `code-simplifier` for code-affecting PRs before opening the PR.
+- Conditional: `code-simplifier` for code-affecting PRs before opening the PR.
 - Optional: none.
 - Fallback: If **`commit-and-push`** or a **required** code-affecting dependency is unavailable, stop and report the missing dependency instead of bypassing the quality gate.
 
@@ -54,10 +54,7 @@ git checkout -b codex/fix/add-rate-limit-retry
 
 ### 4) Run dependent skills for code-affecting changes
 
-- If the PR includes code changes, run `discover-edge-cases` first to discover unresolved edge-case risks.
-- Resolve any confirmed findings before continuing.
-- Then run `code-simplifier` on the updated changes.
-- Keep both passes minimal and focused on the current PR scope.
+- If the PR includes code changes, run `code-simplifier` before opening the PR.
 - Use these skills as internal quality gates only; do not include skill/tool names in PR content.
 - If the PR has no code changes, explicitly note that these two skills were not required in internal notes only.
 
@@ -118,7 +115,7 @@ If tests cannot run locally, state why and provide the closest available validat
 - If the user asked to review the draft, they confirmed the final draft before PR creation.
 - If the repository is a fork, PR destination is the upstream parent unless the user explicitly requested the fork.
 - PR body includes all required sections and focuses only on PR-related context.
-- If code changes exist, run `discover-edge-cases`, resolve confirmed findings, and then run `code-simplifier` before opening the PR.
+- If code changes exist, run `code-simplifier` before opening the PR.
 - PR body does not mention internal skills/tools or agent workflow notes.
 - Test commands and results are explicitly listed.
 - Language defaults to English unless user requests otherwise.

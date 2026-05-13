@@ -10,7 +10,7 @@ description: >-
 ## Dependencies
 
 - Required: `commit-and-push`、`submission-readiness-check`
-- Conditional: `review-change-set`、`archive-specs`
+- Conditional: `archive-specs`
 - Optional: 無
 - Fallback: 缺少必需技能時必須停止，不能憑印象手動補一個發版流程
 
@@ -29,14 +29,14 @@ description: >-
 
 - 已先確認這是明確的 release / semver 請求；若只是 commit 或 push，必須改走 `commit-and-push`
 - 在修改任何版本相關檔案前，已清楚說出 current -> next 版本與將建立的 tag 字串
-- `submission-readiness-check`、必要的 `review-change-set` 與 `archive-specs` 都已完成，且 `CHANGELOG.md` 的 `Unreleased` 內容足以支撐本次發版
+- `submission-readiness-check` 與必要的 `archive-specs` 都已完成，且 `CHANGELOG.md` 的 `Unreleased` 內容足以支撐本次發版
 - 最終已同步版本檔、發布說明、commit、tag、remote refs 與 GitHub Release；若使用者明確要求不發布 Release，需在結果中清楚註明
 
 ## 工作流程
 
 1. 先確認使用者是否真的要求 release、publish、tag、patch、minor、major 或其他明確 semver 動作；若沒有，改用 `commit-and-push`
 2. 檢查目前 git 狀態、版本檔、既有 tag、本地與remote是否已有同版本 tag，以及 GitHub 上是否已有同版本 Release，避免重複發版
-3. 對 code-affecting 範圍先完成 `review-change-set`，再執行 `submission-readiness-check`；若它要求 `archive-specs` 或 changelog/文件同步，必須先完成
+3. 對 code-affecting 範圍執行 `submission-readiness-check`；若它要求 `archive-specs` 或 changelog/文件同步，必須先完成
 4. 根據版本檔、repo 歷史與使用者指示決定 current -> next 版本與 tag 格式；若語意不明，優先選較小 bump 並請使用者確認
 5. 一致更新所有版本入口，並把 `CHANGELOG.md` 的 `Unreleased` 移到新的版本區塊；release notes 只能來自整理過的 changelog 內容
 6. 建立 release commit 與 tag；若是 prerelease retarget，保留版本號不變，只把 tag / Release 移到新的 commit

@@ -20,7 +20,7 @@ description: >-
 
 ## 工作流程
 
-1. 先定位本次規劃目錄；使用者明確給出路徑時優先使用，否則結合 `coordination.md` 或 `recover-missing-plan` 找到正確 plan 集，並整理相關需求編號用於追蹤。
+1. 先定位本次規劃目錄；使用者明確給出路徑時優先使用，否則結合 `coordination.md` 找到正確 plan 集，並整理相關需求編號用於追蹤。
 2. 執行 `apltk architecture --help` 取得最新命令形態，然後按 `spec.md`、`design.md`、`contract.md`、`coordination.md` 的順序讀取內容，確定哪些功能、子模組、邊、變數或錯誤語義會發生變化。
 3. 先只列出受影響功能，不要提前把所有原始碼塞進主 agent。除了直接變更的功能，也要納入跨功能邊另一端的功能，確保 overlay 中的跨邊界關係完整。
 4. 為每個受影響功能派發一個可寫子 agent。每個子 agent 只負責自己功能內的 overlay 寫入：子模組、函式、變數、資料流、錯誤，以及功能內邊；若規劃領先於程式碼，則在角色、用途或資料流文案中明確標註 `planned`、`gap` 或 `TBD`。
@@ -37,6 +37,6 @@ description: >-
 
 - `init-project-html/SKILL.md`：基礎語義規則、邊類型與子模組表達約束。
 - `references/TEMPLATE_SPEC.md`：overlay 模式下的欄位、列舉與 diff 配對規則速查表。
-- `recover-missing-plan`：當 plan 路徑缺失或不明確時用於恢復正確 spec 集。
+
 - `generate-spec`、`implement-specs*`：需求編號和規劃流程的上游來源。
 - `apltk architecture --help`：`--spec` 模式命令與參數的唯一真源。

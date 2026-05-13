@@ -10,7 +10,7 @@ description: >-
 ## Dependencies
 
 - Required: 無
-- Conditional: 視情況可搭配 `test-case-strategy`、`analyse-app-logs`、`scheduled-runtime-health-check`
+- Conditional: 視情況可搭配 `test-case-strategy`、`analyse-app-logs`
 - Optional: 無
 - Fallback: 無
 
@@ -52,4 +52,4 @@ description: >-
 
 - `test-case-strategy`：需要補重現測試或 drift check 時使用
 - `analyse-app-logs`：問題主要來自應用日誌時使用
-- `scheduled-runtime-health-check`：需要有界執行與執行後分析時使用
+

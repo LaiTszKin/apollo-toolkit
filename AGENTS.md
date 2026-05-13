@@ -31,10 +31,10 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can turn lecture slides, past papers, and answer books into mock exams, worked solutions, study notes, or graded PDFs with KaTeX-rendered math.
 - Users can extend existing features in a brownfield codebase with required tests and approvals.
 - Users can propose product features from an existing codebase and publish accepted proposals.
-- Users can discover reproducible edge-case risks and report prioritized hardening gaps.
+
 - Users can read, filter, and inspect remote GitHub issues before planning follow-up work.
 - Users can resolve a GitHub issue end-to-end and push the fix directly to a requested branch without opening a PR.
-- Users can run evidence-first application security audits focused on confirmed vulnerabilities.
+
 - Users can run a shared submission-readiness pass that synchronizes changelog, project docs, `AGENTS.md`, and completed plan archives before commit, push, PR creation, or release.
 - Users can learn new or improved skills from recent Codex conversation history.
 - Users can audit and maintain the skill catalog itself, including dependency classification and shared-skill extraction decisions.
@@ -51,12 +51,12 @@ This repository enables users to install and run a curated set of reusable agent
 - Users can generate storyboard image sets from chapters, novels, articles, or scripts.
 - Users can configure OpenClaw from official documentation, including `~/.openclaw/openclaw.json`, skills loading, SecretRefs, CLI edits, and validation or repair workflows.
 - Users can record multi-account spending and balance changes in monthly Excel ledgers with summary analytics and charts.
-- Users can recover missing or archived `docs/plans/...` spec sets from issue context, git history, and repository evidence before continuing feature work.
-- Users can review the current git change set from an unbiased reviewer perspective to find abstraction opportunities and simplification candidates.
+
+
 - Users can review recent or user-specified spec-backed changes against the governing planning documents, treating unmet business goals as the most severe findings before secondary edge-case, security, and code-review checks.
 - Users can process GitHub pull request review comments and resolve addressed threads.
-- Users can perform repository-wide code reviews and publish confirmed findings as GitHub issues.
-- Users can schedule a bounded project runtime window, stop it automatically, and analyze module health from captured logs.
+
+
 - Users can investigate gated or shadow LLM APIs by capturing real client request shapes, replaying verified traffic patterns, and attributing the likely underlying model through black-box fingerprinting.
 - Users can build and maintain Solana programs and Rust clients using official Solana development workflows.
 - Users can fix issues discovered during a review pass by processing findings from highest to lowest severity, with per-fix validation and full-scope re-validation.

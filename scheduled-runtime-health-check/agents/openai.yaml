@@ -1,4 +1,0 @@
-interface:
-  display_name: "Scheduled Runtime Health Check"
-  short_description: "Use a background terminal to run a command in a time window and optionally explain findings from logs."
-  default_prompt: "Use $scheduled-runtime-health-check to use a background terminal to run the requested command immediately or in the requested time window, optionally update the project first only when the user asks for that, capture logs through the run, and, when findings are requested, delegate bounded post-run log diagnosis to $analyse-app-logs."

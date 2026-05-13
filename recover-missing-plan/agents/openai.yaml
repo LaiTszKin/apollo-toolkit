@@ -1,4 +1,0 @@
-interface:
-  display_name: "Recover Missing Plan"
-  short_description: "Recover missing docs/plans spec sets from evidence"
-  default_prompt: "Use $recover-missing-plan when the user references a docs/plans plan set that is missing from the current workspace or appears to have been archived unexpectedly; verify the path mismatch, search the repository and git history, read the authoritative GitHub issue when needed, restore or reconstruct the correct spec.md/tasks.md/checklist.md/contract.md/design.md set from evidence, and only then continue the requested implementation or archival workflow."

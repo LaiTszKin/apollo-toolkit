@@ -18,7 +18,7 @@ description: >-
 
 - Required: `align-project-documents` and `maintain-project-constraints` after the repository is truly iteration-complete.
 - Conditional: `systematic-debug` when a newly added or existing test exposes a real business-logic defect that must be fixed at the true owner.
-- Optional: `discover-edge-cases` for high-risk boundary exploration before adding tests; `improve-observability` for non-trivial telemetry design.
+- Optional: `improve-observability` for non-trivial telemetry design.
 - Fallback: If required completion dependencies are unavailable, finish code and validation first, then report exactly which documentation or constraint-sync action could not run.
 
 ## Standards

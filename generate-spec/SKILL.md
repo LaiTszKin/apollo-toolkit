@@ -1,9 +1,6 @@
 ---
 name: generate-spec
-description: >-
-  Create or refresh approval-gated planning docs under `docs/plans/...` with
-  `apltk create-specs`, `test-case-strategy`, and optional batch coordination or
-  preparation files. Use for drafting or restructuring specs, not implementation.
+description: 當你需要將用戶模糊的複雜需求拆解成有嚴格實作範圍的spec時，使用這個技能
 ---
 
 ## 目標
@@ -15,8 +12,8 @@ description: >-
 
 ## 工作流程
 1. 理解用戶需求並閱讀repo
-分析用戶需求，並在repo之中搜索、列出可能相關的內容。完成搜索之後，深入閱讀相關代碼，識別變更範圍。
-如果外部環境存在subagents功能，建議通過調度subagents來完成深入閱讀repo的任務。
+分析用戶需求，並在 repo 之中搜索、列出可能相關的內容。完成搜索之後，深入閱讀相關代碼，識別變更範圍。
+如果外部環境存在 subagents 功能，建議通過調度 subagents 來完成深入閱讀 repo 的任務。
 
 2. 拆分用戶需求及設計業務架構
 將用戶需求轉化、拆分為明確、存在邊界的工程需求。結合現有代碼，設計業務架構。在設計的過程中，你需要考慮包括但不限於以下設計事項：
@@ -33,13 +30,13 @@ description: >-
 為任務制定基於測試的驗收條件，確保每一個任務在完成之後都能夠被驗證。
 同時，為需求制定驗收條件，確保用戶需求能夠被測試清晰地驗收、檢驗成果。
 
-5. 使用 `apltk` cli工具協助完成spec
-使用cli工具，產生spec的模板。將你的完整計劃填入到模板之中，並通過cli工具生成完整架構圖讓用戶審閱。
-如果該spec設計超過三個模塊，則需要創建batch spec。
+5. 使用 `apltk` cli工具協助完成spec及spec相關架構圖
+使用 cli 工具，產生 spec 的模板。將你的完整計劃填入到模板之中，並通過 cli 工具生成完整的 architecture diff 讓用戶審閱本次spec的架構設計。
+如果該 spec 設計超過三個模塊，則需要創建 batch spec。
 
 ## 範例
 - "製作一個網頁德州撲克小遊戲" -> "拆分成多個模塊：遊戲本體邏輯、前端頁面渲染、前端頁面交互邏輯；制定單元測試、整合測試等策略，並製作一份單一的spec指導實作工作。"
-- "提升現有系統的性能" -> "識別目前repo之中拖累性能的代碼。製作batch spec文檔，將repo的全量優化拆分為以三個模塊為一組的優化。對於必須改動業務邏輯才可以做到的性能提升，填寫clarification questions，並等待用戶回答之後更新spec。"
+- "提升現有系統的性能" -> "識別目前 repo 之中拖累性能的代碼。製作 batch spec 文檔，將 repo 的全量優化拆分為以三個模塊為一組的優化。對於必須改動業務邏輯才可以做到的性能提升，填寫 clarification questions，並等待用戶回答之後更新 spec。"
 
 ## 參考資料
 - `scripts/create-specs` - `apltk create-specs` 背後使用的模板產生器。

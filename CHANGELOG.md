@@ -2,13 +2,16 @@
 
 All notable changes to this repository are documented in this file.
 
-## [Unreleased]
-
-### Added
+## [v3.12.1] - 2026-05-14
 
 ### Changed
 
-### Fixed
+- Rewrite remaining shipped skills (`enhance-existing-features`, `generate-spec`, `init-project-html`, `merge-changes-from-local-branches`, `open-source-pr-workflow`, `optimise-skill`, `review-spec-related-changes`, `solve-issues-found-during-review`, `submission-readiness-check`, `commit-and-push`, `version-release`, `iterative-code-performance`, `iterative-code-quality`, `maintain-project-constraints`, `ship-github-issue-fix`, `spec-to-project-html`, `systematic-debug`) into the compact Chinese-first structure with goal, acceptance criteria, workflow, examples, and references sections.
+- Update `AGENTS.md` and `README.md` to remove references to deleted skills and simplify dependency descriptions.
+
+### Removed
+
+- Remove `discover-edge-cases`, `discover-security-issues`, `recover-missing-plan`, `review-change-set`, `review-codebases`, and `scheduled-runtime-health-check` skills that are no longer part of the curated catalog.
 
 ## [v3.12.0] - 2026-05-13
 

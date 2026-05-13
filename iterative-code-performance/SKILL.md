@@ -19,7 +19,7 @@ description: >-
 
 - Required: `align-project-documents` and `maintain-project-constraints` after the repository is truly iteration-complete.
 - Conditional: `systematic-debug` when a performance test, benchmark, load run, or production trace exposes a real business-logic defect that must be fixed at the true owner; `improve-observability` when profiling signals are missing or measurement requires durable logs, metrics, or traces.
-- Optional: `discover-edge-cases` for high-risk boundary, concurrency, cache-invalidation, or load-shape exploration before changing hot paths.
+- Optional: `improve-observability` for profiling signals or durable metrics needed during optimization.
 - Fallback: If required completion dependencies are unavailable, finish performance work and validation first, then report exactly which documentation, constraint-sync, or observability action could not run.
 
 ## Standards

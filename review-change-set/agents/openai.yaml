@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Change Set"
-  short_description: "Independent diff review for architecture and simplification opportunities"
-  default_prompt: "Use $review-change-set to read the active git change set end-to-end, discard any bias toward code written earlier in the conversation, and review it like an independent reviewer for architecture-level abstraction and simplification opportunities. For multi-file or multi-module diffs, prefer dispatching one read-only subagent per coherent scope cluster (each owns its files end-to-end and returns structured architecture + simplification findings with path:line evidence); the main agent aggregates and deduplicates without re-reading delegated files."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Discover Security Issues"
-  short_description: "Discovery-only adversarial audit: reproducible exploits across agent, finance, and software stacks"
-  default_prompt: "Use $discover-security-issues to run a discovery-only adversarial audit. Reproduce exploitable vulnerabilities with concrete evidence and severity prioritization across agent-system, financial-program, and software-system scopes (including SQL injection and common web flaws). Do not apply code fixes or PR actions."

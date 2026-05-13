@@ -12,7 +12,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - codex-memory-manager
 - deep-research-topics
 - develop-new-features
-- discover-edge-cases
+
 - docs-to-voice
 - exam-pdf-workflow
 - document-vision-reader
@@ -21,7 +21,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - financial-research
 - read-github-issue
 - generate-spec
-- discover-security-issues
+
 - implement-specs
 - implement-specs-with-subagents
 - implement-specs-with-worktree
@@ -41,13 +41,13 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - openai-text-to-image-storyboard
 - openclaw-configuration
 - optimise-skill
-- recover-missing-plan
+
 - record-spending
 - resolve-review-comments
-- review-change-set
-- review-codebases
+
+
 - review-spec-related-changes
-- scheduled-runtime-health-check
+
 - shadow-api-model-research
 - solana-development
 - spec-to-project-html
@@ -208,12 +208,11 @@ Compatibility note:
 
 - `generate-spec` is a local skill used by `develop-new-features` and `enhance-existing-features`, and it can produce either a single spec set under `docs/plans/{YYYY-MM-DD}/{change_name}/` or a coordinated parallel batch under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with shared `coordination.md`.
 - `implement-specs-with-subagents` coordinates one `implement-specs-with-worktree` subagent per spec directory for approved multi-spec batches.
-- `recover-missing-plan` is a local skill used by `enhance-existing-features` and `ship-github-issue-fix` when a referenced `docs/plans/...` spec set is missing or archived.
+
 - `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.
-- `review-spec-related-changes` is a local skill that depends on `review-change-set`, `discover-edge-cases`, and `discover-security-issues` for secondary code-practice checks after business-goal completion is reviewed against the governing specs; it prefers running each secondary skill in its own read-only subagent in parallel.
+- `review-spec-related-changes` is a local skill that reviews spec compliance of changes against governing planning documents, assessing business goals before secondary code-practice concerns.
 - `update-project-html` is a local skill that depends on `init-project-html` for semantic rules and on the `apltk architecture` CLI to refresh the base atlas after code changes; for spec overlay diagrams use `spec-to-project-html` instead.
-- `commit-and-push` and `version-release` no longer chain `discover-edge-cases` or `discover-security-issues`; invoke those skills explicitly when the review surface needs them.
-- `review-change-set` no longer chains `discover-security-issues`; for multi-file diffs it prefers dispatching one read-only subagent per scope cluster.
+
 
 ## Release publishing
 
