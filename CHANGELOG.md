@@ -6,6 +6,20 @@ All notable changes to this repository are documented in this file.
 
 ### Changed
 
+- Rewrite `AGENTS.md` into a compact project-instructions format focused on development commands, business goals, and documentation index.
+- Add project-level `CLAUDE.md` with consistent content.
+- Change `optimise-skill` description to Chinese and add section spacing for readability.
+- Add architecture diff visualization acceptance criterion to `generate-spec`.
+
+### Added
+
+- Standardized `docs/` structure with feature, architecture, and principle categories.
+- Sync `README.md` skill list with the actual curated catalog.
+
+## [v3.13.0] - 2026-05-14
+
+### Changed
+
 - Further tighten SKILL.md files (`archive-specs`, `commit-and-push`, `generate-spec`, `init-project-html`, `maintain-project-constraints`, `merge-changes-from-local-branches`, `solve-issues-found-during-review`, `systematic-debug`, `test-case-strategy`, `update-project-html`, `version-release`) by removing inline examples, standardizing section headings, and simplifying descriptions.
 
 ### Added

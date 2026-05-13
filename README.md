@@ -6,53 +6,46 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 
 - align-project-documents
 - analyse-app-logs
-- archive-specs
 - answering-questions-with-research
-- commit-and-push
+- archive-specs
+- cjk-pdf
 - codex-memory-manager
+- commit-and-push
 - deep-research-topics
 - develop-new-features
-
 - docs-to-voice
-- exam-pdf-workflow
 - document-vision-reader
 - enhance-existing-features
+- exam-pdf-workflow
 - feature-propose
 - financial-research
-- read-github-issue
 - generate-spec
-
 - implement-specs
 - implement-specs-with-subagents
 - implement-specs-with-worktree
-- init-project-html
 - improve-observability
-- iterative-code-performance
-- iterative-code-quality
+- init-project-html
 - jupiter-development
 - katex
 - learn-skill-from-conversations
 - learning-error-book
-- marginfi-development
 - maintain-project-constraints
+- marginfi-development
+- merge-changes-from-local-branches
 - novel-to-short-video
 - open-github-issue
 - open-source-pr-workflow
 - openai-text-to-image-storyboard
 - openclaw-configuration
 - optimise-skill
-
+- read-github-issue
 - record-spending
 - resolve-review-comments
-
-
 - review-spec-related-changes
-
 - shadow-api-model-research
+- ship-github-issue-fix
 - solana-development
-- spec-to-project-html
 - solve-issues-found-during-review
-- submission-readiness-check
 - systematic-debug
 - test-case-strategy
 - text-to-short-video
