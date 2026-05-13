@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.13.2] - 2026-05-14
+
+### Changed
+
+- Clarify `review-spec-related-changes` subagent dimension scope so each subagent reviews one specific dimension.
+
 ## [v3.13.1] - 2026-05-14
 
 ### Changed
