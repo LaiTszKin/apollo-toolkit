@@ -16,6 +16,11 @@ import { openGitHubIssueHandler } from './tools/open-github-issue';
 import { findGitHubIssuesHandler } from './tools/find-github-issues';
 import { readGitHubIssueHandler } from './tools/read-github-issue';
 import { reviewThreadsHandler } from './tools/review-threads';
+import { architectureHandler } from './tools/architecture';
+import { extractConversationsHandler } from './tools/extract-conversations';
+import { syncMemoryIndexHandler } from './tools/sync-memory-index';
+import { validateSkillFrontmatterHandler } from './tools/validate-skill-frontmatter';
+import { validateOpenaiAgentConfigHandler } from './tools/validate-openai-agent-config';
 
 const HELP_FLAGS = new Set(['--help', '-h']);
 
@@ -28,6 +33,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'architecture',
     category: 'Planning & architecture',
     skill: 'init-project-html',
+    handler: architectureHandler,
     script: 'init-project-html/scripts/architecture.js',
     runner: 'node',
     description: 'Open the project HTML architecture atlas, or render a paginated diff (`architecture diff`).',
@@ -292,6 +298,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'extract-codex-conversations',
     category: 'Codex memory & learning',
     skill: 'codex-memory-manager',
+    handler: extractConversationsHandler,
     script: 'codex/codex-memory-manager/scripts/extract_recent_conversations.py',
     runner: 'python3',
     description: 'Extract recent Codex sessions for memory updates.',
@@ -308,6 +315,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'sync-codex-memory-index',
     category: 'Codex memory & learning',
     skill: 'codex-memory-manager',
+    handler: syncMemoryIndexHandler,
     script: 'codex/codex-memory-manager/scripts/sync_memory_index.py',
     runner: 'python3',
     description: 'Sync the Codex memory index in AGENTS.md.',
@@ -324,6 +332,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'extract-skill-conversations',
     category: 'Codex memory & learning',
     skill: 'learn-skill-from-conversations',
+    handler: extractConversationsHandler,
     script: 'codex/learn-skill-from-conversations/scripts/extract_recent_conversations.py',
     runner: 'python3',
     description: 'Extract recent Codex sessions for skill learning.',
@@ -339,6 +348,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
   {
     name: 'validate-skill-frontmatter',
     category: 'Catalog maintenance',
+    handler: validateSkillFrontmatterHandler,
     script: 'scripts/validate_skill_frontmatter.py',
     runner: 'python3',
     description: 'Validate SKILL.md frontmatter across the catalog.',
@@ -354,6 +364,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
   {
     name: 'validate-openai-agent-config',
     category: 'Catalog maintenance',
+    handler: validateOpenaiAgentConfigHandler,
     script: 'scripts/validate_openai_agent_config.py',
     runner: 'python3',
     description: 'Validate every skill agents/openai.yaml config.',
