@@ -11,8 +11,12 @@ const INTERFACE_ALLOWED_KEYS = new Set([
 ]);
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
-function repoRoot(): string {
-  return path.resolve(__dirname, '..', '..');
+function repoRoot(context?: ToolContext): string {
+  if (context?.sourceRoot) return context.sourceRoot;
+  // __dirname is dist/lib/tools/; need to go up 3 levels to project root
+  const fromDirname = path.resolve(__dirname, '..', '..', '..');
+  if (fs.existsSync(path.join(fromDirname, 'package.json'))) return fromDirname;
+  return path.resolve(__dirname, '..', '..', '..');
 }
 
 function iterSkillDirs(root: string): string[] {
@@ -183,7 +187,7 @@ function validateSkill(skillDir: string): string[] {
 }
 
 export function validateOpenaiAgentConfigHandler(args: string[], context: ToolContext): Promise<number> {
-  const root = repoRoot();
+  const root = repoRoot(context);
   const skillDirs = iterSkillDirs(root);
 
   if (!skillDirs.length) {
