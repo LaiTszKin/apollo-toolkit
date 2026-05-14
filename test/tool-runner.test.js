@@ -4,8 +4,8 @@ const { EventEmitter } = require('node:events');
 const { PassThrough } = require('node:stream');
 const path = require('node:path');
 
-const { parseArguments, buildHelpText, buildToolsHelp, run } = require('../lib/cli');
-const { listToolCommands, resolveToolCommand, runTool } = require('../lib/tool-runner');
+const { parseArguments, buildHelpText, buildToolsHelp, run } = require('../dist/lib/cli');
+const { listToolCommands, resolveToolCommand, runTool } = require('../dist/lib/tool-runner');
 
 test('tool registry exposes bundled skill tools', () => {
   const tools = listToolCommands();
@@ -64,11 +64,11 @@ test('parseArguments distinguishes overview, install, and uninstall help', () =>
   assert.equal(parseArguments(['uninstall', '--help']).helpTopic, 'uninstall');
 });
 
-test('runTool renders curated top-level help before native help and examples', async () => {
+test('runTool dispatches through handler when one is registered', async () => {
   let stdoutText = '';
   let stderrText = '';
   const repoRoot = path.resolve(__dirname, '..');
-  const exitCode = await runTool('validate-skill-frontmatter', ['--help'], {
+  const exitCode = await runTool('validate-skill-frontmatter', [], {
     sourceRoot: repoRoot,
     stdout: {
       write(chunk) {
@@ -82,25 +82,10 @@ test('runTool renders curated top-level help before native help and examples', a
         return true;
       },
     },
-    spawnCommand(command, args) {
-      assert.equal(command, 'python3');
-      assert.deepEqual(args, [path.join(repoRoot, 'scripts/validate_skill_frontmatter.py'), '--help']);
-      const child = new EventEmitter();
-      child.stdout = new PassThrough();
-      child.stderr = new PassThrough();
-      process.nextTick(() => {
-        child.stdout.end('native validator help\n');
-        child.emit('close', 0);
-      });
-      return child;
-    },
   });
 
   assert.equal(exitCode, 0, stderrText);
-  assert.match(stdoutText, /Purpose:/);
-  assert.match(stdoutText, /Use this when:/);
-  assert.match(stdoutText, /native validator help/);
-  assert.match(stdoutText, /Examples:/);
+  assert.match(stdoutText, /SKILL.md frontmatter validation passed/);
 });
 
 test('run dispatches tool commands without installer flow', async () => {

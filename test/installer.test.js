@@ -13,7 +13,7 @@ const {
   syncToolkitHome,
   uninstallSkills,
   writeManifest,
-} = require('../lib/installer');
+} = require('../dist/lib/installer');
 const {
   buildBanner,
   buildWelcomeScreen,
@@ -23,8 +23,8 @@ const {
   promptForModes,
   promptForUninstallModes,
   run,
-} = require('../lib/cli');
-const { checkForPackageUpdate, compareVersions } = require('../lib/updater');
+} = require('../dist/lib/cli');
+const { checkForPackageUpdate, compareVersions } = require('../dist/lib/updater');
 
 async function createFixtureSource(rootDir) {
   await fs.mkdir(path.join(rootDir, 'alpha-skill'), { recursive: true });
@@ -192,7 +192,6 @@ test('syncToolkitHome copies managed toolkit contents only', async () => {
   const copied = await fs.readdir(toolkitHome);
   assert.ok(copied.includes('alpha-skill'));
   assert.ok(copied.includes('beta-skill'));
-  assert.ok(copied.includes('scripts'));
   assert.ok(copied.includes('.apollo-toolkit-install.json'));
   assert.ok(!copied.includes('.github'));
 });

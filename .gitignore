@@ -2,10 +2,11 @@
 .DS_Store
 **/.DS_Store
 
-# Secrets / bytecode
+# Secrets
 **/.env
-**/__pycache__/
-**/*.pyc
+
+# Claude Code session artifacts (local only)
+.claude/
 
 # TypeScript build output
 dist/

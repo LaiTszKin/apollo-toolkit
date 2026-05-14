@@ -396,7 +396,7 @@ export function listToolCommands(): ToolDefinition[] {
   return [...TOOL_COMMANDS].sort((left, right) => left.name.localeCompare(right.name));
 }
 
-function resolveToolCommand(name: string, sourceRoot: string): (ToolDefinition & { scriptPath: string }) | null {
+export function resolveToolCommand(name: string, sourceRoot: string): (ToolDefinition & { scriptPath: string }) | null {
   const tool = getToolCommand(name);
   if (!tool) return null;
   return {
@@ -479,7 +479,7 @@ function captureCommandOutput(
   toolArgs: string[],
   context: ToolContext = {},
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  const sourceRoot = context.sourceRoot || path.resolve(__dirname, '..');
+  const sourceRoot = context.sourceRoot || path.resolve(__dirname, '../..');
   const stderr = context.stderr || process.stderr;
   const env = context.env || process.env;
   const spawnCommand = context.spawnCommand || spawn;
@@ -518,7 +518,7 @@ function captureCommandOutput(
 }
 
 export function runTool(toolName: string, toolArgs: string[], context: ToolContext = {}): Promise<number> {
-  const sourceRoot = context.sourceRoot || path.resolve(__dirname, '..');
+  const sourceRoot = context.sourceRoot || path.resolve(__dirname, '../..');
   const stdout = context.stdout || process.stdout;
   const stderr = context.stderr || process.stderr;
   const env = context.env || process.env;

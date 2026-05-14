@@ -637,8 +637,10 @@ function printUninstallSummary({ stdout, uninstallResult, env }: {
   }
 }
 
+export { parseArguments, buildHelpText, buildInstallHelpText, buildUninstallHelpText, buildToolsHelp, buildBanner, buildWelcomeScreen, promptForModes, promptForUninstallModes };
+
 export async function run(argv: string[], context: CliContext = {}): Promise<number> {
-  const sourceRoot = context.sourceRoot || path.resolve(__dirname, '..');
+  const sourceRoot = context.sourceRoot || path.resolve(__dirname, '../..');
   const stdout = context.stdout || process.stdout;
   const stderr = context.stderr || process.stderr;
   const stdin = context.stdin || process.stdin;

@@ -5,8 +5,8 @@ const os = require('node:os');
 const path = require('node:path');
 
 const atlasCli = require('../init-project-html/lib/atlas/cli');
-const { listToolCommands, resolveToolCommand } = require('../lib/tool-runner');
-const { parseArguments, buildHelpText } = require('../lib/cli');
+const { listToolCommands, resolveToolCommand } = require('../dist/lib/tool-runner');
+const { parseArguments, buildHelpText } = require('../dist/lib/cli');
 
 function makeIo() {
   let stdoutBuf = '';
