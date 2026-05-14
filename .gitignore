@@ -7,6 +7,10 @@
 **/__pycache__/
 **/*.pyc
 
+# TypeScript build output
+dist/
+*.tsbuildinfo
+
 # Apollo Toolkit architecture diff viewer default output (local only)
 .apollo-toolkit/
 

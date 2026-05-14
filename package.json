@@ -13,12 +13,16 @@
     "url": "https://github.com/LaiTszKin/apollo-toolkit/issues"
   },
   "type": "commonjs",
+  "main": "dist/lib/cli.js",
   "bin": {
-    "apollo-toolkit": "bin/apollo-toolkit.js",
-    "apltk": "bin/apollo-toolkit.js"
+    "apollo-toolkit": "dist/bin/apollo-toolkit.js",
+    "apltk": "dist/bin/apollo-toolkit.js"
   },
   "scripts": {
-    "test": "node --test"
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "node --test",
+    "test:ts": "node --test dist/test/"
   },
   "engines": {
     "node": ">=18.18"
@@ -37,5 +41,9 @@
   "dependencies": {
     "elkjs": "^0.11.1",
     "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.7.0",
+    "typescript": "^6.0.3"
   }
 }
