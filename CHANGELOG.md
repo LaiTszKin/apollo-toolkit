@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.3] - 2026-05-15
+
+### Changed
+
+- Consistently use "並行調度 subagents" wording across 9 SKILL.md to clarify that subagents should be dispatched in parallel.
+
 ## [v3.14.2] - 2026-05-15
 
 ### Fixed
