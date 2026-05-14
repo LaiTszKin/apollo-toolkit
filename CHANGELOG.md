@@ -2,6 +2,15 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.1] - 2026-05-15
+
+### Fixed
+
+- Replace non-existent `cli.main()` with `cli.dispatch()` in architecture handler, fixing `apltk architecture --help` crash.
+- Correct `repoRoot()` path resolution in `validate-openai-agent-config` tool (3 levels up from `dist/lib/tools/` instead of 2) so CI validation finds skill directories.
+- Add missing `npm run build` step to publish CI workflow so tests importing from `dist/` resolve correctly.
+- Replace removed Python validation scripts (`validate_skill_frontmatter.py`, `validate_openai_agent_config.py`) in CI workflow with their TypeScript CLI equivalents.
+
 ## [v3.14.0] - 2026-05-15
 
 ### Added
