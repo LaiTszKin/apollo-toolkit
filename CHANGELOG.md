@@ -2,6 +2,33 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.0] - 2026-05-15
+
+### Added
+
+- TypeScript infrastructure (`tsconfig.json`, `lib/types.ts`, `lib/utils/`) for type-safe CLI development.
+- TypeScript handlers for all 19 built-in tools under `lib/tools/`, enabling direct function calls via the CLI without subprocess spawning.
+- `apltk architecture diff` command for paginated before/after architecture viewers.
+- `apltk validate-skill-frontmatter` and `apltk validate-openai-agent-config` CLI commands as TypeScript replacements for the removed Python validation scripts.
+
+### Changed
+
+- Convert CLI core (`lib/cli`, `lib/tool-runner`, `lib/installer`, `lib/updater`, `bin/apollo-toolkit`) from CommonJS JavaScript to TypeScript.
+- Port observability tools (`filter-logs`, `search-logs`), GitHub tools (`open-github-issue`, `find-github-issues`, `read-github-issue`, `review-threads`), media tools (`docs-to-voice`, `render-katex`, `render-error-book`, `generate-storyboard-images`, `enforce-video-aspect-ratio`, `extract-pdf-text`), and spec tools (`create-specs`) from Python/Swift/Shell to TypeScript handlers.
+- Merge two identical `extract_recent_conversations.py` scripts into a single TypeScript handler supporting both `extract-codex-conversations` and `extract-skill-conversations` CLI commands.
+- Replace `init-project-html/scripts/architecture.js` with a TypeScript handler in `lib/tools/architecture.ts`.
+- Update installer to stop copying `scripts/` directories (all tool scripts are now natively handled).
+- Update all SKILL.md files to reference `apltk <tool-name>` instead of legacy script paths.
+- Replace Python validation scripts (`validate_skill_frontmatter.py`, `validate_openai_agent_config.py`) with native TypeScript CLI commands.
+- Archive completed TypeScript migration specs and sync project documentation (architecture docs, testing conventions, AGENTS.md, CLAUDE.md) to reflect current TypeScript-based tooling.
+
+### Removed
+
+- All 14 skill-level `scripts/` directories with 18 Python, 2 Shell, 1 Swift, and 2 JavaScript scripts.
+- `test/python-scripts.test.js` (Python scripts no longer exist).
+- `__pycache__/` and `*.pyc` from `.gitignore` (no more Python assets in the skill tree).
+- Old `docs/plans/2026-05-14/` planning artifacts (archived to `docs/archive/`).
+
 ## [v3.13.2] - 2026-05-14
 
 ### Changed
