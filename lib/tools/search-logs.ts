@@ -6,6 +6,7 @@ import {
   iterInputLines,
   parseCliTimestamp,
   buildTimezone,
+  validateTimeWindow,
 } from './log-cli-utils';
 
 interface SearchLogsArgs {
@@ -139,10 +140,7 @@ export async function searchLogsHandler(
     return 1;
   }
 
-  if (start && end && start > end) {
-    stderr.write(
-      'Error: --start must be earlier than or equal to --end.\n',
-    );
+  if (!validateTimeWindow(start, end, stderr)) {
     return 1;
   }
 

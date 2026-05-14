@@ -15,10 +15,11 @@ test('tool registry exposes bundled skill tools', () => {
   assert.ok(tools.some((tool) => tool.name === 'validate-skill-frontmatter'));
 });
 
-test('tool aliases resolve to canonical scripts', () => {
+test('tool aliases resolve to canonical names', () => {
   const resolved = resolveToolCommand('filter-logs-by-time', '/repo');
   assert.equal(resolved.canonicalName, 'filter-logs');
-  assert.equal(resolved.scriptPath, '/repo/analyse-app-logs/scripts/filter_logs_by_time.py');
+  assert.ok(resolved.handler, 'alias should have a handler');
+  assert.equal(resolved.name, 'filter-logs-by-time');
 });
 
 test('parseArguments recognizes direct tool invocation', () => {

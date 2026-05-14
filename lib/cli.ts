@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { color, clearScreen, sleep, supportsAnimation, supportsColor } from './utils/terminal';
 import { formatToolList, buildToolDiscoveryHelp, runTool, getToolCommand } from './tool-runner';
+import { formatExamples } from './utils/format';
 import {
   TARGET_DEFINITIONS,
   VALID_MODES,
@@ -150,7 +151,7 @@ function buildHelpText({ version, colorEnabled }: { version: string; colorEnable
     '  --help         Show this help text',
     '',
     'Examples:',
-    ...examples.flatMap(({ command, result }) => [`  ${command}`, `    Result: ${result}`]),
+    formatExamples(examples),
   ].join('\n');
 }
 
@@ -177,7 +178,7 @@ function buildToolsHelp({ version, colorEnabled }: { version: string; colorEnabl
     '  Pass `--help` after a tool name to view task guidance, native script flags, and concrete examples.',
     '',
     'Examples:',
-    ...examples.flatMap(({ command, result }) => [`  ${command}`, `    Result: ${result}`]),
+    formatExamples(examples),
   ].join('\n');
 }
 
@@ -214,7 +215,7 @@ function buildInstallHelpText({ version, colorEnabled }: { version: string; colo
     '  --help         Show this install help',
     '',
     'Examples:',
-    ...examples.flatMap(({ command, result }) => [`  ${command}`, `    Result: ${result}`]),
+    formatExamples(examples),
   ].join('\n');
 }
 
@@ -248,7 +249,7 @@ function buildUninstallHelpText({ version, colorEnabled }: { version: string; co
     '  --help         Show this uninstall help',
     '',
     'Examples:',
-    ...examples.flatMap(({ command, result }) => [`  ${command}`, `    Result: ${result}`]),
+    formatExamples(examples),
   ].join('\n');
 }
 

@@ -298,6 +298,7 @@ Options:
       const result = execSync(cmdArgs.join(' '), {
         encoding: 'utf-8',
         maxBuffer: 10 * 1024 * 1024,
+        timeout: 60000,
       });
       renderedHtml = result.trim();
     } catch (err: unknown) {

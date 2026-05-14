@@ -2,15 +2,24 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import type { ToolContext } from '../types';
 
-function resolveSwiftScript(context: ToolContext): string {
-  const sourceRoot = context.sourceRoot || path.resolve(__dirname, '..', '..');
-  return path.join(
-    sourceRoot,
-    'weekly-financial-event-report',
-    'scripts',
-    'extract_pdf_text_pdfkit.swift',
-  );
-}
+const SWIFT_SCRIPT = [
+  'import Foundation',
+  'import PDFKit',
+  '',
+  'let args = CommandLine.arguments',
+  'guard args.count > 1 else { print("PDF_PATH="); exit(1) }',
+  'let pdfPath = args[1]',
+  'let pdfURL = URL(fileURLWithPath: pdfPath)',
+  'guard let document = PDFDocument(url: pdfURL) else { fputs("Unable to open PDF at \\(pdfPath)\\n", stderr); exit(1) }',
+  'print("PDF_PATH=\\(pdfPath)")',
+  'print("PAGE_COUNT=\\(document.pageCount)")',
+  'for pageIndex in 0..<document.pageCount {',
+  '    guard let page = document.page(at: pageIndex) else { continue }',
+  '    let text = page.string?.replacingOccurrences(of: "\\u{000C}", with: "\\n").trimmingCharacters(in: .whitespacesAndNewlines) ?? ""',
+  '    print("=== PAGE \\(pageIndex + 1) ===")',
+  '    if text.isEmpty { print("[NO_TEXT_EXTRACTED]") } else { print(text) }',
+  '}',
+].join('\n');
 
 export async function extractPdfTextHandler(args: string[], context: ToolContext): Promise<number> {
   const stdout = context.stdout || process.stdout;
@@ -51,13 +60,16 @@ Output format:
   }
 
   const resolvedPath = path.resolve(pdfPath);
-  const swiftScript = resolveSwiftScript(context);
 
   return new Promise((resolve) => {
-    const child = spawn('swift', [swiftScript, resolvedPath], {
-      stdio: ['ignore', 'pipe', 'pipe'],
+    const child = spawn('swift', ['-', resolvedPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
       env: context.env || process.env,
     });
+
+    // Write the Swift script to stdin for inline execution
+    child.stdin!.write(SWIFT_SCRIPT);
+    child.stdin!.end();
 
     let stdoutText = '';
     let stderrText = '';

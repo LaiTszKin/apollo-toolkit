@@ -34,8 +34,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Planning & architecture',
     skill: 'init-project-html',
     handler: architectureHandler,
-    script: 'init-project-html/scripts/architecture.js',
-    runner: 'node',
     description: 'Open the project HTML architecture atlas, or render a paginated diff (`architecture diff`).',
     help: {
       purpose: 'Inspect, mutate, validate, and diff the repository architecture atlas without hand-editing generated HTML files.',
@@ -64,8 +62,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Observability',
     skill: 'analyse-app-logs',
     handler: filterLogsHandler,
-    script: 'analyse-app-logs/scripts/filter_logs_by_time.py',
-    runner: 'python3',
     description: 'Filter log lines by timestamp window.',
     aliases: ['filter-logs-by-time'],
     help: {
@@ -83,8 +79,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Observability',
     skill: 'analyse-app-logs',
     handler: searchLogsHandler,
-    script: 'analyse-app-logs/scripts/search_logs.py',
-    runner: 'python3',
     description: 'Search logs by keyword or regex.',
     help: {
       purpose: 'Search logs by keyword or regex after you know which file or slice to inspect.',
@@ -101,8 +95,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Rendering & media',
     skill: 'docs-to-voice',
     handler: docsToVoiceHandler,
-    script: 'docs-to-voice/scripts/docs_to_voice.py',
-    runner: 'python3',
     description: 'Convert text into audio, timeline JSON, and SRT.',
     help: {
       purpose: 'Turn text or documents into narrated audio plus subtitle timelines.',
@@ -118,8 +110,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Planning & architecture',
     skill: 'generate-spec',
     handler: createSpecsHandler,
-    script: 'generate-spec/scripts/create-specs',
-    runner: 'python3',
     description: 'Create spec planning documents from templates.',
     help: {
       purpose: 'Generate a new planning scaffold under `docs/plans/` for a requested change or batch.',
@@ -136,8 +126,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Rendering & media',
     skill: 'katex',
     handler: renderKatexHandler,
-    script: 'katex/scripts/render_katex.py',
-    runner: 'python3',
     description: 'Render TeX with KaTeX into reusable output.',
     help: {
       purpose: 'Render TeX formulas into insertion-ready KaTeX output.',
@@ -153,8 +141,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Rendering & media',
     skill: 'learning-error-book',
     handler: renderErrorBookHandler,
-    script: 'learning-error-book/scripts/render_error_book_json_to_pdf.py',
-    runner: 'python3',
     description: 'Render structured error-book JSON into PDF.',
     help: {
       purpose: 'Convert structured error-book data into a finished PDF deliverable.',
@@ -170,8 +156,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'GitHub workflows',
     skill: 'open-github-issue',
     handler: openGitHubIssueHandler,
-    script: 'open-github-issue/scripts/open_github_issue.py',
-    runner: 'python3',
     description: 'Publish or draft a structured GitHub issue.',
     help: {
       purpose: 'Create a structured GitHub issue with auth fallbacks and a stable JSON output contract.',
@@ -188,8 +172,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Rendering & media',
     skill: 'openai-text-to-image-storyboard',
     handler: generateStoryboardImagesHandler,
-    script: 'openai-text-to-image-storyboard/scripts/generate_storyboard_images.py',
-    runner: 'python3',
     description: 'Generate storyboard image sets from text.',
     help: {
       purpose: 'Generate storyboard image assets from chapters, scenes, or other written prompts.',
@@ -205,8 +187,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'GitHub workflows',
     skill: 'read-github-issue',
     handler: findGitHubIssuesHandler,
-    script: 'read-github-issue/scripts/find_issues.py',
-    runner: 'python3',
     description: 'List GitHub issues through gh.',
     help: {
       purpose: 'Search and list GitHub issues from a repository through a stable wrapper over `gh`.',
@@ -223,8 +203,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'GitHub workflows',
     skill: 'read-github-issue',
     handler: readGitHubIssueHandler,
-    script: 'read-github-issue/scripts/read_issue.py',
-    runner: 'python3',
     description: 'Read GitHub issue details through gh.',
     help: {
       purpose: 'Read one GitHub issue in detail, including comments when supported by the script flags.',
@@ -241,8 +219,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'GitHub workflows',
     skill: 'resolve-review-comments',
     handler: reviewThreadsHandler,
-    script: 'resolve-review-comments/scripts/review_threads.py',
-    runner: 'python3',
     description: 'List or resolve GitHub PR review threads.',
     help: {
       purpose: 'List unresolved review threads or resolve them after handling the requested changes.',
@@ -265,8 +241,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Rendering & media',
     skill: 'text-to-short-video',
     handler: enforceVideoAspectRatioHandler,
-    script: 'text-to-short-video/scripts/enforce_video_aspect_ratio.py',
-    runner: 'python3',
     description: 'Resize video output to a target aspect ratio.',
     help: {
       purpose: 'Normalize rendered video output to a required aspect ratio.',
@@ -282,8 +256,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Rendering & media',
     skill: 'weekly-financial-event-report',
     handler: extractPdfTextHandler,
-    script: 'weekly-financial-event-report/scripts/extract_pdf_text_pdfkit.swift',
-    runner: 'swift',
     description: 'Extract PDF text with macOS PDFKit fallback.',
     help: {
       purpose: 'Extract per-page text from a PDF through macOS PDFKit.',
@@ -299,8 +271,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Codex memory & learning',
     skill: 'codex-memory-manager',
     handler: extractConversationsHandler,
-    script: 'codex/codex-memory-manager/scripts/extract_recent_conversations.py',
-    runner: 'python3',
     description: 'Extract recent Codex sessions for memory updates.',
     help: {
       purpose: 'Extract recent Codex chats so memory maintenance can review them.',
@@ -316,8 +286,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Codex memory & learning',
     skill: 'codex-memory-manager',
     handler: syncMemoryIndexHandler,
-    script: 'codex/codex-memory-manager/scripts/sync_memory_index.py',
-    runner: 'python3',
     description: 'Sync the Codex memory index in AGENTS.md.',
     help: {
       purpose: 'Refresh the Codex memory index after the memory documents have been updated.',
@@ -333,8 +301,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     category: 'Codex memory & learning',
     skill: 'learn-skill-from-conversations',
     handler: extractConversationsHandler,
-    script: 'codex/learn-skill-from-conversations/scripts/extract_recent_conversations.py',
-    runner: 'python3',
     description: 'Extract recent Codex sessions for skill learning.',
     help: {
       purpose: 'Extract recent conversation history for learning or improving skills from past chats.',
@@ -349,8 +315,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'validate-skill-frontmatter',
     category: 'Catalog maintenance',
     handler: validateSkillFrontmatterHandler,
-    script: 'scripts/validate_skill_frontmatter.py',
-    runner: 'python3',
     description: 'Validate SKILL.md frontmatter across the catalog.',
     help: {
       purpose: 'Check top-level skill frontmatter for required keys, naming, and description constraints.',
@@ -365,8 +329,6 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'validate-openai-agent-config',
     category: 'Catalog maintenance',
     handler: validateOpenaiAgentConfigHandler,
-    script: 'scripts/validate_openai_agent_config.py',
-    runner: 'python3',
     description: 'Validate every skill agents/openai.yaml config.',
     help: {
       purpose: 'Validate `agents/openai.yaml` for every top-level skill against the repo rules.',
@@ -396,12 +358,12 @@ export function listToolCommands(): ToolDefinition[] {
   return [...TOOL_COMMANDS].sort((left, right) => left.name.localeCompare(right.name));
 }
 
-export function resolveToolCommand(name: string, sourceRoot: string): (ToolDefinition & { scriptPath: string }) | null {
+export function resolveToolCommand(name: string, sourceRoot: string): (ToolDefinition & { scriptPath?: string }) | null {
   const tool = getToolCommand(name);
   if (!tool) return null;
   return {
     ...tool,
-    scriptPath: path.join(sourceRoot, tool.script!),
+    scriptPath: tool.script ? path.join(sourceRoot, tool.script) : undefined,
   };
 }
 
@@ -484,16 +446,22 @@ function captureCommandOutput(
   const env = context.env || process.env;
   const spawnCommand = context.spawnCommand || spawn;
   const toolEntry = resolveToolCommand(tool.name, sourceRoot);
+  if (!toolEntry || !toolEntry.runner) {
+    stderr.write(`Tool not fully configured: ${tool.name}\n`);
+    return Promise.resolve({ exitCode: 1, stdout: '', stderr: '' });
+  }
 
   return new Promise((resolve) => {
-    const child = spawnCommand(toolEntry!.runner, [toolEntry!.scriptPath, ...toolArgs], {
+    const child = spawnCommand(toolEntry.runner, [toolEntry.scriptPath, ...toolArgs], {
       cwd: context.cwd || process.cwd(),
       env,
       stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 30000,
     });
 
     let stdoutText = '';
     let stderrText = '';
+    let settled = false;
 
     child.stdout?.on('data', (chunk: Buffer) => {
       stdoutText += String(chunk);
@@ -503,11 +471,19 @@ function captureCommandOutput(
     });
 
     child.on('error', (error: Error) => {
-      stderr.write(`Failed to start ${toolEntry!.runner}: ${error.message}\n`);
+      if (settled) return;
+      settled = true;
+      if ((error as any).killed) {
+        stderr.write(`Tool timed out after 30s: ${toolEntry.runner}\n`);
+      } else {
+        stderr.write(`Failed to start ${toolEntry.runner}: ${error.message}\n`);
+      }
       resolve({ exitCode: 1, stdout: stdoutText, stderr: stderrText });
     });
 
     child.on('close', (code: number | null) => {
+      if (settled) return;
+      settled = true;
       resolve({
         exitCode: typeof code === 'number' ? code : 1,
         stdout: stdoutText,

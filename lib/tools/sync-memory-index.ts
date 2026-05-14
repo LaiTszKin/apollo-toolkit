@@ -85,24 +85,30 @@ function syncAgentsFile(agentsFile: string, sectionText: string): void {
 }
 
 export function syncMemoryIndexHandler(args: string[], context: ToolContext): Promise<number> {
-  const homeDir = process.env.HOME || '';
-  let agentsFile = path.join(homeDir, '.codex', 'AGENTS.md');
-  let memoryDir = path.join(homeDir, '.codex', 'memory');
-  let sectionTitle = DEFAULT_SECTION_TITLE;
-  let instructionLines = [...DEFAULT_INSTRUCTIONS];
+  try {
+    const homeDir = process.env.HOME || '';
+    let agentsFile = path.join(homeDir, '.codex', 'AGENTS.md');
+    let memoryDir = path.join(homeDir, '.codex', 'memory');
+    let sectionTitle = DEFAULT_SECTION_TITLE;
+    let instructionLines = [...DEFAULT_INSTRUCTIONS];
 
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--agents-file' && i + 1 < args.length) agentsFile = args[++i];
-    else if (args[i] === '--memory-dir' && i + 1 < args.length) memoryDir = args[++i];
-    else if (args[i] === '--section-title' && i + 1 < args.length) sectionTitle = args[++i];
-    else if (args[i] === '--instruction-line' && i + 1 < args.length) instructionLines.push(args[++i]);
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--agents-file' && i + 1 < args.length) agentsFile = args[++i];
+      else if (args[i] === '--memory-dir' && i + 1 < args.length) memoryDir = args[++i];
+      else if (args[i] === '--section-title' && i + 1 < args.length) sectionTitle = args[++i];
+      else if (args[i] === '--instruction-line' && i + 1 < args.length) instructionLines.push(args[++i]);
+    }
+
+    const memoryFiles = iterMemoryFiles(memoryDir);
+    const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines);
+    syncAgentsFile(agentsFile, sectionText);
+
+    context.stdout?.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);
+    context.stdout?.write(`MEMORY_FILES_INDEXED=${memoryFiles.length}\n`);
+    return Promise.resolve(0);
+  } catch (err) {
+    const stderr = context.stderr || process.stderr;
+    stderr.write(`Error: ${(err as Error).message}\n`);
+    return Promise.resolve(1);
   }
-
-  const memoryFiles = iterMemoryFiles(memoryDir);
-  const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines);
-  syncAgentsFile(agentsFile, sectionText);
-
-  context.stdout?.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);
-  context.stdout?.write(`MEMORY_FILES_INDEXED=${memoryFiles.length}\n`);
-  return Promise.resolve(0);
 }

@@ -8,10 +8,10 @@ const MAX_DESCRIPTION_LENGTH = 1024;
 
 function repoRoot(context?: ToolContext): string {
   if (context?.sourceRoot) return context.sourceRoot;
-  // __dirname is dist/lib/tools/; need to go up 4 levels
-  const fromDirname = path.resolve(__dirname, '..', '..', '..', '..');
+  // __dirname is dist/lib/tools/; need to go up 3 levels to project root
+  const fromDirname = path.resolve(__dirname, '..', '..', '..');
   if (fs.existsSync(path.join(fromDirname, 'package.json'))) return fromDirname;
-  return path.resolve(__dirname, '..', '..', '..', '..');
+  return path.resolve(__dirname, '..', '..', '..');
 }
 
 function iterSkillDirs(root: string): string[] {

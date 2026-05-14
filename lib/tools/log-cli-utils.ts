@@ -187,6 +187,22 @@ export function buildTimezone(raw: string): number {
 }
 
 /**
+ * Validate that start is not later than end.
+ * Writes an error message to stderr and returns false if the order is inverted.
+ */
+export function validateTimeWindow(
+  start: Date | null,
+  end: Date | null,
+  stderr: NodeJS.WriteStream,
+): boolean {
+  if (start && end && start > end) {
+    stderr.write('Error: --start must be earlier than or equal to --end.\n');
+    return false;
+  }
+  return true;
+}
+
+/**
  * Check whether a timestamp falls within a given [start, end] window (inclusive).
  * Returns false if timestamp is null.
  */

@@ -79,7 +79,7 @@ apltk extract-skill-conversations --lookback-minutes 1440
 ### 4) Apply changes through skill-creator
 
 - Explicitly follow `$skill-creator` workflow before editing skills.
-- For new shared skills, initialize with `~/.codex/skills/.system/skill-creator/scripts/init_skill.py`, then complete `SKILL.md` and required resources.
+- For new shared skills, use the Codex system `skill-creator` initialization script (located at `~/.codex/skills/.system/skill-creator/scripts/init_skill.py` -- an external Codex system tool outside the scope of this project), then complete `SKILL.md` and required resources.
 - For new project-specific skills, create or update them under the relevant project's `~/.codex/skills/` directory instead of the shared catalog.
 - For existing skills, make minimal focused edits and keep behavior consistent.
 
@@ -88,7 +88,7 @@ apltk extract-skill-conversations --lookback-minutes 1440
 - Run:
 
 ```bash
-python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py <skill-path>
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py  # Codex system validation tool (external, outside the scope of this project) <skill-path>
 ```
 
 - Resolve validation failures before finishing.
