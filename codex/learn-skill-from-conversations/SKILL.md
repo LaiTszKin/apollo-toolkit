@@ -88,7 +88,7 @@ apltk extract-skill-conversations --lookback-minutes 1440
 - Run:
 
 ```bash
-python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py  # Codex system validation tool (external, outside the scope of this project) <skill-path>
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py <skill-path>  # Codex system validation tool (external, outside the scope of this project)
 ```
 
 - Resolve validation failures before finishing.
