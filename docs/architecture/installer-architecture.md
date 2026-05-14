@@ -2,7 +2,7 @@
 
 ## 原子性同步
 
-`syncToolkitHome()` 將倉庫內容同步至 `~/.apollo-toolkit`（或 `$APOLLO_TOOLKIT_HOME`）時，先寫入暫存目錄再原子性地重新命名，避免同步中斷導致目錄處於不一致狀態。僅複製技能目錄（含 `SKILL.md`）、根層級必要文件（`AGENTS.md`、`CHANGELOG.md`、`LICENSE`、`README.md`、`package.json`）、`scripts/` 目錄與 `codex/` 容器。
+`syncToolkitHome()` 將倉庫內容同步至 `~/.apollo-toolkit`（或 `$APOLLO_TOOLKIT_HOME`）時，先寫入暫存目錄再原子性地重新命名，避免同步中斷導致目錄處於不一致狀態。僅複製技能目錄（含 `SKILL.md`）、根層級必要文件（`AGENTS.md`、`CHANGELOG.md`、`LICENSE`、`README.md`、`package.json`）與 `codex/` 容器。
 
 ## Manifest 追蹤
 

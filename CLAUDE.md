@@ -3,13 +3,13 @@
 ## Common Development Commands
 
 - `npm test` - 執行 Node 測試套件（`node --test`）。
-- `node bin/apollo-toolkit.js [mode...]` - 直接從倉庫啟動 CLI，將技能安裝至指定目標（codex/openclaw/trae/agents/claude-code/all）。
-- `node bin/apollo-toolkit.js uninstall [mode...]` - 從指定目標移除已安裝的 Apollo Toolkit 技能。
-- `node bin/apollo-toolkit.js tools` - 列出所有內建 CLI 工具及其分類。
-- `node bin/apollo-toolkit.js <tool> [args...]` - 執行內建工具（如 `filter-logs`、`search-logs`、`architecture`、`create-specs` 等）。
-- `node bin/apollo-toolkit.js architecture [diff]` - 開啟專案 HTML 架構圖，或搭配 `diff` 產生分頁式 before/after 檢視器。
-- `python3 scripts/validate_skill_frontmatter.py` - 驗證所有頂層技能 `SKILL.md` 的 frontmatter 格式與命名規範。
-- `python3 scripts/validate_openai_agent_config.py` - 驗證所有技能 `agents/openai.yaml` 的設定完整性。
+- `node dist/bin/apollo-toolkit.js [mode...]` - 直接從倉庫啟動 CLI，將技能安裝至指定目標（codex/openclaw/trae/agents/claude-code/all）。
+- `node dist/bin/apollo-toolkit.js uninstall [mode...]` - 從指定目標移除已安裝的 Apollo Toolkit 技能。
+- `node dist/bin/apollo-toolkit.js tools` - 列出所有內建 CLI 工具及其分類。
+- `node dist/bin/apollo-toolkit.js <tool> [args...]` - 執行內建工具（如 `filter-logs`、`search-logs`、`architecture`、`create-specs` 等）。
+- `node dist/bin/apollo-toolkit.js architecture [diff]` - 開啟專案 HTML 架構圖，或搭配 `diff` 產生分頁式 before/after 檢視器。
+- `apltk validate-skill-frontmatter` - 驗證所有頂層技能 `SKILL.md` 的 frontmatter 格式與命名規範。
+- `apltk validate-openai-agent-config` - 驗證所有技能 `agents/openai.yaml` 的設定完整性。
 - `./scripts/install_skills.sh [mode...]` - 透過本地 shell 腳本安裝技能（非 npm 安裝方式）。
 
 ## Project Business Goals
@@ -32,7 +32,7 @@
 - `docs/architecture/skill-structure.md` - 技能目錄佈局、frontmatter 規範、選擇性擴充
 - `docs/principles/naming-conventions.md` - 命名慣例：kebab-case、文件命名、工具命名
 - `docs/principles/skill-development.md` - 技能開發慣例：frontmatter、主體結構、依賴宣告
-- `docs/principles/testing-conventions.md` - 測試慣例：node:test、隔離、Python 測試發現
+- `docs/principles/testing-conventions.md` - 測試慣例：node:test、隔離、輸出捕捉
 - `README.md` - 公開安裝指南與技能目錄
 - `CHANGELOG.md` - 版本發佈歷史
 - `LICENSE` - MIT 授權條款
