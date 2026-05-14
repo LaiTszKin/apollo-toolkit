@@ -1,0 +1,34 @@
+slug: skill-directory
+title: 技能目錄結構 (清理後)
+story: ''
+dependsOn: []
+submodules:
+  - slug: skill-md
+    kind: service
+    role: 'SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑'
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: agents-config
+    kind: service
+    role: 'agents/: 配置保持不變'
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: references
+    kind: pure-fn
+    role: 'references/: 參考文檔保持不變'
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: tests
+    kind: service
+    role: TypeScript 測試取代 Python 測試
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+edges: []

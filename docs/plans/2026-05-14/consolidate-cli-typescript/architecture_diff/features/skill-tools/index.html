@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-page="feature">
+<head>
+  <meta charset="utf-8">
+  <title>技能工具 (整合進 CLI)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="../../assets/architecture.css">
+</head>
+<body>
+  <header class="feature-header">
+    <nav class="feature-breadcrumb"><a href="../../index.html">← Atlas</a></nav>
+    <h1>技能工具 (整合進 CLI)</h1>
+    
+  </header>
+  <main class="feature-main">
+    
+    <section class="feature-submodules" aria-label="Submodules">
+      <h2>Submodules</h2>
+      <ul class="submodule-nav">
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="observability-tools.html">
+          <span class="submodule-card__name">observability-tools</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">filter-logs, search-logs: TypeScript 直接執行 (原 Python)</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="github-tools.html">
+          <span class="submodule-card__name">github-tools</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="media-tools.html">
+          <span class="submodule-card__name">media-tools</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="spec-tools.html">
+          <span class="submodule-card__name">spec-tools</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">create-specs: 模板生成 (原 Python)</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="codex-tools.html">
+          <span class="submodule-card__name">codex-tools</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">extract-conversations (合併重複), sync-memory-index</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="catalog-tools.html">
+          <span class="submodule-card__name">catalog-tools</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">validate-skill-frontmatter, validate-openai-agent-config</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="architecture-tool.html">
+          <span class="submodule-card__name">architecture-tool</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">architecture: atlas CLI (從 JS 轉 TS)</p>
+      </li>
+      </ul>
+    </section>
+    
+  </main>
+</body>
+</html>

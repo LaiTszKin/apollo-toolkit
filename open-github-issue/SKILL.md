@@ -87,5 +87,5 @@ When another skill depends on `open-github-issue`:
 
 ## Resources
 
-- `scripts/open_github_issue.py`: Deterministic issue publishing helper with auth fallback and README language detection, exposed as `apltk open-github-issue`.
-- If the helper path is unavailable or still fails for environment reasons, fall back to direct `gh issue create` or GitHub REST API publishing instead of retrying the same broken relative-path invocation.
+- `apltk open-github-issue`: Deterministic issue publishing helper with auth fallback and README language detection (TypeScript handler in `lib/tools/open-github-issue.ts`).
+- If the CLI tool is unavailable or fails for environment reasons, fall back to direct `gh issue create` or GitHub REST API publishing instead of retrying the same invocation.

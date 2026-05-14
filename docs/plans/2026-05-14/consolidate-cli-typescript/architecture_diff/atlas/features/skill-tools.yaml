@@ -1,0 +1,57 @@
+slug: skill-tools
+title: 技能工具 (整合進 CLI)
+story: ''
+dependsOn: []
+submodules:
+  - slug: observability-tools
+    kind: service
+    role: 'filter-logs, search-logs: TypeScript 直接執行 (原 Python)'
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: github-tools
+    kind: service
+    role: 'open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn'
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: media-tools
+    kind: service
+    role: >-
+      docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video,
+      extract-pdf-text
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: spec-tools
+    kind: service
+    role: 'create-specs: 模板生成 (原 Python)'
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: codex-tools
+    kind: service
+    role: extract-conversations (合併重複), sync-memory-index
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: catalog-tools
+    kind: service
+    role: validate-skill-frontmatter, validate-openai-agent-config
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: architecture-tool
+    kind: service
+    role: 'architecture: atlas CLI (從 JS 轉 TS)'
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+edges: []

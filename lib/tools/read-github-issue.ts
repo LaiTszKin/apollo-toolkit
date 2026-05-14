@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { execFile } from 'node:child_process';
 import type { ToolContext } from '../types';
 

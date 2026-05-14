@@ -118,7 +118,7 @@ Use this structure in responses:
 
 - `references/investigation-checklist.md`: Step-by-step checklist for evidence-driven log investigations.
 - `references/log-signal-patterns.md`: Common log signatures, likely causes, validation hints, and false-positive guards.
-- `scripts/filter_logs_by_time.py`: Filter raw logs to a bounded incident window from files or stdin; exposed as `apltk filter-logs`.
-- `scripts/search_logs.py`: Search logs by keyword or regex with optional time-window filtering and context lines; exposed as `apltk search-logs`.
-- `scripts/log_cli_utils.py`: Shared timestamp parsing and stdin/file iteration utilities for the bundled log scripts.
+- `apltk filter-logs`: Filter raw logs to a bounded incident window from files or stdin (TypeScript handler in `lib/tools/filter-logs.ts`).
+- `apltk search-logs`: Search logs by keyword or regex with optional time-window filtering and context lines (TypeScript handler in `lib/tools/search-logs.ts`).
+- Shared timestamp parsing and stdin/file iteration utilities built into `lib/tools/log-cli-utils.ts`.
 - Dependency skill: `open-github-issue` for deterministic issue publishing with auth fallback and README language detection.

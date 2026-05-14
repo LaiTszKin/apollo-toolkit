@@ -1,0 +1,56 @@
+slug: cli-tool-system
+title: CLI 工具系統
+story: ''
+dependsOn: []
+submodules:
+  - slug: cli-dispatcher
+    kind: service
+    role: CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: tool-runner
+    kind: service
+    role: 工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: installer
+    kind: service
+    role: 技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: tool-implementations
+    kind: service
+    role: 所有工具 handler 的 TypeScript 實現 (lib/tools/)
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+  - slug: shared-utils
+    kind: pure-fn
+    role: '共享純函數: 終端顏色、格式化、型別定義'
+    functions: []
+    variables: []
+    dataflow: []
+    errors: []
+edges:
+  - id: e-cli-runner
+    from: cli-dispatcher
+    to: tool-runner
+    kind: call
+    label: runTool()
+  - id: e-runner-tools
+    from: tool-runner
+    to: tool-implementations
+    kind: call
+    label: handler()
+  - id: e-cli-installer
+    from: cli-dispatcher
+    to: installer
+    kind: call
+    label: installLinks()

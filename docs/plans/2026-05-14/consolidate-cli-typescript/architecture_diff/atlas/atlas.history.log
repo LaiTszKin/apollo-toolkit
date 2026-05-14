@@ -1,0 +1,25 @@
+{"ts":"2026-05-14T15:20:27.973Z","action":"feature add","args":{"slug":"cli-tool-system","title":"CLI 工具系統"},"mode":"spec"}
+{"ts":"2026-05-14T15:20:42.511Z","action":"submodule add","args":{"feature":"cli-tool-system","slug":"cli-dispatcher","kind":"service","role":"CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)"},"mode":"spec"}
+{"ts":"2026-05-14T15:20:42.603Z","action":"submodule add","args":{"feature":"cli-tool-system","slug":"tool-runner","kind":"service","role":"工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行"},"mode":"spec"}
+{"ts":"2026-05-14T15:20:42.694Z","action":"submodule add","args":{"feature":"cli-tool-system","slug":"installer","kind":"service","role":"技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)"},"mode":"spec"}
+{"ts":"2026-05-14T15:20:42.780Z","action":"submodule add","args":{"feature":"cli-tool-system","slug":"tool-implementations","kind":"service","role":"所有工具 handler 的 TypeScript 實現 (lib/tools/)"},"mode":"spec"}
+{"ts":"2026-05-14T15:20:42.867Z","action":"submodule add","args":{"feature":"cli-tool-system","slug":"shared-utils","kind":"pure-fn","role":"共享純函數: 終端顏色、格式化、型別定義"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:02.755Z","action":"feature add","args":{"slug":"skill-tools","title":"技能工具 (整合進 CLI)"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:02.851Z","action":"submodule add","args":{"feature":"skill-tools","slug":"observability-tools","kind":"service","role":"filter-logs, search-logs: TypeScript 直接執行 (原 Python)"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:02.939Z","action":"submodule add","args":{"feature":"skill-tools","slug":"github-tools","kind":"service","role":"open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:03.028Z","action":"submodule add","args":{"feature":"skill-tools","slug":"media-tools","kind":"service","role":"docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:03.112Z","action":"submodule add","args":{"feature":"skill-tools","slug":"spec-tools","kind":"service","role":"create-specs: 模板生成 (原 Python)"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:03.201Z","action":"submodule add","args":{"feature":"skill-tools","slug":"codex-tools","kind":"service","role":"extract-conversations (合併重複), sync-memory-index"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:03.293Z","action":"submodule add","args":{"feature":"skill-tools","slug":"catalog-tools","kind":"service","role":"validate-skill-frontmatter, validate-openai-agent-config"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:03.380Z","action":"submodule add","args":{"feature":"skill-tools","slug":"architecture-tool","kind":"service","role":"architecture: atlas CLI (從 JS 轉 TS)"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:27.904Z","action":"feature add","args":{"slug":"skill-directory","title":"技能目錄結構 (清理後)"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:27.997Z","action":"submodule add","args":{"feature":"skill-directory","slug":"skill-md","kind":"service","role":"SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.087Z","action":"submodule add","args":{"feature":"skill-directory","slug":"agents-config","kind":"service","role":"agents/: 配置保持不變"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.171Z","action":"submodule add","args":{"feature":"skill-directory","slug":"references","kind":"pure-fn","role":"references/: 參考文檔保持不變"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.262Z","action":"submodule add","args":{"feature":"skill-directory","slug":"tests","kind":"service","role":"TypeScript 測試取代 Python 測試"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.353Z","action":"edge add","args":{"from":{"feature":"cli-tool-system","submodule":"cli-dispatcher"},"to":{"feature":"cli-tool-system","submodule":"tool-runner"},"kind":"call","label":"runTool()","id":"e-cli-runner"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.444Z","action":"edge add","args":{"from":{"feature":"cli-tool-system","submodule":"tool-runner"},"to":{"feature":"cli-tool-system","submodule":"tool-implementations"},"kind":"call","label":"handler()","id":"e-runner-tools"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.535Z","action":"edge add","args":{"from":{"feature":"cli-tool-system","submodule":"cli-dispatcher"},"to":{"feature":"cli-tool-system","submodule":"installer"},"kind":"call","label":"installLinks()","id":"e-cli-installer"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.626Z","action":"edge add","args":{"from":{"feature":"cli-tool-system","submodule":"tool-implementations"},"to":{"feature":"skill-tools","submodule":"observability-tools"},"kind":"call","label":"直接 import","id":"e-tools-obs"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.710Z","action":"edge add","args":{"from":{"feature":"cli-tool-system","submodule":"tool-implementations"},"to":{"feature":"skill-tools","submodule":"github-tools"},"kind":"call","label":"直接 import","id":"e-tools-gh"},"mode":"spec"}
+{"ts":"2026-05-14T15:21:28.801Z","action":"edge add","args":{"from":{"feature":"cli-tool-system","submodule":"tool-implementations"},"to":{"feature":"skill-tools","submodule":"media-tools"},"kind":"call","label":"直接 import","id":"e-tools-media"},"mode":"spec"}

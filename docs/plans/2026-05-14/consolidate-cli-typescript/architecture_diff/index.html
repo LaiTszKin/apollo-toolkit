@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-page="macro">
+<head>
+  <meta charset="utf-8">
+  <title>Project architecture</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="assets/architecture.css">
+</head>
+<body>
+  <header class="atlas-header">
+    <h1>Project architecture</h1>
+    
+  </header>
+  <main class="atlas-main">
+    <section class="atlas-canvas" aria-label="Macro architecture diagram">
+      <div class="atlas-canvas__toolbar" role="toolbar" aria-label="Diagram controls">
+        <button type="button" data-pan-zoom="zoom-in" aria-label="Zoom in">+</button>
+        <button type="button" data-pan-zoom="zoom-out" aria-label="Zoom out">−</button>
+        <button type="button" data-pan-zoom="fit" aria-label="Reset view">Fit</button>
+      </div>
+      <div class="atlas-canvas__viewport" data-pan-zoom-viewport>
+<svg class="atlas-svg" viewBox="0 0 2216 1131" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Project architecture atlas" data-atlas-svg="macro">
+  <defs>
+    <marker id="arrow-call" class="m-arrow m-arrow--call" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>
+    <marker id="arrow-return" class="m-arrow m-arrow--return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>
+    <marker id="arrow-data-row" class="m-arrow m-arrow--data-row" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>
+    <marker id="arrow-failure" class="m-arrow m-arrow--failure" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>
+  </defs>
+  <g transform="translate(24,24)">
+    <g class="m-cluster" data-feature="cli-tool-system">
+      <rect class="m-cluster__bg" x="20.00" y="428.00" width="1391.00" height="350.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="715.50" y="454.00" text-anchor="middle">CLI 工具系統</text>
+    </g>
+    <g class="m-cluster" data-feature="skill-tools">
+      <rect class="m-cluster__bg" x="1621.00" y="185.75" width="527.00" height="877.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="1884.50" y="211.75" text-anchor="middle">技能工具 (整合進 CLI)</text>
+    </g>
+    <g class="m-cluster" data-feature="skill-directory">
+      <rect class="m-cluster__bg" x="1068.00" y="20.00" width="488.00" height="376.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="1312.00" y="46.00" text-anchor="middle">技能目錄結構 (清理後)</text>
+    </g>
+    <a class="m-node m-node--service" href="features/cli-tool-system/cli-dispatcher.html" data-feature="cli-tool-system" data-submodule="cli-dispatcher" tabindex="0" aria-label="cli-dispatcher — CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript) — open sub-module page">
+      <title>cli-dispatcher — CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)</title>
+      <rect x="36.00" y="556.00" width="408.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="240.00" y="586.00" text-anchor="middle">cli-dispatcher</text>
+      <text class="m-node__kind" x="240.00" y="602.00" text-anchor="middle">service</text>
+      <text class="m-node__role" x="240.00" y="622.00" text-anchor="middle">CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)</text>
+    </a>
+    <a class="m-node m-node--service" href="features/cli-tool-system/tool-runner.html" data-feature="cli-tool-system" data-submodule="tool-runner" tabindex="0" aria-label="tool-runner — 工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行 — open sub-module page">
+      <title>tool-runner — 工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行</title>
+      <rect x="602.00" y="611.00" width="354.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="779.00" y="641.00" text-anchor="middle">tool-runner</text>
+      <text class="m-node__kind" x="779.00" y="657.00" text-anchor="middle">service</text>
+      <text class="m-node__role" x="779.00" y="677.00" text-anchor="middle">工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行</text>
+    </a>
+    <a class="m-node m-node--service" href="features/cli-tool-system/installer.html" data-feature="cli-tool-system" data-submodule="installer" tabindex="0" aria-label="installer — 技能安裝/解除安裝、manifest 管理 (不再複製 scripts/) — open sub-module page">
+      <title>installer — 技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)</title>
+      <rect x="602.00" y="501.00" width="333.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="768.50" y="531.00" text-anchor="middle">installer</text>
+      <text class="m-node__kind" x="768.50" y="547.00" text-anchor="middle">service</text>
+      <text class="m-node__role" x="768.50" y="567.00" text-anchor="middle">技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)</text>
+    </a>
+    <a class="m-node m-node--service" href="features/cli-tool-system/tool-implementations.html" data-feature="cli-tool-system" data-submodule="tool-implementations" tabindex="0" aria-label="tool-implementations — 所有工具 handler 的 TypeScript 實現 (lib/tools/) — open sub-module page">
+      <title>tool-implementations — 所有工具 handler 的 TypeScript 實現 (lib/tools/)</title>
+      <rect x="1084.00" y="611.00" width="311.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1239.50" y="641.00" text-anchor="middle">tool-implementations</text>
+      <text class="m-node__kind" x="1239.50" y="657.00" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1239.50" y="677.00" text-anchor="middle">所有工具 handler 的 TypeScript 實現 (lib/tools/)</text>
+    </a>
+    <a class="m-node m-node--pure-fn" href="features/cli-tool-system/shared-utils.html" data-feature="cli-tool-system" data-submodule="shared-utils" tabindex="0" aria-label="shared-utils — 共享純函數: 終端顏色、格式化、型別定義 — open sub-module page">
+      <title>shared-utils — 共享純函數: 終端顏色、格式化、型別定義</title>
+      <rect x="115.50" y="666.00" width="249.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="240.00" y="696.00" text-anchor="middle">shared-utils</text>
+      <text class="m-node__kind" x="240.00" y="712.00" text-anchor="middle">pure function</text>
+      <text class="m-node__role" x="240.00" y="732.00" text-anchor="middle">共享純函數: 終端顏色、格式化、型別定義</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-tools/observability-tools.html" data-feature="skill-tools" data-submodule="observability-tools" tabindex="0" aria-label="observability-tools — filter-logs, search-logs: TypeScript 直接執行 (原 Python) — open sub-module page">
+      <title>observability-tools — filter-logs, search-logs: TypeScript 直接執行 (原 Python)</title>
+      <rect x="1637.00" y="950.75" width="369.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1821.50" y="980.75" text-anchor="middle">observability-tools</text>
+      <text class="m-node__kind" x="1821.50" y="996.75" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1821.50" y="1016.75" text-anchor="middle">filter-logs, search-logs: TypeScript 直接執行 (原 Python)</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-tools/github-tools.html" data-feature="skill-tools" data-submodule="github-tools" tabindex="0" aria-label="github-tools — open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn — open sub-module page">
+      <title>github-tools — open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn</title>
+      <rect x="1637.00" y="478.75" width="495.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1884.50" y="508.75" text-anchor="middle">github-tools</text>
+      <text class="m-node__kind" x="1884.50" y="524.75" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1884.50" y="544.75" text-anchor="middle">open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-tools/media-tools.html" data-feature="skill-tools" data-submodule="media-tools" tabindex="0" aria-label="media-tools — docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text — open sub-module page">
+      <title>media-tools — docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text</title>
+      <rect x="1637.00" y="588.75" width="338.00" height="126.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1806.00" y="618.75" text-anchor="middle">media-tools</text>
+      <text class="m-node__kind" x="1806.00" y="634.75" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1806.00" y="654.75" text-anchor="middle">docs-to-voice, render-katex, render-error-book,</text>
+      <text class="m-node__role" x="1806.00" y="670.75" text-anchor="middle">generate-storyboard, enforce-video,</text>
+      <text class="m-node__role" x="1806.00" y="686.75" text-anchor="middle">extract-pdf-text</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-tools/spec-tools.html" data-feature="skill-tools" data-submodule="spec-tools" tabindex="0" aria-label="spec-tools — create-specs: 模板生成 (原 Python) — open sub-module page">
+      <title>spec-tools — create-specs: 模板生成 (原 Python)</title>
+      <rect x="1769.00" y="368.75" width="231.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1884.50" y="398.75" text-anchor="middle">spec-tools</text>
+      <text class="m-node__kind" x="1884.50" y="414.75" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1884.50" y="434.75" text-anchor="middle">create-specs: 模板生成 (原 Python)</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-tools/codex-tools.html" data-feature="skill-tools" data-submodule="codex-tools" tabindex="0" aria-label="codex-tools — extract-conversations (合併重複), sync-memory-index — open sub-module page">
+      <title>codex-tools — extract-conversations (合併重複), sync-memory-index</title>
+      <rect x="1714.00" y="730.75" width="341.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1884.50" y="760.75" text-anchor="middle">codex-tools</text>
+      <text class="m-node__kind" x="1884.50" y="776.75" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1884.50" y="796.75" text-anchor="middle">extract-conversations (合併重複), sync-memory-index</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-tools/catalog-tools.html" data-feature="skill-tools" data-submodule="catalog-tools" tabindex="0" aria-label="catalog-tools — validate-skill-frontmatter, validate-openai-agent-config — open sub-module page">
+      <title>catalog-tools — validate-skill-frontmatter, validate-openai-agent-config</title>
+      <rect x="1694.50" y="258.75" width="380.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1884.50" y="288.75" text-anchor="middle">catalog-tools</text>
+      <text class="m-node__kind" x="1884.50" y="304.75" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1884.50" y="324.75" text-anchor="middle">validate-skill-frontmatter, validate-openai-agent-config</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-tools/architecture-tool.html" data-feature="skill-tools" data-submodule="architecture-tool" tabindex="0" aria-label="architecture-tool — architecture: atlas CLI (從 JS 轉 TS) — open sub-module page">
+      <title>architecture-tool — architecture: atlas CLI (從 JS 轉 TS)</title>
+      <rect x="1762.00" y="840.75" width="245.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1884.50" y="870.75" text-anchor="middle">architecture-tool</text>
+      <text class="m-node__kind" x="1884.50" y="886.75" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1884.50" y="906.75" text-anchor="middle">architecture: atlas CLI (從 JS 轉 TS)</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-directory/skill-md.html" data-feature="skill-directory" data-submodule="skill-md" tabindex="0" aria-label="skill-md — SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑 — open sub-module page">
+      <title>skill-md — SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑</title>
+      <rect x="1084.00" y="64.00" width="302.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1235.00" y="94.00" text-anchor="middle">skill-md</text>
+      <text class="m-node__kind" x="1235.00" y="110.00" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1235.00" y="130.00" text-anchor="middle">SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-directory/agents-config.html" data-feature="skill-directory" data-submodule="agents-config" tabindex="0" aria-label="agents-config — agents/: 配置保持不變 — open sub-module page">
+      <title>agents-config — agents/: 配置保持不變</title>
+      <rect x="1084.00" y="174.00" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1194.00" y="204.00" text-anchor="middle">agents-config</text>
+      <text class="m-node__kind" x="1194.00" y="220.00" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1194.00" y="240.00" text-anchor="middle">agents/: 配置保持不變</text>
+    </a>
+    <a class="m-node m-node--pure-fn" href="features/skill-directory/references.html" data-feature="skill-directory" data-submodule="references" tabindex="0" aria-label="references — references/: 參考文檔保持不變 — open sub-module page">
+      <title>references — references/: 參考文檔保持不變</title>
+      <rect x="1320.00" y="174.00" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1430.00" y="204.00" text-anchor="middle">references</text>
+      <text class="m-node__kind" x="1430.00" y="220.00" text-anchor="middle">pure function</text>
+      <text class="m-node__role" x="1430.00" y="240.00" text-anchor="middle">references/: 參考文檔保持不變</text>
+    </a>
+    <a class="m-node m-node--service" href="features/skill-directory/tests.html" data-feature="skill-directory" data-submodule="tests" tabindex="0" aria-label="tests — TypeScript 測試取代 Python 測試 — open sub-module page">
+      <title>tests — TypeScript 測試取代 Python 測試</title>
+      <rect x="1084.00" y="284.00" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1194.00" y="314.00" text-anchor="middle">tests</text>
+      <text class="m-node__kind" x="1194.00" y="330.00" text-anchor="middle">service</text>
+      <text class="m-node__role" x="1194.00" y="350.00" text-anchor="middle">TypeScript 測試取代 Python 測試</text>
+    </a>
+    <g class="m-edge m-edge--call m-edge--cross" data-edge="e-tools-obs">
+      <path d="M1395.00,681.50 L1466.00,681.50 L1466.00,849.00 L1566.00,849.00 L1566.00,997.75 L1637.00,997.75" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="1516.00" y="867.00" text-anchor="middle">
+        <tspan x="1516.00">直接 import</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--call m-edge--cross" data-edge="e-tools-gh">
+      <path d="M1395.00,634.50 L1426.00,634.50 L1426.00,570.75 L1566.00,570.75 L1566.00,525.75 L1637.00,525.75" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="1516.00" y="588.75" text-anchor="middle">
+        <tspan x="1516.00">直接 import</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--call m-edge--cross" data-edge="e-tools-media">
+      <path d="M1395.00,658.00 L1426.00,658.00 L1426.00,651.75 L1637.00,651.75" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="1516.00" y="669.75" text-anchor="middle">
+        <tspan x="1516.00">直接 import</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--call" data-edge="e-cli-runner">
+      <path d="M444.00,618.67 L454.00,618.67 L454.00,658.00 L602.00,658.00" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="523.00" y="676.00" text-anchor="middle">
+        <tspan x="523.00">runTool()</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--call" data-edge="e-runner-tools">
+      <path d="M956.00,658.00 L1084.00,658.00" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="1020.00" y="676.00" text-anchor="middle">
+        <tspan x="1020.00">handler()</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--call" data-edge="e-cli-installer">
+      <path d="M444.00,587.33 L454.00,587.33 L454.00,548.00 L602.00,548.00" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="523.00" y="538.00" text-anchor="middle">
+        <tspan x="523.00">installLinks()</tspan>
+      </text>
+    </g>
+  </g>
+</svg>
+      </div>
+      <ol class="atlas-legend" aria-label="Edge legend">
+        <li><span class="legend-swatch legend-swatch--call"></span>call</li>
+        <li><span class="legend-swatch legend-swatch--return"></span>return</li>
+        <li><span class="legend-swatch legend-swatch--data-row"></span>data-row</li>
+        <li><span class="legend-swatch legend-swatch--failure"></span>failure</li>
+      </ol>
+    </section>
+    <section class="atlas-index" aria-label="Submodule index">
+      <h2>Submodule index</h2>
+      <ul class="atlas-submodule-index">
+        <li class="atlas-submodule-index__item">
+          <a href="features/cli-tool-system/cli-dispatcher.html">
+            <span class="atlas-submodule-index__feature">CLI 工具系統</span>
+            <span class="atlas-submodule-index__sub">cli-dispatcher</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/cli-tool-system/tool-runner.html">
+            <span class="atlas-submodule-index__feature">CLI 工具系統</span>
+            <span class="atlas-submodule-index__sub">tool-runner</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/cli-tool-system/installer.html">
+            <span class="atlas-submodule-index__feature">CLI 工具系統</span>
+            <span class="atlas-submodule-index__sub">installer</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/cli-tool-system/tool-implementations.html">
+            <span class="atlas-submodule-index__feature">CLI 工具系統</span>
+            <span class="atlas-submodule-index__sub">tool-implementations</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">所有工具 handler 的 TypeScript 實現 (lib/tools/)</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/cli-tool-system/shared-utils.html">
+            <span class="atlas-submodule-index__feature">CLI 工具系統</span>
+            <span class="atlas-submodule-index__sub">shared-utils</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--pure-fn">Pure fn</span>
+          </a>
+          <p class="atlas-submodule-index__role">共享純函數: 終端顏色、格式化、型別定義</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-tools/observability-tools.html">
+            <span class="atlas-submodule-index__feature">技能工具 (整合進 CLI)</span>
+            <span class="atlas-submodule-index__sub">observability-tools</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">filter-logs, search-logs: TypeScript 直接執行 (原 Python)</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-tools/github-tools.html">
+            <span class="atlas-submodule-index__feature">技能工具 (整合進 CLI)</span>
+            <span class="atlas-submodule-index__sub">github-tools</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-tools/media-tools.html">
+            <span class="atlas-submodule-index__feature">技能工具 (整合進 CLI)</span>
+            <span class="atlas-submodule-index__sub">media-tools</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-tools/spec-tools.html">
+            <span class="atlas-submodule-index__feature">技能工具 (整合進 CLI)</span>
+            <span class="atlas-submodule-index__sub">spec-tools</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">create-specs: 模板生成 (原 Python)</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-tools/codex-tools.html">
+            <span class="atlas-submodule-index__feature">技能工具 (整合進 CLI)</span>
+            <span class="atlas-submodule-index__sub">codex-tools</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">extract-conversations (合併重複), sync-memory-index</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-tools/catalog-tools.html">
+            <span class="atlas-submodule-index__feature">技能工具 (整合進 CLI)</span>
+            <span class="atlas-submodule-index__sub">catalog-tools</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">validate-skill-frontmatter, validate-openai-agent-config</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-tools/architecture-tool.html">
+            <span class="atlas-submodule-index__feature">技能工具 (整合進 CLI)</span>
+            <span class="atlas-submodule-index__sub">architecture-tool</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">architecture: atlas CLI (從 JS 轉 TS)</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-directory/skill-md.html">
+            <span class="atlas-submodule-index__feature">技能目錄結構 (清理後)</span>
+            <span class="atlas-submodule-index__sub">skill-md</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-directory/agents-config.html">
+            <span class="atlas-submodule-index__feature">技能目錄結構 (清理後)</span>
+            <span class="atlas-submodule-index__sub">agents-config</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">agents/: 配置保持不變</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-directory/references.html">
+            <span class="atlas-submodule-index__feature">技能目錄結構 (清理後)</span>
+            <span class="atlas-submodule-index__sub">references</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--pure-fn">Pure fn</span>
+          </a>
+          <p class="atlas-submodule-index__role">references/: 參考文檔保持不變</p>
+        </li>
+        <li class="atlas-submodule-index__item">
+          <a href="features/skill-directory/tests.html">
+            <span class="atlas-submodule-index__feature">技能目錄結構 (清理後)</span>
+            <span class="atlas-submodule-index__sub">tests</span>
+            <span class="atlas-submodule-index__kind atlas-submodule-index__kind--service">Service</span>
+          </a>
+          <p class="atlas-submodule-index__role">TypeScript 測試取代 Python 測試</p>
+        </li>
+      </ul>
+    </section>
+  </main>
+  <script src="assets/viewer.client.js" defer></script>
+</body>
+</html>

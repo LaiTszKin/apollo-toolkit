@@ -1,0 +1,3369 @@
+[
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": null,
+      "features": {},
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "agents-config",
+              "kind": "service",
+              "role": "agents/: 配置保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "agents-config",
+              "kind": "service",
+              "role": "agents/: 配置保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "references",
+              "kind": "pure-fn",
+              "role": "references/: 參考文檔保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "agents-config",
+              "kind": "service",
+              "role": "agents/: 配置保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "references",
+              "kind": "pure-fn",
+              "role": "references/: 參考文檔保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tests",
+              "kind": "service",
+              "role": "TypeScript 測試取代 Python 測試",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": [
+            {
+              "id": "e-cli-runner",
+              "from": "cli-dispatcher",
+              "to": "tool-runner",
+              "kind": "call",
+              "label": "runTool()"
+            }
+          ]
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "agents-config",
+              "kind": "service",
+              "role": "agents/: 配置保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "references",
+              "kind": "pure-fn",
+              "role": "references/: 參考文檔保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tests",
+              "kind": "service",
+              "role": "TypeScript 測試取代 Python 測試",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": [
+            {
+              "id": "e-cli-runner",
+              "from": "cli-dispatcher",
+              "to": "tool-runner",
+              "kind": "call",
+              "label": "runTool()"
+            },
+            {
+              "id": "e-runner-tools",
+              "from": "tool-runner",
+              "to": "tool-implementations",
+              "kind": "call",
+              "label": "handler()"
+            }
+          ]
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "agents-config",
+              "kind": "service",
+              "role": "agents/: 配置保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "references",
+              "kind": "pure-fn",
+              "role": "references/: 參考文檔保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tests",
+              "kind": "service",
+              "role": "TypeScript 測試取代 Python 測試",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": null,
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": [
+            {
+              "id": "e-cli-runner",
+              "from": "cli-dispatcher",
+              "to": "tool-runner",
+              "kind": "call",
+              "label": "runTool()"
+            },
+            {
+              "id": "e-runner-tools",
+              "from": "tool-runner",
+              "to": "tool-implementations",
+              "kind": "call",
+              "label": "handler()"
+            },
+            {
+              "id": "e-cli-installer",
+              "from": "cli-dispatcher",
+              "to": "installer",
+              "kind": "call",
+              "label": "installLinks()"
+            }
+          ]
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "agents-config",
+              "kind": "service",
+              "role": "agents/: 配置保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "references",
+              "kind": "pure-fn",
+              "role": "references/: 參考文檔保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tests",
+              "kind": "service",
+              "role": "TypeScript 測試取代 Python 測試",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": [
+        {
+          "id": "e-tools-obs",
+          "from": {
+            "feature": "cli-tool-system",
+            "submodule": "tool-implementations"
+          },
+          "to": {
+            "feature": "skill-tools",
+            "submodule": "observability-tools"
+          },
+          "kind": "call",
+          "label": "直接 import"
+        }
+      ],
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": [
+            {
+              "id": "e-cli-runner",
+              "from": "cli-dispatcher",
+              "to": "tool-runner",
+              "kind": "call",
+              "label": "runTool()"
+            },
+            {
+              "id": "e-runner-tools",
+              "from": "tool-runner",
+              "to": "tool-implementations",
+              "kind": "call",
+              "label": "handler()"
+            },
+            {
+              "id": "e-cli-installer",
+              "from": "cli-dispatcher",
+              "to": "installer",
+              "kind": "call",
+              "label": "installLinks()"
+            }
+          ]
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "agents-config",
+              "kind": "service",
+              "role": "agents/: 配置保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "references",
+              "kind": "pure-fn",
+              "role": "references/: 參考文檔保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tests",
+              "kind": "service",
+              "role": "TypeScript 測試取代 Python 測試",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  },
+  {
+    "base": {
+      "meta": {
+        "title": "Project architecture",
+        "summary": "",
+        "updatedAt": null
+      },
+      "actors": [],
+      "features": [],
+      "edges": []
+    },
+    "overlay": {
+      "meta": null,
+      "actors": null,
+      "edges": [
+        {
+          "id": "e-tools-obs",
+          "from": {
+            "feature": "cli-tool-system",
+            "submodule": "tool-implementations"
+          },
+          "to": {
+            "feature": "skill-tools",
+            "submodule": "observability-tools"
+          },
+          "kind": "call",
+          "label": "直接 import"
+        },
+        {
+          "id": "e-tools-gh",
+          "from": {
+            "feature": "cli-tool-system",
+            "submodule": "tool-implementations"
+          },
+          "to": {
+            "feature": "skill-tools",
+            "submodule": "github-tools"
+          },
+          "kind": "call",
+          "label": "直接 import"
+        }
+      ],
+      "featureOrder": [
+        "cli-tool-system",
+        "skill-tools",
+        "skill-directory"
+      ],
+      "features": {
+        "cli-tool-system": {
+          "slug": "cli-tool-system",
+          "title": "CLI 工具系統",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "cli-dispatcher",
+              "kind": "service",
+              "role": "CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-runner",
+              "kind": "service",
+              "role": "工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "installer",
+              "kind": "service",
+              "role": "技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tool-implementations",
+              "kind": "service",
+              "role": "所有工具 handler 的 TypeScript 實現 (lib/tools/)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "shared-utils",
+              "kind": "pure-fn",
+              "role": "共享純函數: 終端顏色、格式化、型別定義",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": [
+            {
+              "id": "e-cli-runner",
+              "from": "cli-dispatcher",
+              "to": "tool-runner",
+              "kind": "call",
+              "label": "runTool()"
+            },
+            {
+              "id": "e-runner-tools",
+              "from": "tool-runner",
+              "to": "tool-implementations",
+              "kind": "call",
+              "label": "handler()"
+            },
+            {
+              "id": "e-cli-installer",
+              "from": "cli-dispatcher",
+              "to": "installer",
+              "kind": "call",
+              "label": "installLinks()"
+            }
+          ]
+        },
+        "skill-directory": {
+          "slug": "skill-directory",
+          "title": "技能目錄結構 (清理後)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "skill-md",
+              "kind": "service",
+              "role": "SKILL.md: 引用 apltk CLI 命令而非 scripts/ 路徑",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "agents-config",
+              "kind": "service",
+              "role": "agents/: 配置保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "references",
+              "kind": "pure-fn",
+              "role": "references/: 參考文檔保持不變",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "tests",
+              "kind": "service",
+              "role": "TypeScript 測試取代 Python 測試",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        },
+        "skill-tools": {
+          "slug": "skill-tools",
+          "title": "技能工具 (整合進 CLI)",
+          "story": "",
+          "dependsOn": [],
+          "submodules": [
+            {
+              "slug": "observability-tools",
+              "kind": "service",
+              "role": "filter-logs, search-logs: TypeScript 直接執行 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "github-tools",
+              "kind": "service",
+              "role": "open-github-issue, find/read-github-issues, review-threads: 通過 gh CLI spawn",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "media-tools",
+              "kind": "service",
+              "role": "docs-to-voice, render-katex, render-error-book, generate-storyboard, enforce-video, extract-pdf-text",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "spec-tools",
+              "kind": "service",
+              "role": "create-specs: 模板生成 (原 Python)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "codex-tools",
+              "kind": "service",
+              "role": "extract-conversations (合併重複), sync-memory-index",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "catalog-tools",
+              "kind": "service",
+              "role": "validate-skill-frontmatter, validate-openai-agent-config",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            },
+            {
+              "slug": "architecture-tool",
+              "kind": "service",
+              "role": "architecture: atlas CLI (從 JS 轉 TS)",
+              "functions": [],
+              "variables": [],
+              "dataflow": [],
+              "errors": []
+            }
+          ],
+          "edges": []
+        }
+      },
+      "removed": {
+        "features": [],
+        "submodules": []
+      }
+    }
+  }
+]

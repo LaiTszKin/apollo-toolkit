@@ -88,5 +88,4 @@ See `references/insertion-patterns.md` for concrete insertion guidance.
 
 - `references/official-docs.md`: condensed notes from the official KaTeX docs and direct source links.
 - `references/insertion-patterns.md`: insertion patterns for HTML, Markdown/MDX, and auto-rendered pages.
-- `scripts/render_katex.py`: deterministic wrapper around the official KaTeX CLI for insertion-ready output, exposed as `apltk render-katex`.
-- `scripts/render_katex.sh`: shell wrapper for environments that prefer an executable script entrypoint.
+- `apltk render-katex`: TypeScript handler that calls the official KaTeX CLI for insertion-ready output (`lib/tools/render-katex.ts`).

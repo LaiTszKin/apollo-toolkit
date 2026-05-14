@@ -21,7 +21,7 @@ description: Learn and evolve the local skill library from recent Codex conversa
 
 ## Required Resources
 
-- `scripts/extract_recent_conversations.py` for deterministic session extraction, exposed as `apltk extract-skill-conversations`.
+- `apltk extract-skill-conversations`: Deterministic session extraction (TypeScript handler in `lib/tools/extract-conversations.ts`, shared with `codex-memory-manager`).
 - `$skill-creator` for all skill creation/update work.
 
 ## Workflow

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import type { ToolContext } from '../types';

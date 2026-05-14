@@ -54,4 +54,3 @@ Use `apltk docs-to-voice --help` as the live command reference for required inpu
 - `api` mode: confirm `command -v python3` and valid `DASHSCOPE_API_KEY`.
 - Long-text chunk merge (especially AIFF output): recommend `command -v ffmpeg`.
 - If output exists, use the overwrite or rename options shown in `apltk docs-to-voice --help`.
-- `scripts/docs_to_voice.sh` is kept as a compatibility wrapper for existing workflows, but prefer `apltk docs-to-voice`.

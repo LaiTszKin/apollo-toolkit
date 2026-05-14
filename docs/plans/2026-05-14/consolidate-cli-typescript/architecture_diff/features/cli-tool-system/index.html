@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-atlas-page="feature">
+<head>
+  <meta charset="utf-8">
+  <title>CLI 工具系統</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="../../assets/architecture.css">
+</head>
+<body>
+  <header class="feature-header">
+    <nav class="feature-breadcrumb"><a href="../../index.html">← Atlas</a></nav>
+    <h1>CLI 工具系統</h1>
+    
+  </header>
+  <main class="feature-main">
+    
+    <section class="feature-submodules" aria-label="Submodules">
+      <h2>Submodules</h2>
+      <ul class="submodule-nav">
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="cli-dispatcher.html">
+          <span class="submodule-card__name">cli-dispatcher</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">CLI 參數解析、安裝/解除安裝流程、互動式 UI、幫助文本 (TypeScript)</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="tool-runner.html">
+          <span class="submodule-card__name">tool-runner</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">工具註冊表、handler 直接呼叫 + spawn fallback 雙模式執行</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="installer.html">
+          <span class="submodule-card__name">installer</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">技能安裝/解除安裝、manifest 管理 (不再複製 scripts/)</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="tool-implementations.html">
+          <span class="submodule-card__name">tool-implementations</span>
+          <span class="submodule-card__kind submodule-card__kind--service">Service</span>
+        </a>
+        <p class="submodule-card__role">所有工具 handler 的 TypeScript 實現 (lib/tools/)</p>
+      </li>
+      <li class="submodule-card">
+        <a class="submodule-card__link" href="shared-utils.html">
+          <span class="submodule-card__name">shared-utils</span>
+          <span class="submodule-card__kind submodule-card__kind--pure-fn">Pure fn</span>
+        </a>
+        <p class="submodule-card__role">共享純函數: 終端顏色、格式化、型別定義</p>
+      </li>
+      </ul>
+    </section>
+    <section class="feature-edges" aria-label="Intra-feature edges">
+      <h2>Intra-feature edges</h2>
+      <ul class="feature-edges__list">
+        <li class="feature-edges__item feature-edges__item--call"><span class="feature-edges__endpoints">cli-dispatcher → tool-runner</span><span class="feature-edges__kind">call</span><span class="feature-edges__label">runTool()</span></li>
+        <li class="feature-edges__item feature-edges__item--call"><span class="feature-edges__endpoints">tool-runner → tool-implementations</span><span class="feature-edges__kind">call</span><span class="feature-edges__label">handler()</span></li>
+        <li class="feature-edges__item feature-edges__item--call"><span class="feature-edges__endpoints">cli-dispatcher → installer</span><span class="feature-edges__kind">call</span><span class="feature-edges__label">installLinks()</span></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

@@ -20,7 +20,7 @@ export const TARGET_DEFINITIONS: readonly TargetDefinition[] = Object.freeze([
 
 export const VALID_MODES: readonly InstallMode[] = TARGET_DEFINITIONS.map(({ id }) => id);
 const COPY_FILES = new Set(['AGENTS.md', 'CHANGELOG.md', 'LICENSE', 'README.md', 'package.json']);
-const COPY_DIRS = new Set(['scripts']);
+const COPY_DIRS = new Set<string>();
 export const MANIFEST_FILENAME = '.apollo-toolkit-manifest.json';
 
 export function resolveHomeDirectory(env: NodeJS.ProcessEnv = process.env): string {

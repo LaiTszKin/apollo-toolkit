@@ -1,0 +1,32 @@
+edges:
+  - id: e-tools-obs
+    from:
+      feature: cli-tool-system
+      submodule: tool-implementations
+    to:
+      feature: skill-tools
+      submodule: observability-tools
+    kind: call
+    label: 直接 import
+  - id: e-tools-gh
+    from:
+      feature: cli-tool-system
+      submodule: tool-implementations
+    to:
+      feature: skill-tools
+      submodule: github-tools
+    kind: call
+    label: 直接 import
+  - id: e-tools-media
+    from:
+      feature: cli-tool-system
+      submodule: tool-implementations
+    to:
+      feature: skill-tools
+      submodule: media-tools
+    kind: call
+    label: 直接 import
+features:
+  - cli-tool-system
+  - skill-tools
+  - skill-directory

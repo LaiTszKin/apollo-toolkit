@@ -25,8 +25,8 @@ Keep a durable, categorized memory of user preferences so future agents can quic
 
 ## Required Resources
 
-- `scripts/extract_recent_conversations.py` to read the last 24 hours of Codex sessions, including archived sessions, exposed as `apltk extract-codex-conversations`.
-- `scripts/sync_memory_index.py` to maintain a normalized memory index section at the end of `~/.codex/AGENTS.md`, exposed as `apltk sync-codex-memory-index`.
+- `apltk extract-codex-conversations`: Read the last N hours of Codex sessions, including archived sessions (TypeScript handler in `lib/tools/extract-conversations.ts`).
+- `apltk sync-codex-memory-index`: Maintain a normalized memory index section at the end of `~/.codex/AGENTS.md` (TypeScript handler in `lib/tools/sync-memory-index.ts`).
 
 ## Workflow
 

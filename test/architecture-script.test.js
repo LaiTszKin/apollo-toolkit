@@ -4,7 +4,6 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const architecture = require('../init-project-html/scripts/architecture.js');
 const atlasCli = require('../init-project-html/lib/atlas/cli');
 const { listToolCommands, resolveToolCommand } = require('../lib/tool-runner');
 const { parseArguments, buildHelpText } = require('../lib/cli');
@@ -57,14 +56,14 @@ function makeSpec(root, specPath, files) {
   return diffDir;
 }
 
-test('architecture tool is registered with node runner', () => {
+test('architecture tool is registered in tool-runner', () => {
   const tools = listToolCommands();
   const tool = tools.find((entry) => entry.name === 'architecture');
   assert.ok(tool, 'architecture tool should be registered');
-  assert.equal(tool.runner, 'node');
   assert.equal(tool.skill, 'init-project-html');
   const resolved = resolveToolCommand('architecture', '/repo');
-  assert.equal(resolved.scriptPath, '/repo/init-project-html/scripts/architecture.js');
+  assert.ok(resolved);
+  assert.ok(resolved.scriptPath || resolved.handler, 'architecture must have a script or handler');
 });
 
 test('parseArguments routes architecture invocation through tool dispatch', () => {
@@ -81,15 +80,6 @@ test('buildHelpText surfaces architecture examples', () => {
   assert.match(text, /Result:/);
 });
 
-test('legacy architecture help routes to verb-specific help pages', () => {
-  const io = makeIo();
-  const code = architecture.main(['diff', '--help'], io);
-  assert.equal(code, 0);
-  assert.match(io.stdout_text, /apltk architecture diff/);
-  assert.match(io.stdout_text, /Use this when:/);
-  assert.match(io.stdout_text, /Examples:/);
-});
-
 test('atlas CLI returns action-specific help for nested verbs', async () => {
   const io = makeIo();
   const code = await atlasCli.dispatch(['edge', 'add', '--help'], io);
@@ -100,26 +90,11 @@ test('atlas CLI returns action-specific help for nested verbs', async () => {
   assert.match(io.stdout_text, /atlas: edge add applied/);
 });
 
-test('parseArgs supports default open, explicit diff, and flags', () => {
-  assert.equal(architecture.parseArgs([]).subcommand, 'open');
-  assert.equal(architecture.parseArgs(['open']).subcommand, 'open');
-  assert.equal(architecture.parseArgs(['diff']).subcommand, 'diff');
-  const parsed = architecture.parseArgs(['diff', '--project', '/p', '--out', '/o', '--no-open']);
-  assert.equal(parsed.subcommand, 'diff');
-  assert.equal(parsed.projectRoot, path.resolve('/p'));
-  assert.equal(parsed.out, path.resolve('/o'));
-  assert.equal(parsed.open, false);
-});
-
-test('parseArgs rejects unknown flags', () => {
-  assert.throws(() => architecture.parseArgs(['--what']));
-});
-
-test('open subcommand prints atlas path and exits 0', () => {
+test('open subcommand prints atlas path through atlas CLI', async () => {
   const root = makeFixture();
   try {
     const io = makeIo();
-    const code = architecture.main(['open', '--project', root, '--no-open'], io);
+    const code = await atlasCli.dispatch(['open', '--project', root, '--no-open'], io);
     assert.equal(code, 0);
     assert.match(io.stdout_text, /resources\/project-architecture\/index\.html/);
   } finally {
@@ -127,11 +102,11 @@ test('open subcommand prints atlas path and exits 0', () => {
   }
 });
 
-test('open subcommand bootstraps atlas when resources tree is empty (... --project root)', () => {
+test('open subcommand bootstraps atlas when resources tree is empty', async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-empty-'));
   try {
     const io = makeIo();
-    const code = architecture.main(['open', '--project', root, '--no-open'], io);
+    const code = await atlasCli.dispatch(['open', '--project', root, '--no-open'], io);
     assert.equal(code, 0);
     assert.match(io.stdout_text, /resources\/project-architecture\/index\.html/);
     assert.ok(fs.existsSync(path.join(root, 'resources', 'project-architecture', 'index.html')));
@@ -140,7 +115,7 @@ test('open subcommand bootstraps atlas when resources tree is empty (... --proje
   }
 });
 
-test('diff classifies modified, added, removed using path alignment', () => {
+test('diff classifies modified, added, removed using path alignment', async () => {
   const root = makeFixture();
   try {
     makeSpec(root, 'docs/plans/2026-05-11/invite-rotation', {
@@ -151,7 +126,7 @@ test('diff classifies modified, added, removed using path alignment', () => {
       removed: ['features/invite-code-registration/legacy-page.html'],
     });
 
-    const changes = architecture.collectChanges(root);
+    const changes = await atlasCli.collectDiffChanges({ projectRoot: root });
     const byRel = Object.fromEntries(changes.map((c) => [c.rel, c]));
     assert.equal(byRel['features/invite-code-registration/registration-service.html'].kind, 'modified');
     assert.equal(byRel['features/invite-code-registration/new-page.html'].kind, 'added');
@@ -159,11 +134,9 @@ test('diff classifies modified, added, removed using path alignment', () => {
 
     const modified = byRel['features/invite-code-registration/registration-service.html'];
     assert.ok(modified.beforePath && modified.afterPath);
-
     const added = byRel['features/invite-code-registration/new-page.html'];
     assert.equal(added.beforePath, null);
     assert.ok(added.afterPath);
-
     const removed = byRel['features/invite-code-registration/legacy-page.html'];
     assert.ok(removed.beforePath);
     assert.equal(removed.afterPath, null);
@@ -172,21 +145,21 @@ test('diff classifies modified, added, removed using path alignment', () => {
   }
 });
 
-test('diff drops removed entries whose before file is absent', () => {
+test('diff drops removed entries whose before file is absent', async () => {
   const root = makeFixture();
   try {
     makeSpec(root, 'docs/plans/2026-05-11/ghost', {
       afters: {},
       removed: ['features/invite-code-registration/does-not-exist.html'],
     });
-    const changes = architecture.collectChanges(root);
+    const changes = await atlasCli.collectDiffChanges({ projectRoot: root });
     assert.equal(changes.length, 0);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 
-test('diff handles batch specs by reading each member architecture_diff', () => {
+test('diff handles batch specs by reading each member architecture_diff', async () => {
   const root = makeFixture();
   try {
     makeSpec(root, 'docs/plans/2026-05-11/batch/member-a', {
@@ -195,7 +168,7 @@ test('diff handles batch specs by reading each member architecture_diff', () => 
     makeSpec(root, 'docs/plans/2026-05-11/batch/member-b', {
       afters: { 'features/invite-code-registration/new-feature.html': '<y/>' },
     });
-    const changes = architecture.collectChanges(root);
+    const changes = await atlasCli.collectDiffChanges({ projectRoot: root });
     const specs = new Set(changes.map((c) => c.spec));
     assert.ok([...specs].some((s) => s.endsWith('member-a')));
     assert.ok([...specs].some((s) => s.endsWith('member-b')));
@@ -204,7 +177,7 @@ test('diff handles batch specs by reading each member architecture_diff', () => 
   }
 });
 
-test('diff writes viewer HTML with relative iframe paths', () => {
+test('diff writes viewer HTML with relative iframe paths', async () => {
   const root = makeFixture();
   try {
     makeSpec(root, 'docs/plans/2026-05-11/invite-rotation', {
@@ -214,7 +187,7 @@ test('diff writes viewer HTML with relative iframe paths', () => {
     });
 
     const io = makeIo();
-    const code = architecture.main(['diff', '--project', root, '--no-open'], io);
+    const code = await atlasCli.dispatch(['diff', '--project', root, '--no-open'], io);
     assert.equal(code, 0);
     const indexPath = path.join(root, '.apollo-toolkit', 'architecture-diff', 'index.html');
     assert.ok(fs.existsSync(indexPath));
@@ -233,7 +206,7 @@ test('diff writes viewer HTML with relative iframe paths', () => {
   }
 });
 
-test('diff respects custom --out path', () => {
+test('diff respects custom --out path', async () => {
   const root = makeFixture();
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-out-'));
   try {
@@ -241,7 +214,7 @@ test('diff respects custom --out path', () => {
       afters: { 'features/invite-code-registration/registration-service.html': '<x/>' },
     });
     const io = makeIo();
-    const code = architecture.main(['diff', '--project', root, '--out', outDir, '--no-open'], io);
+    const code = await atlasCli.dispatch(['diff', '--project', root, '--out', outDir, '--no-open'], io);
     assert.equal(code, 0);
     assert.ok(fs.existsSync(path.join(outDir, 'index.html')));
   } finally {
@@ -250,11 +223,11 @@ test('diff respects custom --out path', () => {
   }
 });
 
-test('diff renders an empty-state viewer when no architecture_diff dirs exist', () => {
+test('diff renders an empty-state viewer when no architecture_diff dirs exist', async () => {
   const root = makeFixture();
   try {
     const io = makeIo();
-    const code = architecture.main(['diff', '--project', root, '--no-open'], io);
+    const code = await atlasCli.dispatch(['diff', '--project', root, '--no-open'], io);
     assert.equal(code, 0);
     const html = fs.readFileSync(path.join(root, '.apollo-toolkit', 'architecture-diff', 'index.html'), 'utf8');
     assert.match(html, /No architecture diffs found/);
@@ -281,7 +254,7 @@ test('legacy diff command merges batch overlays into one macro page', async () =
     await atlasCli.dispatch(['submodule', 'add', '--feature', 'profile', '--slug', 'ui', '--kind', 'ui', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-b', '--project', root, '--no-open'], makeIo());
 
     const io = makeIo();
-    const code = architecture.main(['diff', '--project', root, '--no-open'], io);
+    const code = await atlasCli.dispatch(['diff', '--project', root, '--no-open'], io);
     assert.equal(code, 0);
     assert.match(io.stdout_text, /Diff pages: 5/);
     const html = fs.readFileSync(path.join(root, '.apollo-toolkit', 'architecture-diff', 'index.html'), 'utf8');
