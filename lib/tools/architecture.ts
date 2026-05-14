@@ -1,8 +1,6 @@
 import path from 'node:path';
 import type { ToolContext } from '../types';
 
-const LEGACY_VERBS = new Set(['open', 'diff']);
-
 export function architectureHandler(args: string[], context: ToolContext): Promise<number> {
   const sourceRoot = context.sourceRoot || path.resolve(__dirname, '..', '..', '..');
 
@@ -11,18 +9,6 @@ export function architectureHandler(args: string[], context: ToolContext): Promi
 
   try {
     const cli = require(cliPath);
-
-    const verb = args[0];
-    if (!verb || verb.startsWith('-') || LEGACY_VERBS.has(verb)) {
-      // Sync execution for legacy verbs
-      const code = cli.main(args, {
-        stdout: context.stdout || process.stdout,
-        stderr: context.stderr || process.stderr,
-      });
-      return Promise.resolve(code);
-    }
-
-    // Async dispatch for declarative verbs
     return cli.dispatch(args, {
       stdout: context.stdout || process.stdout,
       stderr: context.stderr || process.stderr,
