@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.2] - 2026-05-15
+
+### Fixed
+
+- Support flags before verb in architecture atlas dispatch, preventing silent default to `open` when `--spec` precedes the verb (e.g., `apltk architecture --spec docs/plans/xxx feature add ...`).
+
 ## [v3.14.1] - 2026-05-15
 
 ### Fixed
