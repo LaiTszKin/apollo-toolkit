@@ -16,7 +16,7 @@ description: 當你需要審查規格文檔相關變更時，調用此技能
 ### 1. 建立審查範圍
 
 閱讀用戶指定的 spec ，並按照 spec 之中定義的實作範圍，檢索並閱讀相關代碼。
-如果外部環境允許使用 subagents，建議通過調度 subagents 完成代碼的深度閱讀。
+如果外部環境允許使用 subagents，建議通過並行調度 subagents 完成代碼的深度閱讀。
 
 ### 2. 進行多維度審查
 
@@ -29,7 +29,7 @@ description: 當你需要審查規格文檔相關變更時，調用此技能
 - 無性能隱患
 
 如果有代碼違反了上述6個原則，將他們紀錄在案。
-如果外部環境允許使用 subagents，建議通過調度 subagents 完成對代碼的多維度審查，每一個 subagent 審查一個維度。
+如果外部環境允許使用 subagents，建議通過並行調度 subagents 完成對代碼的多維度審查，每一個 subagent 審查一個維度。
 
 ### 3. 生成 code review report
 
