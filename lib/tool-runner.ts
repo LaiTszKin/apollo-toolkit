@@ -3,6 +3,19 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { formatExamples } from './utils/format';
 import type { ToolContext, ToolDefinition, ToolExample } from './types';
+import { createSpecsHandler } from './tools/create-specs';
+import { renderKatexHandler } from './tools/render-katex';
+import { renderErrorBookHandler } from './tools/render-error-book';
+import { docsToVoiceHandler } from './tools/docs-to-voice';
+import { generateStoryboardImagesHandler } from './tools/generate-storyboard-images';
+import { enforceVideoAspectRatioHandler } from './tools/enforce-video-aspect-ratio';
+import { extractPdfTextHandler } from './tools/extract-pdf-text';
+import { filterLogsHandler } from './tools/filter-logs';
+import { searchLogsHandler } from './tools/search-logs';
+import { openGitHubIssueHandler } from './tools/open-github-issue';
+import { findGitHubIssuesHandler } from './tools/find-github-issues';
+import { readGitHubIssueHandler } from './tools/read-github-issue';
+import { reviewThreadsHandler } from './tools/review-threads';
 
 const HELP_FLAGS = new Set(['--help', '-h']);
 
@@ -44,6 +57,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'filter-logs',
     category: 'Observability',
     skill: 'analyse-app-logs',
+    handler: filterLogsHandler,
     script: 'analyse-app-logs/scripts/filter_logs_by_time.py',
     runner: 'python3',
     description: 'Filter log lines by timestamp window.',
@@ -62,6 +76,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'search-logs',
     category: 'Observability',
     skill: 'analyse-app-logs',
+    handler: searchLogsHandler,
     script: 'analyse-app-logs/scripts/search_logs.py',
     runner: 'python3',
     description: 'Search logs by keyword or regex.',
@@ -79,6 +94,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'docs-to-voice',
     category: 'Rendering & media',
     skill: 'docs-to-voice',
+    handler: docsToVoiceHandler,
     script: 'docs-to-voice/scripts/docs_to_voice.py',
     runner: 'python3',
     description: 'Convert text into audio, timeline JSON, and SRT.',
@@ -95,6 +111,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'create-specs',
     category: 'Planning & architecture',
     skill: 'generate-spec',
+    handler: createSpecsHandler,
     script: 'generate-spec/scripts/create-specs',
     runner: 'python3',
     description: 'Create spec planning documents from templates.',
@@ -112,6 +129,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'render-katex',
     category: 'Rendering & media',
     skill: 'katex',
+    handler: renderKatexHandler,
     script: 'katex/scripts/render_katex.py',
     runner: 'python3',
     description: 'Render TeX with KaTeX into reusable output.',
@@ -128,6 +146,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'render-error-book',
     category: 'Rendering & media',
     skill: 'learning-error-book',
+    handler: renderErrorBookHandler,
     script: 'learning-error-book/scripts/render_error_book_json_to_pdf.py',
     runner: 'python3',
     description: 'Render structured error-book JSON into PDF.',
@@ -144,6 +163,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'open-github-issue',
     category: 'GitHub workflows',
     skill: 'open-github-issue',
+    handler: openGitHubIssueHandler,
     script: 'open-github-issue/scripts/open_github_issue.py',
     runner: 'python3',
     description: 'Publish or draft a structured GitHub issue.',
@@ -161,6 +181,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'generate-storyboard-images',
     category: 'Rendering & media',
     skill: 'openai-text-to-image-storyboard',
+    handler: generateStoryboardImagesHandler,
     script: 'openai-text-to-image-storyboard/scripts/generate_storyboard_images.py',
     runner: 'python3',
     description: 'Generate storyboard image sets from text.',
@@ -177,6 +198,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'find-github-issues',
     category: 'GitHub workflows',
     skill: 'read-github-issue',
+    handler: findGitHubIssuesHandler,
     script: 'read-github-issue/scripts/find_issues.py',
     runner: 'python3',
     description: 'List GitHub issues through gh.',
@@ -194,6 +216,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'read-github-issue',
     category: 'GitHub workflows',
     skill: 'read-github-issue',
+    handler: readGitHubIssueHandler,
     script: 'read-github-issue/scripts/read_issue.py',
     runner: 'python3',
     description: 'Read GitHub issue details through gh.',
@@ -211,6 +234,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'review-threads',
     category: 'GitHub workflows',
     skill: 'resolve-review-comments',
+    handler: reviewThreadsHandler,
     script: 'resolve-review-comments/scripts/review_threads.py',
     runner: 'python3',
     description: 'List or resolve GitHub PR review threads.',
@@ -234,6 +258,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'enforce-video-aspect-ratio',
     category: 'Rendering & media',
     skill: 'text-to-short-video',
+    handler: enforceVideoAspectRatioHandler,
     script: 'text-to-short-video/scripts/enforce_video_aspect_ratio.py',
     runner: 'python3',
     description: 'Resize video output to a target aspect ratio.',
@@ -250,6 +275,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
     name: 'extract-pdf-text-pdfkit',
     category: 'Rendering & media',
     skill: 'weekly-financial-event-report',
+    handler: extractPdfTextHandler,
     script: 'weekly-financial-event-report/scripts/extract_pdf_text_pdfkit.swift',
     runner: 'swift',
     description: 'Extract PDF text with macOS PDFKit fallback.',

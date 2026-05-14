@@ -41,7 +41,7 @@ export type InstallMode = 'codex' | 'openclaw' | 'trae' | 'agents' | 'claude-cod
 export interface InstallTarget {
   id: InstallMode;
   label: string;
-  description: string;
+  description?: string;
   root?: string;
 }
 
