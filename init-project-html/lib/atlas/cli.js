@@ -968,6 +968,26 @@ function splitList(value) {
   return String(value).split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+function findFirstPositional(args) {
+  const booleanFlags = new Set(['no-render', 'no-open', 'help', 'force']);
+  let i = 0;
+  while (i < args.length) {
+    const token = args[i];
+    if (token === '--') return i + 1 < args.length ? i + 1 : -1;
+    if (token.startsWith('--')) {
+      const eq = token.indexOf('=');
+      if (eq !== -1) { i++; continue; }
+      const name = token.slice(2);
+      if (booleanFlags.has(name)) { i++; continue; }
+      if (i + 1 < args.length && !args[i + 1].startsWith('-')) { i += 2; } else { i++; }
+      continue;
+    }
+    if (token === '-h') { i++; continue; }
+    return i;
+  }
+  return -1;
+}
+
 function parseFlags(args) {
   const positional = [];
   const flags = Object.create(null);
@@ -1920,14 +1940,20 @@ async function dispatch(argv, io = { stdout: process.stdout, stderr: process.std
   const args = [...argv];
   let verb = 'open';
   let explicitVerb = false;
-  if (args.length > 0 && !args[0].startsWith('-')) {
-    verb = args.shift();
+  const verbIdx = findFirstPositional(args);
+  if (verbIdx >= 0) {
+    verb = args[verbIdx];
     explicitVerb = true;
+    args.splice(verbIdx, 1);
   }
   let subverb = null;
   const multiVerbs = new Set(['feature', 'submodule', 'function', 'variable', 'dataflow', 'error', 'edge', 'meta', 'actor']);
-  if (multiVerbs.has(verb) && args.length > 0 && !args[0].startsWith('-')) {
-    subverb = args.shift();
+  if (multiVerbs.has(verb)) {
+    const subverbIdx = findFirstPositional(args);
+    if (subverbIdx >= 0) {
+      subverb = args[subverbIdx];
+      args.splice(subverbIdx, 1);
+    }
   }
   const { flags } = parseFlags(args);
 
