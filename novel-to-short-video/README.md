@@ -7,7 +7,7 @@ This skill will:
 - Select exactly one highest-impact, high-tension core segment from the novel
 - Ensure the selected segment forms a complete mini-story that works standalone
 - Keep one meaningful unresolved hook at the end to sustain curiosity
-- Create a pre-production plan first using `references/plan-template.md` (`docs/plans/<date>-<chapter>.md`)
+- Create a pre-production plan first using `assets/plan-template.md` (`docs/plans/<date>-<chapter>.md`)
 - Start image/voice/render steps only after explicit user approval of the plan
 - Generate a loop-closure narration script (opening and ending call back to each other)
 - Ensure `<project_dir>/roles/roles.json` exists before prompt generation; reuse existing roles and append only missing roles (schema in `references/roles-json.md`)
@@ -29,8 +29,9 @@ novel-to-short-video/
 ├── SKILL.md
 ├── agents/
 │   └── openai.yaml
+├── assets/
+│   └── plan-template.md
 ├── references/
-│   ├── plan-template.md
 │   └── roles-json.md
 ├── README.md
 └── LICENSE
@@ -52,7 +53,7 @@ novel-to-short-video/
 - One segment maps to one full video (segment-to-video 1:1)
 - Story is standalone (clear setup/conflict/turn/outcome) with one unresolved ending question
 - Plan file is created first: `<project_dir>/docs/plans/<YYYY-MM-DD>-<chapter_slug>.md`
-- Plan uses `references/plan-template.md`, and all placeholders are removed after filling
+- Plan uses `assets/plan-template.md`, and all placeholders are removed after filling
 - Role registry file: `<project_dir>/roles/roles.json` (shared between short-form and long-form workflows, reuses existing roles, appends only missing roles; schema in `references/roles-json.md`)
 - Ending line and final visuals tie back to the opening for loop closure
 - Beat-level effects are applied (`hook / escalation / climax / loop-closure`) with controlled intensity to avoid harming subtitle readability

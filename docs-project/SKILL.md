@@ -30,4 +30,4 @@ description: >-
 根據上一步找到的所有遺漏或項目文檔與實際代碼脫節之處，制定文檔更新策略。使用模板之中所規範的格式，重寫項目文檔，並移除除必要文檔（如 `CHANGELOG.md`, `CONTRIBUTION.md` ）外的舊有說明文檔。
 
 ## 參考資料
-- `references/templates/standardized-docs-template.md` - 三類文檔的目標結構、分類規則與清理檢查表。
+- `assets/templates/standardized-docs-template.md` - 三類文檔的目標結構、分類規則與清理檢查表。

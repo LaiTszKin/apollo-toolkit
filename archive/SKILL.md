@@ -25,4 +25,4 @@ description: 將已完成的spec歸檔到 `docs/archive/` 下。當你需要將s
 
 ## 參考資料索引
 
-- `references/templates/readme.md`：README.md 模板
+- `assets/templates/readme.md`：README.md 模板

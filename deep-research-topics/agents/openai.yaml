@@ -1,4 +1,0 @@
-interface:
-  display_name: "Deep Research Topics"
-  short_description: "Research a topic deeply and deliver a file-backed briefing"
-  default_prompt: "Use $deep-research-topics to understand the user's research goal, break the topic into concrete research questions, gather high-credibility and authoritative sources, inspect relevant workspace files for language and style consistency, and produce a polished deliverable in PDF by default or DOCX/PPTX when the user requests those formats."

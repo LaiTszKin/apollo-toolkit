@@ -20,7 +20,7 @@ Persist durable user preferences from recent Codex conversations into reusable, 
 ├── LICENSE
 ├── agents/
 │   └── openai.yaml
-├── references/
+├── assets/
 │   └── templates/
 │       └── memory-file.md
 ├── scripts/
@@ -57,7 +57,7 @@ apltk sync-codex-memory-index --agents-file ~/.codex/AGENTS.md --memory-dir ~/.c
 Use the bundled memory template when creating or refactoring category files:
 
 ```bash
-sed -n '1,200p' references/templates/memory-file.md
+sed -n '1,200p' assets/templates/memory-file.md
 ```
 
 ## License

@@ -70,7 +70,7 @@ apltk extract-codex-conversations --lookback-minutes 1440
 - Prefer wording that captures a reusable choice pattern such as `Prefer X when Y` or `Do not do Z when Q`.
 - Strip or generalize project-specific nouns, module names, branch names, issue numbers, and niche scenario labels unless they are required to explain the durable preference.
 - Keep evidence notes concise and factual; they should justify the preference without turning the memory file into a project log.
-- Use the normalized structure from `references/templates/memory-file.md` inside each memory file:
+- Use the normalized structure from `assets/templates/memory-file.md` inside each memory file:
 
 ```md
 # User Memory - Engineering Workflow
@@ -140,4 +140,4 @@ apltk sync-codex-memory-index \
 
 Load only when needed:
 
-- `references/templates/memory-file.md`
+- `assets/templates/memory-file.md`

@@ -14,7 +14,7 @@ A Codex skill for long-form video production (more than 10 minutes) that follows
 - Uses Remotion best practices to compose and render final output.
 - Requires timeline animation for long videos to improve audience retention.
 - Asks interactive clarifying questions when key information is missing (for example subtitle style, target duration, chapter pacing, and animation style).
-- Creates `<project_dir>/docs/long-video-plans/<YYYY-MM-DD>-<content_name>.md` from `references/plan-template.md` before generation and waits for user confirmation.
+- Creates `<project_dir>/docs/long-video-plans/<YYYY-MM-DD>-<content_name>.md` from `assets/plan-template.md` before generation and waits for user confirmation.
 - Uses a compact plan template with only four sections: meta data, reference text, images needed, and animation plan.
 - Defaults to one long-form video unless the user explicitly requests multi-episode output.
 - Preserves the Remotion project by default for later edits.
@@ -56,7 +56,7 @@ Return absolute paths for:
 
 - `SKILL.md` - workflow and execution rules
 - `agents/openai.yaml` - display metadata and default prompt
-- `references/plan-template.md` - pre-generation plan markdown template
+- `assets/plan-template.md` - pre-generation plan markdown template
 - `references/roles-json.md` - recurring-role schema for `roles.json`
 
 ## Quick Start

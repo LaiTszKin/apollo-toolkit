@@ -136,7 +136,7 @@ Before generating images/audio/subtitles/video:
 
 - create directory `<project_dir>/docs/long-video-plans/` if missing
 - create a plan file named `<YYYY-MM-DD>-<content_name>.md`
-- load the reference template at `references/plan-template.md`
+- load the reference template at `assets/plan-template.md`
 - copy the template into the plan file first, then fill it
 - use local date for `YYYY-MM-DD`; sanitize `content_name` for filename safety
 - keep this long-video plan location separate from short-video plans (`<project_dir>/docs/plans/`)

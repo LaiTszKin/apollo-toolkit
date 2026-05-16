@@ -57,7 +57,7 @@ If critical inputs are missing, ask concise follow-up questions.
   - `<project_dir>/docs/plans/<YYYY-MM-DD>-<chapter_slug>.md`
 - `chapter_slug` should come from the chapter name/number and be filesystem-safe.
 - Build the plan content from template file:
-  - `references/plan-template.md`
+  - `assets/plan-template.md`
 - The plan markdown must include:
   - selected highlight segment details,
   - narration script and beat-level timing for the full video,
@@ -215,7 +215,7 @@ Before finishing, verify all conditions:
 - exactly 1 highest-impact highlight segment selected
 - selected segment is understandable as a standalone mini-story
 - plan markdown exists in `docs/plans/` with date + chapter naming
-- plan content starts from `references/plan-template.md`
+- plan content starts from `assets/plan-template.md`
 - plan markdown includes the selected segment, beat/script details, standalone-story check, lingering-question design, and segment image generation list
 - plan markdown includes a beat-level special-effects map plus intensity guardrails
 - all bracketed placeholders/guidance are removed from the final filled plan

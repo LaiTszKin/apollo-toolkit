@@ -35,7 +35,7 @@ const FIXED_DATE = '2026-05-16';
 const FIXED_ISO = `${FIXED_DATE}T00:00:00.000Z`;
 
 // Real template directory from the repo
-const TEMPLATE_DIR = path.resolve(__dirname, '../../spec/references/templates');
+const TEMPLATE_DIR = path.resolve(__dirname, '../../spec/assets/templates');
 
 function testHandler(args) {
   const stdout = createMemoryStream();

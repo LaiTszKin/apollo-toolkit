@@ -30,7 +30,7 @@ description: 當你需要為項目初始化架構圖時，使用此技能。
 
 - `references/TEMPLATE_SPEC.md`：atlas 欄位、列舉和 CLI 寫入形狀速查表。
 - `references/definition.md`: 功能模塊和子模塊的詳細定義。
-- `references/architecture-page.template.html`: 模板html。
+- `assets/architecture-page.template.html`: 模板html。
 - `references/architecture.css`: 風格模板。
 - `sample-demo/`：完整示例輸出，用於理解基礎 atlas 的最終形態。
 - `apltk architecture --help` - cli 工具的指引指令。
