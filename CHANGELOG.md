@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.9] - 2026-05-16
+
+### Fixed
+
+- Prevent double-date-nesting in `apltk create-specs` when `--output-dir` points to an existing date folder; the handler no longer appends today's date again, avoiding a `YYYY-MM-DD/YYYY-MM-DD/` nested structure.
+
 ## [v3.14.8] - 2026-05-16
 
 ### Fixed
