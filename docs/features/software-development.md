@@ -13,15 +13,15 @@
 ## 實作新功能
 
 - **Given** 已有經批准的 spec
-- **When** 使用 `implement-specs` 技能
+- **When** 使用 `implement` 技能
 - **Then** 依照 spec 逐步實作功能，並確保最終實作與規劃文件一致
 
 - **Given** 多份 spec 需平行實作且環境支援 subagent
-- **When** 使用 `implement-specs-with-subagents` 技能
+- **When** 使用 `implement-with-subagents` 技能
 - **Then** 每份 spec 分配至獨立 subagent，以 bounded concurrency 平行實作
 
 - **Given** 需要在隔離環境中實作且不污染主要工作目錄
-- **When** 使用 `implement-specs-with-worktree` 技能
+- **When** 使用 `implement-with-worktree` 技能
 - **Then** 在獨立的 git worktree 中實作 spec，完成後合併回主要分支
 
 ## 增強現有功能
@@ -39,7 +39,7 @@
 ## 程式碼審查
 
 - **Given** 變更已實作完成
-- **When** 使用 `review-spec-related-changes` 技能
+- **When** 使用 `qa` 技能
 - **Then** 對照原始 spec 檢視變更，先確認商業目標達成狀況，再檢查邊界案例、安全性與程式碼品質
 
 - **Given** GitHub PR 上有審查意見
@@ -47,7 +47,7 @@
 - **Then** 逐一處理審查意見並標記為已解決
 
 - **Given** 審查中發現需要修復的問題
-- **When** 使用 `solve-issues-found-during-review` 技能
+- **When** 使用 `fix` 技能
 - **Then** 依嚴重程度排序處理問題，每個修復獨立驗證，完成後全面再驗證
 
 ## 系統性除錯
@@ -65,7 +65,7 @@
 ## 提交與發佈
 
 - **Given** 變更已就緒但不需要版本發佈
-- **When** 使用 `commit-and-push` 技能
+- **When** 使用 `commit` 技能
 - **Then** 提交變更並推送至遠端，不執行版本號或 release 操作
 
 - **Given** 需要正式發佈新版本

@@ -1,11 +1,11 @@
 ---
-name: implement-specs
-description: 當你需要在當前分支之中實作spec時，使用這個技能。
+name: implement-with-worktree
+description: 當你需要在獨立分支和工作樹之中實作spec時，使用這個技能。
 ---
 
 ## 技能目標
 
-實作用戶指定的spec。確保所有任務都被完成，用戶所有需求都被滿足。
+在獨立分支及工作樹實作用戶指定的spec。確保所有任務都被完成，用戶所有需求都被滿足。
 
 ## 驗收條件
 
@@ -27,22 +27,34 @@ description: 當你需要在當前分支之中實作spec時，使用這個技能
 
 按照以上文件，閱讀repo，理解本次spec的實作範圍。
 
-### 2. 實作spec任務
+### 2. 創建子分支及worktree
+
+從當前分支創建子分支及worktree。分支以規格文檔的實際變更命名，並且需要符合通用開發規範(e.g. feat/event-bus-backend)
+
+### 3. 實作spec任務
 
 嚴格按照 `tasks.md` 之中定義的任務，逐項完成實作。如果有多份 `tasks.md` 存在於多份spec之中，則依照 `coordination.md` 之中建議的merge順序進行實作。
 在確認完成所有任務之後，將 `tasks.md` 之中的所有checkboxes勾選為完成。
 
 如果實作的spec是batch spec，且有 `preparation.md`，在開始實作之前需要先完成 `preparation.md` 之中所規定的任務內容，並在驗收條件滿足之後回填 `preparation.md`。
 
-### 3. 驗證實作
+### 4. 驗證實作
 
 按照 `checklist.md` 之中定義的驗收標準，逐項驗收並檢查任務是否完成。對於未達到驗收標準的任務，必須重新實作及重新驗收，並在完成驗收之後將所有 `checklist.md` 之中的checkboxes勾選為完成。
 
-### 4. 回填spec
+### 5. 回填spec
 
 確保所有實作任務完成並通過驗收之後，更新 `spec.md` 之中的需求checkboxes反應實際代碼實作狀態。
 
+### 6. 提交變更
+
+使用 `commit` 將變更提交到子分支上。不需要將變更推送到remote。
+
 ## 範例
 
-- "用戶指定了一份有四份spec的batch spec並要求實作這份batch spec。同時，`coordination.md` 之中建議merge順序是 spec 1 -> spec 2 -> spec 3 -> spec 4。" -> "從spec 1開始進行完整的實作流程，並在完成回填spec之後再開始實作spec 2，直至4份spec都被完成"
-- "用戶指定了一份有2份spec的batch spec並要求實作這份batch spec。同時，`coordination.md` 之中的建議merge順序是spec 2 -> spec 1，並且 `preparation.md` 存在於該batch spec之中。" -> "先實作 `preparation.md` 之中要求的任務並按照當中的驗收標準進行驗收。確定完成之後，從spec 2開始完整的實作流程。並在完成spec 2之後再實作 spec 1。"
+- "用戶指定了一份有四份spec的batch spec並要求實作這份batch spec。同時，`coordination.md` 之中建議merge順序是 spec 1 -> spec 2 -> spec 3 -> spec 4。" -> "創建子分支及工作樹；從spec 1開始進行完整的實作流程，並在完成回填spec之後再開始實作spec 2，直至4份spec都被完成"
+- "用戶指定了一份有2份spec的batch spec並要求實作這份batch spec。同時，`coordination.md` 之中的建議merge順序是spec 2 -> spec 1，並且 `preparation.md` 存在於該batch spec之中。" -> "創建子分支及工作樹；先實作 `preparation.md` 之中要求的任務並按照當中的驗收標準進行驗收。確定完成之後，從spec 2開始完整的實作流程。並在完成spec 2之後再實作 spec 1。"
+
+## 參考資料
+
+- `references/branch-naming.md` - 建議分支命名方式

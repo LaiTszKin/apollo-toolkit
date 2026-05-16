@@ -1,5 +1,5 @@
 ---
-name: implement-specs-with-subagents
+name: implement-with-subagents
 description: 當有多份規格文檔需要被實作時，且環境允許使用subagents，建議使用本技能調度subagents完成任務
 ---
 
@@ -31,7 +31,7 @@ description: 當有多份規格文檔需要被實作時，且環境允許使用s
 
 ### 2. 完成前置準備工作（如有）
 
-如果實作的batch spec 有 `preparation.md`，你需要在開始實作之前需要先完成 `preparation.md` 之中所規定的任務內容，並在驗收條件滿足之後回填 `preparation.md`。使用 `commit-and-push` 技能並遵守當中的流程將前置準備工作提交，不需要推送到remote。
+如果實作的batch spec 有 `preparation.md`，你需要在開始實作之前需要先完成 `preparation.md` 之中所規定的任務內容，並在驗收條件滿足之後回填 `preparation.md`。使用 `commit` 技能並遵守當中的流程將前置準備工作提交，不需要推送到remote。
 
 ### 3. 規劃subagents調度順序
 

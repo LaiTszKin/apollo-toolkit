@@ -37,4 +37,4 @@ description: >-
 - `generate-spec`：需要書面批准時的 spec 流程。
 
 - `test-case-strategy`：非平凡變更的測試選型與 oracle 設計。
-- `commit-and-push`：使用者要求提交或推送時的最終交付流程。
+- `commit`：使用者要求提交或推送時的最終交付流程。

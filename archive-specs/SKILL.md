@@ -21,7 +21,7 @@ description: 將已完成的spec歸檔到 `docs/archive/` 下。當你需要將s
 
 ### 2. 歸檔spec並更新項目文檔
 
-使用 `align-project-documents`, `maintain-project-constraints` 技能，按照這兩個技能之中的指引，更新項目文檔。並將完成的spec全部移動到 `docs/archive/`。
+使用 `docs-project`, `maintain-project-constraints` 技能，按照這兩個技能之中的指引，更新項目文檔。並將完成的spec全部移動到 `docs/archive/`。
 
 ## 參考資料索引
 

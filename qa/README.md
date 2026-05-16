@@ -1,6 +1,6 @@
-# review-spec-related-changes
+# qa
 
-`review-spec-related-changes` reviews implementation changes against recent or user-specified planning documents.
+`qa` reviews implementation changes against recent or user-specified planning documents.
 
 ## What this skill does
 
@@ -34,7 +34,7 @@ Use this skill when the task asks you to:
 Prompt example:
 
 ```text
-Use $review-spec-related-changes to review the changes related to docs/plans/2026-04-28/order-routing.
+Use $qa to review the changes related to docs/plans/2026-04-28/order-routing.
 List any business goals that were not fully achieved, then run edge-case, security, and code-review checks on the related code.
 ```
 

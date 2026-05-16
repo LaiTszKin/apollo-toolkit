@@ -1,0 +1,4 @@
+interface:
+  display_name: "Align Project Documents"
+  short_description: "Generate standardized project docs under docs/features/, docs/architecture/, and docs/principles/ from code evidence"
+  default_prompt: "Use $docs-project to read the entire codebase first, ground every claim in code/config/test evidence, then generate standardized project documentation in three categories: features (BDD-described, user perspective), architecture (macro-level design principles by module), and principles (code style, naming conventions, development constraints). Remove old non-conforming docs and refresh AGENTS.md/CLAUDE.md via maintain-project-constraints."

@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.5] - 2026-05-16
+
+### Changed
+
+- Rename 7 skills with shorter aliases: `align-project-documents` → `docs-project`, `commit-and-push` → `commit`, `implement-specs` → `implement`, `implement-specs-with-subagents` → `implement-with-subagents`, `implement-specs-with-worktree` → `implement-with-worktree`, `review-spec-related-changes` → `qa`, `solve-issues-found-during-review` → `fix`.
+
 ## [v3.14.4] - 2026-05-16
 
 ### Changed

@@ -1,5 +1,5 @@
 ---
-name: align-project-documents
+name: docs-project
 description: >-
     提供標準化的文檔格式，用於協助維護項目文檔。
     使用場景：更新、修改、重寫項目文檔。

@@ -9,7 +9,7 @@ description: Build, audit, and explain OpenClaw configuration from official docu
 
 - Required: none.
 - Conditional: `answering-questions-with-research` when a request depends on newer OpenClaw docs than the bundled references cover.
-- Conditional: `commit-and-push` when the user explicitly wants OpenClaw workspace changes committed and pushed after validation.
+- Conditional: `commit` when the user explicitly wants OpenClaw workspace changes committed and pushed after validation.
 - Optional: none.
 - Fallback: If the local CLI is unavailable, work from the bundled references and clearly mark any runtime behavior that was not verified on the machine.
 
@@ -104,7 +104,7 @@ When the request is about how the assistant should behave inside OpenClaw, inspe
 - `USER.md` for the user's profile and durable identity details
 - `memory/*.md` for durable corrections, failures, and learned preferences
 
-If the workspace is a git repo and the user explicitly asks to persist those changes remotely, validate first and then hand off to `commit-and-push`.
+If the workspace is a git repo and the user explicitly asks to persist those changes remotely, validate first and then hand off to `commit`.
 
 ### Verify tool permissions
 

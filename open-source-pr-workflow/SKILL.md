@@ -7,15 +7,15 @@ description: PR-focused workflow for open-source repositories. Use when the user
 
 ## Dependencies
 
-- Required: **`commit-and-push`** before publishing the contribution branch (any remaining changes **MUST** be committed/readiness-checked through that skill; **push** only when the user requested remote update—then continue to PR steps).
+- Required: **`commit`** before publishing the contribution branch (any remaining changes **MUST** be committed/readiness-checked through that skill; **push** only when the user requested remote update—then continue to PR steps).
 - Conditional: `code-simplifier` for code-affecting PRs before opening the PR.
 - Optional: none.
-- Fallback: If **`commit-and-push`** or a **required** code-affecting dependency is unavailable, stop and report the missing dependency instead of bypassing the quality gate.
+- Fallback: If **`commit`** or a **required** code-affecting dependency is unavailable, stop and report the missing dependency instead of bypassing the quality gate.
 
 ## Standards
 
 - Evidence: Assume implementation is already prepared, then verify PR scope, repository constraints, and validation commands from the actual change set.
-- Execution: Create a compliant branch, run **`commit-and-push`** when the working tree still needs a gated commit, run dependent skills for code changes, then draft and open the PR.
+- Execution: Create a compliant branch, run **`commit`** when the working tree still needs a gated commit, run dependent skills for code changes, then draft and open the PR.
 - Quality: Target the upstream parent repository by default for forks, keep PR content in English unless requested otherwise, and exclude internal workflow details.
 - Output: Produce a review-ready PR body with motivation, engineering rationale, test commands, and any required issue linkage.
 
@@ -47,9 +47,9 @@ Example:
 git checkout -b codex/fix/add-rate-limit-retry
 ```
 
-### 3) Record changes with `commit-and-push`
+### 3) Record changes with `commit`
 
-- If `git status` shows uncommitted work on the PR branch, run **`commit-and-push`** through commit (and **push** when the user explicitly asked to publish the branch remotely) before PR creation—**MUST NOT** bypass readiness/review gates that skill applies.
+- If `git status` shows uncommitted work on the PR branch, run **`commit`** through commit (and **push** when the user explicitly asked to publish the branch remotely) before PR creation—**MUST NOT** bypass readiness/review gates that skill applies.
 - If the tree is already clean with commits present, skip only after confirming there is nothing left to stage.
 
 ### 4) Run dependent skills for code-affecting changes

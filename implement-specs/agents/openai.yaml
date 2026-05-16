@@ -1,4 +1,0 @@
-interface:
-  display_name: "Implement Specs"
-  short_description: "Implement approved specs in the current checkout"
-  default_prompt: "Use $implement-specs to resolve the user-named docs/plans path or the evidence-backed latest plan (never guess), read parent coordination.md when present, read spec.md then design.md then contract.md then checklist.md before executing every tasks.md line; when multiple member directories apply, finish one directory completely before the next per coordination.md; never create branches or git worktrees unless the user rescopes, backfill the planning docs, and finalize with $commit-and-push."

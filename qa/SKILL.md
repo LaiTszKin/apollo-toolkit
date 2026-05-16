@@ -1,5 +1,5 @@
 ---
-name: review-spec-related-changes
+name: qa
 description: 當你需要審查規格文檔相關變更時，調用此技能
 ---
 

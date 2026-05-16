@@ -6,7 +6,7 @@
 
 **理由**: kebab-case 在檔案系統、URL 與 CLI 參數中皆安全，避免大小寫敏感性問題。
 
-**範例**: `deep-research-topics`, `open-github-issue`, `implement-specs-with-worktree`
+**範例**: `deep-research-topics`, `open-github-issue`, `implement-with-worktree`
 
 ## 根層級文件：大寫無分隔
 

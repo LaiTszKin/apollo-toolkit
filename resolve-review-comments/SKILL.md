@@ -7,17 +7,17 @@ description: Read GitHub pull request review comments, analyze each thread, deci
 
 ## Dependencies
 
-- Required: **`commit-and-push`** for staging adopted fixes, creating the commit, and **pushing** when the user requested a PR branch update—**MUST NOT** substitute bare `git commit` / unverified push for that leg.
+- Required: **`commit`** for staging adopted fixes, creating the commit, and **pushing** when the user requested a PR branch update—**MUST NOT** substitute bare `git commit` / unverified push for that leg.
 - Conditional: none.
 - Optional: none.
-- Fallback: If **`commit-and-push`** is unavailable when submission is required, **MUST** stop and report.
+- Fallback: If **`commit`** is unavailable when submission is required, **MUST** stop and report.
 
 ## Standards
 
 - Evidence: Read unresolved review threads first and decide adopt versus reject from the actual review content and code context.
-- Execution: Implement only adopted feedback, validate it, **`commit-and-push`** on the same PR branch (commit + push when remote update is in scope), and resolve only the threads that were truly addressed.
+- Execution: Implement only adopted feedback, validate it, **`commit`** on the same PR branch (commit + push when remote update is in scope), and resolve only the threads that were truly addressed.
 - Quality: Keep changes minimal, leave rejected or unclear threads unresolved, and reply with concise technical reasons when feedback is not adopted.
-- Output: Complete the PR feedback loop with updated code, **`commit-and-push`**-verified submission when applicable, and correctly resolved review threads.
+- Output: Complete the PR feedback loop with updated code, **`commit`**-verified submission when applicable, and correctly resolved review threads.
 
 ## Prerequisites
 
@@ -32,7 +32,7 @@ description: Read GitHub pull request review comments, analyze each thread, deci
 3. Decide adopt or reject thread-by-thread.
 4. Implement only adopted feedback.
 5. Run relevant tests and checks.
-6. **Submit** — Run **`commit-and-push`** on the same PR branch (commit always when there are staged fixes; **push** when updating the remote PR branch is in scope).
+6. **Submit** — Run **`commit`** on the same PR branch (commit always when there are staged fixes; **push** when updating the remote PR branch is in scope).
 7. Resolve only threads that were truly addressed.
 8. Reply on unresolved/rejected threads with reason.
 
@@ -73,11 +73,11 @@ Track adopted thread IDs in a JSON file:
 ## 5) Validate before submit
 
 - Run focused tests/lint/build that cover touched behavior.
-- If checks fail, fix before **`commit-and-push`**.
+- If checks fail, fix before **`commit`**.
 
 ## 6) Submit on the PR branch
 
-- Run **`commit-and-push`**: stage adopted fixes, commit with a clear message, **push** to the PR branch when remote update is in scope (same branch backing the open PR).
+- Run **`commit`**: stage adopted fixes, commit with a clear message, **push** to the PR branch when remote update is in scope (same branch backing the open PR).
 
 ## 7) Resolve addressed threads
 

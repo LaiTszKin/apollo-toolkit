@@ -7,7 +7,7 @@ description: Resolve a GitHub issue in an existing repository and submit the fix
 
 ## Dependencies
 
-- Required: `read-github-issue`, `enhance-existing-features`, and `commit-and-push`.
+- Required: `read-github-issue`, `enhance-existing-features`, and `commit`.
 - Conditional: `systematic-debug` when the issue is primarily a bug investigation or failing behavior report.
 - Optional: none.
 - Fallback: If any required dependency is unavailable, stop and report which dependency blocked the workflow.
@@ -48,7 +48,7 @@ description: Resolve a GitHub issue in an existing repository and submit the fix
 
 ### 4) Submit the fix without PR or release work
 
-- If the user asked to commit or push, hand off to `$commit-and-push`.
+- If the user asked to commit or push, hand off to `$commit`.
 - Preserve the user's explicit branch target; when the user says `push to main`, treat direct push to `main` as the default goal.
 - Before the final commit, ensure any required spec backfill, docs synchronization, and `AGENTS.md/CLAUDE.md` alignment are completed.
 - Do not convert this flow into a PR workflow unless the user explicitly requests a PR.

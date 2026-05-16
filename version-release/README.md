@@ -36,4 +36,4 @@ Apply the same rule to every other conditional gate: if its scenario is met duri
 
 Do not report release completion after only bumping versions or pushing a commit: the matching tag and GitHub release are part of done criteria unless the user explicitly says to skip publication.
 
-If the user only wants commit + push, use `commit-and-push`.
+If the user only wants commit + push, use `commit`.

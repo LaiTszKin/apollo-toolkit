@@ -1,12 +1,12 @@
 # archive-specs
 
-A documentation skill that converts completed spec files and batch-level coordination files into the standardized project documentation structure and archives the consumed planning files. It delegates documentation generation to `align-project-documents` and constraint file refresh to `maintain-project-constraints`.
+A documentation skill that converts completed spec files and batch-level coordination files into the standardized project documentation structure and archives the consumed planning files. It delegates documentation generation to `docs-project` and constraint file refresh to `maintain-project-constraints`.
 
 ## Core capabilities
 
 - Scans `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and batch-level `coordination.md` collections as documentation input.
 - Reconciles spec claims against code, config, scripts, and deployment files.
-- Delegates to `align-project-documents` to generate standardized docs under `docs/features/` (BDD user-facing features), `docs/architecture/` (macro-level design principles), and `docs/principles/` (code conventions and constraints).
+- Delegates to `docs-project` to generate standardized docs under `docs/features/` (BDD user-facing features), `docs/architecture/` (macro-level design principles), and `docs/principles/` (code conventions and constraints).
 - Delegates to `maintain-project-constraints` to refresh `AGENTS.md`/`CLAUDE.md` with business goals, common commands, and the project documentation index.
 - Archives superseded spec source files after a successful conversion, and deletes them only when the repository clearly does not need historical retention.
 - Preserves active batch coordination files until no remaining spec set still depends on their shared preparation or replacement direction.
@@ -41,5 +41,5 @@ A documentation skill that converts completed spec files and batch-level coordin
 ## Notes
 
 - Prefer code, config, and deployment files over stale spec text when they disagree.
-- If the repository already has docs, delegate to `align-project-documents` to rewrite them into the standardized structure.
+- If the repository already has docs, delegate to `docs-project` to rewrite them into the standardized structure.
 - Keep `README.md` short; the documentation index lives in `AGENTS.md`/`CLAUDE.md`.

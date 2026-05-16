@@ -4,13 +4,13 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 
 ## Included skills
 
-- align-project-documents
+- docs-project
 - analyse-app-logs
 - answering-questions-with-research
 - archive-specs
 - cjk-pdf
 - codex-memory-manager
-- commit-and-push
+- commit
 - deep-research-topics
 - develop-new-features
 - docs-to-voice
@@ -20,9 +20,9 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - feature-propose
 - financial-research
 - generate-spec
-- implement-specs
-- implement-specs-with-subagents
-- implement-specs-with-worktree
+- implement
+- implement-with-subagents
+- implement-with-worktree
 - improve-observability
 - init-project-html
 - jupiter-development
@@ -41,11 +41,11 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - read-github-issue
 - record-spending
 - resolve-review-comments
-- review-spec-related-changes
+- qa
 - shadow-api-model-research
 - ship-github-issue-fix
 - solana-development
-- solve-issues-found-during-review
+- fix
 - systematic-debug
 - test-case-strategy
 - text-to-short-video
@@ -200,10 +200,10 @@ The install commands below were checked with the Skills CLI unless otherwise not
 Compatibility note:
 
 - `generate-spec` is a local skill used by `develop-new-features` and `enhance-existing-features`, and it can produce either a single spec set under `docs/plans/{YYYY-MM-DD}/{change_name}/` or a coordinated parallel batch under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with shared `coordination.md`.
-- `implement-specs-with-subagents` coordinates one `implement-specs-with-worktree` subagent per spec directory for approved multi-spec batches.
+- `implement-with-subagents` coordinates one `implement-with-worktree` subagent per spec directory for approved multi-spec batches.
 
 - `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.
-- `review-spec-related-changes` is a local skill that reviews spec compliance of changes against governing planning documents, assessing business goals before secondary code-practice concerns.
+- `qa` is a local skill that reviews spec compliance of changes against governing planning documents, assessing business goals before secondary code-practice concerns.
 - `update-project-html` is a local skill that depends on `init-project-html` for semantic rules and on the `apltk architecture` CLI to refresh the base atlas after code changes; for spec overlay diagrams use `spec-to-project-html` instead.
 
 

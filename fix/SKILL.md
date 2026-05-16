@@ -1,5 +1,5 @@
 ---
-name: solve-issues-found-during-review
+name: fix
 description: 當你需要修復 code review report 之中發現的問題時，調用這個技能。
 ---
 
