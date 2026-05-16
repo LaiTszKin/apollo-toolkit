@@ -2,6 +2,13 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.0] - 2026-05-16
+
+### Changed
+
+- Move all skill templates from `references/` directories into skill-local `assets/` directories for clearer separation between reference docs and template files.
+- Update all internal references (SKILL.md, README.md, agents/openai.yaml, create-specs CLI tool) to point to the new `assets/` paths.
+
 ## [v3.14.9] - 2026-05-16
 
 ### Fixed
