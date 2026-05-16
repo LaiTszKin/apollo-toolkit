@@ -108,7 +108,7 @@ const TOOL_COMMANDS: ToolDefinition[] = [
   {
     name: 'create-specs',
     category: 'Planning & architecture',
-    skill: 'generate-spec',
+    skill: 'spec',
     handler: createSpecsHandler,
     description: 'Create spec planning documents from templates.',
     help: {

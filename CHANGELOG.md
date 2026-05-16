@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.8] - 2026-05-16
+
+### Fixed
+
+- Fix hardcoded `generate-spec` path references in `lib/tools/create-specs.ts` and `lib/tool-runner.ts` that broke the `apltk create-specs` CLI tool after the skill rename.
+
 ## [v3.14.7] - 2026-05-16
 
 ### Changed

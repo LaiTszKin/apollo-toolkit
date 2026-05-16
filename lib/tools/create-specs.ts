@@ -125,7 +125,7 @@ Options:
 
   // Resolve template directory
   const sourceRoot = context.sourceRoot || path.resolve(__dirname, '..', '..', '..');
-  const templateDirRaw = (parsed['template-dir'] as string) || path.join(sourceRoot, 'generate-spec', 'references', 'templates');
+  const templateDirRaw = (parsed['template-dir'] as string) || path.join(sourceRoot, 'spec', 'references', 'templates');
   const templateDir = path.resolve(templateDirRaw);
 
   if (!fs.existsSync(templateDir)) {
