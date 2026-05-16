@@ -148,7 +148,12 @@ Options:
 
   const outputDir = path.resolve(parsed['output-dir'] as string || 'docs/plans');
   const today = new Date().toISOString().slice(0, 10);
-  const dateRoot = path.join(outputDir, today);
+
+  // Prevent double-nesting: if outputDir's last component is already today's date,
+  // use it directly as the date root rather than appending the date again.
+  // This handles the case where --output-dir already points to an existing
+  // date folder (e.g. docs/plans/2026-05-16).
+  const dateRoot = path.basename(outputDir) === today ? outputDir : path.join(outputDir, today);
   const batchRoot = batchName ? path.join(dateRoot, batchName) : null;
   const outputRoot = batchRoot ? path.join(batchRoot, changeName) : path.join(dateRoot, changeName);
 
