@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.4] - 2026-05-16
+
+### Changed
+
+- Standardize spec template task numbering (P1.x/P2.x, T1.x/T2.x) and simplify SKILL.md description format across skill docs.
+
 ## [v3.14.3] - 2026-05-15
 
 ### Changed
