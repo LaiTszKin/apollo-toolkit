@@ -1,6 +1,6 @@
-# Atlas component schema — reference cheat sheet (generate-spec copy)
+# Atlas component schema — reference cheat sheet (spec copy)
 
-> Reference material only. The binding rules for atlas pages (verbs, semantic contracts, evidence) live in `init-project-html/SKILL.md`. The binding rule for spec-time atlas changes (declare via CLI, never hand-author HTML) lives in this skill's own `generate-spec/SKILL.md`. This file lists the exact fields and enum values that `apltk architecture --spec <spec_dir>` accepts.
+> Reference material only. The binding rules for atlas pages (verbs, semantic contracts, evidence) live in `init-project-html/SKILL.md`. The binding rule for spec-time atlas changes (declare via CLI, never hand-author HTML) lives in this skill's own `spec/SKILL.md`. This file lists the exact fields and enum values that `apltk architecture --spec <spec_dir>` accepts.
 
 ## Where the overlay lands
 

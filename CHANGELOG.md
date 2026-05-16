@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.6] - 2026-05-16
+
+### Changed
+
+- Rename `generate-spec` to `spec` for consistency with other short skill aliases.
+
 ## [v3.14.5] - 2026-05-16
 
 ### Changed

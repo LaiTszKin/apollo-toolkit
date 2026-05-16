@@ -1,4 +1,4 @@
-# generate-spec
+# spec
 
 A shared planning skill for feature work. It centralizes creation and maintenance of `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, `design.md`, and when needed shared `coordination.md` or `preparation.md` so other skills can reuse one consistent approval-gated spec workflow with risk-driven test planning from `test-case-strategy`.
 

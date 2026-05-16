@@ -1,10 +1,10 @@
 # develop-new-features
 
-A spec-first feature development skill for new behavior and greenfield work. It delegates shared planning-doc generation to `generate-spec`, uses `test-case-strategy` for risk-driven test selection, then implements the approved feature with focused validation.
+A spec-first feature development skill for new behavior and greenfield work. It delegates shared planning-doc generation to `spec`, uses `test-case-strategy` for risk-driven test selection, then implements the approved feature with focused validation.
 
 ## Key capabilities
 
-- Requires `generate-spec` before any implementation starts.
+- Requires `spec` before any implementation starts.
 - Treats `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` as approval-gated artifacts, not optional notes.
 - Covers unit, regression, property-based, integration, E2E, adversarial, mock/fake, rollback, and unit drift-check testing based on actual risk through `test-case-strategy`.
 - Reuses existing architecture and avoids speculative expansion.
@@ -25,7 +25,7 @@ A spec-first feature development skill for new behavior and greenfield work. It 
 ## Workflow summary
 
 1. Review only the official docs and code paths needed for the feature.
-2. Run `generate-spec` to create and maintain `docs/plans/{YYYY-MM-DD}/{change_name}/`, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` plus `coordination.md` for parallel batches.
+2. Run `spec` to create and maintain `docs/plans/{YYYY-MM-DD}/{change_name}/`, or `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` plus `coordination.md` for parallel batches.
 3. Wait for explicit approval on the spec set.
 4. Implement the approved behavior with minimal changes.
 5. Run risk-driven tests and backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md`.
@@ -40,5 +40,5 @@ A spec-first feature development skill for new behavior and greenfield work. It 
 
 ## References
 
-- Shared planning workflow: `generate-spec`
+- Shared planning workflow: `spec`
 - Test selection and unit drift-check guide: `test-case-strategy`

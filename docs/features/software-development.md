@@ -3,7 +3,7 @@
 ## 建立功能規格
 
 - **Given** 使用者有一個新的產品需求
-- **When** 使用 `generate-spec` 技能建立 spec
+- **When** 使用 `spec` 技能建立 spec
 - **Then** 在 `docs/plans/{YYYY-MM-DD}/{change_name}/` 產生標準化的規劃文件，包含需求分析、實作步驟與驗收標準
 
 - **Given** 需求涉及多個獨立模組

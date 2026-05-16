@@ -5,7 +5,7 @@ A brownfield feature-extension skill: map dependencies first, decide whether sha
 ## Core capabilities
 
 - Explores dependencies and data flow before deciding how to change the system.
-- Uses `generate-spec` whenever the change is high-complexity, touches a critical module, or crosses module boundaries.
+- Uses `spec` whenever the change is high-complexity, touches a critical module, or crosses module boundaries.
 - Requires explicit approval before coding when specs are generated.
 - Still requires meaningful tests even when specs are skipped, selected through `test-case-strategy`.
 - Keeps brownfield changes focused and traceable.
@@ -25,7 +25,7 @@ A brownfield feature-extension skill: map dependencies first, decide whether sha
 ## Workflow summary
 
 1. Explore the existing codebase and affected logic chain first.
-2. Trigger `generate-spec` only when the change is high complexity, hits a critical module, or crosses module boundaries.
+2. Trigger `spec` only when the change is high complexity, hits a critical module, or crosses module boundaries.
 3. Wait for explicit approval if planning docs were generated.
 4. Implement the smallest safe brownfield change.
 5. Run risk-driven tests and backfill `spec.md`, `tasks.md`, `checklist.md`, `contract.md`, and `design.md` when specs exist.
@@ -40,5 +40,5 @@ A brownfield feature-extension skill: map dependencies first, decide whether sha
 
 ## References
 
-- Shared planning workflow: `generate-spec`
+- Shared planning workflow: `spec`
 - Test selection and unit drift-check guide: `test-case-strategy`

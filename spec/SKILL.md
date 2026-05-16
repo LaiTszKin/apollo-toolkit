@@ -1,5 +1,5 @@
 ---
-name: generate-spec
+name: spec
 description: 當你需要將用戶模糊的複雜需求拆解成有嚴格實作範圍的spec時，使用這個技能
 ---
 
