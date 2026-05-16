@@ -1,4 +1,4 @@
-# archive-specs
+# archive
 
 A documentation skill that converts completed spec files and batch-level coordination files into the standardized project documentation structure and archives the consumed planning files. It delegates documentation generation to `docs-project` and constraint file refresh to `maintain-project-constraints`.
 

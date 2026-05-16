@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.14.7] - 2026-05-16
+
+### Changed
+
+- Rename `archive-specs` to `archive` for consistency with other short skill aliases.
+
 ## [v3.14.6] - 2026-05-16
 
 ### Changed

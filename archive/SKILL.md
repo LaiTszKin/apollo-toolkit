@@ -1,5 +1,5 @@
 ---
-name: archive-specs
+name: archive
 description: 將已完成的spec歸檔到 `docs/archive/` 下。當你需要將spec歸檔時，調用這個技能。
 ---
 

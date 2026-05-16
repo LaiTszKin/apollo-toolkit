@@ -8,7 +8,7 @@ A Codex skill for commit workflows without release/version operations.
 
 1. Inspecting git status and staged state.
 2. Running `review-change-set` as a blocking gate whenever the change set includes code changes.
-3. Running `archive-specs` during submission to convert completed spec sets and archive them, or when existing project docs need normalization.
+3. Running `archive` during submission to convert completed spec sets and archive them, or when existing project docs need normalization.
 4. Keeping root `CHANGELOG.md` `Unreleased` aligned with the actual pending change set, including removing stale conflicting bullets when needed.
 5. Running `docs-project` and `maintain-project-constraints` before commit.
 6. Running additional dependency skills for code-affecting diffs when their coverage is needed.
@@ -23,7 +23,7 @@ Use this skill when the user asks to commit/push/submit changes and does **not**
 - tagging
 - release changelog workflows
 
-If the repository contains a completed spec set, convert it into the categorized `archive-specs` project-doc structure during submission and archive the consumed plan files. Treat `spec.md`, `tasks.md`, and `checklist.md` semantically: unchecked task or decision checkboxes do not automatically mean the work is unfinished when the docs clearly show they were not selected, replaced, deferred, or marked `N/A`.
+If the repository contains a completed spec set, convert it into the categorized `archive` project-doc structure during submission and archive the consumed plan files. Treat `spec.md`, `tasks.md`, and `checklist.md` semantically: unchecked task or decision checkboxes do not automatically mean the work is unfinished when the docs clearly show they were not selected, replaced, deferred, or marked `N/A`.
 
 Treat root `CHANGELOG.md` `Unreleased` as the source of pending release notes: add or refresh only the bullets that match the current change, keep unrelated pending bullets, and remove older conflicting bullets when the new implementation supersedes them.
 

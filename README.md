@@ -7,7 +7,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - docs-project
 - analyse-app-logs
 - answering-questions-with-research
-- archive-specs
+- archive
 - cjk-pdf
 - codex-memory-manager
 - commit
