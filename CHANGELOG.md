@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.1] - 2026-05-17
+
+### Changed
+
+- Add architecture diagram sync step to commit workflow, ensuring project architecture HTML is updated when code changes affect it.
+
 ## [v3.15.0] - 2026-05-16
 
 ### Changed
