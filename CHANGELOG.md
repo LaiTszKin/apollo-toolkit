@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.3] - 2026-05-20
+
+### Changed
+
+- Enhance fix skill with worktree isolation and merge-back instructions for subagent workflows.
+
 ## [v3.15.2] - 2026-05-20
 
 ### Changed
