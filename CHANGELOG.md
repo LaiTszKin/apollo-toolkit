@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.2] - 2026-05-20
+
+### Changed
+
+- Standardize architecture edge definition acceptance criteria across init-project-html, spec, and update-project-html skills for clearer submodule edge documentation.
+
 ## [v3.15.1] - 2026-05-17
 
 ### Changed
