@@ -2,6 +2,18 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.4] - 2026-05-20
+
+### Changed
+
+- Clarify fix skill acceptance criteria with explicit P0-P3 scope for issue severity levels.
+
+### Removed
+
+- Remove deprecated `marginfi-development` skill directory and all its reference documents.
+- Remove deprecated `openclaw-configuration` skill directory and all its reference documents.
+- Remove OpenClaw configuration and Marginfi sections from project documentation.
+
 ## [v3.15.3] - 2026-05-20
 
 ### Changed
