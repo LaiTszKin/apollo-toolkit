@@ -2,6 +2,13 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.7] - 2026-05-21
+
+### Changed
+
+- Clarify batch spec trigger condition wording in spec skill documentation for broader cross-module scenarios.
+- Add guidance for handling non-independent specs within a batch via optional `preparation.md` file.
+
 ## [v3.15.6] - 2026-05-21
 
 ### Added
