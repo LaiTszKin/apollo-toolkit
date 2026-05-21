@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.9] - 2026-05-21
+
+### Changed
+
+- Add `apltk create-review-report --help` reference to qa skill documentation.
+
 ## [v3.15.8] - 2026-05-21
 
 ### Changed
