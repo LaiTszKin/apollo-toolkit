@@ -1,33 +1,37 @@
 ---
 name: version-release
-description: 當你需要協助用戶完成版本發佈時，使用這個技能。
+description: 協助完成自動化版本發佈。同步文檔、更新版本號、推送 tag 並建立 GitHub Release。
 ---
 
 ## 技能目標
 
-幫用戶完成自動化版本發佈流程
+協助用戶完成自動化版本發佈流程。
 
 ## 驗收條件
 
 - `CHANGELOG.md`, `docs/` 下所有項目文檔已經被同步到最新狀態
-- Github release, Github version tag 被完成創建
+- GitHub release 與 version tag 已被建立
 
 ## 工作流程
 
 ### 1. 檢查並確認 repo 狀態
 
-閱讀目前的 repo 狀態。查看是否依然存在未提交變更。如有，使用 `commit` 技能將目前為提交的變更暫存並提交。推送到 remote。
+檢查 repo 狀態。
+若有未提交變更，使用 `commit` 技能暫存並提交。推送到 remote。
 
 ### 2. 更新項目文檔狀態
 
-完整閱讀上一次發佈版本至今的所有變更，並檢查文檔之中的表述是否存在錯誤或遺漏。如有，使用 `docs-project`, `maintain-project-constraints` 這兩個技能將所有項目文檔同步到最新狀態。
+閱讀上次發佈以來的所有變更。
+檢查文檔是否存在錯誤或遺漏。
+若有，使用 `docs-project`、`maintain-project-constraints` 將文檔同步到最新。
 如果外部環境允許使用 subagents，建議通過並行調度 subagents 完成變更的逐行深度閱讀。
 
 ### 3. 發佈版本
 
-確認所有文檔都已經被更新之後，更新 repo 的版本文件（如 pyproject.toml, cargo.toml）。
-使用 `commit` 技能將所有變更提交並推送到 remote。
-最後，將用戶要求的版本所對應的 version tag 推送到 remote 並建立 github release。
+確認所有文檔已更新。
+更新 repo 的版本文件（如 pyproject.toml）。
+使用 `commit` 技能提交並推送所有變更。
+最後推送 version tag 並建立 GitHub release。
 
 ## 參考資料索引
 

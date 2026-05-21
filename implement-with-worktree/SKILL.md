@@ -1,15 +1,17 @@
 ---
 name: implement-with-worktree
-description: 當你需要在獨立分支和工作樹之中實作spec時，使用這個技能。
+description: 在獨立分支及工作樹中實作 spec。按 tasks.md 逐項實作，按 checklist.md 逐項驗收。完成後提交到子分支，保持主分支乾淨。
 ---
 
 ## 技能目標
 
-在獨立分支及工作樹實作用戶指定的spec。確保所有任務都被完成，用戶所有需求都被滿足。
+在獨立分支及工作樹中實作用戶指定的 spec，確保所有任務完成且用戶需求被滿足。
 
 ## 驗收條件
 
-- 在所有被用戶要求實作的spec之中，所有的 `checklist.md`, `tasks.md`, `spec.md` 當中所有非用戶填寫的任務相關checkboxes全部被勾選為完成狀態
+- 對所有被要求實作的 spec，相關文件中的任務 checkboxes 全部被勾選為完成
+- 這些文件包括 `checklist.md`、`tasks.md`、`spec.md`
+- 不包含用戶自行填寫的項目
 
 ## 工作流程
 
@@ -25,26 +27,33 @@ description: 當你需要在獨立分支和工作樹之中實作spec時，使用
 - `coordination.md`（如有）定義了batch spec之中各份spec各自的實作邊界
 - `preparation.md`（如有）定義了實作batch spec之前各spec的共用準備工作
 
-按照以上文件，閱讀repo，理解本次spec的實作範圍。
+閱讀 repo。
+理解本次 spec 的實作範圍。
 
 ### 2. 創建子分支及worktree
 
-從當前分支創建子分支及worktree。分支以規格文檔的實際變更命名，並且需要符合通用開發規範(e.g. feat/event-bus-backend)
+從當前分支創建子分支及 worktree。
+分支以規格文檔的實際變更命名，且需符合通用開發規範（如 feat/event-bus-backend）。
 
 ### 3. 實作spec任務
 
-嚴格按照 `tasks.md` 之中定義的任務，逐項完成實作。如果有多份 `tasks.md` 存在於多份spec之中，則依照 `coordination.md` 之中建議的merge順序進行實作。
-在確認完成所有任務之後，將 `tasks.md` 之中的所有checkboxes勾選為完成。
+嚴格按照 `tasks.md` 定義的任務逐項實作。
+若有多份 `tasks.md` 存在於多份 spec 中，依照 `coordination.md` 建議的 merge 順序進行實作。
+在確認完成所有任務之後，將 `tasks.md` 中的所有 checkboxes 勾選為完成。
 
-如果實作的spec是batch spec，且有 `preparation.md`，在開始實作之前需要先完成 `preparation.md` 之中所規定的任務內容，並在驗收條件滿足之後回填 `preparation.md`。
+若實作的 spec 是 batch spec，且有 `preparation.md`，在開始實作前先完成其規定的任務。
+驗收條件滿足後回填 `preparation.md`。
 
 ### 4. 驗證實作
 
-按照 `checklist.md` 之中定義的驗收標準，逐項驗收並檢查任務是否完成。對於未達到驗收標準的任務，必須重新實作及重新驗收，並在完成驗收之後將所有 `checklist.md` 之中的checkboxes勾選為完成。
+按照 `checklist.md` 定義的驗收標準，逐項驗收並檢查任務是否完成。
+未達到驗收標準的任務必須重新實作與驗收。
+通過後將 `checklist.md` 中的 checkboxes 勾選為完成。
 
 ### 5. 回填spec
 
-確保所有實作任務完成並通過驗收之後，更新 `spec.md` 之中的需求checkboxes反應實際代碼實作狀態。
+確保所有實作任務完成並通過驗收之後，更新 `spec.md` 中的需求 checkboxes。
+以反映實際代碼實作狀態。
 
 ### 6. 提交變更
 
