@@ -2,6 +2,13 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.12] - 2026-05-22
+
+### Changed
+
+- Clarify `--batch-name` guidance in `create-specs` help text: add output layout description and warn that batch names should not include date prefixes.
+- Add runtime warning when `--batch-name` starts with a YYYY-MM-DD pattern to prevent nested date folders.
+
 ## [v3.15.11] - 2026-05-22
 
 ### Changed
