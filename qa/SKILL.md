@@ -43,3 +43,4 @@ description: 當你需要審查規格文檔相關變更時，調用此技能
 ## 參考資料
 
 - `assets/templates/code-review-report.md` - code review report 模板
+- `apltk create-review-report --help` - cli 工具幫助資訊
