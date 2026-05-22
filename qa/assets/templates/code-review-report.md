@@ -3,6 +3,7 @@
 - **Spec**: [Spec Name]
 - **Date**: [YYYY-MM-DD]
 - **Reviewer**: [Name]
+- **Result**: [PASS/NOT PASS]
 
 ---
 
