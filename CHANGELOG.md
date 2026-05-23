@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.19] - 2026-05-24
+
+### Changed
+
+- Refine subagent workflow in `implement-with-subagents` skill: require creating spec-specific branch and worktree before launching subagent, and use `implement` skill instead of `implement-with-worktree`.
+
 ## [v3.15.18] - 2026-05-24
 
 ### Added
