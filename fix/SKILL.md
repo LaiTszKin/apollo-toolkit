@@ -29,4 +29,10 @@ description: 依照 code review report 中的建議方案修復代碼問題。P0
 1. 讀取審查結果所發現的問題，識別每個問題對應的改進建議。
 2. 閱讀相關審查代碼，並識別任務之間的相依性。
 3. 將任務切分為多個批次，確保每個批次內的 subagents 都能夠並行工作。
-4. 按照批次之間的依賴順序，調度 suabgents 完成所有修復任務。
+4. 按照批次之間的依賴順序，調度 suabgents 完成所有修復任務，並將 subagents 的修復合併回當前分支。
+5. 將已經合併的分支和 worktree 清理
+
+如果使用 subagents，subagents 需要嚴格按照以下流程完成修復工作：
+1. 閱讀受影響的檔案。
+2. 創建分支及 worktree。
+3. 在獨立 worktree 之中按照 code review report 的建議修復方案實作修復。
