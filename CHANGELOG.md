@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.15] - 2026-05-23
+
+### Added
+
+- Add hallucination review instruction reference to qa skill documentation.
+
 ## [v3.15.14] - 2026-05-23
 
 ### Changed
