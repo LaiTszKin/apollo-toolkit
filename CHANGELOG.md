@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.17] - 2026-05-23
+
+### Changed
+
+- Refine skill instructions in `commit` and `update-project-html` skills.
+
 ## [v3.15.16] - 2026-05-23
 
 ### Changed
