@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.15.16] - 2026-05-23
+
+### Changed
+
+- Clarify subagent workflow instructions in `fix` and `implement-with-subagents` skills.
+
 ## [v3.15.15] - 2026-05-23
 
 ### Added
