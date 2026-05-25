@@ -1,4 +1,4 @@
 interface:
-  display_name: "Implement Specs"
-  short_description: "Implement approved specs in the current checkout"
-  default_prompt: "Use $implement to resolve the user-named docs/plans path or the evidence-backed latest plan (never guess), read parent coordination.md when present, read spec.md then design.md then contract.md then checklist.md before executing every tasks.md line; when multiple member directories apply, finish one directory completely before the next per coordination.md; never create branches or git worktrees unless the user rescopes, backfill the planning docs, and finalize with $commit."
+  display_name: "Implement"
+  short_description: "Implement an approved spec set inside an isolated git worktree"
+  default_prompt: "Use $implement-with-worktree to follow the same docs/plans resolution and read-order rules as $implement (spec then design then contract then checklist then tasks; one directory fully done before the next per coordination.md when multiple apply), identify the parent branch, create or reuse an isolated worktree and matching branch, verify pwd matches git rev-parse --show-toplevel before any write, keep the parent checkout read-only for deliverables, complete every tasks.md line and checklist.md wrap-up in the worktree, backfill planning docs, and finalize with $commit on the worktree branch."

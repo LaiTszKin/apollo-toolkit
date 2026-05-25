@@ -1,6 +1,6 @@
 ---
 name: qa
-description: 審查規格文檔相關的程式碼變更。從六個維度產出 code review report：幻覺代碼、冗餘、偏移、遺漏、架構、性能。
+description: 審查規格文檔相關的程式碼變更。從六個維度產出 code review report：幻覺代碼、冗餘、偏移、遺漏、架構、性能。不用於非 spec 相關的變更審查，不用於直接修改代碼，不用於沒有 spec 的情境。
 ---
 
 ## 目標
@@ -47,12 +47,27 @@ description: 審查規格文檔相關的程式碼變更。從六個維度產出 
 - 性能隱患審查 agent
 並讓上述6個 subagents 對該次 spec 涉及的變更範圍進行審查。
 
-### 3. 生成 code review report
+當 subagents 完成審查後，檢查各 agent 回報的 findings 之間是否有重疊。
+若同一段代碼被多個 agent 標記，合併為單一 finding 並保留各維度的視角。
 
-總結上一步發現的所有問題代碼。
-按嚴重程度排序。
+### 3. 合成審查結果
+
+收集所有 subagents 的 findings 後，按以下程序合成：
+
+1. **Dedup 重疊發現**：跨 agent 的相同問題合併為單一 finding，保留各維度的影響說明。
+2. **跨 agent 統一排序**：將所有 findings 按 P0-P3 重新排序（不以各 agent 自排為準）。
+3. **折疊乾淨結果**：無 findings 的審查維度僅保留一行摘要，不佔報告篇幅。
+
+### 4. 生成 code review report
+
 使用 `apltk` CLI 工具生成模板。
 按模板指示填入審查結果。
+報告需包含以下區段：
+- **判決**：Ready to Merge（可直接合併）/ Needs Attention（需處理中優先級問題）/ Needs Work（有 P0-P1 問題需先修復）
+- **發現的問題**：按 P0-P3 排序的完整問題列表
+- **解決方案**：每個問題的修復建議
+- **乾淨維度**：無 findings 的維度一行列出
+
 注意，你提出的建議修正方案不可與 spec 本身的需求衝突。
 
 代碼審查只有在完全滿足以下條件時，才可以被視為通過：

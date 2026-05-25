@@ -109,7 +109,32 @@ Before finishing any document, confirm:
 - [ ] No removed documentation content has been lost without being replaced in the new structure.
 - [ ] File titles are descriptive enough to be understood in the table of contents.
 
-## 6. Removal Rules for Old Documentation
+## 6. Claim Traceability (證據追溯)
+
+每條文檔記述必須可追溯至實際程式碼來源。使用信心分數模型標記證據強度：
+
+| 信心水準 | 分數 | 定義 | 標記 |
+|---------|------|------|------|
+| Direct | 0.9 | 可直接從程式碼結構驗證（如 router 註冊的 handler） | 無需標記 |
+| Indirect | 0.7 | 符合已知模式但無明確註冊（如函式簽名吻合 handler interface） | 無需標記 |
+| Inferred | 0.5 | 根據命名慣例或部分結構比對推斷 | 標記 `[INFERRED]` |
+| Speculative | 0.2 | 僅根據關鍵字或註解推測 | 省略不寫入文檔 |
+
+**應用方式**：在文檔中無法直接驗證的陳述後加上 `[INFERRED]` 標記。例如：
+
+```markdown
+- 使用者註冊後會收到歡迎信 [INFERRED]  <!-- 對應 mail/sender.go:45-52 中的 sendWelcomeEmail 呼叫 -->
+```
+
+## 7. LLM 安全原則
+
+在文檔產生過程中，只餵給 LLM 結構化中繼資料，不傳輸原始碼完整內容。安全的中繼資料包括：
+- 檔案列表與模組邊界
+- API 端點路徑與 methods
+- 函式簽名與型別定義（不含實作主體）
+- 套件依賴關係與資料庫綱要（不含實際資料）
+
+## 8. Removal Rules for Old Documentation
 
 When old documentation exists:
 

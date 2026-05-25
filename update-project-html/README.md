@@ -4,11 +4,14 @@
 
 ## What this skill does
 
-1. Reads the current atlas (`atlas.index.yaml` + per-feature YAML).
-2. Resolves the diff scope (`git diff --stat` + `git diff --cached --stat` by default, or `git diff --stat <base>..HEAD` when the user names a ref).
-3. Filters to code-affecting hunks and maps each changed file to an existing or new feature.
-4. Dispatches one write-capable subagent per affected feature to deep-read only its own changed files and apply every intra-feature mutation through `apltk architecture` (no `--spec`).
-5. Waits until every subagent finishes, then declares cross-feature edges, runs `apltk architecture render`, and validates.
+1. Reads the current atlas (`atlas.index.yaml` + per-feature YAML) — only affected features (context economy).
+2. Measures architecture drift: compares atlas entries against actual codebase structure.
+3. Resolves the diff scope (`git diff --stat` + `git diff --cached --stat` by default, or `git diff --stat <base>..HEAD` when the user names a ref).
+4. Filters out non-architecture changes (formatting, config-only, test-only, comments).
+5. Maps filtered diff hunks to existing or new features.
+6. Dispatches one write-capable subagent per affected feature to deep-read only its own changed files and apply every intra-feature mutation through `apltk architecture` (no `--spec`).
+7. Waits until every subagent finishes, then declares cross-feature edges, runs `apltk architecture render`, and validates.
+8. Re-measures drift to confirm it is within acceptable range.
 
 ## When to use
 
@@ -26,6 +29,8 @@ If no atlas exists yet, use `init-project-html` to bootstrap one. For planned bu
 - Every mutation traces to a specific file + diff hunk; absent code never produces atlas entries.
 - Subagent fan-out is the only safe read pattern: one feature per subagent, no shared source loading.
 - Cross-feature wiring happens **after** every subagent finishes — never from partial summaries.
+- Measure drift before and after: confirm the atlas stays within an acceptable drift threshold.
+- Filter diff noise: formatting, config-only, test-only, and comment-only changes never drive atlas mutations.
 
 ## References
 

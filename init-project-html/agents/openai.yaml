@@ -3,9 +3,11 @@ interface:
   short_description: "Declare the project HTML architecture atlas through `apltk architecture` CLI verbs"
   default_prompt: >-
     Use $init-project-html. Semantic rules + acceptance criteria live in its SKILL.md; field/enum cheat sheet in references/TEMPLATE_SPEC.md; **exact verb/subverb/flag spelling MUST come from `apltk architecture --help`** — never memorize commands from prose.
+    Map output to C4 model layers: feature = Container level, submodule = Component level. Start with System Context (actors, system boundary, cross-system edges), then drill down.
     NEVER hand-edit `resources/project-architecture/**/*.html`. State is YAML under `resources/project-architecture/atlas/`; every mutation goes through the CLI; renderer owns layout, CSS, ARIA, pan/zoom on macro + sub-module dataflow SVGs.
+    Anchor every declaration to repo evidence (file path + line range); record scanned roots/omissions in `meta.summary`. Read `sample-demo/` first to understand expected output format and abstraction level.
     **Subagents only:** STEP 1 — shallow feature-module list (slug, entry, boundaries), no function-body reads. STEP 2 — dispatch ONE write-capable subagent per feature; each declares ALL intra-feature state (sub-modules, function/variable/dataflow/error rows, intra-feature edges) via `apltk architecture` (flags: `--help`). Each returns ONLY (i) sub-module list and (ii) outbound boundary notes for OTHER features.
     **HARD GATE:** the main agent MUST wait until EVERY dispatched subagent has finished (success or explicit failure report) before declaring ANY cross-feature `edge`, shared `meta` that stitches multiple features, or `actor` that exists only for cross-feature context.
     After the gate: batch cross-feature `edge` (+ optional `meta`/`actor`), then `apltk architecture render` (if you used `--no-render`) and `apltk architecture validate`. The orchestrator MUST NOT re-read delegated features or re-declare intra-feature components.
     Sub-module pages are self-only — cross-boundary behavior is ALWAYS `edge` with kind call|return|data-row|failure. Internal `dataflow` steps may reference a declared function plus reads/writes of declared variables in the SAME sub-module or validate fails.
-    Anchor every declaration to repo evidence; use `meta.summary` for scanned roots/omissions. Report completion only after validate is OK; point reviewers to `resources/project-architecture/index.html`.
+    Report completion only after validate is OK; point reviewers to `resources/project-architecture/index.html`.

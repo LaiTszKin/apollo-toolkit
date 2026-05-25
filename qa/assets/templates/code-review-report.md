@@ -3,7 +3,17 @@
 - **Spec**: [Spec Name]
 - **Date**: [YYYY-MM-DD]
 - **Reviewer**: [Name]
-- **Result**: [PASS/NOT PASS]
+- **Verdict**: [Ready to Merge / Needs Attention / Needs Work]
+
+---
+
+## 判決說明
+
+**Verdict**: [Ready to Merge | Needs Attention | Needs Work]
+
+- **Ready to Merge** — 所有測試通過，無 P0/P1 問題，建議項目可選
+- **Needs Attention** — 有 P2 問題或重要建議值得處理
+- **Needs Work** — 有 P0/P1 問題或未滿足的需求，必須先修復
 
 ---
 
@@ -36,6 +46,17 @@
 |---|--------|------|------|------|
 | 1 | [問題簡述] | [對程式碼風格或可讀性的影響] | `[file/path]` | L[N]-[N] |
 | 2 | [問題簡述] | [對程式碼風格或可讀性的影響] | `[file/path]` | L[N]-[N] |
+
+---
+
+## 審查維度摘要
+
+- **幻覺代碼**: [X 個 finding / 無發現]
+- **冗余代碼**: [X 個 finding / 無發現]
+- **實作偏移**: [X 個 finding / 無發現]
+- **實作遺漏**: [X 個 finding / 無發現]
+- **架構瑕疵**: [X 個 finding / 無發現]
+- **性能隱患**: [X 個 finding / 無發現]
 
 ---
 

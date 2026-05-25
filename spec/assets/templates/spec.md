@@ -24,6 +24,8 @@
 **THEN** [Verifiable result]
 **AND** [Additional result or side effect]
 
+**Uncertainty Level**: [Known / Exploratory]
+
 **Requirements**:
 - [ ] R1.1 [Acceptable requirement]
 - [ ] R1.2 [Acceptable requirement]
@@ -34,6 +36,8 @@
 **WHEN** [Trigger action]
 **THEN** [Verifiable result]
 **AND** [Additional result or side effect]
+
+**Uncertainty Level**: [Known / Exploratory]
 
 **Requirements**:
 - [ ] R2.1 [Acceptable requirement]
