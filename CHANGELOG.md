@@ -2,6 +2,29 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.16.0] - 2026-05-25
+
+### Added
+
+- `test-case-strategy/references/integrated-pbt.md`: stateful/state machine property-based testing reference with 3 integration levels (sequential, contract+PBT, concurrent) and decision flow.
+- `test-case-strategy/references/contract-tests.md`: contract testing reference for parallel development boundary verification.
+- `fix/assets/templates/fix-summary.md`: structured fix summary output template.
+- `implement/references/isolation-guidance.md`: decision guidance for worktree isolation vs quick path.
+- `spec/references/spec-quality-checklist.md`: spec delivery self-review checklist.
+
+### Changed
+
+- Restructure `systematic-debug` skill: error classification (6 types), debugging method selection guide (HDD/5Whys/FTA/KT IS/IS NOT), Red Flags list (11 items), Rule of Three, Assumption Ledger, and No Root Cause handling procedure.
+- Rewrite `test-case-strategy` skill: replace "choose a shape" with risk-driven decision framework (風險→邊界→驗證機制), integrated PBT decision line, and updated references.
+- Merge `implement-with-worktree` into `implement` skill: unified entry point with isolation vs quick path decision, pre-flight check, scope guard, drift handling, and conflict resolution.
+- Enhance `implement-with-subagents` skill: Scope Contract, file overlap detection (git merge-tree), lockfile handling rules, error recovery (retry once, partial success), and batch boundary verification.
+- Restructure `spec` skill architecture diff generation (Step 7) with C4 model layers (Context→Container→Component→Code), baseline drift measurement, context economy, and evidence traceability linking declarations to spec tasks.
+- Optimize `init-project-html` skill: C4 model alignment with layer mapping table, progressive disclosure (System Context first), evidence traceability with source file references, and sample-demo-driven workflow.
+- Optimize `update-project-html` skill: drift threshold mechanism (<20% incremental, ≥20% notify), diff noise filtering (formatting/config/test/comments), context economy (read only affected features), and pre/post drift measurement.
+- Optimize `docs-project` skill: claim traceability with confidence score model (Direct/Indirect/Inferred/Speculative), LLM safety principle (structured metadata only, no raw source), incremental update guidance, and periodic drift detection cycle.
+- Optimize `maintain-project-constraints` skill: AGENTS.md vs CLAUDE.md role differentiation (Codex vs Claude Code), 100-line limit, prohibitions extraction from past issues/commit history, and docs index auto-sync guidance.
+- Standardize C4 model layer mapping in definition.md across `init-project-html`, `update-project-html`, and `spec` skills.
+
 ## [v3.15.24] - 2026-05-25
 
 ### Changed
