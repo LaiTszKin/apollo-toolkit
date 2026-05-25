@@ -2,7 +2,7 @@
 
 All notable changes to this repository are documented in this file.
 
-## [Unreleased]
+## [v3.15.24] - 2026-05-25
 
 ### Changed
 
