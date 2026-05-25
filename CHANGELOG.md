@@ -2,6 +2,13 @@
 
 All notable changes to this repository are documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Refine `spec` skill: add step to read existing architecture diagrams before defining new module structures.
+- Refine `docs-project` skill: clarify that template docs should be read before rewriting project documentation.
+
 ## [v3.15.23] - 2026-05-25
 
 ### Changed
