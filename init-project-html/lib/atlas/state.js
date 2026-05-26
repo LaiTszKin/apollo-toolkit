@@ -50,7 +50,14 @@ function writeYaml(file, data) {
 function load(atlasDir) {
   const state = emptyState();
   const indexFile = path.join(atlasDir, INDEX_FILE);
-  const index = readYaml(indexFile);
+  let index;
+  try {
+    index = readYaml(indexFile);
+  } catch (e) {
+    const empty = emptyState();
+    empty._loadError = `Corrupted atlas index: ${e.message}`;
+    return empty;
+  }
   if (!index) return state;
 
   if (index.meta) state.meta = { ...state.meta, ...index.meta };
@@ -577,7 +584,5 @@ module.exports = {
   computeDiff,
   appendHistory,
   writeUndoSnapshot,
-  _readUndoSnapshot,
-  _clearUndoSnapshot,
   consumeUndoSnapshot,
 };

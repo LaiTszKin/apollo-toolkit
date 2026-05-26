@@ -225,10 +225,9 @@ test('undo snapshot is read and cleared', () => {
   const dir = mkTmp();
   try {
     stateLib.writeUndoSnapshot(dir, { base: { features: [] } });
-    const snap = stateLib._readUndoSnapshot(dir);
+    const snap = stateLib.consumeUndoSnapshot(dir, 1);
     assert.deepEqual(snap, { base: { features: [] } });
-    stateLib._clearUndoSnapshot(dir);
-    assert.equal(stateLib._readUndoSnapshot(dir), null);
+    assert.equal(stateLib.consumeUndoSnapshot(dir, 1), null);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
