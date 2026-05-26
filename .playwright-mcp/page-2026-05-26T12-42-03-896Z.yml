@@ -1,0 +1,1128 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner [ref=e6]:
+      - heading "Navigation Menu" [level=2] [ref=e7]
+      - generic [ref=e8]:
+        - link "Homepage" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - navigation "Global" [ref=e16]:
+            - list [ref=e17]:
+              - listitem [ref=e18]:
+                - button "Platform" [ref=e20] [cursor=pointer]:
+                  - text: Platform
+                  - img [ref=e21]
+              - listitem [ref=e23]:
+                - button "Solutions" [ref=e25] [cursor=pointer]:
+                  - text: Solutions
+                  - img [ref=e26]
+              - listitem [ref=e28]:
+                - button "Resources" [ref=e30] [cursor=pointer]:
+                  - text: Resources
+                  - img [ref=e31]
+              - listitem [ref=e33]:
+                - button "Open Source" [ref=e35] [cursor=pointer]:
+                  - text: Open Source
+                  - img [ref=e36]
+              - listitem [ref=e38]:
+                - button "Enterprise" [ref=e40] [cursor=pointer]:
+                  - text: Enterprise
+                  - img [ref=e41]
+              - listitem [ref=e43]:
+                - link "Pricing" [ref=e44] [cursor=pointer]:
+                  - /url: https://github.com/pricing
+                  - generic [ref=e45]: Pricing
+          - generic [ref=e46]:
+            - button "Search or jump to…" [ref=e49] [cursor=pointer]:
+              - img [ref=e51]
+            - link "Sign in" [ref=e54] [cursor=pointer]:
+              - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FdocToolchain%2Fdiag-agent
+            - link "Sign up" [ref=e55] [cursor=pointer]:
+              - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E&source=header-repo&source_repo=docToolchain%2Fdiag-agent
+            - button "Appearance settings" [ref=e58] [cursor=pointer]:
+              - img
+  - main [ref=e62]:
+    - generic [ref=e63]:
+      - generic [ref=e64]:
+        - generic [ref=e66]:
+          - img [ref=e67]
+          - link "docToolchain" [ref=e70] [cursor=pointer]:
+            - /url: /docToolchain
+          - generic [ref=e71]: /
+          - strong [ref=e72]:
+            - link "diag-agent" [ref=e73] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent
+          - generic [ref=e74]: Public
+        - generic [ref=e75]:
+          - list:
+            - listitem [ref=e76]:
+              - link "You must be signed in to change notification settings" [ref=e77] [cursor=pointer]:
+                - /url: /login?return_to=%2FdocToolchain%2Fdiag-agent
+                - img [ref=e78]
+                - text: Notifications
+            - listitem [ref=e80]:
+              - link "Fork 0" [ref=e81] [cursor=pointer]:
+                - /url: /login?return_to=%2FdocToolchain%2Fdiag-agent
+                - img [ref=e82]
+                - text: Fork
+                - generic "0" [ref=e84]
+            - listitem [ref=e85]:
+              - link "You must be signed in to star a repository" [ref=e87] [cursor=pointer]:
+                - /url: /login?return_to=%2FdocToolchain%2Fdiag-agent
+                - img [ref=e88]
+                - text: Star
+                - generic "2 users starred this repository" [ref=e90]: "2"
+      - navigation "Repository" [ref=e91]:
+        - list [ref=e92]:
+          - listitem [ref=e93]:
+            - link "Code" [ref=e94] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent
+              - img [ref=e95]
+              - generic [ref=e97]: Code
+          - listitem [ref=e98]:
+            - link "Issues" [ref=e99] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/issues
+              - img [ref=e100]
+              - generic [ref=e103]: Issues
+          - listitem [ref=e104]:
+            - link "Pull requests" [ref=e105] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/pulls
+              - img [ref=e106]
+              - generic [ref=e108]: Pull requests
+          - listitem [ref=e109]:
+            - link "Actions" [ref=e110] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/actions
+              - img [ref=e111]
+              - generic [ref=e113]: Actions
+          - listitem [ref=e114]:
+            - link "Projects" [ref=e115] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/projects
+              - img [ref=e116]
+              - generic [ref=e118]: Projects
+          - listitem [ref=e119]:
+            - link "Security and quality" [ref=e120] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/security
+              - img [ref=e121]
+              - generic [ref=e123]: Security and quality
+          - listitem [ref=e124]:
+            - link "Insights" [ref=e125] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/pulse
+              - img [ref=e126]
+              - generic [ref=e128]: Insights
+    - generic [ref=e141]:
+      - heading "docToolchain/diag-agent" [level=1] [ref=e143]
+      - generic [ref=e144]:
+        - generic [ref=e147]:
+          - generic [ref=e148]:
+            - generic [ref=e149]:
+              - button "main branch" [ref=e151] [cursor=pointer]:
+                - generic [ref=e152]:
+                  - generic [ref=e154]:
+                    - img [ref=e156]
+                    - generic [ref=e159]: main
+                  - generic:
+                    - img
+              - generic [ref=e160]:
+                - link "Branches" [ref=e161] [cursor=pointer]:
+                  - /url: /docToolchain/diag-agent/branches
+                  - generic [ref=e162]:
+                    - generic:
+                      - img
+                    - generic [ref=e163]: Branches
+                - link "Tags" [ref=e164] [cursor=pointer]:
+                  - /url: /docToolchain/diag-agent/tags
+                  - generic [ref=e165]:
+                    - generic:
+                      - img
+                    - generic [ref=e166]: Tags
+            - generic [ref=e167]:
+              - generic [ref=e171]:
+                - img [ref=e173]
+                - combobox "Go to file" [ref=e175]
+              - button "Code" [ref=e176] [cursor=pointer]:
+                - generic [ref=e177]:
+                  - generic:
+                    - img
+                  - generic [ref=e178]: Code
+                  - generic:
+                    - img
+          - generic [ref=e179]:
+            - generic [ref=e180]:
+              - heading "Folders and files" [level=2] [ref=e181]
+              - table "Folders and files" [ref=e182]:
+                - rowgroup:
+                  - row "Name Last commit message Last commit date":
+                    - columnheader "Name"
+                    - columnheader "Last commit message":
+                      - generic "Last commit message"
+                    - columnheader "Last commit date":
+                      - generic "Last commit date"
+                - rowgroup [ref=e183]:
+                  - row "Latest commit History 107 Commits" [ref=e184]:
+                    - cell "Latest commit History 107 Commits" [ref=e185]:
+                      - generic [ref=e186]:
+                        - heading "Latest commit" [level=2] [ref=e187]
+                        - generic [ref=e190]:
+                          - heading "History" [level=2] [ref=e191]
+                          - link "107 Commits" [ref=e192] [cursor=pointer]:
+                            - /url: /docToolchain/diag-agent/commits/main/
+                            - generic [ref=e193]:
+                              - generic:
+                                - img
+                              - generic [ref=e194]: 107 Commits
+                  - row ".github/workflows, (Directory)" [ref=e195]:
+                    - cell ".github/workflows, (Directory)" [ref=e196]:
+                      - generic [ref=e197]:
+                        - img [ref=e198]
+                        - link ".github/workflows, (Directory)" [ref=e203] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/tree/main/.github/workflows
+                          - text: .github/workflows
+                    - cell [ref=e204]
+                    - cell [ref=e206]
+                  - row ".vibe, (Directory)" [ref=e209]:
+                    - cell ".vibe, (Directory)" [ref=e210]:
+                      - generic [ref=e211]:
+                        - img [ref=e212]
+                        - link ".vibe, (Directory)" [ref=e217] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/tree/main/.vibe
+                          - text: .vibe
+                    - cell [ref=e218]
+                    - cell [ref=e220]
+                  - row "diagrams, (Directory)" [ref=e223]:
+                    - cell "diagrams, (Directory)" [ref=e224]:
+                      - generic [ref=e225]:
+                        - img [ref=e226]
+                        - link "diagrams, (Directory)" [ref=e231] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/tree/main/diagrams
+                          - text: diagrams
+                    - cell [ref=e232]
+                    - cell [ref=e234]
+                  - row "docs, (Directory)" [ref=e237]:
+                    - cell "docs, (Directory)" [ref=e238]:
+                      - generic [ref=e239]:
+                        - img [ref=e240]
+                        - link "docs, (Directory)" [ref=e245] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/tree/main/docs
+                          - text: docs
+                    - cell [ref=e246]
+                    - cell [ref=e248]
+                  - row "src, (Directory)" [ref=e251]:
+                    - cell "src, (Directory)" [ref=e252]:
+                      - generic [ref=e253]:
+                        - img [ref=e254]
+                        - link "src, (Directory)" [ref=e259] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/tree/main/src
+                          - text: src
+                    - cell [ref=e260]
+                    - cell [ref=e262]
+                  - row "test_output, (Directory)" [ref=e265]:
+                    - cell "test_output, (Directory)" [ref=e266]:
+                      - generic [ref=e267]:
+                        - img [ref=e268]
+                        - link "test_output, (Directory)" [ref=e273] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/tree/main/test_output
+                          - text: test_output
+                    - cell [ref=e274]
+                    - cell [ref=e276]
+                  - row "tests, (Directory)" [ref=e279]:
+                    - cell "tests, (Directory)" [ref=e280]:
+                      - generic [ref=e281]:
+                        - img [ref=e282]
+                        - link "tests, (Directory)" [ref=e287] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/tree/main/tests
+                          - text: tests
+                    - cell [ref=e288]
+                    - cell [ref=e290]
+                  - row ".dockerignore, (File)" [ref=e293]:
+                    - cell ".dockerignore, (File)" [ref=e294]:
+                      - generic [ref=e295]:
+                        - img [ref=e296]
+                        - link ".dockerignore, (File)" [ref=e301] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/.dockerignore
+                          - text: .dockerignore
+                    - cell [ref=e302]
+                    - cell [ref=e304]
+                  - row ".env.example, (File)" [ref=e307]:
+                    - cell ".env.example, (File)" [ref=e308]:
+                      - generic [ref=e309]:
+                        - img [ref=e310]
+                        - link ".env.example, (File)" [ref=e315] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/.env.example
+                          - text: .env.example
+                    - cell [ref=e316]
+                    - cell [ref=e318]
+                  - row ".gitignore, (File)" [ref=e321]:
+                    - cell ".gitignore, (File)" [ref=e322]:
+                      - generic [ref=e323]:
+                        - img [ref=e324]
+                        - link ".gitignore, (File)" [ref=e329] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/.gitignore
+                          - text: .gitignore
+                    - cell [ref=e330]
+                    - cell [ref=e332]
+                  - row ".mcp.json, (File)" [ref=e335]:
+                    - cell ".mcp.json, (File)" [ref=e336]:
+                      - generic [ref=e337]:
+                        - img [ref=e338]
+                        - link ".mcp.json, (File)" [ref=e343] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/.mcp.json
+                          - text: .mcp.json
+                    - cell [ref=e344]
+                    - cell [ref=e346]
+                  - row "CLAUDE.md, (File)" [ref=e349]:
+                    - cell "CLAUDE.md, (File)" [ref=e350]:
+                      - generic [ref=e351]:
+                        - img [ref=e352]
+                        - link "CLAUDE.md, (File)" [ref=e357] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/CLAUDE.md
+                          - text: CLAUDE.md
+                    - cell [ref=e358]
+                    - cell [ref=e360]
+                  - row "CONTRIBUTING.md, (File)" [ref=e363]:
+                    - cell "CONTRIBUTING.md, (File)" [ref=e364]:
+                      - generic [ref=e365]:
+                        - img [ref=e366]
+                        - link "CONTRIBUTING.md, (File)" [ref=e371] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/CONTRIBUTING.md
+                          - text: CONTRIBUTING.md
+                    - cell [ref=e372]
+                    - cell [ref=e374]
+                  - row "Dockerfile, (File)" [ref=e377]:
+                    - cell "Dockerfile, (File)" [ref=e378]:
+                      - generic [ref=e379]:
+                        - img [ref=e380]
+                        - link "Dockerfile, (File)" [ref=e385] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/Dockerfile
+                          - text: Dockerfile
+                    - cell [ref=e386]
+                    - cell [ref=e388]
+                  - row "README.md, (File)" [ref=e391]:
+                    - cell "README.md, (File)" [ref=e392]:
+                      - generic [ref=e393]:
+                        - img [ref=e394]
+                        - link "README.md, (File)" [ref=e399] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/README.md
+                          - text: README.md
+                    - cell [ref=e400]
+                    - cell [ref=e402]
+                  - row "docToolchainConfig.groovy, (File)" [ref=e405]:
+                    - cell "docToolchainConfig.groovy, (File)" [ref=e406]:
+                      - generic [ref=e407]:
+                        - img [ref=e408]
+                        - link "docToolchainConfig.groovy, (File)" [ref=e413] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/docToolchainConfig.groovy
+                          - text: docToolchainConfig.groovy
+                    - cell [ref=e414]
+                    - cell [ref=e416]
+                  - row "docker-compose.yml, (File)" [ref=e419]:
+                    - cell "docker-compose.yml, (File)" [ref=e420]:
+                      - generic [ref=e421]:
+                        - img [ref=e422]
+                        - link "docker-compose.yml, (File)" [ref=e427] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/docker-compose.yml
+                          - text: docker-compose.yml
+                    - cell [ref=e428]
+                    - cell [ref=e430]
+                  - row "dtcw, (File)" [ref=e433]:
+                    - cell "dtcw, (File)" [ref=e434]:
+                      - generic [ref=e435]:
+                        - img [ref=e436]
+                        - link "dtcw, (File)" [ref=e441] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/dtcw
+                          - text: dtcw
+                    - cell [ref=e442]
+                    - cell [ref=e444]
+                  - row "pyproject.toml, (File)" [ref=e447]:
+                    - cell "pyproject.toml, (File)" [ref=e448]:
+                      - generic [ref=e449]:
+                        - img [ref=e450]
+                        - link "pyproject.toml, (File)" [ref=e455] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/pyproject.toml
+                          - text: pyproject.toml
+                    - cell [ref=e456]
+                    - cell [ref=e458]
+                  - row "settings.json, (File)" [ref=e461]:
+                    - cell "settings.json, (File)" [ref=e462]:
+                      - generic [ref=e463]:
+                        - img [ref=e464]
+                        - link "settings.json, (File)" [ref=e469] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/settings.json
+                          - text: settings.json
+                    - cell [ref=e470]
+                    - cell [ref=e472]
+                  - row "uv.lock, (File)" [ref=e475]:
+                    - cell "uv.lock, (File)" [ref=e476]:
+                      - generic [ref=e477]:
+                        - img [ref=e478]
+                        - link "uv.lock, (File)" [ref=e483] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/uv.lock
+                          - text: uv.lock
+                    - cell [ref=e484]
+                    - cell [ref=e486]
+            - generic [ref=e490]:
+              - generic [ref=e491]:
+                - heading "Repository files navigation" [level=2] [ref=e492]
+                - navigation "Repository files" [ref=e493]:
+                  - list [ref=e494]:
+                    - listitem [ref=e495]:
+                      - link "README" [ref=e496] [cursor=pointer]:
+                        - /url: "#"
+                        - img [ref=e498]
+                        - generic [ref=e500]: README
+                    - listitem [ref=e501]:
+                      - link "Contributing" [ref=e502] [cursor=pointer]:
+                        - /url: "#"
+                        - img [ref=e504]
+                        - generic [ref=e506]: Contributing
+                - button "Outline" [ref=e507] [cursor=pointer]:
+                  - img [ref=e508]
+              - article [ref=e511]:
+                - generic [ref=e512]:
+                  - heading "diag-agent" [level=1] [ref=e513]
+                  - 'link "Permalink: diag-agent" [ref=e514] [cursor=pointer]':
+                    - /url: "#diag-agent"
+                    - img [ref=e515]
+                - paragraph [ref=e517]: An LLM Agent for creating software architecture diagrams with autonomous syntax validation and design feedback.
+                - generic [ref=e518]:
+                  - heading "Features" [level=2] [ref=e519]
+                  - 'link "Permalink: Features" [ref=e520] [cursor=pointer]':
+                    - /url: "#features"
+                    - img [ref=e521]
+                - list [ref=e523]:
+                  - listitem [ref=e524]:
+                    - text: 🤖
+                    - strong [ref=e525]: Autonomous diagram generation
+                    - text: with syntax validation and design feedback loop
+                  - listitem [ref=e526]:
+                    - text: ✅
+                    - strong [ref=e527]: Smart description validation
+                    - text: "- LLM checks descriptions for completeness and clarity before generation"
+                  - listitem [ref=e528]:
+                    - text: 🎨
+                    - strong [ref=e529]: Multi-format support
+                    - text: via Kroki integration (PlantUML, C4, BPMN, Mermaid, etc.)
+                  - listitem [ref=e530]:
+                    - text: 🚀
+                    - strong [ref=e531]: Flexible deployment
+                    - text: ": CLI tool, MCP server, or Python library"
+                  - listitem [ref=e532]:
+                    - text: 🔒
+                    - strong [ref=e533]: Privacy-first
+                    - text: ": Local-first approach with optional remote rendering"
+                  - listitem [ref=e534]:
+                    - text: 🔌
+                    - strong [ref=e535]: LLM-agnostic
+                    - text: ": Works with any LLM via LiteLLM (Anthropic, OpenAI, etc.)"
+                  - listitem [ref=e536]:
+                    - text: ⚡
+                    - strong [ref=e537]: Context-efficient
+                    - text: ": Minimal token consumption through optimized prompts"
+                - generic [ref=e538]:
+                  - heading "Why Use diag-agent?" [level=2] [ref=e539]
+                  - 'link "Permalink: Why Use diag-agent?" [ref=e540] [cursor=pointer]':
+                    - /url: "#why-use-diag-agent"
+                    - img [ref=e541]
+                - generic [ref=e543]:
+                  - 'heading "Before: Manual Diagram Creation ❌" [level=3] [ref=e544]'
+                  - 'link "Permalink: Before: Manual Diagram Creation ❌" [ref=e545] [cursor=pointer]':
+                    - /url: "#before-manual-diagram-creation-"
+                    - img [ref=e546]
+                - paragraph [ref=e548]: "Creating diagrams manually means wrestling with syntax, debugging errors, and iterating repeatedly:"
+                - generic [ref=e549]:
+                  - generic [ref=e550]:
+                    - generic [ref=e551]: "# Attempt 1: Write BPMN XML manually"
+                    - text: $ vim order-process.bpmn
+                    - generic [ref=e552]: "# ... 200 lines of XML later ..."
+                    - generic [ref=e553]: "# Attempt 2: Test with Kroki"
+                    - text: $ curl -X POST https://kroki.io/bpmn/svg --data-binary @order-process.bpmn
+                    - generic [ref=e554]: "# ❌ Error: \"Syntax error at line 47: Missing closing tag\""
+                    - generic [ref=e555]: "# Attempt 3: Fix the error"
+                    - text: $ vim order-process.bpmn
+                    - generic [ref=e556]: "# ... fix line 47 ..."
+                    - generic [ref=e557]: "# Attempt 4: Test again"
+                    - text: $ curl -X POST https://kroki.io/bpmn/svg --data-binary @order-process.bpmn
+                    - generic [ref=e558]: "# ❌ Error: \"Invalid reference: Flow_1 sourceRef not found\""
+                    - generic [ref=e559]: "# Attempt 5: Debug references"
+                    - generic [ref=e560]: "# ... 30 minutes later ..."
+                    - generic [ref=e561]: "# ❌ Still not working..."
+                  - button "Copy code to clipboard" [ref=e563] [cursor=pointer]:
+                    - img [ref=e564]
+                - paragraph [ref=e567]:
+                  - strong [ref=e568]: Result
+                  - text: ": Hours spent debugging syntax instead of designing architecture."
+                - generic [ref=e569]:
+                  - 'heading "After: With diag-agent ✅" [level=3] [ref=e570]'
+                  - 'link "Permalink: After: With diag-agent ✅" [ref=e571] [cursor=pointer]':
+                    - /url: "#after-with-diag-agent-"
+                    - img [ref=e572]
+                - paragraph [ref=e574]: "Let the LLM handle syntax while you focus on architecture:"
+                - generic [ref=e575]:
+                  - generic [ref=e576]:
+                    - generic [ref=e577]: "# Single command with natural language description"
+                    - text: $ uv run diag-agent create \
+                    - generic [ref=e578]: "\"BPMN collaboration with Customer and Shop pools. \\"
+                    - generic [ref=e579]: "Customer: submit order, receive confirmation. \\"
+                    - generic [ref=e580]: "Shop: receive order, process payment, ship product.\""
+                    - text: \ --type bpmn
+                    - generic [ref=e581]: "# diag-agent automatically:"
+                    - generic [ref=e582]: "# 1. Validates your description for completeness ✓"
+                    - generic [ref=e583]: "# 2. Generates valid BPMN XML ✓"
+                    - generic [ref=e584]: "# 3. Validates syntax with Kroki ✓"
+                    - generic [ref=e585]: "# 4. Refines based on errors (if any) ✓"
+                    - generic [ref=e586]: "# 5. Checks design quality with vision LLM ✓"
+                    - text: "✓ Generated in 1 iteration (3.2s) ✓ Output: diagrams/order-process.bpmn, order-process.svg"
+                  - button "Copy code to clipboard" [ref=e588] [cursor=pointer]:
+                    - img [ref=e589]
+                - paragraph [ref=e592]:
+                  - strong [ref=e593]: Result
+                  - text: ": Valid, well-designed diagram in seconds—no syntax debugging required."
+                - generic [ref=e594]:
+                  - heading "Key Advantages" [level=3] [ref=e595]
+                  - 'link "Permalink: Key Advantages" [ref=e596] [cursor=pointer]':
+                    - /url: "#key-advantages"
+                    - img [ref=e597]
+                - table [ref=e600]:
+                  - rowgroup [ref=e601]:
+                    - row "Manual Creation With diag-agent" [ref=e602]:
+                      - columnheader "Manual Creation" [ref=e603]
+                      - columnheader "With diag-agent" [ref=e604]
+                  - rowgroup [ref=e605]:
+                    - row "❌ Hours of syntax debugging ✅ Natural language description" [ref=e606]:
+                      - cell "❌ Hours of syntax debugging" [ref=e607]
+                      - cell "✅ Natural language description" [ref=e608]
+                    - row "❌ Trial-and-error iterations ✅ Autonomous validation loop" [ref=e609]:
+                      - cell "❌ Trial-and-error iterations" [ref=e610]
+                      - cell "✅ Autonomous validation loop" [ref=e611]
+                    - row "❌ No design feedback ✅ Vision-based quality checks" [ref=e612]:
+                      - cell "❌ No design feedback" [ref=e613]
+                      - cell "✅ Vision-based quality checks" [ref=e614]
+                    - row "❌ Format-specific expertise required ✅ Works across 20+ diagram types" [ref=e615]:
+                      - cell "❌ Format-specific expertise required" [ref=e616]
+                      - cell "✅ Works across 20+ diagram types" [ref=e617]
+                    - row "❌ Manual refinement cycles ✅ Self-healing error correction" [ref=e618]:
+                      - cell "❌ Manual refinement cycles" [ref=e619]
+                      - cell "✅ Self-healing error correction" [ref=e620]
+                - generic [ref=e621]:
+                  - heading "Visual Comparison" [level=3] [ref=e622]
+                  - 'link "Permalink: Visual Comparison" [ref=e623] [cursor=pointer]':
+                    - /url: "#visual-comparison"
+                    - img [ref=e624]
+                - paragraph [ref=e626]:
+                  - strong [ref=e627]: "Same prompt: \"Erstelle ein PlantUML Context-Diagramm eines Webshops\""
+                - table [ref=e629]:
+                  - rowgroup [ref=e630]:
+                    - 'row "LLM Direct (No Validation) ❌ Generated without diag-agent orchestration: LLM direct output without validation Issues: Cluttered relationships (external systems → users) 3 actors (includes warehouse worker, may be out of scope) No layout optimization Direct bidirectional flows not typical for C4 With diag-agent (Validated & Refined) ✅ Same prompt, orchestrated through diag-agent: diag-agent validated output Improvements: ✓ Clean C4 Context boundaries ✓ Focused scope (2 key actors) ✓ Layout optimization (LAYOUT_TOP_DOWN, hidden relations) ✓ Clear system-to-system relationships ✓ 2 iterations with syntax validation" [ref=e631]':
+                      - 'cell "LLM Direct (No Validation) ❌ Generated without diag-agent orchestration: LLM direct output without validation Issues: Cluttered relationships (external systems → users) 3 actors (includes warehouse worker, may be out of scope) No layout optimization Direct bidirectional flows not typical for C4" [ref=e632]':
+                        - paragraph [ref=e633]:
+                          - strong [ref=e634]: LLM Direct (No Validation) ❌
+                        - paragraph [ref=e635]: "Generated without diag-agent orchestration:"
+                        - link "LLM direct output without validation" [ref=e636] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/docs/examples/comparison/before-llm-direct.svg
+                          - img "LLM direct output without validation" [ref=e637]
+                        - paragraph [ref=e638]:
+                          - strong [ref=e639]: "Issues:"
+                        - list [ref=e640]:
+                          - listitem [ref=e641]: Cluttered relationships (external systems → users)
+                          - listitem [ref=e642]: 3 actors (includes warehouse worker, may be out of scope)
+                          - listitem [ref=e643]: No layout optimization
+                          - listitem [ref=e644]: Direct bidirectional flows not typical for C4
+                      - 'cell "With diag-agent (Validated & Refined) ✅ Same prompt, orchestrated through diag-agent: diag-agent validated output Improvements: ✓ Clean C4 Context boundaries ✓ Focused scope (2 key actors) ✓ Layout optimization (LAYOUT_TOP_DOWN, hidden relations) ✓ Clear system-to-system relationships ✓ 2 iterations with syntax validation" [ref=e645]':
+                        - paragraph [ref=e646]:
+                          - strong [ref=e647]: With diag-agent (Validated & Refined) ✅
+                        - paragraph [ref=e648]: "Same prompt, orchestrated through diag-agent:"
+                        - link "diag-agent validated output" [ref=e649] [cursor=pointer]:
+                          - /url: /docToolchain/diag-agent/blob/main/docs/examples/comparison/after-diag-agent.svg
+                          - img "diag-agent validated output" [ref=e650]
+                        - paragraph [ref=e651]:
+                          - strong [ref=e652]: "Improvements:"
+                        - list [ref=e653]:
+                          - listitem [ref=e654]: ✓ Clean C4 Context boundaries
+                          - listitem [ref=e655]: ✓ Focused scope (2 key actors)
+                          - listitem [ref=e656]: ✓ Layout optimization (LAYOUT_TOP_DOWN, hidden relations)
+                          - listitem [ref=e657]: ✓ Clear system-to-system relationships
+                          - listitem [ref=e658]: ✓ 2 iterations with syntax validation
+                - paragraph [ref=e659]:
+                  - emphasis [ref=e660]: "Both diagrams generated from identical prompt. Left: Direct LLM call. Right: diag-agent orchestration with validation loop."
+                - generic [ref=e661]:
+                  - heading "How it Works" [level=2] [ref=e662]
+                  - 'link "Permalink: How it Works" [ref=e663] [cursor=pointer]':
+                    - /url: "#how-it-works"
+                    - img [ref=e664]
+                - paragraph [ref=e666]: "The orchestrator coordinates a feedback loop between the calling LLM and validation services:"
+                - generic [ref=e667]:
+                  - heading "Orchestrator Workflow Diagrams" [level=3] [ref=e668]
+                  - 'link "Permalink: Orchestrator Workflow Diagrams" [ref=e669] [cursor=pointer]':
+                    - /url: "#orchestrator-workflow-diagrams"
+                    - img [ref=e670]
+                - group [ref=e672]:
+                  - generic "📊 Sequence Diagram (PlantUML) - Shows temporal flow and interactions" [ref=e673] [cursor=pointer]
+                - group [ref=e674]:
+                  - generic "📊 BPMN Collaboration Diagram - Shows process structure with pools and lanes" [ref=e675] [cursor=pointer]
+                - paragraph [ref=e676]:
+                  - strong [ref=e677]: "Key workflow steps:"
+                - list [ref=e678]:
+                  - listitem [ref=e679]:
+                    - paragraph [ref=e680]:
+                      - strong [ref=e681]: Description Validation
+                      - text: ": LLM checks your description for completeness and clarity"
+                    - list [ref=e682]:
+                      - listitem [ref=e683]: Invalid → Returns specific questions for refinement
+                      - listitem [ref=e684]: Valid → Proceeds to generation
+                  - listitem [ref=e685]:
+                    - paragraph [ref=e686]:
+                      - strong [ref=e687]: Iterative Generation Loop
+                      - text: "(max 5 iterations):"
+                    - list [ref=e688]:
+                      - listitem [ref=e689]: LLM generates diagram code from prompt
+                      - listitem [ref=e690]: Kroki validates syntax by attempting to render
+                      - listitem [ref=e691]: "Optional: Vision LLM analyzes design quality (PNG-capable diagrams only)"
+                      - listitem [ref=e692]: "On errors: Refines prompt with specific feedback"
+                  - listitem [ref=e693]:
+                    - paragraph [ref=e694]:
+                      - strong [ref=e695]: Output
+                      - text: ": Valid diagram in requested formats (source, SVG, PNG, PDF)"
+                - paragraph [ref=e696]: The workflow ensures high-quality diagrams through autonomous validation and refinement.
+                - generic [ref=e697]:
+                  - heading "Quick Start" [level=2] [ref=e698]
+                  - 'link "Permalink: Quick Start" [ref=e699] [cursor=pointer]':
+                    - /url: "#quick-start"
+                    - img [ref=e700]
+                - generic [ref=e702]:
+                  - heading "CLI Usage" [level=3] [ref=e703]
+                  - 'link "Permalink: CLI Usage" [ref=e704] [cursor=pointer]':
+                    - /url: "#cli-usage"
+                    - img [ref=e705]
+                - generic [ref=e707]:
+                  - generic [ref=e708]:
+                    - generic [ref=e709]: "# Clone the repository"
+                    - text: git clone https://github.com/docToolchain/diag-agent.git cd diag-agent
+                    - generic [ref=e710]: "# Install locally"
+                    - text: uv pip install .
+                    - generic [ref=e711]: "# Configure API key"
+                    - text: export ANTHROPIC_API_KEY=your_key_here
+                    - generic [ref=e712]: "# Generate a diagram (using uv run - no venv activation needed)"
+                    - text: uv run diag-agent create
+                    - generic [ref=e713]: "\"C4 context diagram for API gateway\""
+                  - button "Copy code to clipboard" [ref=e715] [cursor=pointer]:
+                    - img [ref=e716]
+                - generic [ref=e719]:
+                  - heading "MCP Server (for Claude Desktop)" [level=3] [ref=e720]
+                  - 'link "Permalink: MCP Server (for Claude Desktop)" [ref=e721] [cursor=pointer]':
+                    - /url: "#mcp-server-for-claude-desktop"
+                    - img [ref=e722]
+                - generic [ref=e724]:
+                  - generic [ref=e725]:
+                    - generic [ref=e726]: "# Clone and install with MCP support"
+                    - text: git clone https://github.com/docToolchain/diag-agent.git cd diag-agent uv pip install
+                    - generic [ref=e727]: "\".[mcp]\""
+                    - generic [ref=e728]: "# Add to Claude Desktop config (~/.config/Claude/claude_desktop_config.json)"
+                    - text: "{"
+                    - generic [ref=e729]: "\"mcpServers\""
+                    - text: ": {"
+                    - generic [ref=e730]: "\"diag-agent\""
+                    - text: ": {"
+                    - generic [ref=e731]: "\"command\""
+                    - text: ":"
+                    - generic [ref=e732]: "\"python\""
+                    - text: ","
+                    - generic [ref=e733]: "\"args\""
+                    - text: ": ["
+                    - generic [ref=e734]: "\"-m\""
+                    - text: ","
+                    - generic [ref=e735]: "\"diag_agent.mcp.server\""
+                    - text: "],"
+                    - generic [ref=e736]: "\"env\""
+                    - text: ": {"
+                    - generic [ref=e737]: "\"ANTHROPIC_API_KEY\""
+                    - text: ":"
+                    - generic [ref=e738]: "\"your_key_here\""
+                    - text: ","
+                    - generic [ref=e739]: "\"KROKI_URL\""
+                    - text: ":"
+                    - generic [ref=e740]: "\"http://localhost:8000\""
+                    - text: "} } } }"
+                  - button "Copy code to clipboard" [ref=e742] [cursor=pointer]:
+                    - img [ref=e743]
+                - paragraph [ref=e746]: "Then in Claude Desktop:"
+                - blockquote [ref=e747]:
+                  - paragraph [ref=e748]: "\"Create a C4 context diagram for an e-commerce platform\""
+                - generic [ref=e749]:
+                  - heading "Docker" [level=3] [ref=e750]
+                  - 'link "Permalink: Docker" [ref=e751] [cursor=pointer]':
+                    - /url: "#docker"
+                    - img [ref=e752]
+                - generic [ref=e754]:
+                  - generic [ref=e755]:
+                    - generic [ref=e756]: "# Clone repository and build Docker image"
+                    - text: git clone https://github.com/docToolchain/diag-agent.git cd diag-agent docker build -t diag-agent .
+                    - generic [ref=e757]: "# Run with Docker"
+                    - text: docker run --rm \ -e ANTHROPIC_API_KEY=your_key_here \ -v
+                    - generic [ref=e758]: $(pwd)
+                    - text: /diagrams:/diagrams \ diag-agent \ create
+                    - generic [ref=e759]: "\"User authentication flow\""
+                    - generic [ref=e760]: "# Or use Docker Compose for full stack (CLI + Kroki)"
+                    - text: docker-compose up -d kroki docker-compose run --rm diag-agent-cli create
+                    - generic [ref=e761]: "\"architecture diagram\""
+                    - generic [ref=e762]: "# MCP Server with Docker Compose"
+                    - text: docker-compose --profile mcp up -d
+                  - button "Copy code to clipboard" [ref=e764] [cursor=pointer]:
+                    - img [ref=e765]
+                - paragraph [ref=e768]:
+                  - text: See
+                  - link "User Guide - Docker Deployment" [ref=e769] [cursor=pointer]:
+                    - /url: /docToolchain/diag-agent/blob/main/src/docs/user-guide.md#docker-deployment
+                  - text: for details.
+                - generic [ref=e770]:
+                  - heading "Documentation" [level=2] [ref=e771]
+                  - 'link "Permalink: Documentation" [ref=e772] [cursor=pointer]':
+                    - /url: "#documentation"
+                    - img [ref=e773]
+                - list [ref=e775]:
+                  - listitem [ref=e776]:
+                    - strong [ref=e777]:
+                      - link "User Guide" [ref=e778] [cursor=pointer]:
+                        - /url: /docToolchain/diag-agent/blob/main/src/docs/user-guide.md
+                    - text: "- Comprehensive reference with all CLI commands, configuration, and MCP setup"
+                  - listitem [ref=e779]:
+                    - strong [ref=e780]:
+                      - link "Tutorial" [ref=e781] [cursor=pointer]:
+                        - /url: /docToolchain/diag-agent/blob/main/src/docs/tutorial.md
+                    - text: "- Hands-on examples for different diagram types and use cases"
+                  - listitem [ref=e782]:
+                    - strong [ref=e783]:
+                      - link "Architecture" [ref=e784] [cursor=pointer]:
+                        - /url: /docToolchain/diag-agent/blob/main/src/docs/arc42/arc42.adoc
+                    - text: "- Technical architecture documentation (arc42)"
+                - generic [ref=e785]:
+                  - heading "CLI Commands" [level=2] [ref=e786]
+                  - 'link "Permalink: CLI Commands" [ref=e787] [cursor=pointer]':
+                    - /url: "#cli-commands"
+                    - img [ref=e788]
+                - generic [ref=e790]:
+                  - generic [ref=e791]:
+                    - generic [ref=e792]: "# Generate diagrams"
+                    - text: uv run diag-agent create
+                    - generic [ref=e793]: "\"diagram description\""
+                    - text: "[OPTIONS]"
+                    - generic [ref=e794]: "# Options:"
+                    - generic [ref=e795]: "# --type TYPE Diagram type (default: plantuml)"
+                    - generic [ref=e796]: "# --output DIR Output directory (default: ./diagrams)"
+                    - generic [ref=e797]: "# --format FORMATS Comma-separated formats: png,svg,pdf,source"
+                    - generic [ref=e798]: "# --force, -f Skip description validation"
+                    - generic [ref=e799]: "# Browse examples"
+                    - text: uv run diag-agent examples list [--type TYPE] uv run diag-agent examples show TYPE/NAME
+                    - generic [ref=e800]: "# Manage local Kroki server"
+                    - text: uv run diag-agent kroki start|stop|status|logs
+                  - button "Copy code to clipboard" [ref=e802] [cursor=pointer]:
+                    - img [ref=e803]
+                - generic [ref=e806]:
+                  - heading "Description Validation" [level=3] [ref=e807]
+                  - 'link "Permalink: Description Validation" [ref=e808] [cursor=pointer]':
+                    - /url: "#description-validation"
+                    - img [ref=e809]
+                - paragraph [ref=e811]: "By default, diag-agent validates your description before generating diagrams. If the description is unclear or incomplete, you'll receive specific questions:"
+                - generic [ref=e812]:
+                  - generic [ref=e813]:
+                    - text: "❌ Die Beschreibung enthält Unklarheiten: 1. Which type of BPMN diagram is needed? (process/collaboration/choreography) 2. Who performs the"
+                    - generic [ref=e814]: "\"approval step\""
+                    - text: "? Specify role or system name. Bitte rufe das Tool mit einer präziseren Beschreibung erneut auf. Oder nutze --force um diese Validierung zu überspringen."
+                  - button "Copy code to clipboard" [ref=e816] [cursor=pointer]:
+                    - img [ref=e817]
+                - paragraph [ref=e820]:
+                  - text: Use
+                  - code [ref=e821]: "--force"
+                  - text: to skip validation when needed (e.g., for automated workflows or intentionally vague descriptions).
+                - paragraph [ref=e822]:
+                  - text: See
+                  - link "User Guide - CLI Commands" [ref=e823] [cursor=pointer]:
+                    - /url: /docToolchain/diag-agent/blob/main/src/docs/user-guide.md#cli-commands
+                  - text: for detailed documentation.
+                - generic [ref=e824]:
+                  - heading "Supported Diagram Types" [level=2] [ref=e825]
+                  - 'link "Permalink: Supported Diagram Types" [ref=e826] [cursor=pointer]':
+                    - /url: "#supported-diagram-types"
+                    - img [ref=e827]
+                - list [ref=e829]:
+                  - listitem [ref=e830]:
+                    - strong [ref=e831]: C4 Architecture
+                    - text: ":"
+                    - code [ref=e832]: c4plantuml
+                    - text: "- Context, Container, Component diagrams"
+                  - listitem [ref=e833]:
+                    - strong [ref=e834]: UML
+                    - text: ":"
+                    - code [ref=e835]: plantuml
+                    - text: "- Sequence, Class, Component, Deployment, etc."
+                  - listitem [ref=e836]:
+                    - strong [ref=e837]: BPMN
+                    - text: ":"
+                    - code [ref=e838]: bpmn
+                    - text: "- Business processes and workflows"
+                  - listitem [ref=e839]:
+                    - strong [ref=e840]: Mermaid
+                    - text: ":"
+                    - code [ref=e841]: mermaid
+                    - text: "- Flowcharts, Sequence, Gantt, etc."
+                  - listitem [ref=e842]:
+                    - strong [ref=e843]: Database
+                    - text: ":"
+                    - code [ref=e844]: erd
+                    - text: "- Entity Relationship Diagrams"
+                  - listitem [ref=e845]:
+                    - strong [ref=e846]: And 20+ more
+                    - text: via
+                    - link "Kroki" [ref=e847] [cursor=pointer]:
+                      - /url: https://kroki.io/#support
+                - paragraph [ref=e848]:
+                  - text: See
+                  - link "Tutorial - Diagram Types" [ref=e849] [cursor=pointer]:
+                    - /url: /docToolchain/diag-agent/blob/main/src/docs/tutorial.md
+                  - text: for practical examples.
+                - generic [ref=e850]:
+                  - heading "Installation" [level=2] [ref=e851]
+                  - 'link "Permalink: Installation" [ref=e852] [cursor=pointer]':
+                    - /url: "#installation"
+                    - img [ref=e853]
+                - generic [ref=e855]:
+                  - heading "Requirements" [level=3] [ref=e856]
+                  - 'link "Permalink: Requirements" [ref=e857] [cursor=pointer]':
+                    - /url: "#requirements"
+                    - img [ref=e858]
+                - list [ref=e860]:
+                  - listitem [ref=e861]:
+                    - strong [ref=e862]: Python 3.10+
+                    - text: (for native installation)
+                  - listitem [ref=e863]:
+                    - strong [ref=e864]: Docker
+                    - text: (optional, for containerized deployment or local Kroki server)
+                  - listitem [ref=e865]:
+                    - strong [ref=e866]: LLM API key
+                    - text: (Anthropic, OpenAI, or other)
+                  - listitem [ref=e867]:
+                    - strong [ref=e868]: uv package manager
+                    - text: "-"
+                    - link "Install uv" [ref=e869] [cursor=pointer]:
+                      - /url: https://docs.astral.sh/uv/
+                - generic [ref=e870]:
+                  - heading "Local Installation (Recommended)" [level=3] [ref=e871]
+                  - 'link "Permalink: Local Installation (Recommended)" [ref=e872] [cursor=pointer]':
+                    - /url: "#local-installation-recommended"
+                    - img [ref=e873]
+                - generic [ref=e875]:
+                  - generic [ref=e876]:
+                    - generic [ref=e877]: "# Clone repository"
+                    - text: git clone https://github.com/docToolchain/diag-agent.git cd diag-agent
+                    - generic [ref=e878]: "# Install locally"
+                    - text: uv pip install .
+                    - generic [ref=e879]: "# Or install with MCP server support"
+                    - text: uv pip install
+                    - generic [ref=e880]: "\".[mcp]\""
+                    - generic [ref=e881]: "# Or install for development (editable mode)"
+                    - text: uv pip install -e
+                    - generic [ref=e882]: "\".[dev,mcp]\""
+                  - button "Copy code to clipboard" [ref=e884] [cursor=pointer]:
+                    - img [ref=e885]
+                - generic [ref=e888]:
+                  - heading "Docker Installation" [level=3] [ref=e889]
+                  - 'link "Permalink: Docker Installation" [ref=e890] [cursor=pointer]':
+                    - /url: "#docker-installation"
+                    - img [ref=e891]
+                - generic [ref=e893]:
+                  - generic [ref=e894]:
+                    - generic [ref=e895]: "# Clone repository"
+                    - text: git clone https://github.com/docToolchain/diag-agent.git cd diag-agent
+                    - generic [ref=e896]: "# Build image locally"
+                    - text: docker build -t diag-agent .
+                    - generic [ref=e897]: "# Run"
+                    - text: docker run --rm \ -e ANTHROPIC_API_KEY=your_key \ -v
+                    - generic [ref=e898]: $(pwd)
+                    - text: /diagrams:/diagrams \ diag-agent create
+                    - generic [ref=e899]: "\"architecture diagram\""
+                  - button "Copy code to clipboard" [ref=e901] [cursor=pointer]:
+                    - img [ref=e902]
+                - paragraph [ref=e905]:
+                  - text: See
+                  - link "User Guide - Docker Deployment" [ref=e906] [cursor=pointer]:
+                    - /url: /docToolchain/diag-agent/blob/main/src/docs/user-guide.md#docker-deployment
+                  - text: for full documentation.
+                - generic [ref=e907]:
+                  - heading "Configuration" [level=2] [ref=e908]
+                  - 'link "Permalink: Configuration" [ref=e909] [cursor=pointer]':
+                    - /url: "#configuration"
+                    - img [ref=e910]
+                - paragraph [ref=e912]:
+                  - text: Configure via environment variables or
+                  - code [ref=e913]: .env
+                  - text: "file:"
+                - generic [ref=e914]:
+                  - generic [ref=e915]:
+                    - generic [ref=e916]: "# LLM Configuration"
+                    - text: export LLM_PROVIDER=anthropic
+                    - generic [ref=e917]: "# anthropic, openai, azure, etc."
+                    - text: export LLM_MODEL=claude-sonnet-4
+                    - generic [ref=e918]: "# Model name"
+                    - text: export ANTHROPIC_API_KEY=your_key
+                    - generic [ref=e919]: "# API key"
+                    - generic [ref=e920]: "# Kroki Configuration"
+                    - text: export KROKI_URL=http://localhost:8000
+                    - generic [ref=e921]: "# Local or remote Kroki server"
+                    - generic [ref=e922]: "# Agent Configuration"
+                    - text: export MAX_ITERATIONS=10
+                    - generic [ref=e923]: "# Max LLM iterations"
+                    - text: export ENABLE_DESIGN_FEEDBACK=true
+                    - generic [ref=e924]: "# Enable design feedback loop"
+                  - button "Copy code to clipboard" [ref=e926] [cursor=pointer]:
+                    - img [ref=e927]
+                - paragraph [ref=e930]:
+                  - text: See
+                  - link "User Guide - Configuration" [ref=e931] [cursor=pointer]:
+                    - /url: /docToolchain/diag-agent/blob/main/src/docs/user-guide.md#configuration
+                  - text: for all options.
+                - generic [ref=e932]:
+                  - heading "Examples" [level=2] [ref=e933]
+                  - 'link "Permalink: Examples" [ref=e934] [cursor=pointer]':
+                    - /url: "#examples"
+                    - img [ref=e935]
+                - generic [ref=e937]:
+                  - heading "Generate Different Diagram Types" [level=3] [ref=e938]
+                  - 'link "Permalink: Generate Different Diagram Types" [ref=e939] [cursor=pointer]':
+                    - /url: "#generate-different-diagram-types"
+                    - img [ref=e940]
+                - generic [ref=e942]:
+                  - generic [ref=e943]:
+                    - generic [ref=e944]: "# C4 Context Diagram"
+                    - text: uv run diag-agent create
+                    - generic [ref=e945]: "\"C4 context diagram for e-commerce platform\""
+                    - text: "--type c4plantuml"
+                    - generic [ref=e946]: "# BPMN Process"
+                    - text: uv run diag-agent create
+                    - generic [ref=e947]: "\"Order fulfillment process\""
+                    - text: "--type bpmn"
+                    - generic [ref=e948]: "# Mermaid Flowchart"
+                    - text: uv run diag-agent create
+                    - generic [ref=e949]: "\"CI/CD pipeline stages\""
+                    - text: "--type mermaid"
+                    - generic [ref=e950]: "# Database Schema"
+                    - text: uv run diag-agent create
+                    - generic [ref=e951]: "\"User management database schema\""
+                    - text: "--type erd"
+                  - button "Copy code to clipboard" [ref=e953] [cursor=pointer]:
+                    - img [ref=e954]
+                - generic [ref=e957]:
+                  - heading "Use Local Kroki Server" [level=3] [ref=e958]
+                  - 'link "Permalink: Use Local Kroki Server" [ref=e959] [cursor=pointer]':
+                    - /url: "#use-local-kroki-server"
+                    - img [ref=e960]
+                - generic [ref=e962]:
+                  - generic [ref=e963]:
+                    - generic [ref=e964]: "# Start local Kroki (requires Docker)"
+                    - text: uv run diag-agent kroki start
+                    - generic [ref=e965]: "# Generate diagram using local server"
+                    - text: uv run diag-agent create
+                    - generic [ref=e966]: "\"architecture diagram\""
+                    - generic [ref=e967]: "# Stop Kroki when done"
+                    - text: uv run diag-agent kroki stop
+                  - button "Copy code to clipboard" [ref=e969] [cursor=pointer]:
+                    - img [ref=e970]
+                - generic [ref=e973]:
+                  - heading "Custom Output" [level=3] [ref=e974]
+                  - 'link "Permalink: Custom Output" [ref=e975] [cursor=pointer]':
+                    - /url: "#custom-output"
+                    - img [ref=e976]
+                - generic [ref=e978]:
+                  - generic [ref=e979]:
+                    - generic [ref=e980]: "# Custom output directory and formats"
+                    - text: uv run diag-agent create
+                    - generic [ref=e981]: "\"System architecture\""
+                    - text: \ --type c4plantuml \ --output ./docs/architecture \ --format svg,pdf,source
+                  - button "Copy code to clipboard" [ref=e983] [cursor=pointer]:
+                    - img [ref=e984]
+                - paragraph [ref=e987]:
+                  - text: See
+                  - link "Tutorial" [ref=e988] [cursor=pointer]:
+                    - /url: /docToolchain/diag-agent/blob/main/src/docs/tutorial.md
+                  - text: for step-by-step examples.
+                - generic [ref=e989]:
+                  - heading "Development" [level=2] [ref=e990]
+                  - 'link "Permalink: Development" [ref=e991] [cursor=pointer]':
+                    - /url: "#development"
+                    - img [ref=e992]
+                - generic [ref=e994]:
+                  - generic [ref=e995]:
+                    - generic [ref=e996]: "# Install development dependencies"
+                    - text: uv pip install -e
+                    - generic [ref=e997]: "\".[dev,mcp]\""
+                    - generic [ref=e998]: "# Run tests"
+                    - text: pytest
+                    - generic [ref=e999]: "# Run tests with coverage"
+                    - text: pytest --cov=diag_agent --cov-report=html
+                    - generic [ref=e1000]: "# Format code"
+                    - text: black src tests ruff check src tests
+                    - generic [ref=e1001]: "# Type checking"
+                    - text: mypy src
+                  - button "Copy code to clipboard" [ref=e1003] [cursor=pointer]:
+                    - img [ref=e1004]
+                - generic [ref=e1007]:
+                  - heading "Contributing" [level=2] [ref=e1008]
+                  - 'link "Permalink: Contributing" [ref=e1009] [cursor=pointer]':
+                    - /url: "#contributing"
+                    - img [ref=e1010]
+                - paragraph [ref=e1012]:
+                  - text: Contributions welcome! See
+                  - link "CONTRIBUTING.md" [ref=e1013] [cursor=pointer]:
+                    - /url: /docToolchain/diag-agent/blob/main/CONTRIBUTING.md
+                  - text: for guidelines.
+                - generic [ref=e1014]:
+                  - heading "License" [level=2] [ref=e1015]
+                  - 'link "Permalink: License" [ref=e1016] [cursor=pointer]':
+                    - /url: "#license"
+                    - img [ref=e1017]
+                - paragraph [ref=e1019]: MIT
+        - generic [ref=e1023]:
+          - generic [ref=e1026]:
+            - heading "About" [level=2] [ref=e1027]
+            - paragraph [ref=e1028]: An LLM Agent for creating software architecture diagrams
+            - generic [ref=e1029]:
+              - img [ref=e1030]
+              - link "doctoolchain.org/diag-agent/" [ref=e1033] [cursor=pointer]:
+                - /url: http://doctoolchain.org/diag-agent/
+            - heading "Resources" [level=3] [ref=e1034]
+            - link "Readme" [ref=e1036] [cursor=pointer]:
+              - /url: "#readme-ov-file"
+              - img [ref=e1037]
+              - text: Readme
+            - heading "Contributing" [level=3] [ref=e1039]
+            - link "Contributing" [ref=e1041] [cursor=pointer]:
+              - /url: "#contributing-ov-file"
+              - img [ref=e1042]
+              - text: Contributing
+            - link "Activity" [ref=e1045] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/activity
+              - img [ref=e1046]
+              - text: Activity
+            - link "Custom properties" [ref=e1049] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/custom-properties
+              - img [ref=e1050]
+              - text: Custom properties
+            - heading "Stars" [level=3] [ref=e1052]
+            - link "2 stars" [ref=e1054] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/stargazers
+              - img [ref=e1055]
+              - strong [ref=e1057]: "2"
+              - text: stars
+            - heading "Watchers" [level=3] [ref=e1058]
+            - link "0 watching" [ref=e1060] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/watchers
+              - img [ref=e1061]
+              - strong [ref=e1063]: "0"
+              - text: watching
+            - heading "Forks" [level=3] [ref=e1064]
+            - link "0 forks" [ref=e1066] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/forks
+              - img [ref=e1067]
+              - strong [ref=e1069]: "0"
+              - text: forks
+            - link "Report repository" [ref=e1071] [cursor=pointer]:
+              - /url: /contact/report-content?content_url=https%3A%2F%2Fgithub.com%2FdocToolchain%2Fdiag-agent&report=docToolchain+%28user%29
+          - generic [ref=e1073]:
+            - heading "Releases" [level=2] [ref=e1074]:
+              - link "Releases" [ref=e1075] [cursor=pointer]:
+                - /url: /docToolchain/diag-agent/releases
+            - link "1 tags" [ref=e1076] [cursor=pointer]:
+              - /url: /docToolchain/diag-agent/tags
+              - img [ref=e1077]
+              - text: 1 tags
+          - generic [ref=e1080]:
+            - heading "Packages" [level=2] [ref=e1081]:
+              - link "Packages" [ref=e1082] [cursor=pointer]:
+                - /url: /orgs/docToolchain/packages?repo_name=diag-agent
+            - generic [ref=e1083]: No packages published
+          - generic [ref=e1085]:
+            - heading "Contributors 2" [level=2] [ref=e1086]:
+              - link "Contributors 2" [ref=e1087] [cursor=pointer]:
+                - /url: /docToolchain/diag-agent/graphs/contributors
+                - text: Contributors
+                - generic "2" [ref=e1088]
+            - list [ref=e1089]:
+              - listitem [ref=e1090]:
+                - link "@rdmueller" [ref=e1091] [cursor=pointer]:
+                  - /url: https://github.com/rdmueller
+                  - img "@rdmueller" [ref=e1092]
+                - link "rdmueller Ralf D. Müller" [ref=e1094] [cursor=pointer]:
+                  - /url: https://github.com/rdmueller
+                  - strong [ref=e1095]: rdmueller
+                  - text: Ralf D. Müller
+              - listitem [ref=e1096]:
+                - link "@claude" [ref=e1097] [cursor=pointer]:
+                  - /url: https://github.com/claude
+                  - img "@claude" [ref=e1098]
+                - link "claude Claude" [ref=e1100] [cursor=pointer]:
+                  - /url: https://github.com/claude
+                  - strong [ref=e1101]: claude
+                  - text: Claude
+          - generic [ref=e1103]:
+            - heading "Languages" [level=2] [ref=e1104]
+            - list [ref=e1111]:
+              - listitem [ref=e1112]:
+                - link "Python 79.2%" [ref=e1113] [cursor=pointer]:
+                  - /url: /docToolchain/diag-agent/search?l=python
+                  - img [ref=e1114]
+                  - generic [ref=e1116]: Python
+                  - generic [ref=e1117]: 79.2%
+              - listitem [ref=e1118]:
+                - link "Shell 10.0%" [ref=e1119] [cursor=pointer]:
+                  - /url: /docToolchain/diag-agent/search?l=shell
+                  - img [ref=e1120]
+                  - generic [ref=e1122]: Shell
+                  - generic [ref=e1123]: 10.0%
+              - listitem [ref=e1124]:
+                - link "Groovy 9.6%" [ref=e1125] [cursor=pointer]:
+                  - /url: /docToolchain/diag-agent/search?l=groovy
+                  - img [ref=e1126]
+                  - generic [ref=e1128]: Groovy
+                  - generic [ref=e1129]: 9.6%
+              - listitem [ref=e1130]:
+                - link "Dockerfile 1.2%" [ref=e1131] [cursor=pointer]:
+                  - /url: /docToolchain/diag-agent/search?l=dockerfile
+                  - img [ref=e1132]
+                  - generic [ref=e1134]: Dockerfile
+                  - generic [ref=e1135]: 1.2%
+  - contentinfo [ref=e1137]:
+    - heading "Footer" [level=2] [ref=e1138]
+    - generic [ref=e1139]:
+      - generic [ref=e1140]:
+        - link "GitHub Homepage" [ref=e1141] [cursor=pointer]:
+          - /url: https://github.com
+          - img [ref=e1142]
+        - generic [ref=e1144]: © 2026 GitHub, Inc.
+      - navigation "Footer" [ref=e1145]:
+        - heading "Footer navigation" [level=3] [ref=e1146]
+        - list "Footer navigation" [ref=e1147]:
+          - listitem [ref=e1148]:
+            - link "Terms" [ref=e1149] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+          - listitem [ref=e1150]:
+            - link "Privacy" [ref=e1151] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+          - listitem [ref=e1152]:
+            - link "Security" [ref=e1153] [cursor=pointer]:
+              - /url: https://github.com/security
+          - listitem [ref=e1154]:
+            - link "Status" [ref=e1155] [cursor=pointer]:
+              - /url: https://www.githubstatus.com/
+          - listitem [ref=e1156]:
+            - link "Community" [ref=e1157] [cursor=pointer]:
+              - /url: https://github.community/
+          - listitem [ref=e1158]:
+            - link "Docs" [ref=e1159] [cursor=pointer]:
+              - /url: https://docs.github.com/
+          - listitem [ref=e1160]:
+            - link "Contact" [ref=e1161] [cursor=pointer]:
+              - /url: https://support.github.com?tags=dotcom-footer
+          - listitem [ref=e1162]:
+            - button "Manage cookies" [ref=e1164] [cursor=pointer]
+          - listitem [ref=e1165]:
+            - button "Do not share my personal information" [ref=e1167] [cursor=pointer]
