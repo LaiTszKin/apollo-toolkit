@@ -41,6 +41,8 @@ const { spawn } = require('node:child_process');
 const schema = require('./schema');
 const stateLib = require('./state');
 const renderLib = require('./render');
+const { parseEvidence } = schema;
+const { computeDiff } = stateLib;
 
 const ATLAS_REL = path.join('resources', 'project-architecture');
 const ATLAS_INDEX_REL = path.join(ATLAS_REL, 'index.html');
@@ -1084,18 +1086,6 @@ function splitList(value) {
   return String(value).split(',').map((s) => s.trim()).filter(Boolean);
 }
 
-function parseEvidence(value) {
-  if (value === undefined || value === null) return null;
-  const str = String(value);
-  const colon = str.indexOf(':');
-  const level = colon === -1 ? str : str.slice(0, colon);
-  const source = colon === -1 ? '' : str.slice(colon + 1);
-  if (!/^(observed|inferred|assumed)$/.test(level)) {
-    throw new Error(`Invalid evidence level: "${level}". Must be one of: observed, inferred, assumed`);
-  }
-  return { level, source };
-}
-
 function findFirstPositional(args) {
   const booleanFlags = new Set(['no-render', 'no-open', 'help', 'force', 'dry-run', 'json']);
   let i = 0;
@@ -1210,40 +1200,11 @@ function ensureBaseAtlasDir(projectRoot) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-// computeDiff compares two atlas states and returns a JSON-serializable
-// summary of feature-level changes (features added, modified, or removed).
-// This is used by --dry-run to report what a mutation would change without
-// actually writing anything.
-function computeDiff(before, after) {
-  const beforeFeatures = new Map((before.features || []).map((f) => [f.slug, f]));
-  const afterFeatures = new Map((after.features || []).map((f) => [f.slug, f]));
-
-  const addedFeatures = [];
-  const modifiedFeatures = [];
-  const removedFeatures = [];
-
-  for (const [slug, feature] of afterFeatures) {
-    if (!beforeFeatures.has(slug)) {
-      addedFeatures.push(slug);
-    } else if (JSON.stringify(feature) !== JSON.stringify(beforeFeatures.get(slug))) {
-      modifiedFeatures.push(slug);
-    }
-  }
-
-  for (const slug of beforeFeatures.keys()) {
-    if (!afterFeatures.has(slug)) {
-      removedFeatures.push(slug);
-    }
-  }
-
-  return { addedFeatures, modifiedFeatures, removedFeatures };
-}
-
 async function performMutation(projectRoot, flags, action, args, mutate) {
   // --dry-run: clone resolved state, apply mutation, print JSON diff, return
   if (flags['dry-run']) {
     const { base, merged, overlay } = loadResolvedState(projectRoot, flags);
-    const before = JSON.parse(JSON.stringify(merged));
+    const before = merged;
     const dryRunState = JSON.parse(JSON.stringify(merged));
     if (flags.spec) {
       mutate(dryRunState, base, overlay);
@@ -1666,7 +1627,7 @@ async function verbStatus(flags, projectRoot, io) {
       validation: {
         valid: validation.valid,
         errorCount: validation.errors.length,
-        errors: validation.errors,
+        errors: validation.errors.map((e) => e.message),
       },
     };
     io.stdout.write(JSON.stringify(output) + '\n');
@@ -1696,15 +1657,26 @@ async function verbStatus(flags, projectRoot, io) {
 }
 
 async function verbScan(flags, projectRoot, io) {
-  const srcRaw = flags.src !== undefined ? String(flags.src) : 'src';
+  const srcSpecified = flags.src !== undefined;
+  const srcRaw = srcSpecified ? String(flags.src) : 'src';
   const srcDir = path.resolve(projectRoot, srcRaw);
 
   let entries;
   try {
     entries = fs.readdirSync(srcDir, { withFileTypes: true });
   } catch (e) {
-    io.stderr.write(`Cannot read directory: ${srcDir}\n`);
-    return 1;
+    if (!srcSpecified) {
+      // Fallback to project root when default src/ doesn't exist
+      try {
+        entries = fs.readdirSync(projectRoot, { withFileTypes: true });
+      } catch (e2) {
+        io.stderr.write(`Cannot read directory: ${projectRoot}\n`);
+        return 1;
+      }
+    } else {
+      io.stderr.write(`Cannot read directory: ${srcDir}\n`);
+      return 1;
+    }
   }
 
   const skipDirs = new Set(['node_modules', '.git', 'dist', '__tests__', '__test__', 'coverage', '.turbo', 'build']);
@@ -2127,15 +2099,6 @@ async function verbMerge(flags, projectRoot, io) {
   return 0;
 }
 
-function htmlEscape(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 function toViewerRel(outDir, projectRoot, projectRelPath) {
   if (!projectRelPath) return null;
   const absolute = path.resolve(projectRoot, projectRelPath);
@@ -2164,7 +2127,7 @@ function renderDiffViewer({ changes, projectRoot, outDir }) {
 <html lang="en" data-atlas="diff-viewer">
 <head>
   <meta charset="utf-8">
-  <title>Architecture diff — ${htmlEscape(path.basename(projectRoot))}</title>
+  <title>Architecture diff — ${renderLib.htmlEscape(path.basename(projectRoot))}</title>
   <style>
     :root { color-scheme: light dark; --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8; --added: #4ade80; --removed: #f87171; --modified: #facc15; }
     * { box-sizing: border-box; }
@@ -2206,7 +2169,7 @@ function renderDiffViewer({ changes, projectRoot, outDir }) {
 </head>
 <body>
   <header>
-    <div class="title">Apollo Toolkit · <strong>architecture diff</strong> · ${htmlEscape(path.basename(projectRoot))}</div>
+    <div class="title">Apollo Toolkit · <strong>architecture diff</strong> · ${renderLib.htmlEscape(path.basename(projectRoot))}</div>
     <div class="summary">
       <span><span class="count">${summary.total}</span> change<span>${summary.total === 1 ? '' : 's'}</span></span>
       <span class="modified"><span class="count">${summary.modified}</span> modified</span>
@@ -2398,7 +2361,4 @@ module.exports = {
   hasOverlayState,
   collectSpecsToMerge,
   verbMerge,
-  verbScan,
-  verbStatus,
-  computeDiff,
 };

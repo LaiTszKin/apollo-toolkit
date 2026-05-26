@@ -49,6 +49,20 @@ function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+const EVIDENCE_LEVELS = Object.freeze(['observed', 'inferred', 'assumed']);
+
+function parseEvidence(value) {
+  if (value === undefined || value === null) return null;
+  const str = String(value);
+  const colon = str.indexOf(':');
+  const level = colon === -1 ? str : str.slice(0, colon);
+  const source = colon === -1 ? '' : str.slice(colon + 1);
+  if (!EVIDENCE_LEVELS.includes(level)) {
+    throw new Error(`Invalid evidence level: "${level}". Must be one of: ${EVIDENCE_LEVELS.join(', ')}`);
+  }
+  return { level, source };
+}
+
 function requireField(errors, where, name, value, predicate, hint) {
   if (!predicate(value)) {
     errors.push({
@@ -83,7 +97,7 @@ function validateFunction(fn, errors, where, featureSlug, subSlug) {
   if (fn && fn.out !== undefined && typeof fn.out !== 'string') errors.push({ message: `${where}: "out" must be a string (no automatic fix)`, fixCommand: null });
   if (fn && fn.side !== undefined && !SIDE_EFFECTS.includes(fn.side)) {
     errors.push({
-      message: `${where}: "side" must be one of ${SIDE_EFFECTS.join('|')} (no automatic fix)`,
+      message: `${where}: "side" must be one of ${SIDE_EFFECTS.join('|')}`,
       fixCommand: fn && fn.name
         ? `apltk architecture function add --feature ${featureSlug} --submodule ${subSlug} --name ${fn.name} --side ${SIDE_EFFECTS[0]}`
         : null,
@@ -99,7 +113,7 @@ function validateVariable(v, errors, where, featureSlug, subSlug) {
   if (v && v.type !== undefined && typeof v.type !== 'string') errors.push({ message: `${where}: "type" must be a string (no automatic fix)`, fixCommand: null });
   if (v && v.scope !== undefined && !VARIABLE_SCOPES.includes(v.scope)) {
     errors.push({
-      message: `${where}: "scope" must be one of ${VARIABLE_SCOPES.join('|')} (no automatic fix)`,
+      message: `${where}: "scope" must be one of ${VARIABLE_SCOPES.join('|')}`,
       fixCommand: v && v.name
         ? `apltk architecture variable add --feature ${featureSlug} --submodule ${subSlug} --name ${v.name} --scope ${VARIABLE_SCOPES[0]}`
         : null,
@@ -120,7 +134,7 @@ function validateSubmodule(sub, errors, where, featureSlug) {
   requireField(errors, where, 'slug', sub && sub.slug, isSlug, 'kebab-case slug');
   if (sub && sub.kind !== undefined && !SUBMODULE_KINDS.includes(sub.kind)) {
     errors.push({
-      message: `${where}: "kind" must be one of ${SUBMODULE_KINDS.join('|')} (no automatic fix)`,
+      message: `${where}: "kind" must be one of ${SUBMODULE_KINDS.join('|')}`,
       fixCommand: sub && sub.slug
         ? `apltk architecture submodule set --feature ${featureSlug} --submodule ${sub.slug} --kind ${SUBMODULE_KINDS[0]}`
         : null,
@@ -364,9 +378,11 @@ module.exports = {
   SIDE_EFFECTS,
   VARIABLE_SCOPES,
   EDGE_KINDS,
+  EVIDENCE_LEVELS,
   SLUG_PATTERN,
   isSlug,
   isNonEmptyString,
+  parseEvidence,
   validate,
   emptyState,
 };

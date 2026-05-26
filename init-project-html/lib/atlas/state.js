@@ -81,6 +81,7 @@ function normalizeFeature(feature) {
     dependsOn: Array.isArray(feature.dependsOn) ? feature.dependsOn : [],
     submodules: Array.isArray(feature.submodules) ? feature.submodules.map(normalizeSubmodule) : [],
     edges: Array.isArray(feature.edges) ? feature.edges : [],
+    ...(feature.evidence ? { evidence: feature.evidence } : {}),
   };
 }
 
@@ -93,6 +94,7 @@ function normalizeSubmodule(sub) {
     variables: Array.isArray(sub.variables) ? sub.variables : [],
     dataflow: Array.isArray(sub.dataflow) ? sub.dataflow : [],
     errors: Array.isArray(sub.errors) ? sub.errors : [],
+    ...(sub.evidence ? { evidence: sub.evidence } : {}),
   };
 }
 
@@ -376,8 +378,6 @@ function diffPages(base, merged) {
 function summarize(state) {
   const features = state.features || [];
   let submoduleCount = 0;
-  let crossFeatureEdges = 0;
-  let intraFeatureEdges = 0;
 
   const featureList = features.map((f) => {
     const subs = (f.submodules || []).length;
@@ -385,10 +385,10 @@ function summarize(state) {
     return { slug: f.slug, title: f.title || f.slug, submoduleCount: subs };
   });
 
-  const edges = state.edges || [];
-  for (const e of edges) {
-    if (e.scope === 'cross-feature') crossFeatureEdges++;
-    else intraFeatureEdges++;
+  const crossFeatureEdges = (state.edges || []).length;
+  let intraFeatureEdges = 0;
+  for (const f of features) {
+    intraFeatureEdges += (f.edges || []).length;
   }
 
   return {
@@ -398,10 +398,37 @@ function summarize(state) {
       submodules: submoduleCount,
       crossFeatureEdges,
       intraFeatureEdges,
-      actors: Object.keys(state.actors || {}).length,
+      actors: (state.actors || []).length,
     },
     featureList,
   };
+}
+
+// computeDiff compares two atlas states and returns a JSON-serializable
+// summary of feature-level changes (features added, modified, or removed).
+function computeDiff(before, after) {
+  const beforeFeatures = new Map((before.features || []).map((f) => [f.slug, f]));
+  const afterFeatures = new Map((after.features || []).map((f) => [f.slug, f]));
+
+  const addedFeatures = [];
+  const modifiedFeatures = [];
+  const removedFeatures = [];
+
+  for (const [slug, feature] of afterFeatures) {
+    if (!beforeFeatures.has(slug)) {
+      addedFeatures.push(slug);
+    } else if (JSON.stringify(feature) !== JSON.stringify(beforeFeatures.get(slug))) {
+      modifiedFeatures.push(slug);
+    }
+  }
+
+  for (const slug of beforeFeatures.keys()) {
+    if (!afterFeatures.has(slug)) {
+      removedFeatures.push(slug);
+    }
+  }
+
+  return { addedFeatures, modifiedFeatures, removedFeatures };
 }
 
 function featureVisualOf(feature) {
@@ -507,6 +534,7 @@ module.exports = {
   deriveOverlay,
   diffPages,
   summarize,
+  computeDiff,
   normalizeFeature,
   normalizeSubmodule,
   appendHistory,

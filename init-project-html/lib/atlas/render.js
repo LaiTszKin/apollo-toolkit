@@ -14,6 +14,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { layoutMacro, measureSubmodule } = require('./layout');
+const { EVIDENCE_LEVELS } = require('./schema');
 
 const KIND_LABEL = {
   ui: 'UI',
@@ -462,7 +463,7 @@ function renderSubmodulePage({ feature, sub, outDir }) {
 
   // Evidence summary
   const allComponents = [...(sub.functions || []), ...(sub.variables || []), ...(sub.errors || [])];
-  const eviCounts = { observed: 0, inferred: 0, assumed: 0 };
+  const eviCounts = Object.fromEntries(EVIDENCE_LEVELS.map((l) => [l, 0]));
   let hasAnyEvidence = false;
   for (const c of allComponents) {
     if (c.evidence && c.evidence.level && eviCounts[c.evidence.level] !== undefined) {
@@ -470,8 +471,9 @@ function renderSubmodulePage({ feature, sub, outDir }) {
       hasAnyEvidence = true;
     }
   }
+  const eviSummaryParts = EVIDENCE_LEVELS.filter((l) => eviCounts[l] > 0).map((l) => `${eviCounts[l]} ${l}`);
   const evidenceSummaryHtml = hasAnyEvidence
-    ? `<p class="submodule-evidence-summary">Evidence: ${eviCounts.observed} observed, ${eviCounts.inferred} inferred, ${eviCounts.assumed} assumed</p>`
+    ? `<p class="submodule-evidence-summary">Evidence: ${eviSummaryParts.join(', ')}</p>`
     : '';
 
   const ioRows = (sub.functions || []).map((fn) => [fn.name, fn.in || '', fn.out || '', fn.side || '', fn.purpose || '']);
