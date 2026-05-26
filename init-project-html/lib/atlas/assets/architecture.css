@@ -756,6 +756,22 @@ p { line-height: 1.6; color: var(--vellum-soft); }
   font-family: var(--font-display);
 }
 
+/* =================================================================
+   evidence badges
+   ================================================================= */
+.evi { display: inline-block; padding: 0 6px; border-radius: 3px; font-size: 11px; font-weight: 600; line-height: 18px; cursor: help; }
+.evi--observed { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.evi--inferred { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+.evi--assumed { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+.submodule-evidence-summary {
+  margin: 14px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--vellum-muted);
+  letter-spacing: 0.04em;
+}
+
 @media (max-width: 960px) {
   .atlas-header, .feature-header, .submodule-header { padding: 40px 28px 24px; }
   .atlas-header::before { left: 28px; }

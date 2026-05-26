@@ -38,10 +38,10 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R1.1 `--evidence` 接受 `observed`、`inferred`、`assumed` 三種等級
-- [ ] R1.2 `--evidence` 接受可選的 `<path:line>` 來源引用（以 `:` 分隔最後一個合法行號）
-- [ ] R1.3 不指定 `--evidence` 時，YAML 不寫入 evidence 欄位（向後相容）
-- [ ] R1.4 所有 mutation verb（feature/submodule/function/variable/error）均支援 `--evidence`
+- [x] R1.1 `--evidence` 接受 `observed`、`inferred`、`assumed` 三種等級
+- [x] R1.2 `--evidence` 接受可選的 `<path:line>` 來源引用（以 `:` 分隔最後一個合法行號）
+- [x] R1.3 不指定 `--evidence` 時，YAML 不寫入 evidence 欄位（向後相容）
+- [x] R1.4 所有 mutation verb（feature/submodule/function/variable/error）均支援 `--evidence`
 
 ### Requirement 2: Evidence 徽章渲染
 **GIVEN** submodule 內的 function / variable / error 附有 evidence 資料
@@ -54,10 +54,10 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R2.1 三種 evidence 等級對應三種 CSS class：`evi--observed`、`evi--inferred`、`evi--assumed`
-- [ ] R2.2 徽章在 function / variable / error table 中新增一欄顯示
-- [ ] R2.3 submodule 頁面 header 區域顯示 evidence 摘要統計
-- [ ] R2.4 無 evidence 資料的舊 YAML 檔案渲染時不顯示徽章欄位（向後相容）
+- [x] R2.1 三種 evidence 等級對應三種 CSS class：`evi--observed`、`evi--inferred`、`evi--assumed`
+- [x] R2.2 徽章在 function / variable / error table 中新增一欄顯示
+- [x] R2.3 submodule 頁面 header 區域顯示 evidence 摘要統計
+- [x] R2.4 無 evidence 資料的舊 YAML 檔案渲染時不顯示徽章欄位（向後相容）
 
 ### Requirement 3: SKILL.md 模式偵測路由
 **GIVEN** AI agent 載入 `init-project-html` 技能
@@ -71,12 +71,12 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R3.1 `init-project-html/SKILL.md` 頂部加入四種模式的判斷條件
-- [ ] R3.2 每種模式指向對應的工作流程段落
-- [ ] R3.3 design 模式走完整 C4 初始化（現有流程，加上 `--evidence` 標記指引）
-- [ ] R3.4 record 模式走快速記錄流程
-- [ ] R3.5 update 模式引導 agent 使用 `update-project-html` 技能
-- [ ] R3.6 review 模式走 diff 比對流程
+- [x] R3.1 `init-project-html/SKILL.md` 頂部加入四種模式的判斷條件
+- [x] R3.2 每種模式指向對應的工作流程段落
+- [x] R3.3 design 模式走完整 C4 初始化（現有流程，加上 `--evidence` 標記指引）
+- [x] R3.4 record 模式走快速記錄流程
+- [x] R3.5 update 模式引導 agent 使用 `update-project-html` 技能
+- [x] R3.6 review 模式走 diff 比對流程
 
 ### Requirement 4: `update-project-html/SKILL.md` 專注更新
 **GIVEN** update-project-html 技能被調用
@@ -87,15 +87,15 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R4.1 `update-project-html/SKILL.md` 移除與 init 重疊的內容
-- [ ] R4.2 更新流程中加入 evidence 標記建議（從 diff 推斷的標記為 inferred）
+- [x] R4.1 `update-project-html/SKILL.md` 移除與 init 重疊的內容
+- [x] R4.2 更新流程中加入 evidence 標記建議（從 diff 推斷的標記為 inferred）
 
 ## Error and Edge Cases
-- [ ] `--evidence` 值不為 `observed|inferred|assumed` 時應報錯
-- [ ] `--evidence` 來源不含 `:` 時，整段視為 source path（無行號）
-- [ ] 無 evidence 資料的舊 YAML 渲染時不顯示徽章（向後相容）
-- [ ] design 模式下若 atlas 目錄意外存在（非空），提示 agent 確認
-- [ ] review 模式下若無 `architecture_diff/`，fallback 到 update 模式
+- [x] `--evidence` 值不為 `observed|inferred|assumed` 時應報錯
+- [x] `--evidence` 來源不含 `:` 時，整段視為 source path（無行號）
+- [x] 無 evidence 資料的舊 YAML 渲染時不顯示徽章（向後相容）
+- [x] design 模式下若 atlas 目錄意外存在（非空），提示 agent 確認
+- [x] review 模式下若無 `architecture_diff/`，fallback 到 update 模式
 
 ## Clarification Questions
 None — 需求已在前期研究中確認完畢。

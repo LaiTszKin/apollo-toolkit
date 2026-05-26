@@ -25,6 +25,8 @@ const KIND_LABEL = {
   external: 'External',
 };
 
+const EVI_LABEL = { observed: 'obs', inferred: 'inf', assumed: 'asm' };
+
 function htmlEscape(value) {
   return String(value == null ? '' : value)
     .replace(/&/g, '&amp;')
@@ -299,11 +301,25 @@ ${intraEdges.map((e) => {
   return `${head({ title, assetRel, pageKind: 'feature' })}\n${body}\n`;
 }
 
-function renderSubmoduleTable(headers, rows) {
+function renderEvidenceBadge(ev) {
+  if (!ev || !ev.level) return '';
+  const label = EVI_LABEL[ev.level] || ev.level;
+  const title = ev.source ? htmlEscape(ev.source) : '';
+  const titleAttr = title ? ` title="${title}"` : '';
+  return `<span class="evi evi--${ev.level}"${titleAttr}>${label}</span>`;
+}
+
+function renderSubmoduleTable(headers, rows, evidences) {
+  const hasEvCol = Array.isArray(evidences) && evidences.some((ev) => ev && ev.level);
+  const allHeaders = hasEvCol ? [...headers, 'Evidence'] : headers;
   return `<table class="sub-table">
-        <thead><tr>${headers.map((h) => `<th scope="col">${htmlEscape(h)}</th>`).join('')}</tr></thead>
+        <thead><tr>${allHeaders.map((h) => `<th scope="col">${htmlEscape(h)}</th>`).join('')}</tr></thead>
         <tbody>
-${rows.map((r) => `          <tr>${r.map((c) => `<td>${htmlEscape(c == null ? '' : c)}</td>`).join('')}</tr>`).join('\n')}
+${rows.map((r, ri) => {
+  const baseCells = r.map((c) => `<td>${htmlEscape(c == null ? '' : c)}</td>`);
+  const cells = hasEvCol ? [...baseCells, `<td>${renderEvidenceBadge(evidences[ri])}</td>`] : baseCells;
+  return `          <tr>${cells.join('')}</tr>`;
+}).join('\n')}
         </tbody>
       </table>`;
 }
@@ -438,6 +454,26 @@ function renderSubmodulePage({ feature, sub, outDir }) {
   const pageRel = pagePathFor('submodule', { featureSlug: feature.slug, submoduleSlug: sub.slug });
   const assetRel = relAssetPath(path.join(outDir, pageRel), outDir);
   const title = `${feature.title || feature.slug} · ${sub.slug}`;
+
+  // Evidence data
+  const fnEvidences = (sub.functions || []).map((fn) => fn.evidence || null);
+  const varEvidences = (sub.variables || []).map((v) => v.evidence || null);
+  const errEvidences = (sub.errors || []).map((e) => e.evidence || null);
+
+  // Evidence summary
+  const allComponents = [...(sub.functions || []), ...(sub.variables || []), ...(sub.errors || [])];
+  const eviCounts = { observed: 0, inferred: 0, assumed: 0 };
+  let hasAnyEvidence = false;
+  for (const c of allComponents) {
+    if (c.evidence && c.evidence.level && eviCounts[c.evidence.level] !== undefined) {
+      eviCounts[c.evidence.level]++;
+      hasAnyEvidence = true;
+    }
+  }
+  const evidenceSummaryHtml = hasAnyEvidence
+    ? `<p class="submodule-evidence-summary">Evidence: ${eviCounts.observed} observed, ${eviCounts.inferred} inferred, ${eviCounts.assumed} assumed</p>`
+    : '';
+
   const ioRows = (sub.functions || []).map((fn) => [fn.name, fn.in || '', fn.out || '', fn.side || '', fn.purpose || '']);
   const varRows = (sub.variables || []).map((v) => [v.name, v.type || '', v.scope || '', v.purpose || '']);
   const errRows = (sub.errors || []).map((e) => [e.name, e.when || '', e.means || '']);
@@ -447,18 +483,19 @@ function renderSubmodulePage({ feature, sub, outDir }) {
     <nav class="submodule-breadcrumb"><a href="../../index.html">← Atlas</a> · <a href="index.html">← ${htmlEscape(feature.title || feature.slug)}</a></nav>
     <h1>${htmlEscape(sub.slug)} <small class="submodule-kind submodule-kind--${htmlEscape(sub.kind)}">${htmlEscape(KIND_LABEL[sub.kind] || sub.kind)}</small></h1>
     ${sub.role ? `<p class="submodule-role">${htmlEscape(sub.role)}</p>` : ''}
+    ${evidenceSummaryHtml}
   </header>
   <main class="submodule-main">
     <section class="sub-io" aria-label="Function I/O">
       <h2>Function I/O</h2>
       ${ioRows.length > 0
-        ? renderSubmoduleTable(['Name', 'In', 'Out', 'Side', 'Purpose'], ioRows)
+        ? renderSubmoduleTable(['Name', 'In', 'Out', 'Side', 'Purpose'], ioRows, fnEvidences)
         : '<p class="sub-section__empty">No functions recorded.</p>'}
     </section>
     <section class="sub-vars" aria-label="Variables">
       <h2>Variables</h2>
       ${varRows.length > 0
-        ? renderSubmoduleTable(['Name', 'Type', 'Scope', 'Purpose'], varRows)
+        ? renderSubmoduleTable(['Name', 'Type', 'Scope', 'Purpose'], varRows, varEvidences)
         : '<p class="sub-section__empty">No variables recorded.</p>'}
     </section>
     <section class="sub-dataflow" aria-label="Internal data flow">
@@ -479,7 +516,7 @@ function renderSubmodulePage({ feature, sub, outDir }) {
     <section class="sub-errors" aria-label="Errors">
       <h2>Errors</h2>
       ${errRows.length > 0
-        ? renderSubmoduleTable(['Name', 'When', 'Means'], errRows)
+        ? renderSubmoduleTable(['Name', 'When', 'Means'], errRows, errEvidences)
         : '<p class="sub-section__empty">No errors recorded.</p>'}
     </section>
   </main>

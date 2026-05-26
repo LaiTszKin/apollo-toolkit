@@ -1084,6 +1084,18 @@ function splitList(value) {
   return String(value).split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+function parseEvidence(value) {
+  if (value === undefined || value === null) return null;
+  const str = String(value);
+  const colon = str.indexOf(':');
+  const level = colon === -1 ? str : str.slice(0, colon);
+  const source = colon === -1 ? '' : str.slice(colon + 1);
+  if (!/^(observed|inferred|assumed)$/.test(level)) {
+    throw new Error(`Invalid evidence level: "${level}". Must be one of: observed, inferred, assumed`);
+  }
+  return { level, source };
+}
+
 function findFirstPositional(args) {
   const booleanFlags = new Set(['no-render', 'no-open', 'help', 'force', 'dry-run', 'json']);
   let i = 0;
@@ -1358,6 +1370,7 @@ async function verbFeature(action, flags, projectRoot) {
     if (flags.title !== undefined) init.title = String(flags.title);
     if (flags.story !== undefined) init.story = String(flags.story);
     if (flags['depends-on'] !== undefined) init.dependsOn = splitList(flags['depends-on']);
+    if (flags.evidence !== undefined) init.evidence = parseEvidence(flags.evidence);
     return performMutation(projectRoot, flags, `feature ${action}`, { slug, ...init }, (state) => {
       ensureFeature(state, slug, init);
       return { touchedFeatures: new Set([slug]) };
@@ -1379,6 +1392,7 @@ async function verbSubmodule(action, flags, projectRoot) {
     const init = {};
     if (flags.kind !== undefined) init.kind = String(flags.kind);
     if (flags.role !== undefined) init.role = String(flags.role);
+    if (flags.evidence !== undefined) init.evidence = parseEvidence(flags.evidence);
     return performMutation(projectRoot, flags, `submodule ${action}`, { feature: featureSlug, slug, ...init }, (state) => {
       const feature = ensureFeature(state, featureSlug);
       ensureSubmodule(feature, slug, init);
@@ -1409,6 +1423,7 @@ async function verbFunction(action, flags, projectRoot) {
       if (flags.out !== undefined) fn.out = String(flags.out);
       if (flags.side !== undefined) fn.side = String(flags.side);
       if (flags.purpose !== undefined) fn.purpose = String(flags.purpose);
+      if (flags.evidence !== undefined) fn.evidence = parseEvidence(flags.evidence);
       sub.functions.push(fn);
     } else if (action === 'remove') {
       sub.functions = (sub.functions || []).filter((f) => f.name !== name);
@@ -1432,6 +1447,7 @@ async function verbVariable(action, flags, projectRoot) {
       if (flags.type !== undefined) v.type = String(flags.type);
       if (flags.scope !== undefined) v.scope = String(flags.scope);
       if (flags.purpose !== undefined) v.purpose = String(flags.purpose);
+      if (flags.evidence !== undefined) v.evidence = parseEvidence(flags.evidence);
       sub.variables.push(v);
     } else if (action === 'remove') {
       sub.variables = (sub.variables || []).filter((v) => v.name !== name);
@@ -1521,6 +1537,7 @@ async function verbError(action, flags, projectRoot) {
       const err = { name };
       if (flags.when !== undefined) err.when = String(flags.when);
       if (flags.means !== undefined) err.means = String(flags.means);
+      if (flags.evidence !== undefined) err.evidence = parseEvidence(flags.evidence);
       sub.errors.push(err);
     } else if (action === 'remove') {
       sub.errors = (sub.errors || []).filter((e) => e.name !== name);
