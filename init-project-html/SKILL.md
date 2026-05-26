@@ -44,7 +44,13 @@ At load time, check the project state to select the correct mode:
 - **review** — An `architecture_diff/` overlay directory exists.
   Run diff comparison workflow. If no diff found, fallback to update mode.
 
+- **guard** — If you are explicitly instructed to run design/init mode but the atlas
+  directory already exists and is non-empty, pause and ask the user whether to:
+  (a) overwrite the existing atlas, (b) switch to update mode, or (c) abort.
+
 ## 工作流程
+
+適用模式：design（完整初始化）、record（快速記錄）
 
 ### 1. 閱讀並理解代碼庫 — 先建立 System Context
 

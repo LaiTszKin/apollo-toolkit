@@ -1002,7 +1002,6 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
 }
 
 module.exports = {
-  buildHelpPage,
   buildArchitectureHelpPage,
   get USAGE() {
     const value = buildArchitectureHelpPage();

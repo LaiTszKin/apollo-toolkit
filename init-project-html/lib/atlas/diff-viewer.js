@@ -173,4 +173,4 @@ function renderDiffViewer({ changes, projectRoot, outDir }) {
 `;
 }
 
-module.exports = { renderDiffViewer, toViewerRel };
+module.exports = { renderDiffViewer };

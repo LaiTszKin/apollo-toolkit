@@ -476,8 +476,6 @@ async function layoutMacro(state) {
 }
 
 module.exports = {
-  SUB_WIDTH,
-  SUB_HEIGHT,
   SUB_WIDTH_MIN,
   SUB_WIDTH_MAX,
   SUB_HEIGHT_MIN,
