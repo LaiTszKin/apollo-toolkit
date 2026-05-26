@@ -9,9 +9,7 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - answering-questions-with-research
 - archive
 - cjk-pdf
-- codex-memory-manager
 - commit
-- deep-research-topics
 - develop-new-features
 - docs-to-voice
 - document-vision-reader
@@ -22,12 +20,9 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - spec
 - implement
 - implement-with-subagents
-- implement-with-worktree
 - improve-observability
 - init-project-html
-- jupiter-development
 - katex
-- learn-skill-from-conversations
 - learning-error-book
 - maintain-project-constraints
 - merge-changes-from-local-branches
@@ -42,7 +37,6 @@ A curated skill catalog for Codex, OpenClaw, Trae, Agents, and Claude Code with 
 - qa
 - shadow-api-model-research
 - ship-github-issue-fix
-- solana-development
 - fix
 - systematic-debug
 - test-case-strategy
@@ -187,18 +181,15 @@ The install commands below were checked with the Skills CLI unless otherwise not
 
 | Skill name | Used by | Author / producer | Install command / note |
 | --- | --- | --- | --- |
-| `pdf` | `deep-research-topics`, `exam-pdf-workflow`, `financial-research`, `learning-error-book`, `weekly-financial-event-report` | OpenAI (`openai/skills`) | `npx skills add openai/skills@pdf -g -y` |
-| `doc` | `deep-research-topics` (optional Word output) | OpenAI (`openai/skills`) | `npx skills add openai/skills@doc -g -y` |
-| `slides` | `deep-research-topics` (optional slide output) | OpenAI (`openai/skills`) | `npx skills add openai/skills@slides -g -y` |
+| `pdf` | `exam-pdf-workflow`, `financial-research`, `learning-error-book`, `weekly-financial-event-report` | OpenAI (`openai/skills`) | `npx skills add openai/skills@pdf -g -y` |
 | `spreadsheet` | `record-spending` | OpenAI (`openai/skills`) | `npx skills add openai/skills@spreadsheet -g -y` |
-| `skill-creator` | `learn-skill-from-conversations` | OpenAI (`openai/skills`) | `npx skills add openai/skills@skill-creator -g -y` |
 | `remotion-best-practices` | `novel-to-short-video`, `video-production` | Remotion (`remotion-dev/skills`) | `npx skills add remotion-dev/skills@remotion-best-practices -g -y` |
 | `code-simplifier` | `open-source-pr-workflow` | Sentry (`getsentry/skills`) | `npx skills add getsentry/skills@code-simplifier -g -y` |
 
 Compatibility note:
 
 - `spec` is a local skill used by `develop-new-features` and `enhance-existing-features`, and it can produce either a single spec set under `docs/plans/{YYYY-MM-DD}/{change_name}/` or a coordinated parallel batch under `docs/plans/{YYYY-MM-DD}/{batch_name}/{change_name}/` with shared `coordination.md`.
-- `implement-with-subagents` coordinates one `implement-with-worktree` subagent per spec directory for approved multi-spec batches.
+- `implement-with-subagents` coordinates one `implement` subagent per spec directory for approved multi-spec batches.
 
 - `read-github-issue` uses GitHub CLI (`gh`) directly for remote issue discovery and inspection, so it does not add any extra skill dependency.
 - `qa` is a local skill that reviews spec compliance of changes against governing planning documents, assessing business goals before secondary code-practice concerns.

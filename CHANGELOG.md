@@ -2,6 +2,29 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.17.0] - 2026-05-27
+
+### Added
+
+- atlas CLI: `scan` verb with structured validation and automated fix commands.
+- atlas CLI: `status` verb and `--dry-run` flag for previewing changes before applying.
+- atlas CLI: `--evidence` flag and automatic mode detection for context-aware CLI behavior.
+
+### Changed
+
+- Refactor atlas CLI: extract help and diff-viewer modules from monolithic cli.js, narrow state.js and schema.js public API surfaces.
+- Upgrade `@types/node` to ^25.9.1 and set minimum Node.js engine to >=20.19.0.
+- Remove unused skill directories to reduce repository footprint.
+
+### Fixed
+
+- Resolve fourth and fifth round QA findings across atlas CLI modules, documentation, and module exports.
+
+### Docs
+
+- Add implementation specs for atlas CLI optimization covering all six objectives (O1-O6).
+- Archive completed atlas-cli-optimization spec.
+
 ## [v3.16.0] - 2026-05-25
 
 ### Added

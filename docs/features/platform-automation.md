@@ -28,17 +28,3 @@
 - **When** 使用 `resolve-review-comments` 技能
 - **Then** 列出未解決 threads 或在處理後標記為已解決
 
-## 區塊鏈開發
-
-### Solana
-
-- **Given** 使用者需要開發 Solana 程式
-- **When** 使用 `solana-development` 技能
-- **Then** 依官方開發流程建立 Rust 客戶端與 Solana 程式
-
-### Jupiter
-
-- **Given** 使用者需要整合 Jupiter DeFi 協議
-- **When** 使用 `jupiter-development` 技能
-- **Then** 依官方 SDK、CLI 與 API 文件開發 swap、token、price、lending、trigger、recurring 與 portfolio 功能
-
