@@ -19,6 +19,7 @@
 //   meta set                                      meta.title / meta.summary
 //   actor add|remove                              top-level actors
 //   validate                                      schema + referential integrity check
+//   scan                                          scan directory for feature candidates
 //   undo                                          revert the most recent mutation
 //   help / --help / -h                            usage
 //
@@ -792,7 +793,7 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
       ],
       notes: [
         'Mutation families include `feature add|set|remove`, `submodule add|set|remove`, `function add|remove`, `variable add|remove`, `dataflow add|remove|reorder`, `error add|remove`, `edge add|remove`, `meta set`, and `actor add|remove`.',
-        'Top-level verbs include `open`, `diff`, `merge`, `render`, `validate`, and `undo`.',
+        'Top-level verbs include `open`, `diff`, `merge`, `render`, `validate`, `scan`, and `undo`.',
         '`feature`, `submodule`, `function`, `variable`, `dataflow`, `error`, `edge`, `meta`, and `actor` all support deeper help such as `apltk architecture edge add --help`.',
         'Run `apltk architecture validate` before declaring atlas work done.',
       ],
@@ -812,6 +813,10 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
         {
           command: 'apltk architecture validate',
           result: 'Prints `atlas: OK` when the atlas state passes validation.',
+        },
+        {
+          command: 'apltk architecture scan --src lib/',
+          result: 'Outputs a JSON array of directory entries in `lib/` with suggested feature slugs.',
         },
         {
           command: 'apltk architecture diff',
@@ -913,6 +918,33 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
           {
             command: 'apltk architecture validate',
             result: 'Prints `atlas: OK` on success or one validation error per broken reference.',
+          },
+        ],
+      });
+    case 'scan':
+      return buildHelpPage({
+        title: 'apltk architecture scan — scan directory structure for feature candidates.',
+        summary: 'List the top-level source directories in a target path and output a JSON array of candidate feature slugs for agent-driven atlas modelling.',
+        usageLines: [
+          'apltk architecture scan [--src <dir>] [--project <root>]',
+        ],
+        useWhen: [
+          'You need to quickly inventory the source directories that likely correspond to architecture features.',
+        ],
+        optionalFlags: [
+          '`--src <dir>` specifies the directory to scan (defaults to `src/` if it exists, otherwise the project root).',
+          '`--project <root>` selects the repository root to scan.',
+        ],
+        notes: [
+          'Only the immediate children of the scanned directory are listed; no recursive scanning.',
+          'Directories like `node_modules`, `.git`, `dist`, `__tests__`, `coverage`, `.turbo`, and `build` are automatically filtered out.',
+          'Directories whose names start with a dot are also skipped.',
+          'The output is a JSON array of `{name, path, suggestion}` objects written to stdout.',
+        ],
+        examples: [
+          {
+            command: 'apltk architecture scan --src lib/',
+            result: 'Outputs a JSON array of directory entries in `lib/` with suggested feature slugs.',
           },
         ],
       });
@@ -1509,13 +1541,57 @@ async function verbActor(action, flags, projectRoot) {
 
 async function verbValidate(flags, projectRoot, io) {
   const { merged } = loadResolvedState(projectRoot, flags);
-  const errors = schema.validate(merged);
-  if (errors.length === 0) {
+  const result = schema.validate(merged);
+  if (result.valid) {
     io.stdout.write('atlas: OK\n');
     return 0;
   }
-  for (const err of errors) io.stderr.write(`${err}\n`);
+  for (const err of result.errors) {
+    io.stderr.write(`${err.message}\n`);
+    if (err.fixCommand) {
+      io.stderr.write(`  → fix: ${err.fixCommand}\n`);
+    }
+  }
   return 1;
+}
+
+async function verbScan(flags, projectRoot, io) {
+  const srcRaw = flags.src !== undefined ? String(flags.src) : 'src';
+  const srcDir = path.resolve(projectRoot, srcRaw);
+
+  let entries;
+  try {
+    entries = fs.readdirSync(srcDir, { withFileTypes: true });
+  } catch (e) {
+    io.stderr.write(`Cannot read directory: ${srcDir}\n`);
+    return 1;
+  }
+
+  const skipDirs = new Set(['node_modules', '.git', 'dist', '__tests__', '__test__', 'coverage', '.turbo', 'build']);
+  const results = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    if (skipDirs.has(entry.name)) continue;
+    if (entry.name.startsWith('.')) continue;
+
+    const suggestion = entry.name
+      .replace(/([A-Z])/g, '-$1')
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      || entry.name.toLowerCase();
+
+    results.push({
+      name: entry.name,
+      path: path.relative(projectRoot, path.join(srcDir, entry.name)),
+      suggestion,
+    });
+  }
+
+  io.stdout.write(JSON.stringify(results, null, 2) + '\n');
+  return 0;
 }
 
 async function verbUndo(flags, projectRoot, io) {
@@ -2134,6 +2210,7 @@ async function dispatch(argv, io = { stdout: process.stdout, stderr: process.std
         io.stdout.write(`atlas: rendered\n`);
         return 0;
       case 'validate': return await verbValidate(flags, projectRoot, io);
+      case 'scan': return await verbScan(flags, projectRoot, io);
       case 'undo': return await verbUndo(flags, projectRoot, io);
       case 'feature': await verbFeature(subverb, flags, projectRoot); break;
       case 'submodule': await verbSubmodule(subverb, flags, projectRoot); break;
@@ -2178,4 +2255,5 @@ module.exports = {
   hasOverlayState,
   collectSpecsToMerge,
   verbMerge,
+  verbScan,
 };

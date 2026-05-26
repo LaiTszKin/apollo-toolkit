@@ -35,8 +35,9 @@ function sampleState() {
 }
 
 test('schema.validate accepts a well-formed state', () => {
-  const errors = schema.validate(sampleState());
-  assert.deepEqual(errors, []);
+  const result = schema.validate(sampleState());
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.errors, []);
 });
 
 test('schema.validate rejects unknown kind / scope / side enums', () => {
@@ -44,26 +45,29 @@ test('schema.validate rejects unknown kind / scope / side enums', () => {
   state.features[0].submodules[0].kind = 'bogus';
   state.features[0].submodules[0].functions = [{ name: 'fn', side: 'wat' }];
   state.features[0].submodules[0].variables = [{ name: 'v', scope: 'oops' }];
-  const errors = schema.validate(state);
-  assert.ok(errors.some((e) => e.includes('"kind"')));
-  assert.ok(errors.some((e) => e.includes('"side"')));
-  assert.ok(errors.some((e) => e.includes('"scope"')));
+  const result = schema.validate(state);
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => e.message.includes('"kind"')));
+  assert.ok(result.errors.some((e) => e.message.includes('"side"')));
+  assert.ok(result.errors.some((e) => e.message.includes('"scope"')));
 });
 
 test('schema.validate flags duplicate feature/submodule slugs', () => {
   const state = sampleState();
   state.features.push({ slug: 'register', title: 'dup', submodules: [], edges: [] });
   state.features[0].submodules.push({ slug: 'ui', kind: 'ui', role: '' });
-  const errors = schema.validate(state);
-  assert.ok(errors.some((e) => e.includes('duplicate feature slug')));
-  assert.ok(errors.some((e) => e.includes('duplicate submodule slug')));
+  const result = schema.validate(state);
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => e.message.includes('duplicate feature slug')));
+  assert.ok(result.errors.some((e) => e.message.includes('duplicate submodule slug')));
 });
 
 test('schema.validate detects unknown edge endpoints', () => {
   const state = sampleState();
   state.edges = [{ id: 'x', from: { feature: 'ghost' }, to: { feature: 'register', submodule: 'ui' }, kind: 'call' }];
-  const errors = schema.validate(state);
-  assert.ok(errors.some((e) => e.includes('unknown feature')));
+  const result = schema.validate(state);
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => e.message.includes('unknown feature')));
 });
 
 test('schema.validate accepts enriched dataflow steps referencing declared fn + variables', () => {
@@ -78,8 +82,9 @@ test('schema.validate accepts enriched dataflow steps referencing declared fn + 
     'Receive request',
     { step: 'Validate body and emit token', fn: 'handlePost', reads: ['body'], writes: ['token'] },
   ];
-  const errors = schema.validate(state);
-  assert.deepEqual(errors, []);
+  const result = schema.validate(state);
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.errors, []);
 });
 
 test('schema.validate rejects dataflow fn/reads/writes referencing undeclared symbols', () => {
@@ -93,11 +98,12 @@ test('schema.validate rejects dataflow fn/reads/writes referencing undeclared sy
     { step: 'Bad writes', writes: ['phantom'] },
     { step: 'Wrong shape', reads: 'not-an-array' },
   ];
-  const errors = schema.validate(state);
-  assert.ok(errors.some((e) => e.includes('unknown function "nope"')), 'flags unknown fn');
-  assert.ok(errors.some((e) => e.includes('unknown variable "ghost"')), 'flags unknown reads');
-  assert.ok(errors.some((e) => e.includes('unknown variable "phantom"')), 'flags unknown writes');
-  assert.ok(errors.some((e) => e.includes('"reads" must be an array')), 'flags wrong shape');
+  const result = schema.validate(state);
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => e.message.includes('unknown function "nope"')), 'flags unknown fn');
+  assert.ok(result.errors.some((e) => e.message.includes('unknown variable "ghost"')), 'flags unknown reads');
+  assert.ok(result.errors.some((e) => e.message.includes('unknown variable "phantom"')), 'flags unknown writes');
+  assert.ok(result.errors.some((e) => e.message.includes('"reads" must be an array')), 'flags wrong shape');
 });
 
 test('state.save then state.load round-trips', () => {

@@ -35,9 +35,9 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R1.1 `scan --src <dir>` 輸出一層目錄結構的 JSON 陣列
-- [ ] R1.2 自動過濾常見非原始碼目錄
-- [ ] R1.3 若 `--src` 未指定，預設掃描 `src/`（若存在）否則掃描專案根目錄
+- [x] R1.1 `scan --src <dir>` 輸出一層目錄結構的 JSON 陣列
+- [x] R1.2 自動過濾常見非原始碼目錄
+- [x] R1.3 若 `--src` 未指定，預設掃描 `src/`（若存在）否則掃描專案根目錄
 
 ### Requirement 2: `scan` 輸出格式
 **GIVEN** 任意目錄結構
@@ -49,9 +49,9 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R2.1 JSON 輸出為合法陣列
-- [ ] R2.2 每個項目的 `suggestion` 符合 kebab-case slug 格式
-- [ ] R2.3 輸出僅為 JSON 陣列文字
+- [x] R2.1 JSON 輸出為合法陣列
+- [x] R2.2 每個項目的 `suggestion` 符合 kebab-case slug 格式
+- [x] R2.3 輸出僅為 JSON 陣列文字
 
 ### Requirement 3: `validate` 附帶修復命令
 **GIVEN** atlas 包含一個 dataflow step 引用不存在的 function `handlePost`
@@ -64,9 +64,9 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R3.1 每個 validation error 附帶一個 `apltk architecture ...` fix command
-- [ ] R3.2 fix command 的 flag 名稱和值正確對應到錯誤上下文
-- [ ] R3.3 無法自動修復的錯誤標記 `(no automatic fix)`
+- [x] R3.1 每個 validation error 附帶一個 `apltk architecture ...` fix command
+- [x] R3.2 fix command 的 flag 名稱和值正確對應到錯誤上下文
+- [x] R3.3 無法自動修復的錯誤標記 `(no automatic fix)`
 
 ### Requirement 4: `schema.validate()` 新回傳格式
 **GIVEN** 任意 atlas state
@@ -77,16 +77,16 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R4.1 `validate()` 回傳結構化物件而非 `string[]`
-- [ ] R4.2 `fixCommand` 為完整的 `apltk architecture ...` 字串或 `null`
-- [ ] R4.3 現有的 `verbValidate` CLI 輸出格式保持不變（`atlas: OK` 或逐行錯誤）
+- [x] R4.1 `validate()` 回傳結構化物件而非 `string[]`
+- [x] R4.2 `fixCommand` 為完整的 `apltk architecture ...` 字串或 `null`
+- [x] R4.3 現有的 `verbValidate` CLI 輸出格式保持不變（`atlas: OK` 或逐行錯誤）
 
 ## Error and Edge Cases
-- [ ] `scan` 在目錄不存在時回報錯誤（stderr），不輸出空 JSON
-- [ ] `scan` 在空目錄時輸出空陣列 `[]`
-- [ ] `validate` 在完全正確的 atlas 上輸出 `atlas: OK`（不變）
-- [ ] `validate` 在 spec 模式下正確使用 overlay state 產生 fix command（參數對應 overlay）
-- [ ] `validate` 回傳格式變更不影響 `performMutation` 中可能存在的 silent validation
+- [x] `scan` 在目錄不存在時回報錯誤（stderr），不輸出空 JSON
+- [x] `scan` 在空目錄時輸出空陣列 `[]`
+- [x] `validate` 在完全正確的 atlas 上輸出 `atlas: OK`（不變）
+- [x] `validate` 在 spec 模式下正確使用 overlay state 產生 fix command（參數對應 overlay）
+- [x] `validate` 回傳格式變更不影響 `performMutation` 中可能存在的 silent validation
 
 ## Clarification Questions
 None — 需求已在前期研究中確認完畢。
