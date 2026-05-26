@@ -490,19 +490,19 @@ function renderSubmodulePage({ feature, sub, outDir }) {
     ${evidenceSummaryHtml}
   </header>
   <main class="submodule-main">
-    <section class="sub-io" aria-label="Function I/O">
+    <section aria-label="Function I/O">
       <h2>Function I/O</h2>
       ${ioRows.length > 0
         ? renderSubmoduleTable(['Name', 'In', 'Out', 'Side', 'Purpose'], ioRows, fnEvidences)
         : '<p class="sub-section__empty">No functions recorded.</p>'}
     </section>
-    <section class="sub-vars" aria-label="Variables">
+    <section aria-label="Variables">
       <h2>Variables</h2>
       ${varRows.length > 0
         ? renderSubmoduleTable(['Name', 'Type', 'Scope', 'Purpose'], varRows, varEvidences)
         : '<p class="sub-section__empty">No variables recorded.</p>'}
     </section>
-    <section class="sub-dataflow" aria-label="Internal data flow">
+    <section aria-label="Internal data flow">
       <h2>Internal data flow</h2>
       ${(sub.dataflow && sub.dataflow.length > 0)
         ? `<div class="sub-dataflow__canvas" data-pan-zoom-container>
@@ -517,7 +517,7 @@ function renderSubmodulePage({ feature, sub, outDir }) {
       </div>`
         : renderInternalDataflowSvg(sub.dataflow)}
     </section>
-    <section class="sub-errors" aria-label="Errors">
+    <section aria-label="Errors">
       <h2>Errors</h2>
       ${errRows.length > 0
         ? renderSubmoduleTable(['Name', 'When', 'Means'], errRows, errEvidences)
@@ -536,15 +536,28 @@ function copyAssets(outDir) {
   fs.mkdirSync(assetsDir, { recursive: true });
   const srcCss = path.join(__dirname, 'assets', 'architecture.css');
   const srcJs = path.join(__dirname, 'assets', 'viewer.client.js');
-  fs.copyFileSync(srcCss, path.join(assetsDir, 'architecture.css'));
-  fs.copyFileSync(srcJs, path.join(assetsDir, 'viewer.client.js'));
+  const dstCss = path.join(assetsDir, 'architecture.css');
+  const dstJs = path.join(assetsDir, 'viewer.client.js');
+  try {
+    const existingCss = fs.readFileSync(dstCss);
+    if (!existingCss.equals(fs.readFileSync(srcCss))) fs.copyFileSync(srcCss, dstCss);
+  } catch (_e) { fs.copyFileSync(srcCss, dstCss); }
+  try {
+    const existingJs = fs.readFileSync(dstJs);
+    if (!existingJs.equals(fs.readFileSync(srcJs))) fs.copyFileSync(srcJs, dstJs);
+  } catch (_e) { fs.copyFileSync(srcJs, dstJs); }
 }
 
 // renderAll({outDir, state, scope?}) writes every page for the
 // resolved state. When scope is provided, only the listed pages are
 // emitted; this is how spec mode generates the proposed-after subset.
 async function renderAll({ outDir, state, scope = null, removedPaths = [] }) {
-  fs.mkdirSync(outDir, { recursive: true });
+  try {
+    fs.mkdirSync(outDir, { recursive: true });
+  } catch (err) {
+    process.stderr.write(`render: cannot create output directory — ${err.message}\n`);
+    return { written: [], layout: null };
+  }
   copyAssets(outDir);
 
   const shouldEmit = (kind, slug, subSlug) => {
@@ -567,45 +580,56 @@ async function renderAll({ outDir, state, scope = null, removedPaths = [] }) {
   if (shouldEmit('macro')) {
     const html = renderMacro({ state, layout, outDir });
     const file = path.join(outDir, pagePathFor('macro'));
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, html, 'utf8');
-    written.push(pagePathFor('macro'));
+    try { fs.mkdirSync(path.dirname(file), { recursive: true }); } catch (_e) { /* parent dir exists */ }
+    try { fs.writeFileSync(file, html, 'utf8'); written.push(pagePathFor('macro')); } catch (err) {
+      process.stderr.write(`render: failed to write macro page — ${err.message}\n`);
+    }
   }
 
   for (const feature of state.features || []) {
     if (shouldEmit('feature', feature.slug)) {
       const html = renderFeaturePage({ feature, outDir });
       const file = path.join(outDir, pagePathFor('feature', { featureSlug: feature.slug }));
-      fs.mkdirSync(path.dirname(file), { recursive: true });
-      fs.writeFileSync(file, html, 'utf8');
-      written.push(pagePathFor('feature', { featureSlug: feature.slug }));
+      try { fs.mkdirSync(path.dirname(file), { recursive: true }); } catch (_e) { /* parent dir exists */ }
+      try { fs.writeFileSync(file, html, 'utf8'); written.push(pagePathFor('feature', { featureSlug: feature.slug })); } catch (err) {
+        process.stderr.write(`render: failed to write feature page "${feature.slug}" — ${err.message}\n`);
+      }
     }
     for (const sub of feature.submodules || []) {
       if (shouldEmit('submodule', feature.slug, sub.slug)) {
         const html = renderSubmodulePage({ feature, sub, outDir });
         const file = path.join(outDir, pagePathFor('submodule', { featureSlug: feature.slug, submoduleSlug: sub.slug }));
-        fs.mkdirSync(path.dirname(file), { recursive: true });
-        fs.writeFileSync(file, html, 'utf8');
-        written.push(pagePathFor('submodule', { featureSlug: feature.slug, submoduleSlug: sub.slug }));
+        try { fs.mkdirSync(path.dirname(file), { recursive: true }); } catch (_e) { /* parent dir exists */ }
+        try { fs.writeFileSync(file, html, 'utf8'); written.push(pagePathFor('submodule', { featureSlug: feature.slug, submoduleSlug: sub.slug })); } catch (err) {
+          process.stderr.write(`render: failed to write submodule page "${feature.slug}/${sub.slug}" — ${err.message}\n`);
+        }
       }
     }
   }
 
-  if (removedPaths && removedPaths.length > 0) {
-    const lines = ['# Pages removed by this spec. Used by `apltk architecture diff`.', ...removedPaths];
-    fs.writeFileSync(path.join(outDir, REMOVED_TXT), `${lines.join('\n')}\n`, 'utf8');
-  } else {
-    const file = path.join(outDir, REMOVED_TXT);
-    if (fs.existsSync(file)) fs.rmSync(file);
+  try {
+    if (removedPaths && removedPaths.length > 0) {
+      const lines = ['# Pages removed by this spec. Used by `apltk architecture diff`.', ...removedPaths];
+      fs.writeFileSync(path.join(outDir, REMOVED_TXT), `${lines.join('\n')}\n`, 'utf8');
+    } else {
+      const file = path.join(outDir, REMOVED_TXT);
+      if (fs.existsSync(file)) fs.rmSync(file);
+    }
+  } catch (err) {
+    process.stderr.write(`render: failed to update removed-pages manifest — ${err.message}\n`);
   }
 
   // Full base render (no scope): sweep stale HTML so `apltk architecture
   // render` is a true refresh — old feature folders or renamed sub-modules
   // do not linger with the previous (broken) markup or styling.
-  if (!scope) {
-    sweepOrphanFeaturePages(outDir, state);
-  } else {
-    sweepScopedHtml(outDir, new Set(written.map((file) => file.split(path.sep).join('/'))));
+  try {
+    if (!scope) {
+      sweepOrphanFeaturePages(outDir, state);
+    } else {
+      sweepScopedHtml(outDir, new Set(written.map((file) => file.split(path.sep).join('/'))));
+    }
+  } catch (err) {
+    process.stderr.write(`render: page sweep failed — ${err.message}\n`);
   }
 
   return { written, layout };

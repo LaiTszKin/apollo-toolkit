@@ -2,7 +2,7 @@
 
 - **Spec**: atlas-cli-optimization (D → B → A → C)
 - **Date**: 2026-05-27
-- **Reviewer**: QA Agent (6-dimension parallel review, round 3)
+- **Reviewer**: QA Agent (6-dimension parallel review, round 4)
 - **Verdict**: Needs Work
 
 ---
@@ -11,7 +11,9 @@
 
 **Verdict**: Needs Work
 
-本次為第三輪獨立審查。6 個維度的平行審查發現 **2 個 P1 問題、5 個 P2 問題、6 個 P3 建議**。無 P0 功能性崩潰。主要問題集中在：`formatFix` callback 從未被呼叫導致所有 fixCommand 為 null、四個 mutation verb 缺少 `--evidence` 支援、以及 CLI help 未記錄新 flag。
+本次為第四輪獨立審查。6 個維度的平行審查發現 **3 個 P1 問題、8 個 P2 問題、12 個 P3 建議**。無 P0 功能性崩潰。主要問題集中在：`schema.validate()` 的 return type 不一致（邊界條件下可能 crash）、`performMutation` 的 mutate-then-snapshot 順序缺陷、render 路徑缺乏檔案操作錯誤處理、intra-feature edge 遺失 `--evidence`、`computeDiff()` 僅追蹤 feature 層級變更導致 dry-run 對 meta/actor/edge 輸出空 diff。
+
+前輪修復（formatFix callback、--evidence mutation verb 支援、booleanFlags 提取、CSS cleanup 等）已確認正確實作且無回歸。
 
 ---
 
@@ -21,40 +23,50 @@
 
 | # | 問題描述 | 影響 | 檔案 | 行數 |
 |---|--------|------|------|------|
-| 1 | `formatFix` callback 被注入 `schema.validate()` 但從未被任何驗證函數呼叫。全部 40+ 處驗證錯誤都透過 `noFix()` 或 `requireField()` 產生，`fixCommand` 永遠為 `null` | `verbValidate` 中 `→ fix:` 輸出永遠不會出現；即使是可以自動修復的錯誤（如 unknown submodule reference、invalid slug）也無法提供修復命令。違反 spec B R3.1「每 error 附 fix command」 | `init-project-html/lib/atlas/schema.js` | L111-276（10 個 validate 函數） |
-| 2 | `--evidence` flag 僅支援 5 個 mutation verb（feature/submodule/function/variable/error），缺少 `dataflow add`、`edge add`、`meta set`、`actor add` 的支援。Spec C R1.4 要求「所有 mutation verb 均支援」 | agent 無法為 dataflow step、edge、meta、actor 標記 evidence 品質 | `init-project-html/lib/atlas/cli.js` | L442-481, L524-580, L588-596, L598-611 |
+| 1 | `schema.validate()` 在 state 非物件時執行 `return [noFix('state: must be an object')]`，回傳 plain array 而非 `{ valid: boolean, errors: [...] }`。呼叫方 `verbValidate` 和 `verbStatus` 存取 `result.valid` 得 `undefined`（falsy），接著 `for (const err of result.errors)` 因 `result.errors` 為 `undefined` 拋出 `TypeError` | 邊界條件下 crash；違反 Spec B R4.1 的函式契約 | `init-project-html/lib/atlas/schema.js` | L290 |
+| 2 | `performMutation` 先呼叫 `mutate()` 修改記憶體中的 state，之後才寫入 undo snapshot（`writeUndoSnapshot`，L250/257）。若 undo 寫入因磁碟滿或權限不足失敗，記憶體狀態已被修改，無法回滾 | undo snapshot 寫入失敗時記憶體狀態已污染；雖然 CLI 為短生命週期（下次呼叫從磁碟重載），仍構成 state consistency gap | `init-project-html/lib/atlas/cli.js` | L248-260 |
+| 3 | `renderAll` 及其內部 `copyAssets`、HTML 寫入迴圈中所有 `fs.writeFileSync`、`fs.copyFileSync`、`fs.rmSync` 均無 try-catch。任一檔案操作失敗（EACCES、ENOSPC）導致整個渲染流程 crash，已寫入的部分頁面無法 rollback | 渲染中斷時留下部分更新的 HTML，架構圖處於不一致狀態（新舊頁面混合） | `init-project-html/lib/atlas/render.js` | L534-612 |
 
 ### P2 — 一般問題
 
 | # | 問題描述 | 影響 | 檔案 | 行數 |
 |---|--------|------|------|------|
-| 3 | `--evidence` flag 未出現在 CLI help 的任何位置：不在 `mutationFlags` 陣列、不在任何 action help page、不在全域 flag 註解 | 使用者無法透過 `--help` 得知 `--evidence` flag 的存在 | `init-project-html/lib/atlas/cli-help.js` | L43-47, L738-747 |
-| 4 | `--dry-run` flag 也未出現在 `mutationFlags` 陣列（僅在頂層 help 列出一次） | action-specific help（如 `feature add --help`）不顯示 `--dry-run` | `init-project-html/lib/atlas/cli-help.js` | L43-47 |
-| 5 | `'force'` 出現在 `findFirstPositional`（L107）和 `parseFlags`（L140）的 `booleanFlags` Set，但 `flags.force` 在全部程式碼中從未被讀取 | 幽靈 flag：使用者傳入 `--force` 會被解析但靜默丟棄，產生錯誤預期 | `init-project-html/lib/atlas/cli.js` | L107, L140 |
-| 6 | `performMutation` 在 spec mode 已載入 base state（L240），但傳給 `runRender` 時不附帶 base；`runRender` 再次從磁碟載入（L269） | 多餘的 I/O：每筆 spec mutation 重複讀取所有 feature YAML | `init-project-html/lib/atlas/cli.js` | L240-262, L269 |
-| 7 | `mergeOverlay` 以 `JSON.parse(JSON.stringify(base))` 深拷貝整個 base state（L228），即使 overlay 僅修改 1 個 feature | 50+ feature atlas 每次 mutation 浪費記憶體與 CPU 拷貝 49 個未變更的 feature | `init-project-html/lib/atlas/state.js` | L228 |
+| 4 | 新增 intra-feature edge 時，`--evidence` flag 的值在 L537 被解析並寫入 `edge` 物件，但 intra-feature 路徑（L545-551）建構新物件時未包含 `evidence` 欄位，只寫入 `{ id, from, to, kind, label }`。跨 feature edge（L556）直接使用 `edge` 物件，正常保留 evidence | intra-feature edge 的 evidence 資訊永久遺失；違反 Spec C R1.4「所有 mutation verb 均支援 --evidence」 | `init-project-html/lib/atlas/cli.js` | L545-551 |
+| 5 | `computeDiff()` 僅比對 `state.features` 陣列的增刪改，完全忽略 `state.meta`、`state.actors`、`state.edges`（跨 feature edge）的變更。執行 `apltk architecture meta set --title "X" --dry-run` 或 `actor add --dry-run` 或跨 feature `edge add --dry-run` 時，輸出空 diff `{addedFeatures:[], modifiedFeatures:[], removedFeatures:[]}` | dry-run 對 meta/actor/edge mutation 輸出誤導性空 diff；違反 Spec A R4.1 | `init-project-html/lib/atlas/state.js` | L414-437 |
+| 6 | `validateFunction(fn, errors, where, featureSlug, subSlug, formatFix)` 和 `validateVariable(v, errors, where, featureSlug, subSlug, formatFix)` 接受 `featureSlug`、`subSlug`、`formatFix` 三個參數但函數體內從未讀取。所有錯誤皆透過 `noFix()` / `requireField()` 產生 | 幻覺參數：誤導呼叫者以為這些參數會影響驗證行為或產生 fix command | `init-project-html/lib/atlas/schema.js` | L108, L120 |
+| 7 | 所有 mutation verb callback 在 `performMutation` 中被呼叫後，回傳值 `{ touchedFeatures: new Set([...]) }` 從未被讀取或使用。每個 mutation 都計算並回傳此物件，但完全被忽略 | 死回傳值：暗示存在增量 render scope 功能但從未兌現 | `init-project-html/lib/atlas/cli.js` | L284-617 |
+| 8 | `multiVerbs` Set（L1140）的內容與 dispatch switch case（L1167-1186）完全重複。新增 mutation verb 時必須兩處同步更新，否則 `subverb` 解析與 dispatch 脫節 | DRY 違反：同一份 verb 清單在兩處獨立維護，容易因不同步導致 bug | `init-project-html/lib/atlas/cli.js` | L1140, L1167-1186 |
+| 9 | `const USAGE = buildArchitectureHelpPage()` 在模組載入時立即執行（eager evaluation），建構全部 ~20 個子頁面的 help text，即使 CLI 僅執行 mutation/render/validate | 每次 CLI 啟動都支付全部 help page 建構成本，浪費 CPU 與記憶體 | `init-project-html/lib/atlas/cli-help.js` | L1004 |
+| 10 | `render.js`（呈現層）從 `state.js`（持久化層）匯入 `REMOVED_TXT` 常數，僅為取得一個檔案名稱字串。呈現層對持久化層產生了不必要的編譯期依賴 | 若 `REMOVED_TXT` 定義位置變更，呈現層需重新評估；此常數應歸屬於 `schema.js` 或共享 constants 模組 | `init-project-html/lib/atlas/render.js` | L18 |
+| 11 | `architecture.ts` 以字串硬編碼路徑 `path.join(sourceRoot, 'init-project-html', 'lib', 'atlas', 'cli.js')` 直接 require `cli.js`，將 tool 排程層耦合到 skill 的內部檔案佈局 | 若 `cli.js` 改名、移動或被重構為 ESM，執行期才失敗 | `lib/tools/architecture.ts` | L8-11 |
 
 ### P3 — 建議改善
 
 | # | 問題描述 | 影響 | 檔案 | 行數 |
 |---|--------|------|------|------|
-| 8 | `booleanFlags` Set `['no-render', 'no-open', 'help', 'force', 'dry-run', 'json']` 在 `findFirstPositional` 和 `parseFlags` 中重複定義 | 新增 flag 時需同步兩處 | `init-project-html/lib/atlas/cli.js` | L107, L140 |
-| 9 | render.js 產生 `submodule-kind--{kind}`、`atlas-submodule-index__kind--{kind}`、`submodule-card__kind--{kind}` 三組 modifier CSS class，但 `architecture.css` 中無對應規則（僅有 `m-node--{kind}` 的規則） | HTML 輸出具備 class 結構但無視覺效果（目前依賴基礎 class 樣式，modifier class 無作用） | `init-project-html/lib/atlas/render.js`、`lib/atlas/assets/architecture.css` | L193, L259, L488 |
-| 10 | `renderAll` 無條件執行 `layoutMacro(state)`（elkjs 圖形佈局），即使 scope 僅包含 submodule 頁面不包含 macro。elkjs 佈局是渲染管線中最昂貴的操作 | 編輯單一 function/variable 時觸發不必要的完整 macro 佈局計算 | `init-project-html/lib/atlas/render.js` | L550 |
-| 11 | `save()` 僅為設定 `meta.updatedAt` 時間戳而對整個 state 執行 `JSON.parse(JSON.stringify(state))` | 大型 atlas 的記憶體使用暫時翻倍 | `init-project-html/lib/atlas/state.js` | L112 |
-| 12 | undo stack 無大小上限。每次 mutation 將完整 state 快照推入 stack，`writeUndoStack` 將整個 stack 序列化為單一 JSON blob | 若從不執行 undo，stack 檔案無限增長 | `init-project-html/lib/atlas/state.js` | L476-523 |
-| 13 | `render.js` 匯出多個僅內部使用的符號：`renderMacro`、`renderFeaturePage`、`renderSubmodulePage`、`copyAssets`、`KIND_LABEL`；`layout.js` 匯出 `approxTextWidth`、`wrapByVisualWidth`、`buildGraph` | 不必要的公開 API 表面，增加重構阻力 | `init-project-html/lib/atlas/render.js`、`lib/atlas/layout.js` | L695-706, L477-501 |
+| 12 | `SUBMODULE_KINDS`、`SIDE_EFFECTS`、`VARIABLE_SCOPES`、`EDGE_KINDS`、`SLUG_PATTERN`、`isNonEmptyString`、`isSlug` 被 schema.js 匯出但無任何外部檔案匯入（僅內部使用） | 過度匯出：不必要的公開 API 表面 | `init-project-html/lib/atlas/schema.js` | L374-382 |
+| 13 | `HISTORY_FILE`、`UNDO_FILE`、`UNDO_STACK_FILE` 被 state.js 匯出但無任何外部檔案匯入（僅內部使用） | 同上：內部常數不應汙染公開 API | `init-project-html/lib/atlas/state.js` | L529-531 |
+| 14 | `toViewerRel` 從 `diff-viewer.js` 匯入 cli.js（L46）後再匯出（L1219），但在 cli.js 內部從未被呼叫 | 不必要的匯入與重匯出 | `init-project-html/lib/atlas/cli.js` | L46, L1219 |
+| 15 | `sub-io`、`sub-vars`、`sub-dataflow`、`sub-errors` 四個 HTML section class 在 render.js 中生成，但 `architecture.css` 中無對應 CSS 規則 | HTML 攜帶無效 class，增加體積 | `init-project-html/lib/atlas/render.js` | L493-520 |
+| 16 | `const booleanFlags = BOOLEAN_FLAGS` 不必要的中間變數，與模組級 `BOOLEAN_FLAGS` 完全相同 | 多餘的區域變數宣告 | `init-project-html/lib/atlas/cli.js` | L109 |
+| 17 | `JSON.parse(JSON.stringify(...))` deep-clone 模式在 6 處重複出現（cli.js L226/248/255/884/1059/1082） | 可提取為共用 `deepClone` 工具函數，方便遷移至 `structuredClone` | `init-project-html/lib/atlas/cli.js` | 多處 |
+| 18 | `scan` 的 `skipDirs` Set 包含 spec 未要求的 `__test__`（spec 僅要求 `__tests__`），且 L711 額外過濾所有以 `.` 開頭的目錄（spec 僅要求 `.git`） | 防禦性過濾超出 spec 範圍，可能過濾合法隱藏目錄 | `init-project-html/lib/atlas/cli.js` | L705, L711 |
+| 19 | `verbUndo` 先後兩次呼叫 `specOverlayDir(projectRoot, flags.spec)`，該函數內部執行 `findBatchRoot` 檔案系統走訪，重複相同 I/O | 多餘的檔案系統走訪 | `init-project-html/lib/atlas/cli.js` | L736, L749 |
+| 20 | `verbDiff` 對 `changes` 陣列進行三次獨立 `.filter()` 分別計數 modified/added/removed 頁面 | 陣列通常小（<100），影響輕微 | `init-project-html/lib/atlas/cli.js` | L784 |
+| 21 | `copyAssets()` 每次 render 無條件複製 CSS/JS 檔案，即使目標已存在且內容未變 | 不必要的 fs 寫入 | `init-project-html/lib/atlas/render.js` | L539-540 |
+| 22 | `layoutMacro()` 每次呼叫建立新的 `ELK()` 實例，elkjs 初始化包含內部狀態配置 | 頻繁 render 場景累積初始化開銷 | `init-project-html/lib/atlas/layout.js` | L460-462 |
+| 23 | `diff-viewer.js` 在 140 行 template literal 中內嵌完整 HTML、inline CSS（~40 行）和 inline JavaScript（~60 行），CSS/JS 無法獨立維護、lint 或測試 | template literal 內語法錯誤僅在執行期發現 | `init-project-html/lib/atlas/diff-viewer.js` | L32-173 |
 
 ---
 
 ## 審查維度摘要
 
-- **幻覺代碼**: 2 個 finding — `force` 幽靈 flag（P2-5）、kind modifier CSS class 無對應規則（P3-9）
-- **冗余代碼**: 2 個 finding — booleanFlags Set 重複（P3-8）、不必要的公開匯出（P3-13）
-- **實作偏移**: 3 個 finding — formatFix 從未被呼叫（P1-1）、--evidence 缺少 4 個 verb 支援（P1-2）、--evidence/--dry-run 未記錄在 help（P2-3, P2-4）
-- **實作遺漏**: 2 個 finding — formatFix 無法產生 fix command（P1-1）、--evidence 覆蓋不完整（P1-2）。已確認前兩輪修復的 status/scan/dry-run/evidence 核心功能全部存在且正確
-- **架構瑕疵**: 2 個 finding — runRender 重複載入 base state（P2-6）、mergeOverlay 全量深拷貝浪費（P2-7）
-- **性能隱患**: 4 個 finding — mergeOverlay 深拷貝（P2-7）、runRender 重複 I/O（P2-6）、renderAll 無條件 elkjs（P3-10）、save 深拷貝僅為 updatedAt（P3-11）、undo stack 無上限（P3-12）
+- **幻覺代碼**: 3 個 finding — validateFunction/validateVariable 幻覺參數（P2-6）、mutation callback 死回傳值（P2-7）、toViewerRel 未使用重匯出（P3-14）、HTML section class 無 CSS 規則（P3-15）、過度匯出（P3-12, P3-13）
+- **冗余代碼**: 2 個 finding — multiVerbs 與 switch case 重複（P2-8）、booleanFlags 中間變數（P3-16）、6 處重複 deep-clone 模式（P3-17）
+- **實作偏移**: 3 個 finding — validate() return type 不一致（P1-1）、intra-feature edge 遺失 evidence（P2-4）、scan skipDirs 超出 spec 範圍（P3-18）
+- **實作遺漏**: 1 個 finding — computeDiff() 忽略 meta/actors/edges（P2-5）。已確認前輪修復全部存在且正確
+- **架構瑕疵**: 4 個 finding — mutate-then-snapshot 順序缺陷（P1-2）、render 缺乏錯誤處理（P1-3）、REMOVED_TXT 跨層依賴（P2-10）、architecture.ts 硬編碼路徑（P2-11）、help page eager build（P2-9）、diff-viewer monolithic template（P3-23）
+- **性能隱患**: 3 個 finding — help page eager build（P2-9）、verbUndo 重複 I/O（P3-19）、copyAssets 無條件覆寫（P3-21）、ELK 重複初始化（P3-22）、verbDiff 重複 filter（P3-20）
 
 ---
 
@@ -62,147 +74,110 @@
 
 ### P1 修復
 
-#### P1-1: `formatFix` callback 從未被呼叫
+#### P1-1: `schema.validate()` return type 不一致
 
-- **涉及檔案**：`init-project-html/lib/atlas/schema.js`（10 個 validate 函數）
-- **根因**：`validate()` 接受 `formatFix` 參數並傳遞給 `validateFeature()` → `validateSubmodule()` → `validateFunction()` / `validateVariable()` / `validateError()` / `validateEdge()`，但所有這些函數僅使用 `noFix()` 和 `requireField()`（兩者都 hardcode `fixCommand: null`）。沒有任何程式碼路徑呼叫 `formatFix({type, action, ...})` 來產生實際的修復命令。
-- **修復方案**：對以下可自動修復的錯誤產生 fixCommand：
+- **涉及檔案**：`init-project-html/lib/atlas/schema.js`（L290）
+- **根因**：`validate()` 早期 return 使用 `return [noFix(...)]`（陣列），正規路徑 `return { valid, errors }`（物件）
+- **修復方案**：將 L290 改為 `return { valid: false, errors: [noFix('state: must be an object')] };`
+- **驗證方式**：`npm test`
 
-| 錯誤類型 | 對應 fixCommand |
-|---------|---------------|
-| unknown function reference in dataflow | `formatFix({type: 'function', action: 'add', feature, submodule, name})` |
-| unknown variable reference in dataflow | `formatFix({type: 'variable', action: 'add', feature, submodule, name})` |
-| unknown submodule in edge/intra-edge | `formatFix({type: 'submodule', action: 'add', feature, slug})` |
-| unknown feature in cross-feature edge | `formatFix({type: 'feature', action: 'add', slug})` |
-| invalid slug format | `(no automatic fix)` — 保留 |
-| duplicate slug | `(no automatic fix)` — 保留 |
-| type/shape errors | `(no automatic fix)` — 保留 |
+#### P1-2: `performMutation` mutate-then-snapshot 順序缺陷
 
-修改 `validateFunction`/`validateVariable`/`validateEdge`/`validateSubmodule` 的簽名以接受並使用 `formatFix`。
+- **涉及檔案**：`init-project-html/lib/atlas/cli.js`（L248-260）
+- **根因**：`mutate()` 先修改記憶體 state，之後才寫入 undo snapshot；寫入失敗時無法回滾
+- **修復方案**：將 `writeUndoSnapshot` 呼叫移至 `mutate()` 之前（或 snapshot 寫入失敗時不執行 mutate）。實際上 CLI 為短生命週期，修復優先級可降至 P2，但仍建議調整順序
+- **驗證方式**：`npm test`
 
-- **驗證方式**：`npm test`；手動建立包含 undeclared reference 的 atlas，執行 `apltk architecture validate` 確認輸出 `→ fix: apltk architecture function add ...`
+#### P1-3: `renderAll` 缺乏檔案操作錯誤處理
 
-#### P1-2: 四個 mutation verb 缺少 `--evidence` 支援
-
-- **涉及檔案**：`init-project-html/lib/atlas/cli.js`
-  - `verbDataflow`（L442-481）：在 `buildDataflowItem` 中加入 evidence 處理
-  - `verbEdge`（L524-580）：edge 物件 schema 目前沒有 evidence 欄位，需先在 schema.js 和 render.js 中加入
-  - `verbMeta`（L588-596）：meta 物件目前沒有 evidence 欄位
-  - `verbActor`（L598-611）：actor 物件目前沒有 evidence 欄位
-- **修復方案**：
-  - dataflow：在 `buildDataflowItem` 中處理 `flags.evidence`，將 evidence 寫入 step 物件
-  - edge/meta/actor：需先評估是否真的有 evidence 標記的業務需求。若 spec 意圖是所有「建立新 entity 的 verb」，則 edge/meta/actor 應加入；若 spec 意圖是「有 component 概念的 verb」，則 dataflow 才應加入
-  - 最保守方案：補上 dataflow 的 evidence 支援，並在 spec 中明確 edge/meta/actor 的 evidence 範圍
-- **驗證方式**：`npm test`；`apltk architecture dataflow add ... --evidence "observed:src/auth.ts:42"` 確認 YAML 寫入 evidence 欄位
+- **涉及檔案**：`init-project-html/lib/atlas/render.js`（L534-612）
+- **根因**：所有 `fs.writeFileSync`、`fs.copyFileSync`、`fs.rmSync` 無 try-catch
+- **修復方案**：在 render 迴圈外包一層 try-catch，失敗時輸出 stderr 警告但不 crash；或在寫入前先寫入暫存檔、全部成功後再原子替換
+- **驗證方式**：`npm test`
 
 ### P2 修復
 
-#### P2-3: `--evidence` 未出現在 CLI help
+#### P2-4: intra-feature edge 遺失 `--evidence`
 
-- **涉及檔案**：`init-project-html/lib/atlas/cli-help.js`（L43-47）
-- **修復方案**：在 `mutationFlags` 陣列中加入 `'`--evidence <level[:source]>` to tag components with observed/inferred/assumed quality levels.'`
-- **驗證方式**：`apltk architecture feature add --help` 輸出包含 `--evidence` 說明
-
-#### P2-4: `--dry-run` 未出現在 action-specific help
-
-- **涉及檔案**：`init-project-html/lib/atlas/cli-help.js`（L43-47）
-- **修復方案**：在 `mutationFlags` 陣列中加入 `'`--dry-run` to preview mutation changes as JSON diff without writing to disk.'`
-- **驗證方式**：`apltk architecture feature add --help` 輸出包含 `--dry-run` 說明
-
-#### P2-5: `force` 幽靈 boolean flag
-
-- **涉及檔案**：`init-project-html/lib/atlas/cli.js`（L107, L140）
-- **修復方案**：從兩個 `booleanFlags` Set 中移除 `'force'`
-- **驗證方式**：`npm test`；`--force` 不再被靜默接受
-
-#### P2-6: spec mode `runRender` 重複載入 base state
-
-- **涉及檔案**：`init-project-html/lib/atlas/cli.js`（L240-262, L269）
-- **修復方案**：讓 `performMutation` 將已載入的 base state 傳遞給 `runRender`，避免重複 I/O：
+- **涉及檔案**：`init-project-html/lib/atlas/cli.js`（L545-551）
+- **修復方案**：在 intra-feature edge 的 push 物件中加入 `...(edge.evidence ? { evidence: edge.evidence } : {})`
 
 ```js
-// performMutation (L261-263):
-if (!flags['no-render']) {
-  await runRender({ projectRoot, flags, preloadedMerged: isSpec ? merged : base, preloadedBase: isSpec ? base : null });
-}
-
-// runRender (L266-279):
-async function runRender({ projectRoot, flags, preloadedMerged, preloadedBase }) {
-  if (flags.spec) {
-    const { overlayDir, htmlOutDir } = specOverlayDir(projectRoot, flags.spec);
-    const base = preloadedBase || stateLib.load(baseAtlasDir(projectRoot));
-    const merged = preloadedMerged || stateLib.mergeOverlay(base, stateLib.loadOverlay(overlayDir));
-    // ...
-  }
-}
+feature.edges.push({
+  id: edge.id,
+  from: from.submodule,
+  to: to.submodule,
+  kind: edge.kind,
+  label: edge.label,
+  ...(edge.evidence ? { evidence: edge.evidence } : {}),
+});
 ```
 
+- **驗證方式**：`npm test`；`apltk architecture edge add --feature X --from Y --to Z --evidence "observed:src/x.ts:1"` 確認 intra-feature edge YAML 寫入 evidence
+
+#### P2-5: `computeDiff()` 忽略 meta/actors/edges
+
+- **涉及檔案**：`init-project-html/lib/atlas/state.js`（L414-437）
+- **修復方案**：擴充 `computeDiff()` 回傳值，新增 `metaChanged: boolean`、`addedActors`、`removedActors`、`addedEdges`、`removedEdges` 欄位；或至少加入 `nonFeatureChanges: boolean` 標記
+- **驗證方式**：`npm test`；`apltk architecture meta set --title "X" --dry-run` 確認 diff 輸出不為空
+
+#### P2-6: `validateFunction` / `validateVariable` 幻覺參數
+
+- **涉及檔案**：`init-project-html/lib/atlas/schema.js`（L108, L120）
+- **修復方案**：兩方案擇一 — (a) 移除 `featureSlug`、`subSlug`、`formatFix` 參數（若當前無可自動修復的錯誤）；(b) 為 type/shape 錯誤加入 `formatFix` 呼叫（如 invalid kind 可建議正確值）
+- **建議**：採用 (a)，因為這些欄位的錯誤本質上無法自動修復（無法猜測正確值），保留參數僅是誤導。呼叫方 `validateSubmodule` L150/L157 也需同步調整
 - **驗證方式**：`npm test`
 
-#### P2-7: `mergeOverlay` 全量深拷貝浪費
+#### P2-7: mutation callback 回傳值被靜默丟棄
 
-- **涉及檔案**：`init-project-html/lib/atlas/state.js`（L228）
-- **修復方案**：改為 shallow copy + 僅對被 overlay 替換的 feature 進行 deep clone：
+- **涉及檔案**：`init-project-html/lib/atlas/cli.js`（L284-617, L222-265）
+- **修復方案**：兩方案擇一 — (a) 若未來有增量 render scope 計畫，在 `performMutation` 中收集所有 `touchedFeatures` 傳給 `runRender`；否則 (b) 移除回傳值，將 callback 改為 void
+- **建議**：採用 (b)，簡化 callback 簽名
 
-```js
-const merged = { ...base, features: [...(base.features || [])] };
-// 僅在 featureMap.set 時替換陣列中的元素
-```
+#### P2-8: `multiVerbs` 與 dispatch switch 重複
 
-這較複雜且容易出錯，建議綜合評估效能收益後決定。當前規模下（< 100 features）影響輕微。
+- **涉及檔案**：`init-project-html/lib/atlas/cli.js`（L1140, L1167-1186）
+- **修復方案**：提取 verb-action 對照表為模組級常數（如 `VERB_ACTIONS` Map），`multiVerbs` Set 和 switch case 皆由此單一來源生成
 
-### P3 改善
+#### P2-9: Help page eager build
 
-#### P3-8: booleanFlags Set 重複
+- **涉及檔案**：`init-project-html/lib/atlas/cli-help.js`（L1004）
+- **修復方案**：將 `const USAGE = buildArchitectureHelpPage()` 改為 lazy getter 函數 `getUsage()`，僅在 `--help` 被觸發時才呼叫
 
-- **涉及檔案**：`init-project-html/lib/atlas/cli.js`（L107, L140）
-- **修復方案**：提取為模組頂層常數，兩處共用
-- **驗證方式**：`npm test`
+#### P2-10: `REMOVED_TXT` 跨層依賴
 
-#### P3-9: Kind modifier CSS class 無對應規則
+- **涉及檔案**：`init-project-html/lib/atlas/render.js`（L18）、`lib/atlas/state.js`
+- **修復方案**：將 `REMOVED_TXT` 移至 `schema.js` 或建立 `constants.js`，由 state.js 和 render.js 共同匯入
 
-- **涉及檔案**：`init-project-html/lib/atlas/render.js`、`lib/atlas/assets/architecture.css`
-- **修復方案**：三選一 — (a) 移除 render.js 中無作用的 modifier class 產生程式碼；(b) 在 CSS 中加入對應規則；(c) 維持現狀（基礎 class 已有樣式，modifier 為未來擴充預留）
-- 建議採用 (a)，移除無作用的 class
+#### P2-11: `architecture.ts` 硬編碼路徑
 
-#### P3-10: renderAll 無條件 elkjs layout
-
-- **涉及檔案**：`init-project-html/lib/atlas/render.js`（L550）
-- **修復方案**：只在 `shouldEmit('macro')` 為 true 時才呼叫 `layoutMacro(state)`，否則傳入 skip flag 或 null
-- **驗證方式**：`npm test`；spec mode 只修改 submodule 時不觸發 elkjs
-
-#### P3-11: save() 深拷貝僅為 updatedAt
-
-- **涉及檔案**：`init-project-html/lib/atlas/state.js`（L112）
-- **修復方案**：直接在 state 物件上設定 `state.meta.updatedAt`，在 `writeYaml` 之前還原（或接受 shallow mutation — save 是同步操作的最後一步）
-- **驗證方式**：`npm test`
-
-#### P3-12: undo stack 無大小上限
-
-- **涉及檔案**：`init-project-html/lib/atlas/state.js`（L476-523）
-- **修復方案**：設定最大 stack 深度（如 50），超出時移除最舊的快照
-- **驗證方式**：`npm test`
-
-#### P3-13: 不必要的公開匯出
-
-- **涉及檔案**：`init-project-html/lib/atlas/render.js`、`lib/atlas/layout.js`
-- **修復方案**：從 `module.exports` 移除僅內部使用的符號。保留測試用 re-export（若有測試依賴）
-- **驗證方式**：`npm test`
+- **涉及檔案**：`lib/tools/architecture.ts`（L8-11）
+- **修復方案**：由 `cli.js` 匯出一個公開的 dispatch 函數（如 `module.exports = { dispatch, ... }`），`architecture.ts` 直接 require 此模組而非硬編碼內部路徑
 
 ---
 
-## 已確認修復（前兩輪）
+## 已確認修復（前三輪）
 
-以下前兩輪 QA 報告標記的問題已確認正確實修且無回歸：
+以下前三輪 QA 報告標記的問題已確認正確實修且無回歸：
 
-- P0-1: `verbScan` const→let — 已確認修復（cli.js:678）
-- P1-2: `htmlEscape` 重複 — 已確認修復（cli.js 使用 `renderLib.htmlEscape`）
-- P1-3: spec mode `runRender` 部分修復（已傳遞 `preloadedMerged`，但未傳遞 base → 本輪 P2-6）
-- P2-4: `splitList`/`parseNameList` 合併 — 已確認修復
-- P2-5: `renderDiffViewer` 遷移至 `diff-viewer.js` — 已確認修復
-- P2-6: state.js API 表面收窄 — 已確認修復（移除了 UNDO_FILE 等內部符號的匯出）
-- P2-7: `(no automatic fix)` 後綴 — 已確認修復（所有 42 處 noFix 皆有後綴）
-- P2-8: 損壞 YAML graceful handling — 已確認修復（state.js L72-74 try-catch）
-- P2-9: cli.js 模組拆分（cli-help.js, diff-viewer.js）— 已確認修復
-- P3-10: KIND_LABEL 統一來源 — 已確認修復（schema.js 為單一來源）
-- P3-11: REMOVED_TXT 共享 — 已確認修復（state.js 匯出，render.js/cli.js 引用）
+- P1-1 (round 3): `formatFix` callback chain — schema.js 6 處正確實作
+- P1-2 (round 3): `--evidence` 缺少 4 個 mutation verb — 全部補齊
+- P2-3/4 (round 3): `--evidence` / `--dry-run` CLI help — mutationFlags 已更新
+- P2-5 (round 3): `force` 幽靈 flag — 已移除
+- P2-6 (round 3): spec mode `runRender` 重複 I/O — `preloadedBase` 已傳遞
+- P3-8: `BOOLEAN_FLAGS` 常數提取 — 已正確實作
+- P3-9: Kind modifier CSS class cleanup — 已移除無作用 class
+- P3-10: 條件式 elkjs layout — 僅在 macro scope 時執行
+- P3-11: save() 深拷貝優化 — shallow mutation
+- P3-12: undo stack 上限 — 限制 50
+- P3-13: 不必要匯出 cleanup — render.js / layout.js 已清理
+- P0-1 (round 2): `verbScan` const→let — 已確認
+- P1-2 (round 2): `htmlEscape` 重複 — 已確認
+- P2-4 (round 2): `splitList`/`parseNameList` 合併 — 已確認
+- P2-5 (round 2): `renderDiffViewer` 遷移 — 已確認
+- P2-6 (round 2): state.js API 表面收窄 — 已確認
+- P2-7 (round 2): `(no automatic fix)` 後綴 — 已確認
+- P2-8 (round 2): 損壞 YAML graceful handling — 已確認
+- P2-9 (round 2): cli.js 模組拆分 — 已確認
+- P3-10 (round 2): KIND_LABEL 統一來源 — 已確認
+- P3-11 (round 2): REMOVED_TXT 共享 — 已確認

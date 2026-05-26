@@ -12,6 +12,8 @@
 const ELK = require('elkjs');
 const { KIND_LABEL } = require('./schema');
 
+const _elk = new ELK();
+
 // Default fallback box. The actual width/height for each sub-module
 // is computed per node by measureSubmodule() so the role/description
 // fits without overflowing the rectangle.
@@ -457,9 +459,8 @@ async function layoutMacro(state) {
   if (!state.features || state.features.length === 0) {
     return { width: 320, height: 160, features: [], submodules: [], edges: [], empty: true };
   }
-  const elk = new ELK();
   const graph = buildGraph(state);
-  const laidOut = await elk.layout(graph);
+  const laidOut = await _elk.layout(graph);
   const acc = { features: [], submodules: [], edges: [] };
   collectAbsolute(laidOut, 0, 0, acc);
   const layout = {

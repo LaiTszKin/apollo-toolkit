@@ -116,10 +116,10 @@ test('renderAll emits macro, feature, and submodule HTML plus assets', async () 
     assert.match(macroHtml, /m-node/);
     assert.match(macroHtml, /viewer\.client\.js/);
     const subHtml = fs.readFileSync(path.join(out, 'features', 'register', 'ui.html'), 'utf8');
-    assert.match(subHtml, /sub-io/);
-    assert.match(subHtml, /sub-vars/);
-    assert.match(subHtml, /sub-dataflow/);
-    assert.match(subHtml, /sub-errors/);
+    assert.match(subHtml, /aria-label="Function I\/O"/);
+    assert.match(subHtml, /aria-label="Variables"/);
+    assert.match(subHtml, /aria-label="Internal data flow"/);
+    assert.match(subHtml, /aria-label="Errors"/);
     assert.match(subHtml, /data-pan-zoom-viewport/, 'sub-module page wraps the dataflow svg in a zoom viewport');
     assert.match(subHtml, /viewer\.client\.js/, 'sub-module page ships the viewer script');
   } finally {

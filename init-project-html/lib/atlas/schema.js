@@ -105,7 +105,7 @@ function validateActor(actor, errors, idx) {
   requireField(errors, where, 'label', actor && actor.label, isNonEmptyString);
 }
 
-function validateFunction(fn, errors, where, featureSlug, subSlug, formatFix) {
+function validateFunction(fn, errors, where) {
   requireField(errors, where, 'name', fn && fn.name, isNonEmptyString);
   if (fn && fn.in !== undefined && typeof fn.in !== 'string') errors.push(noFix(`${where}: "in" must be a string`));
   if (fn && fn.out !== undefined && typeof fn.out !== 'string') errors.push(noFix(`${where}: "out" must be a string`));
@@ -117,7 +117,7 @@ function validateFunction(fn, errors, where, featureSlug, subSlug, formatFix) {
   }
 }
 
-function validateVariable(v, errors, where, featureSlug, subSlug, formatFix) {
+function validateVariable(v, errors, where) {
   requireField(errors, where, 'name', v && v.name, isNonEmptyString);
   if (v && v.type !== undefined && typeof v.type !== 'string') errors.push(noFix(`${where}: "type" must be a string`));
   if (v && v.scope !== undefined && !VARIABLE_SCOPES.includes(v.scope)) {
@@ -147,14 +147,14 @@ function validateSubmodule(sub, errors, where, featureSlug, formatFix) {
     if (!Array.isArray(sub.functions)) {
       errors.push(noFix(`${where}: "functions" must be an array`));
     } else {
-      sub.functions.forEach((fn, i) => validateFunction(fn, errors, `${where}.functions[${i}]`, featureSlug, sub.slug, formatFix));
+      sub.functions.forEach((fn, i) => validateFunction(fn, errors, `${where}.functions[${i}]`));
     }
   }
   if (sub && sub.variables) {
     if (!Array.isArray(sub.variables)) {
       errors.push(noFix(`${where}: "variables" must be an array`));
     } else {
-      sub.variables.forEach((v, i) => validateVariable(v, errors, `${where}.variables[${i}]`, featureSlug, sub.slug, formatFix));
+      sub.variables.forEach((v, i) => validateVariable(v, errors, `${where}.variables[${i}]`));
     }
   }
   if (sub && sub.dataflow) {
@@ -180,7 +180,7 @@ function validateSubmodule(sub, errors, where, featureSlug, formatFix) {
           if (typeof step.fn !== 'string' || !step.fn.trim()) {
             errors.push(noFix(`${stepWhere}: "fn" must be a non-empty string when present`));
           } else if (!fnNames.has(step.fn)) {
-            errors.push({ message: `${stepWhere}: "fn" references unknown function "${step.fn}" — declare it via \`function add\` first`, fixCommand: formatFix({ type: 'function', action: 'add', feature: featureSlug, submodule: subSlug, name: step.fn }) });
+            errors.push({ message: `${stepWhere}: "fn" references unknown function "${step.fn}" — declare it via \`function add\` first`, fixCommand: formatFix({ type: 'function', action: 'add', feature: featureSlug, submodule: sub.slug, name: step.fn }) });
           }
         }
         for (const field of ['reads', 'writes']) {
@@ -196,7 +196,7 @@ function validateSubmodule(sub, errors, where, featureSlug, formatFix) {
               return;
             }
             if (!varNames.has(name)) {
-              errors.push({ message: `${refWhere}: unknown variable "${name}" — declare it via \`variable add\` first`, fixCommand: formatFix({ type: 'variable', action: 'add', feature: featureSlug, submodule: subSlug, name }) });
+              errors.push({ message: `${refWhere}: unknown variable "${name}" — declare it via \`variable add\` first`, fixCommand: formatFix({ type: 'variable', action: 'add', feature: featureSlug, submodule: sub.slug, name }) });
             }
           });
         }
@@ -285,9 +285,10 @@ function validateFeature(feature, errors, where, formatFix) {
 // and returns a CLI command string, or null to suppress the fix. When
 // absent (or null), all fixCommand fields in errors are null.
 function validate(state, formatFix) {
+  if (typeof formatFix !== 'function') formatFix = () => null;
   const errors = [];
   if (!state || typeof state !== 'object') {
-    return [noFix('state: must be an object')];
+    return { valid: false, errors: [noFix('state: must be an object')] };
   }
 
   validateMeta(state.meta, errors);
@@ -371,15 +372,8 @@ function emptyState({ title = 'Project architecture' } = {}) {
 }
 
 module.exports = {
-  SUBMODULE_KINDS,
   KIND_LABEL,
-  SIDE_EFFECTS,
-  VARIABLE_SCOPES,
-  EDGE_KINDS,
   EVIDENCE_LEVELS,
-  SLUG_PATTERN,
-  isSlug,
-  isNonEmptyString,
   parseEvidence,
   validate,
   emptyState,

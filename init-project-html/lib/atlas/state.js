@@ -433,7 +433,42 @@ function computeDiff(before, after) {
     }
   }
 
-  return { addedFeatures, modifiedFeatures, removedFeatures };
+  // Detect non-feature changes (meta, actors, cross-feature edges)
+  const metaChanged = after.meta && before.meta
+    ? JSON.stringify(after.meta) !== JSON.stringify(before.meta)
+    : after.meta !== before.meta;
+
+  const beforeActors = new Map((before.actors || []).map((a) => [a.id, a]));
+  const afterActors = new Map((after.actors || []).map((a) => [a.id, a]));
+  const addedActors = [];
+  const removedActors = [];
+  for (const id of afterActors.keys()) {
+    if (!beforeActors.has(id)) addedActors.push(id);
+  }
+  for (const id of beforeActors.keys()) {
+    if (!afterActors.has(id)) removedActors.push(id);
+  }
+
+  const addedEdges = [];
+  const removedEdges = [];
+  const beforeEdges = JSON.stringify(before.edges || []);
+  const afterEdges = JSON.stringify(after.edges || []);
+  if (beforeEdges !== afterEdges) {
+    const be = before.edges || [];
+    const ae = after.edges || [];
+    for (let i = 0; i < ae.length; i++) {
+      if (!be.some((e) => JSON.stringify(e) === JSON.stringify(ae[i]))) {
+        addedEdges.push(ae[i]);
+      }
+    }
+    for (let i = 0; i < be.length; i++) {
+      if (!ae.some((e) => JSON.stringify(e) === JSON.stringify(be[i]))) {
+        removedEdges.push(be[i]);
+      }
+    }
+  }
+
+  return { addedFeatures, modifiedFeatures, removedFeatures, metaChanged, addedActors, removedActors, addedEdges, removedEdges };
 }
 
 function featureVisualOf(feature) {

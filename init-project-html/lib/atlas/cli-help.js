@@ -1001,10 +1001,12 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
   }
 }
 
-const USAGE = buildArchitectureHelpPage();
-
 module.exports = {
-  USAGE,
   buildHelpPage,
   buildArchitectureHelpPage,
+  get USAGE() {
+    const value = buildArchitectureHelpPage();
+    Object.defineProperty(module.exports, 'USAGE', { value, enumerable: true, writable: false, configurable: false });
+    return value;
+  },
 };

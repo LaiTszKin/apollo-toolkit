@@ -43,8 +43,9 @@ const stateLib = require('./state');
 const renderLib = require('./render');
 const { parseEvidence } = schema;
 const { computeDiff } = stateLib;
-const { renderDiffViewer, toViewerRel } = require('./diff-viewer');
-const { USAGE, buildArchitectureHelpPage } = require('./cli-help');
+const { renderDiffViewer } = require('./diff-viewer');
+const { buildArchitectureHelpPage } = require('./cli-help');
+const cliHelp = require('./cli-help');
 
 const BOOLEAN_FLAGS = new Set(['no-render', 'no-open', 'help', 'dry-run', 'json']);
 
@@ -106,7 +107,6 @@ function splitList(value) {
 }
 
 function findFirstPositional(args) {
-  const booleanFlags = BOOLEAN_FLAGS;
   let i = 0;
   while (i < args.length) {
     const token = args[i];
@@ -115,7 +115,7 @@ function findFirstPositional(args) {
       const eq = token.indexOf('=');
       if (eq !== -1) { i++; continue; }
       const name = token.slice(2);
-      if (booleanFlags.has(name)) { i++; continue; }
+      if (BOOLEAN_FLAGS.has(name)) { i++; continue; }
       if (i + 1 < args.length && !args[i + 1].startsWith('-')) { i += 2; } else { i++; }
       continue;
     }
@@ -246,15 +246,15 @@ async function performMutation(projectRoot, flags, action, args, mutate, io) {
     const overlay = stateLib.loadOverlay(overlayDir);
     merged = stateLib.mergeOverlay(base, overlay);
     const before = JSON.parse(JSON.stringify({ base, overlay }));
-    mutate(merged, base, overlay);
     stateLib.writeUndoSnapshot(overlayDir, before);
+    mutate(merged, base, overlay);
     stateLib.saveOverlay(overlayDir, stateLib.deriveOverlay(base, merged));
     stateLib.appendHistory(overlayDir, { action, args, mode: 'spec' });
   } else {
     ensureBaseAtlasDir(projectRoot);
     const before = JSON.parse(JSON.stringify({ base }));
-    mutate(base, base, null);
     stateLib.writeUndoSnapshot(baseAtlasDir(projectRoot), before);
+    mutate(base, base, null);
     stateLib.save(baseAtlasDir(projectRoot), base);
     stateLib.appendHistory(baseAtlasDir(projectRoot), { action, args, mode: 'base' });
   }
@@ -355,13 +355,11 @@ async function verbFeature(action, flags, projectRoot, io) {
     if (flags.evidence !== undefined) init.evidence = parseEvidence(flags.evidence);
     return performMutation(projectRoot, flags, `feature ${action}`, { slug, ...init }, (state) => {
       ensureFeature(state, slug, init);
-      return { touchedFeatures: new Set([slug]) };
     }, io);
   }
   if (action === 'remove') {
     return performMutation(projectRoot, flags, 'feature remove', { slug }, (state) => {
       removeFeature(state, slug);
-      return { removalsHint: { features: [slug] } };
     }, io);
   }
   throw new Error(`Unknown feature subverb: ${action}`);
@@ -378,14 +376,12 @@ async function verbSubmodule(action, flags, projectRoot, io) {
     return performMutation(projectRoot, flags, `submodule ${action}`, { feature: featureSlug, slug, ...init }, (state) => {
       const feature = ensureFeature(state, featureSlug);
       ensureSubmodule(feature, slug, init);
-      return { touchedFeatures: new Set([featureSlug]) };
     }, io);
   }
   if (action === 'remove') {
     return performMutation(projectRoot, flags, 'submodule remove', { feature: featureSlug, slug }, (state) => {
       const feature = findFeature(state, featureSlug);
       if (feature) removeSubmodule(feature, slug);
-      return { touchedFeatures: new Set([featureSlug]), removalsHint: { submodules: [{ feature: featureSlug, submodule: slug }] } };
     }, io);
   }
   throw new Error(`Unknown submodule subverb: ${action}`);
@@ -412,7 +408,6 @@ async function verbFunction(action, flags, projectRoot, io) {
     } else {
       throw new Error(`Unknown function subverb: ${action}`);
     }
-    return { touchedFeatures: new Set([featureSlug]) };
   }, io);
 }
 
@@ -436,7 +431,6 @@ async function verbVariable(action, flags, projectRoot, io) {
     } else {
       throw new Error(`Unknown variable subverb: ${action}`);
     }
-    return { touchedFeatures: new Set([featureSlug]) };
   }, io);
 }
 
@@ -478,7 +472,6 @@ async function verbDataflow(action, flags, projectRoot, io) {
     } else {
       throw new Error(`Unknown dataflow subverb: ${action}`);
     }
-    return { touchedFeatures: new Set([featureSlug]) };
   }, io);
 }
 
@@ -519,7 +512,6 @@ async function verbError(action, flags, projectRoot, io) {
     } else {
       throw new Error(`Unknown error subverb: ${action}`);
     }
-    return { touchedFeatures: new Set([featureSlug]) };
   }, io);
 }
 
@@ -548,13 +540,14 @@ async function verbEdge(action, flags, projectRoot, io) {
           to: to.submodule,
           kind: edge.kind,
           label: edge.label,
+          ...(edge.evidence ? { evidence: edge.evidence } : {}),
         });
-        return { touchedFeatures: new Set([from.feature]) };
+        return;
       }
       state.edges = state.edges || [];
       state.edges = state.edges.filter((e) => e.id !== edge.id);
       state.edges.push(edge);
-      return { touchedFeatures: new Set([from.feature, to.feature]) };
+      return;
     }
     if (action === 'remove') {
       const id = flags.id ? String(flags.id) : null;
@@ -568,15 +561,15 @@ async function verbEdge(action, flags, projectRoot, io) {
             const t = typeof e.to === 'string' ? e.to : e.to && e.to.submodule;
             return !(f === from.submodule && t === to.submodule);
           });
-          return { touchedFeatures: new Set([from.feature]) };
+          return;
         }
-        return { touchedFeatures: new Set([from.feature]) };
+        return;
       }
       state.edges = (state.edges || []).filter((e) => {
         if (id && e.id === id) return false;
         return !(endpointEquals(e.from, from) && endpointEquals(e.to, to));
       });
-      return { touchedFeatures: new Set([from.feature, to.feature]) };
+      return;
     }
     throw new Error(`Unknown edge subverb: ${action}`);
   }, io);
@@ -702,7 +695,7 @@ async function verbScan(flags, projectRoot, io) {
     }
   }
 
-  const skipDirs = new Set(['node_modules', '.git', 'dist', '__tests__', '__test__', 'coverage', '.turbo', 'build']);
+  const skipDirs = new Set(['node_modules', '.git', 'dist', '__tests__', 'coverage', '.turbo', 'build']);
   const results = [];
 
   for (const entry of entries) {
@@ -746,9 +739,8 @@ async function verbUndo(flags, projectRoot, io) {
     return 1;
   }
   if (flags.spec) {
-    const { overlayDir } = specOverlayDir(projectRoot, flags.spec);
-    stateLib.saveOverlay(overlayDir, snapshot.overlay);
-    stateLib.appendHistory(overlayDir, { action: 'undo', mode: 'spec' });
+    stateLib.saveOverlay(dir, snapshot.overlay);
+    stateLib.appendHistory(dir, { action: 'undo', mode: 'spec' });
   } else {
     stateLib.save(baseAtlasDir(projectRoot), snapshot.base);
     stateLib.appendHistory(baseAtlasDir(projectRoot), { action: 'undo', mode: 'base' });
@@ -1151,7 +1143,7 @@ async function dispatch(argv, io = { stdout: process.stdout, stderr: process.std
     const helpText = explicitVerb && verb !== 'help' && verb !== '--help' && verb !== '-h'
       ? buildArchitectureHelpPage(verb, subverb)
       : buildArchitectureHelpPage();
-    io.stdout.write(`${helpText || USAGE}\n`);
+    io.stdout.write(`${helpText || cliHelp.USAGE}\n`);
     return 0;
   }
 
@@ -1200,7 +1192,7 @@ async function dispatch(argv, io = { stdout: process.stdout, stderr: process.std
 }
 
 module.exports = {
-  USAGE,
+  get USAGE() { return cliHelp.USAGE; },
   buildArchitectureHelpPage,
   dispatch,
   parseFlags,
@@ -1216,7 +1208,6 @@ module.exports = {
   walkAfterStateHtml,
   readRemovedManifest,
   renderDiffViewer,
-  toViewerRel,
   hasOverlayState,
   collectSpecsToMerge,
   verbMerge,
