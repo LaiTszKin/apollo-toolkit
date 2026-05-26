@@ -370,6 +370,40 @@ function diffPages(base, merged) {
 // own page (title, story, dependsOn, submodule navigation cards, and
 // intra-feature edge list). Sub-module internals are compared
 // separately in diffPages.
+// summarize returns a structured digest of the atlas state, suitable for
+// both human-readable and JSON output. Every field in the return value is
+// derived from the state object; no external I/O is performed.
+function summarize(state) {
+  const features = state.features || [];
+  let submoduleCount = 0;
+  let crossFeatureEdges = 0;
+  let intraFeatureEdges = 0;
+
+  const featureList = features.map((f) => {
+    const subs = (f.submodules || []).length;
+    submoduleCount += subs;
+    return { slug: f.slug, title: f.title || f.slug, submoduleCount: subs };
+  });
+
+  const edges = state.edges || [];
+  for (const e of edges) {
+    if (e.scope === 'cross-feature') crossFeatureEdges++;
+    else intraFeatureEdges++;
+  }
+
+  return {
+    meta: state.meta || {},
+    counts: {
+      features: features.length,
+      submodules: submoduleCount,
+      crossFeatureEdges,
+      intraFeatureEdges,
+      actors: Object.keys(state.actors || {}).length,
+    },
+    featureList,
+  };
+}
+
 function featureVisualOf(feature) {
   return {
     title: feature.title,
@@ -472,6 +506,7 @@ module.exports = {
   mergeOverlay,
   deriveOverlay,
   diffPages,
+  summarize,
   normalizeFeature,
   normalizeSubmodule,
   appendHistory,

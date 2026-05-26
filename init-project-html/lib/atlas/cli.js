@@ -28,6 +28,8 @@
 //   --spec <spec_dir>    single specs write to <spec_dir>/architecture_diff/atlas/; batch member paths resolve to the coordination.md root
 //   --no-render          skip auto-render after a mutation
 //   --no-open            for open/diff: skip launching the browser
+//   --dry-run            preview mutation changes as JSON diff without writing to disk
+//   --json               request structured JSON output (used by status)
 //   --out <dir>          for diff: override viewer output directory
 //   --clean              for merge: remove spec overlays after successful merge
 //   --all                for merge: merge all pending spec overlays under docs/plans/
@@ -787,13 +789,14 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
         '`--spec <spec_dir>` writes to a spec overlay instead of the base atlas.',
         '`--no-render` skips automatic re-render after a mutation so you can batch several commands.',
         '`--no-open` keeps `open` and `diff` from launching a browser window.',
+        '`--dry-run` previews mutation changes as JSON diff without writing to disk.',
         '`--out <dir>` overrides the output directory for `diff`.',
         '`--clean` (with `merge`) removes spec overlay directories after a successful merge.',
         '`--all` (with `merge`) selects every pending spec overlay under `docs/plans/`.',
       ],
       notes: [
         'Mutation families include `feature add|set|remove`, `submodule add|set|remove`, `function add|remove`, `variable add|remove`, `dataflow add|remove|reorder`, `error add|remove`, `edge add|remove`, `meta set`, and `actor add|remove`.',
-        'Top-level verbs include `open`, `diff`, `merge`, `render`, `validate`, `scan`, and `undo`.',
+        'Top-level verbs include `open`, `diff`, `merge`, `render`, `validate`, `status`, `scan`, and `undo`.',
         '`feature`, `submodule`, `function`, `variable`, `dataflow`, `error`, `edge`, `meta`, and `actor` all support deeper help such as `apltk architecture edge add --help`.',
         'Run `apltk architecture validate` before declaring atlas work done.',
       ],
@@ -918,6 +921,41 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
           {
             command: 'apltk architecture validate',
             result: 'Prints `atlas: OK` on success or one validation error per broken reference.',
+          },
+        ],
+      });
+    case 'status':
+      return buildHelpPage({
+        title: 'apltk architecture status — print atlas state summary.',
+        summary: 'Display a structured digest of the current atlas, including feature/submodule counts, edge counts, actor count, last-updated timestamp, and validation status. Supports a `--json` flag for AI-agent-consumable output.',
+        usageLines: [
+          'apltk architecture status [--json] [--project <root>] [--spec <spec_dir>]',
+        ],
+        useWhen: [
+          'You need a quick overview of the atlas state and its validation health.',
+          'An AI agent needs to programmatically read the atlas summary via JSON.',
+        ],
+        optionalFlags: [
+          '`--json` outputs the full summary as a JSON object (meta, counts, featureList, validation).',
+          '`--project <root>` selects the repository root to inspect.',
+          '`--spec <spec_dir>` reads the resolved spec overlay state instead of the base atlas.',
+        ],
+        notes: [
+          'The exit code is 0 even when validation has errors — non-zero exits are reserved for CLI-level failures.',
+          'In --json mode, stdout contains only the JSON payload; all diagnostic messages go to stderr.',
+        ],
+        examples: [
+          {
+            command: 'apltk architecture status',
+            result: 'Prints a human-readable summary with counts and validation status.',
+          },
+          {
+            command: 'apltk architecture status --json',
+            result: 'Outputs a JSON object with meta, counts, featureList, and validation fields.',
+          },
+          {
+            command: 'apltk architecture status --spec docs/plans/2026-05-11/add-2fa',
+            result: 'Reads the resolved spec overlay state and prints its status.',
           },
         ],
       });
@@ -1047,7 +1085,7 @@ function splitList(value) {
 }
 
 function findFirstPositional(args) {
-  const booleanFlags = new Set(['no-render', 'no-open', 'help', 'force']);
+  const booleanFlags = new Set(['no-render', 'no-open', 'help', 'force', 'dry-run', 'json']);
   let i = 0;
   while (i < args.length) {
     const token = args[i];
@@ -1080,7 +1118,7 @@ function parseFlags(args) {
       else {
         name = token.slice(2);
         const nextIsValue = args.length > 0 && !args[0].startsWith('--');
-        const booleanFlags = new Set(['no-render', 'no-open', 'help', 'force']);
+        const booleanFlags = new Set(['no-render', 'no-open', 'help', 'force', 'dry-run', 'json']);
         if (booleanFlags.has(name) || !nextIsValue) value = true;
         else value = args.shift();
       }
@@ -1160,7 +1198,50 @@ function ensureBaseAtlasDir(projectRoot) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+// computeDiff compares two atlas states and returns a JSON-serializable
+// summary of feature-level changes (features added, modified, or removed).
+// This is used by --dry-run to report what a mutation would change without
+// actually writing anything.
+function computeDiff(before, after) {
+  const beforeFeatures = new Map((before.features || []).map((f) => [f.slug, f]));
+  const afterFeatures = new Map((after.features || []).map((f) => [f.slug, f]));
+
+  const addedFeatures = [];
+  const modifiedFeatures = [];
+  const removedFeatures = [];
+
+  for (const [slug, feature] of afterFeatures) {
+    if (!beforeFeatures.has(slug)) {
+      addedFeatures.push(slug);
+    } else if (JSON.stringify(feature) !== JSON.stringify(beforeFeatures.get(slug))) {
+      modifiedFeatures.push(slug);
+    }
+  }
+
+  for (const slug of beforeFeatures.keys()) {
+    if (!afterFeatures.has(slug)) {
+      removedFeatures.push(slug);
+    }
+  }
+
+  return { addedFeatures, modifiedFeatures, removedFeatures };
+}
+
 async function performMutation(projectRoot, flags, action, args, mutate) {
+  // --dry-run: clone resolved state, apply mutation, print JSON diff, return
+  if (flags['dry-run']) {
+    const { base, merged, overlay } = loadResolvedState(projectRoot, flags);
+    const before = JSON.parse(JSON.stringify(merged));
+    const dryRunState = JSON.parse(JSON.stringify(merged));
+    if (flags.spec) {
+      mutate(dryRunState, base, overlay);
+    } else {
+      mutate(dryRunState, dryRunState, null);
+    }
+    const diff = computeDiff(before, dryRunState);
+    process.stdout.write(JSON.stringify({ action: 'dry-run', diff }) + '\n');
+    return;
+  }
   const isSpec = Boolean(flags.spec);
   const base = stateLib.load(baseAtlasDir(projectRoot));
   let merged = base;
@@ -1553,6 +1634,48 @@ async function verbValidate(flags, projectRoot, io) {
     }
   }
   return 1;
+}
+
+async function verbStatus(flags, projectRoot, io) {
+  const { merged } = loadResolvedState(projectRoot, flags);
+  const summary = stateLib.summarize(merged);
+  const validation = schema.validate(merged);
+
+  if (flags.json) {
+    const output = {
+      meta: summary.meta,
+      counts: summary.counts,
+      featureList: summary.featureList,
+      validation: {
+        valid: validation.valid,
+        errorCount: validation.errors.length,
+        errors: validation.errors,
+      },
+    };
+    io.stdout.write(JSON.stringify(output) + '\n');
+    return 0;
+  }
+
+  io.stdout.write('Atlas Status\n');
+  io.stdout.write(`  Features: ${summary.counts.features}\n`);
+  io.stdout.write(`  Submodules: ${summary.counts.submodules}\n`);
+  io.stdout.write(`  Cross-feature edges: ${summary.counts.crossFeatureEdges}\n`);
+  io.stdout.write(`  Intra-feature edges: ${summary.counts.intraFeatureEdges}\n`);
+  io.stdout.write(`  Actors: ${summary.counts.actors}\n`);
+  io.stdout.write(`  Updated: ${summary.meta.updatedAt || 'never'}\n`);
+
+  if (validation.valid) {
+    io.stdout.write('  Validation: OK\n');
+  } else {
+    io.stdout.write(`  Validation: ${validation.errors.length} error(s)\n`);
+  }
+
+  io.stdout.write('  Features:\n');
+  for (const f of summary.featureList) {
+    io.stdout.write(`    ${f.slug}: ${f.title} (${f.submoduleCount} submodules)\n`);
+  }
+
+  return 0;
 }
 
 async function verbScan(flags, projectRoot, io) {
@@ -2210,6 +2333,7 @@ async function dispatch(argv, io = { stdout: process.stdout, stderr: process.std
         io.stdout.write(`atlas: rendered\n`);
         return 0;
       case 'validate': return await verbValidate(flags, projectRoot, io);
+      case 'status': return await verbStatus(flags, projectRoot, io);
       case 'scan': return await verbScan(flags, projectRoot, io);
       case 'undo': return await verbUndo(flags, projectRoot, io);
       case 'feature': await verbFeature(subverb, flags, projectRoot); break;
@@ -2226,7 +2350,9 @@ async function dispatch(argv, io = { stdout: process.stdout, stderr: process.std
         io.stderr.write(`Unknown verb: ${verb}\n\n${buildArchitectureHelpPage()}\n`);
         return 1;
     }
-    io.stdout.write(`atlas: ${verb}${subverb ? ` ${subverb}` : ''} applied\n`);
+    if (!flags['dry-run']) {
+      io.stdout.write(`atlas: ${verb}${subverb ? ` ${subverb}` : ''} applied\n`);
+    }
     return 0;
   } catch (e) {
     io.stderr.write(`${e.message}\n`);
@@ -2256,4 +2382,6 @@ module.exports = {
   collectSpecsToMerge,
   verbMerge,
   verbScan,
+  verbStatus,
+  computeDiff,
 };

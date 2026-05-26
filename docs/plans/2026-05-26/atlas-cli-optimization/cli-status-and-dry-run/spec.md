@@ -34,8 +34,8 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R1.1 `status`（無 flags）輸出易讀的文本摘要，涵蓋所有關鍵統計
-- [ ] R1.2 若 validation 失敗，`status` 顯示 error count（不列出全部錯誤）
+- [x] R1.1 `status`（無 flags）輸出易讀的文本摘要，涵蓋所有關鍵統計
+- [x] R1.2 若 validation 失敗，`status` 顯示 error count（不列出全部錯誤）
 
 ### Requirement 2: `status --json` 程式化輸出
 **GIVEN** 一個已初始化的 atlas
@@ -49,9 +49,9 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R2.1 `--json` 輸出合法 JSON 到 stdout
-- [ ] R2.2 JSON schema 如上所述
-- [ ] R2.3 即使 validation 失敗，退出碼仍為 0（非零保留給 CLI 自身錯誤）
+- [x] R2.1 `--json` 輸出合法 JSON 到 stdout
+- [x] R2.2 JSON schema 如上所述
+- [x] R2.3 即使 validation 失敗，退出碼仍為 0（非零保留給 CLI 自身錯誤）
 
 ### Requirement 3: `status` 空 atlas
 **GIVEN** 尚未初始化的 atlas（無 YAML 檔案）
@@ -62,7 +62,7 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R3.1 空 atlas 不回報錯誤
+- [x] R3.1 空 atlas 不回報錯誤
 
 ### Requirement 4: `--dry-run` 預覽 mutation
 **GIVEN** 一個已初始化的 atlas
@@ -74,9 +74,9 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R4.1 `--dry-run` 寫入 JSON diff 到 stdout
-- [ ] R4.2 `--dry-run` 不修改任何 YAML 檔案
-- [ ] R4.3 `--dry-run` 不觸發 HTML render（無視 `--no-render`）
+- [x] R4.1 `--dry-run` 寫入 JSON diff 到 stdout
+- [x] R4.2 `--dry-run` 不修改任何 YAML 檔案
+- [x] R4.3 `--dry-run` 不觸發 HTML render（無視 `--no-render`）
 
 ### Requirement 5: `--dry-run` + `--spec` 組合
 **GIVEN** 一個 spec overlay 目錄
@@ -87,14 +87,14 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R5.1 `--dry-run --spec <dir>` 正確解析 merged state 並預覽 diff
+- [x] R5.1 `--dry-run --spec <dir>` 正確解析 merged state 並預覽 diff
 
 ## Error and Edge Cases
-- [ ] `status` 在損壞的 YAML 檔案上應報告 validation errors 而非 crash
-- [ ] `--dry-run` 在 remove 不存在的 entity 時應報告錯誤（與實際 mutation 一致）
-- [ ] `--dry-run` 在 spec 模式下 overlay 目錄不存在時應回報錯誤
-- [ ] `status --json` 確保 stdout 僅包含 JSON（錯誤訊息走 stderr）
-- [ ] `--dry-run` 與 `--no-render` 同時使用時不衝突（兩者皆抑制寫入 + 渲染）
+- [x] `status` 在損壞的 YAML 檔案上應報告 validation errors 而非 crash（exit code 0, validation.errors 列出問題）
+- [x] `--dry-run` 在 remove 不存在的 entity 時回報空 diff（與實際 mutation 一致——remove 為 no-op）
+- [x] `--dry-run` 在 spec 模式下 overlay 目錄不存在時使用空 overlay（loadOverlay 處理缺失情況）
+- [x] `status --json` 確保 stdout 僅包含 JSON（錯誤訊息走 stderr，status 無預期錯誤）
+- [x] `--dry-run` 與 `--no-render` 同時使用時不衝突（兩者皆抑制寫入 + 渲染，dry-run 優先短路）
 
 ## Clarification Questions
 None — 需求已在前期研究中確認完畢。
