@@ -49,9 +49,13 @@ function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function noFix(message) {
+  return message + ' (no automatic fix)';
+}
+
 function requireField(errors, where, name, value, predicate, hint) {
   if (!predicate(value)) {
-    errors.push(`${where}: invalid or missing "${name}"${hint ? ` (${hint})` : ''}`);
+    errors.push(`${where}: invalid or missing "${name}"${hint ? ` (${hint})` : ''} (no automatic fix)`);
     return false;
   }
   return true;
@@ -59,12 +63,12 @@ function requireField(errors, where, name, value, predicate, hint) {
 
 function validateMeta(meta, errors) {
   if (!meta || typeof meta !== 'object') {
-    errors.push('meta: missing object');
+    errors.push(noFix('meta: missing object'));
     return;
   }
   if (meta.title !== undefined) requireField(errors, 'meta', 'title', meta.title, isNonEmptyString);
   if (meta.summary !== undefined && typeof meta.summary !== 'string') {
-    errors.push('meta: "summary" must be a string when present');
+    errors.push(noFix('meta: "summary" must be a string when present'));
   }
 }
 
@@ -76,96 +80,96 @@ function validateActor(actor, errors, idx) {
 
 function validateFunction(fn, errors, where) {
   requireField(errors, where, 'name', fn && fn.name, isNonEmptyString);
-  if (fn && fn.in !== undefined && typeof fn.in !== 'string') errors.push(`${where}: "in" must be a string`);
-  if (fn && fn.out !== undefined && typeof fn.out !== 'string') errors.push(`${where}: "out" must be a string`);
+  if (fn && fn.in !== undefined && typeof fn.in !== 'string') errors.push(noFix(`${where}: "in" must be a string`));
+  if (fn && fn.out !== undefined && typeof fn.out !== 'string') errors.push(noFix(`${where}: "out" must be a string`));
   if (fn && fn.side !== undefined && !SIDE_EFFECTS.includes(fn.side)) {
-    errors.push(`${where}: "side" must be one of ${SIDE_EFFECTS.join('|')}`);
+    errors.push(noFix(`${where}: "side" must be one of ${SIDE_EFFECTS.join('|')}`));
   }
   if (fn && fn.purpose !== undefined && typeof fn.purpose !== 'string') {
-    errors.push(`${where}: "purpose" must be a string`);
+    errors.push(noFix(`${where}: "purpose" must be a string`));
   }
 }
 
 function validateVariable(v, errors, where) {
   requireField(errors, where, 'name', v && v.name, isNonEmptyString);
-  if (v && v.type !== undefined && typeof v.type !== 'string') errors.push(`${where}: "type" must be a string`);
+  if (v && v.type !== undefined && typeof v.type !== 'string') errors.push(noFix(`${where}: "type" must be a string`));
   if (v && v.scope !== undefined && !VARIABLE_SCOPES.includes(v.scope)) {
-    errors.push(`${where}: "scope" must be one of ${VARIABLE_SCOPES.join('|')}`);
+    errors.push(noFix(`${where}: "scope" must be one of ${VARIABLE_SCOPES.join('|')}`));
   }
   if (v && v.purpose !== undefined && typeof v.purpose !== 'string') {
-    errors.push(`${where}: "purpose" must be a string`);
+    errors.push(noFix(`${where}: "purpose" must be a string`));
   }
 }
 
 function validateError(err, errors, where) {
   requireField(errors, where, 'name', err && err.name, isNonEmptyString);
-  if (err && err.when !== undefined && typeof err.when !== 'string') errors.push(`${where}: "when" must be a string`);
-  if (err && err.means !== undefined && typeof err.means !== 'string') errors.push(`${where}: "means" must be a string`);
+  if (err && err.when !== undefined && typeof err.when !== 'string') errors.push(noFix(`${where}: "when" must be a string`));
+  if (err && err.means !== undefined && typeof err.means !== 'string') errors.push(noFix(`${where}: "means" must be a string`));
 }
 
 function validateSubmodule(sub, errors, where) {
   requireField(errors, where, 'slug', sub && sub.slug, isSlug, 'kebab-case slug');
   if (sub && sub.kind !== undefined && !SUBMODULE_KINDS.includes(sub.kind)) {
-    errors.push(`${where}: "kind" must be one of ${SUBMODULE_KINDS.join('|')}`);
+    errors.push(noFix(`${where}: "kind" must be one of ${SUBMODULE_KINDS.join('|')}`));
   }
   if (sub && sub.role !== undefined && typeof sub.role !== 'string') {
-    errors.push(`${where}: "role" must be a string`);
+    errors.push(noFix(`${where}: "role" must be a string`));
   }
 
   if (sub && sub.functions) {
     if (!Array.isArray(sub.functions)) {
-      errors.push(`${where}: "functions" must be an array`);
+      errors.push(noFix(`${where}: "functions" must be an array`));
     } else {
       sub.functions.forEach((fn, i) => validateFunction(fn, errors, `${where}.functions[${i}]`));
     }
   }
   if (sub && sub.variables) {
     if (!Array.isArray(sub.variables)) {
-      errors.push(`${where}: "variables" must be an array`);
+      errors.push(noFix(`${where}: "variables" must be an array`));
     } else {
       sub.variables.forEach((v, i) => validateVariable(v, errors, `${where}.variables[${i}]`));
     }
   }
   if (sub && sub.dataflow) {
     if (!Array.isArray(sub.dataflow)) {
-      errors.push(`${where}: "dataflow" must be an array`);
+      errors.push(noFix(`${where}: "dataflow" must be an array`));
     } else {
       const fnNames = new Set((sub.functions || []).map((f) => f && f.name).filter(Boolean));
       const varNames = new Set((sub.variables || []).map((v) => v && v.name).filter(Boolean));
       sub.dataflow.forEach((step, i) => {
         const stepWhere = `${where}.dataflow[${i}]`;
         if (typeof step === 'string') {
-          if (!step.trim()) errors.push(`${stepWhere}: step text must be non-empty`);
+          if (!step.trim()) errors.push(noFix(`${stepWhere}: step text must be non-empty`));
           return;
         }
         if (!step || typeof step !== 'object') {
-          errors.push(`${stepWhere}: must be a string or an object with "step"`);
+          errors.push(noFix(`${stepWhere}: must be a string or an object with "step"`));
           return;
         }
         if (!isNonEmptyString(step.step)) {
-          errors.push(`${stepWhere}: "step" must be a non-empty string`);
+          errors.push(noFix(`${stepWhere}: "step" must be a non-empty string`));
         }
         if (step.fn !== undefined) {
           if (typeof step.fn !== 'string' || !step.fn.trim()) {
-            errors.push(`${stepWhere}: "fn" must be a non-empty string when present`);
+            errors.push(noFix(`${stepWhere}: "fn" must be a non-empty string when present`));
           } else if (!fnNames.has(step.fn)) {
-            errors.push(`${stepWhere}: "fn" references unknown function "${step.fn}" — declare it via \`function add\` first`);
+            errors.push(noFix(`${stepWhere}: "fn" references unknown function "${step.fn}" — declare it via \`function add\` first`));
           }
         }
         for (const field of ['reads', 'writes']) {
           if (step[field] === undefined) continue;
           if (!Array.isArray(step[field])) {
-            errors.push(`${stepWhere}: "${field}" must be an array of variable names`);
+            errors.push(noFix(`${stepWhere}: "${field}" must be an array of variable names`));
             continue;
           }
           step[field].forEach((name, j) => {
             const refWhere = `${stepWhere}.${field}[${j}]`;
             if (typeof name !== 'string' || !name.trim()) {
-              errors.push(`${refWhere}: variable name must be a non-empty string`);
+              errors.push(noFix(`${refWhere}: variable name must be a non-empty string`));
               return;
             }
             if (!varNames.has(name)) {
-              errors.push(`${refWhere}: unknown variable "${name}" — declare it via \`variable add\` first`);
+              errors.push(noFix(`${refWhere}: unknown variable "${name}" — declare it via \`variable add\` first`));
             }
           });
         }
@@ -174,7 +178,7 @@ function validateSubmodule(sub, errors, where) {
   }
   if (sub && sub.errors) {
     if (!Array.isArray(sub.errors)) {
-      errors.push(`${where}: "errors" must be an array`);
+      errors.push(noFix(`${where}: "errors" must be an array`));
     } else {
       sub.errors.forEach((err, i) => validateError(err, errors, `${where}.errors[${i}]`));
     }
@@ -184,33 +188,33 @@ function validateSubmodule(sub, errors, where) {
 function validateEdgeEndpoint(endpoint, errors, where, allowSelf = false) {
   if (typeof endpoint === 'string') {
     if (allowSelf) {
-      if (!isSlug(endpoint)) errors.push(`${where}: endpoint slug must be kebab-case`);
+      if (!isSlug(endpoint)) errors.push(noFix(`${where}: endpoint slug must be kebab-case`));
       return;
     }
-    errors.push(`${where}: cross-feature endpoint must be an object {feature, submodule}`);
+    errors.push(noFix(`${where}: cross-feature endpoint must be an object {feature, submodule}`));
     return;
   }
   if (!endpoint || typeof endpoint !== 'object') {
-    errors.push(`${where}: endpoint missing`);
+    errors.push(noFix(`${where}: endpoint missing`));
     return;
   }
-  if (!isSlug(endpoint.feature)) errors.push(`${where}: endpoint.feature must be a kebab-case slug`);
+  if (!isSlug(endpoint.feature)) errors.push(noFix(`${where}: endpoint.feature must be a kebab-case slug`));
   if (endpoint.submodule !== undefined && endpoint.submodule !== null && !isSlug(endpoint.submodule)) {
-    errors.push(`${where}: endpoint.submodule must be a kebab-case slug when present`);
+    errors.push(noFix(`${where}: endpoint.submodule must be a kebab-case slug when present`));
   }
 }
 
 function validateEdge(edge, errors, where, { allowSelf = false } = {}) {
   if (edge && edge.id !== undefined && !isSlug(edge.id)) {
-    errors.push(`${where}: "id" must be a kebab-case slug`);
+    errors.push(noFix(`${where}: "id" must be a kebab-case slug`));
   }
   if (edge && edge.kind !== undefined && !EDGE_KINDS.includes(edge.kind)) {
-    errors.push(`${where}: "kind" must be one of ${EDGE_KINDS.join('|')}`);
+    errors.push(noFix(`${where}: "kind" must be one of ${EDGE_KINDS.join('|')}`));
   }
   validateEdgeEndpoint(edge && edge.from, errors, `${where}.from`, allowSelf);
   validateEdgeEndpoint(edge && edge.to, errors, `${where}.to`, allowSelf);
   if (edge && edge.label !== undefined && typeof edge.label !== 'string') {
-    errors.push(`${where}: "label" must be a string`);
+    errors.push(noFix(`${where}: "label" must be a string`));
   }
 }
 
@@ -218,29 +222,29 @@ function validateFeature(feature, errors, where) {
   requireField(errors, where, 'slug', feature && feature.slug, isSlug, 'kebab-case slug');
   if (feature && feature.title !== undefined) requireField(errors, where, 'title', feature.title, isNonEmptyString);
   if (feature && feature.story !== undefined && typeof feature.story !== 'string') {
-    errors.push(`${where}: "story" must be a string`);
+    errors.push(noFix(`${where}: "story" must be a string`));
   }
   if (feature && feature.dependsOn) {
-    if (!Array.isArray(feature.dependsOn)) errors.push(`${where}: "dependsOn" must be a list of feature slugs`);
+    if (!Array.isArray(feature.dependsOn)) errors.push(noFix(`${where}: "dependsOn" must be a list of feature slugs`));
     else feature.dependsOn.forEach((slug, i) => {
-      if (!isSlug(slug)) errors.push(`${where}.dependsOn[${i}]: must be kebab-case slug`);
+      if (!isSlug(slug)) errors.push(noFix(`${where}.dependsOn[${i}]: must be kebab-case slug`));
     });
   }
   if (feature && feature.submodules) {
-    if (!Array.isArray(feature.submodules)) errors.push(`${where}: "submodules" must be an array`);
+    if (!Array.isArray(feature.submodules)) errors.push(noFix(`${where}: "submodules" must be an array`));
     else {
       const slugs = new Set();
       feature.submodules.forEach((sub, i) => {
         validateSubmodule(sub, errors, `${where}.submodules[${i}]`);
         if (sub && isSlug(sub.slug)) {
-          if (slugs.has(sub.slug)) errors.push(`${where}: duplicate submodule slug "${sub.slug}"`);
+          if (slugs.has(sub.slug)) errors.push(noFix(`${where}: duplicate submodule slug "${sub.slug}"`));
           slugs.add(sub.slug);
         }
       });
     }
   }
   if (feature && feature.edges) {
-    if (!Array.isArray(feature.edges)) errors.push(`${where}: "edges" must be an array`);
+    if (!Array.isArray(feature.edges)) errors.push(noFix(`${where}: "edges" must be an array`));
     else feature.edges.forEach((edge, i) => validateEdge(edge, errors, `${where}.edges[${i}]`, { allowSelf: true }));
   }
 }
@@ -251,24 +255,24 @@ function validateFeature(feature, errors, where) {
 function validate(state) {
   const errors = [];
   if (!state || typeof state !== 'object') {
-    return ['state: must be an object'];
+    return [noFix('state: must be an object')];
   }
 
   validateMeta(state.meta, errors);
 
   if (state.actors) {
-    if (!Array.isArray(state.actors)) errors.push('actors: must be an array');
+    if (!Array.isArray(state.actors)) errors.push(noFix('actors: must be an array'));
     else state.actors.forEach((actor, i) => validateActor(actor, errors, i));
   }
 
   if (!Array.isArray(state.features)) {
-    errors.push('features: must be an array');
+    errors.push(noFix('features: must be an array'));
   } else {
     const featureSlugs = new Set();
     state.features.forEach((feature, i) => {
       validateFeature(feature, errors, `features[${i}]`);
       if (feature && isSlug(feature.slug)) {
-        if (featureSlugs.has(feature.slug)) errors.push(`features: duplicate feature slug "${feature.slug}"`);
+        if (featureSlugs.has(feature.slug)) errors.push(noFix(`features: duplicate feature slug "${feature.slug}"`));
         featureSlugs.add(feature.slug);
       }
     });
@@ -281,11 +285,11 @@ function validate(state) {
         const where = `features[${feature.slug}].edges[${i}]`;
         for (const [side, ep] of [['from', edge && edge.from], ['to', edge && edge.to]]) {
           if (typeof ep === 'string') {
-            if (!subSlugs.has(ep)) errors.push(`${where}.${side}: unknown submodule "${ep}" in feature "${feature.slug}"`);
+            if (!subSlugs.has(ep)) errors.push(noFix(`${where}.${side}: unknown submodule "${ep}" in feature "${feature.slug}"`));
           } else if (ep && typeof ep === 'object' && ep.feature && ep.feature !== feature.slug) {
-            errors.push(`${where}.${side}: intra-feature edge cannot point at another feature "${ep.feature}"`);
+            errors.push(noFix(`${where}.${side}: intra-feature edge cannot point at another feature "${ep.feature}"`));
           } else if (ep && ep.submodule && !subSlugs.has(ep.submodule)) {
-            errors.push(`${where}.${side}: unknown submodule "${ep.submodule}"`);
+            errors.push(noFix(`${where}.${side}: unknown submodule "${ep.submodule}"`));
           }
         }
       });
@@ -293,7 +297,7 @@ function validate(state) {
   }
 
   if (state.edges) {
-    if (!Array.isArray(state.edges)) errors.push('edges: must be an array');
+    if (!Array.isArray(state.edges)) errors.push(noFix('edges: must be an array'));
     else state.edges.forEach((edge, i) => validateEdge(edge, errors, `edges[${i}]`));
   }
 
@@ -308,9 +312,9 @@ function validate(state) {
       const where = `edges[${i}]`;
       for (const [side, ep] of [['from', edge && edge.from], ['to', edge && edge.to]]) {
         if (!ep || typeof ep !== 'object') continue;
-        if (!featureMap.has(ep.feature)) errors.push(`${where}.${side}: unknown feature "${ep.feature}"`);
+        if (!featureMap.has(ep.feature)) errors.push(noFix(`${where}.${side}: unknown feature "${ep.feature}"`));
         else if (ep.submodule && !featureMap.get(ep.feature).has(ep.submodule)) {
-          errors.push(`${where}.${side}: unknown submodule "${ep.submodule}" in feature "${ep.feature}"`);
+          errors.push(noFix(`${where}.${side}: unknown submodule "${ep.submodule}" in feature "${ep.feature}"`));
         }
       }
     });
