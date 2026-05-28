@@ -38,9 +38,9 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R1.1 `.env.example` 檔案存在，包含全部 6 個環境變數模板
-- [ ] R1.2 `.env` 在 `.gitignore` 中已忽略
-- [ ] R1.3 腳本能正確讀取並驗證環境變數（缺少時報錯）
+- [x] R1.1 `.env.example` 檔案存在，包含全部 6 個環境變數模板
+- [x] R1.2 `.env` 在 `.gitignore` 中已忽略
+- [x] R1.3 腳本能正確讀取並驗證環境變數（缺少時報錯）
 
 ### Requirement 2: 測試執行器
 **GIVEN** 100 道測試題目存放於 `assets/spec/{date}/test-questions.json`
@@ -56,12 +56,12 @@
 **Uncertainty Level**: Exploratory（API 的 reasoning_effort 參數格式需確認 DeepSeek API 文檔）
 
 **Requirements**:
-- [ ] R2.1 `scripts/run-evals.mjs` 存在且可執行
-- [ ] R2.2 正確建立隔離目錄結構 `assets/spec/{date}/test_{no}/`
-- [ ] R2.3 projectContext 檔案結構正確初始化
-- [ ] R2.4 API 調用使用 OpenAI 相容格式（`POST /v1/chat/completions`）
-- [ ] R2.5 執行鏈路以 JSONL 格式記錄（每行一個事件）
-- [ ] R2.6 並行控制：遵守 `EXEC_CONCURRENCY` 上限
+- [x] R2.1 `scripts/run-evals.mjs` 存在且可執行
+- [x] R2.2 正確建立隔離目錄結構 `assets/spec/{date}/test_{no}/`
+- [x] R2.3 projectContext 檔案結構正確初始化
+- [x] R2.4 API 調用使用 OpenAI 相容格式（`POST /v1/chat/completions`）
+- [x] R2.5 執行鏈路以 JSONL 格式記錄（每行一個事件）
+- [x] R2.6 並行控制：遵守 `EXEC_CONCURRENCY` 上限
 
 ### Requirement 3: 評分器
 **GIVEN** 測試執行完成（JSONL trace 已產生）
@@ -77,11 +77,11 @@
 **Uncertainty Level**: Exploratory（LLM-as-Judge 評分的一致性需要通過實驗驗證）
 
 **Requirements**:
-- [ ] R3.1 `scripts/score.mjs` 存在且可執行
-- [ ] R3.2 評分模型 API 調用使用 OpenAI 相容格式
-- [ ] R3.3 每個測試案例產出 `results/spec/{date}/test_{no}/score.json`
-- [ ] R3.4 評分結果包含 `overallScore`, `dimensions[]`, `issues[]`
-- [ ] R3.5 `issues[]` 中每項包含 `severity`（P0/P1/P2）, `category`（skill/apltk/other）, `description`, `evidence`（引用 trace 中的具體事件）
+- [x] R3.1 `scripts/score.mjs` 存在且可執行
+- [x] R3.2 評分模型 API 調用使用 OpenAI 相容格式
+- [x] R3.3 每個測試案例產出 `results/spec/{date}/test_{no}/score.json`
+- [x] R3.4 評分結果包含 `overallScore`, `dimensions[]`, `issues[]`
+- [x] R3.5 `issues[]` 中每項包含 `severity`（P0/P1/P2）, `category`（skill/apltk/other）, `description`, `evidence`（引用 trace 中的具體事件）
 
 ### Requirement 4: 評分觸發機制
 **GIVEN** 100 題並行執行
@@ -93,16 +93,16 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R4.1 採用事件驅動：執行完成的信號觸發評分
-- [ ] R4.2 評分器併發數由 `JUDGE_CONCURRENCY` 控制
+- [x] R4.1 採用事件驅動：執行完成的信號觸發評分
+- [x] R4.2 評分器併發數由 `JUDGE_CONCURRENCY` 控制
 
 ## Error and Edge Cases
-- [ ] API 調用失敗時的重試機制（exponential backoff）
-- [ ] API 返回非預期格式時的錯誤處理
-- [ ] 隔離目錄建立失敗時的處理
-- [ ] 執行超時處理（`EXEC_TIMEOUT` 環境變數）
-- [ ] 部分題目執行失敗時，不影響其他題目
-- [ ] 評分模型輸出無法解析為 JSON 時的 fallback
+- [x] API 調用失敗時的重試機制（exponential backoff）
+- [x] API 返回非預期格式時的錯誤處理
+- [x] 隔離目錄建立失敗時的處理
+- [x] 執行超時處理（`EXEC_TIMEOUT` 環境變數）
+- [x] 部分題目執行失敗時，不影響其他題目
+- [x] 評分模型輸出無法解析為 JSON 時的 fallback
 
 ## Clarification Questions
 - 執行模型的 system prompt 如何設計？是否需要模擬 Claude Code / Codex 的 system prompt 風格？

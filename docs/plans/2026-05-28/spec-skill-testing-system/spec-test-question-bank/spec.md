@@ -35,10 +35,10 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R1.1 題目 JSON schema 檔案存在於 `assets/spec/` 目錄下（如 `assets/spec/question-schema.json`）
-- [ ] R1.2 schema 定義 `id`, `userPrompt`, `projectContext`, `scoringCriteria`, `difficulty` 五個頂層欄位
-- [ ] R1.3 `scoringCriteria` 包含 `outcome`, `process`, `style`, `efficiency` 四個維度，每個維度有 `weight`（權重）和 `checks`（檢查項列表）
-- [ ] R1.4 每個檢查項包含 `id`, `description`, `passCondition`
+- [x] R1.1 題目 JSON schema 檔案存在於 `assets/spec/` 目錄下（如 `assets/spec/question-schema.json`）
+- [x] R1.2 schema 定義 `id`, `userPrompt`, `projectContext`, `scoringCriteria`, `difficulty` 五個頂層欄位
+- [x] R1.3 `scoringCriteria` 包含 `outcome`, `process`, `style`, `efficiency` 四個維度，每個維度有 `weight`（權重）和 `checks`（檢查項列表）
+- [x] R1.4 每個檢查項包含 `id`, `description`, `passCondition`
 
 ### Requirement 2: 100 道測試題目內容
 **GIVEN** 已定義題目 schema
@@ -51,11 +51,11 @@
 **Uncertainty Level**: Exploratory（題目品質依賴對 spec 技能的深入理解，需人工審查）
 
 **Requirements**:
-- [ ] R2.1 100 道題目以 JSON 陣列格式存放在 `assets/spec/{date}/test-questions.json`
-- [ ] R2.2 每道題目通過 schema 驗證
-- [ ] R2.3 題目覆蓋率矩陣：spec 工作流程 8 個步驟每步至少 5 道題
-- [ ] R2.4 至少 20 道邊界/異常場景題
-- [ ] R2.5 至少 10 道反向測試題（不應觸發 spec skill）
+- [x] R2.1 100 道題目以 JSON 陣列格式存放在 `assets/spec/{date}/test-questions.json`
+- [x] R2.2 每道題目通過 schema 驗證
+- [x] R2.3 題目覆蓋率矩陣：spec 工作流程 8 個步驟每步至少 5 道題
+- [x] R2.4 至少 20 道邊界/異常場景題
+- [x] R2.5 至少 10 道反向測試題（不應觸發 spec skill）
 
 ### Requirement 3: 評分標準不暴露
 **GIVEN** 測試題目包含評分標準
@@ -68,15 +68,15 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R3.1 測試執行器讀取題目時，僅提取 `userPrompt` 和 `projectContext` 傳遞給 agent
-- [ ] R3.2 評分器可獨立讀取完整題目（含 `scoringCriteria`）
+- [x] R3.1 測試執行器讀取題目時，僅提取 `userPrompt` 和 `projectContext` 傳遞給 agent
+- [x] R3.2 評分器可獨立讀取完整題目（含 `scoringCriteria`）
 
 ## Error and Edge Cases
-- [ ] 題目 schema 變更向後相容（舊題目仍可被解析）
-- [ ] projectContext 包含檔案結構定義時，隔離環境能正確初始化
-- [ ] userPrompt 包含特殊字符（換行、引號）時 JSON 正確 escape
-- [ ] 題目數量不足 100 時的處理（載入時校驗）
-- [ ] 重複 `id` 的檢測與拒絕
+- [x] 題目 schema 變更向後相容（舊題目仍可被解析）
+- [x] projectContext 包含檔案結構定義時，隔離環境能正確初始化
+- [x] userPrompt 包含特殊字符（換行、引號）時 JSON 正確 escape
+- [x] 題目數量不足 100 時的處理（載入時校驗）
+- [x] 重複 `id` 的檢測與拒絕
 
 ## Clarification Questions
 - 題目是否需要支援多語言（中文 + 英文）？目前預設為繁體中文 user prompt

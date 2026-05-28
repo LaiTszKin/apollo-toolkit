@@ -37,10 +37,10 @@
 **Uncertainty Level**: Exploratory（問題相似度去重需要語義匹配，可能需要調用評分模型輔助）
 
 **Requirements**:
-- [ ] R1.1 `scripts/optimize.mjs` 存在且可執行
-- [ ] R1.2 正確讀取並解析全部 `score.json` 檔案
-- [ ] R1.3 產出 `optimization-plan.json` 包含去重後的問題清單
-- [ ] R1.4 每個去重問題包含 `category`, `severity`, `frequency`（出現次數）, `affectedTests[]`, `suggestedFix`
+- [x] R1.1 `scripts/optimize.mjs` 存在且可執行
+- [x] R1.2 正確讀取並解析全部 `score.json` 檔案
+- [x] R1.3 產出 `optimization-plan.json` 包含去重後的問題清單
+- [x] R1.4 每個去重問題包含 `category`, `severity`, `frequency`（出現次數）, `affectedTests[]`, `suggestedFix`
 
 ### Requirement 2: 技能內容優化
 **GIVEN** 去重後的優化清單
@@ -54,9 +54,9 @@
 **Uncertainty Level**: Exploratory（自動優化自然語言指引的品質需要人工審查把關）
 
 **Requirements**:
-- [ ] R2.1 對 `spec/SKILL.md` 的修改僅限於修復已識別的問題
-- [ ] R2.2 優化後的 SKILL.md 通過 `apltk validate-skill-frontmatter` 驗證
-- [ ] R2.3 保留優化前的 SKILL.md 備份（或依賴 git）
+- [x] R2.1 對 `spec/SKILL.md` 的修改僅限於修復已識別的問題
+- [x] R2.2 優化後的 SKILL.md 通過 `apltk validate-skill-frontmatter` 驗證
+- [x] R2.3 保留優化前的 SKILL.md 備份（或依賴 git）
 
 ### Requirement 3: apltk 工具優化
 **GIVEN** 去重後的優化清單
@@ -70,16 +70,16 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R3.1 僅修改 spec 相關的 apltk 工具（`create-specs`, `architecture`）
-- [ ] R3.2 修復後現有測試通過
-- [ ] R3.3 CLI 介面保持向後相容
+- [x] R3.1 僅修改 spec 相關的 apltk 工具（`create-specs`, `architecture`）
+- [x] R3.2 修復後現有測試通過
+- [x] R3.3 CLI 介面保持向後相容
 
 ## Error and Edge Cases
-- [ ] `results/` 目錄為空或不存在時的處理
-- [ ] 部分 `score.json` 損壞或格式不符時的跳過機制
-- [ ] 去重時語義相似但文字表述完全不同的問題識別
-- [ ] 優化後的變更範圍過大時的審查門檻
-- [ ] 優化建議互相衝突時的仲裁策略
+- [x] `results/` 目錄為空或不存在時的處理
+- [x] 部分 `score.json` 損壞或格式不符時的跳過機制
+- [x] 去重時語義相似但文字表述完全不同的問題識別
+- [x] 優化後的變更範圍過大時的審查門檻
+- [x] 優化建議互相衝突時的仲裁策略
 
 ## Clarification Questions
 - 優化後的變更是直接寫入源碼還是產出 patch 檔案供人工審查後合入？（建議後者，降低風險）
