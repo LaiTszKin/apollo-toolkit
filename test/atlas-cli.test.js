@@ -6,8 +6,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const cli = require('../init-project-html/lib/atlas/cli');
-const stateLib = require('../init-project-html/lib/atlas/state');
+const cli = require('../skills/init-project-html/lib/atlas/cli');
+const stateLib = require('../skills/init-project-html/lib/atlas/state');
 
 function makeIo() {
   let outBuf = '';

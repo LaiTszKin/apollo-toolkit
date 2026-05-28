@@ -27,10 +27,10 @@ const {
 const { checkForPackageUpdate, compareVersions } = require('../dist/lib/updater');
 
 async function createFixtureSource(rootDir) {
-  await fs.mkdir(path.join(rootDir, 'alpha-skill'), { recursive: true });
-  await fs.writeFile(path.join(rootDir, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
-  await fs.mkdir(path.join(rootDir, 'beta-skill'), { recursive: true });
-  await fs.writeFile(path.join(rootDir, 'beta-skill', 'SKILL.md'), '# beta\n', 'utf8');
+  await fs.mkdir(path.join(rootDir, 'skills', 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(rootDir, 'skills', 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(path.join(rootDir, 'skills', 'beta-skill'), { recursive: true });
+  await fs.writeFile(path.join(rootDir, 'skills', 'beta-skill', 'SKILL.md'), '# beta\n', 'utf8');
   await fs.mkdir(path.join(rootDir, 'scripts'), { recursive: true });
   await fs.writeFile(path.join(rootDir, 'scripts', 'install_skills.sh'), '#!/usr/bin/env bash\n', 'utf8');
   await fs.writeFile(path.join(rootDir, 'README.md'), '# Apollo Toolkit\n', 'utf8');
@@ -190,8 +190,10 @@ test('syncToolkitHome copies managed toolkit contents only', async () => {
   await syncToolkitHome({ sourceRoot, toolkitHome, version: '2.0.0' });
 
   const copied = await fs.readdir(toolkitHome);
-  assert.ok(copied.includes('alpha-skill'));
-  assert.ok(copied.includes('beta-skill'));
+  assert.ok(copied.includes('skills'));
+  const skillsDir = path.join(toolkitHome, 'skills');
+  assert.ok((await fs.readdir(skillsDir)).includes('alpha-skill'));
+  assert.ok((await fs.readdir(skillsDir)).includes('beta-skill'));
   assert.ok(copied.includes('.apollo-toolkit-install.json'));
   assert.ok(!copied.includes('.github'));
 });
@@ -246,7 +248,7 @@ test('run installs toolkit home and copies skills into selected targets', async 
   const codexOnlySkill = path.join(homeDir, '.codex', 'skills', 'codex-only-skill');
   const openclawSkill = path.join(homeDir, '.openclaw', 'workspace1', 'skills', 'alpha-skill');
   const openclawCodexOnlySkill = path.join(homeDir, '.openclaw', 'workspace1', 'skills', 'codex-only-skill');
-  const expectedSource = await fs.realpath(path.join(toolkitHome, 'alpha-skill'));
+  const expectedSource = await fs.realpath(path.join(toolkitHome, 'skills', 'alpha-skill'));
 
   assert.equal((await fs.lstat(codexSkill)).isDirectory(), true);
   assert.equal((await fs.lstat(codexOnlySkill)).isDirectory(), true);
@@ -261,7 +263,7 @@ test('installLinks resolves tilde-prefixed target overrides from environment', a
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-tilde-target-'));
   const homeDir = path.join(tempDir, 'user-home');
   const toolkitHome = path.join(tempDir, '.apollo-toolkit');
-  const sourceSkill = path.join(toolkitHome, 'alpha-skill');
+  const sourceSkill = path.join(toolkitHome, 'skills', 'alpha-skill');
 
   await fs.mkdir(sourceSkill, { recursive: true });
   await fs.writeFile(path.join(sourceSkill, 'SKILL.md'), '# alpha\n', 'utf8');
@@ -287,8 +289,8 @@ test('installLinks removes stale skills that disappeared from the new version', 
   const toolkitHome = path.join(tempDir, '.apollo-toolkit');
   const codexRoot = path.join(tempDir, 'codex-skills');
 
-  await fs.mkdir(path.join(toolkitHome, 'alpha-skill'), { recursive: true });
-  await fs.writeFile(path.join(toolkitHome, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(path.join(toolkitHome, 'skills', 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'skills', 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
   await fs.mkdir(path.join(codexRoot, 'old-skill'), { recursive: true });
   await fs.writeFile(path.join(codexRoot, 'old-skill', 'stale.txt'), 'stale\n', 'utf8');
 
@@ -313,8 +315,8 @@ test('installLinks ignores unsafe historical manifest names when removing stale 
   const codexRoot = path.join(homeDir, '.codex', 'skills');
   const outsideSkill = path.join(homeDir, '.codex', 'outside-skill');
 
-  await fs.mkdir(path.join(toolkitHome, 'alpha-skill'), { recursive: true });
-  await fs.writeFile(path.join(toolkitHome, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(path.join(toolkitHome, 'skills', 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'skills', 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
   await fs.mkdir(codexRoot, { recursive: true });
   await fs.mkdir(outsideSkill, { recursive: true });
   await fs.writeFile(
@@ -344,7 +346,7 @@ test('installLinks replaces previously installed symlinks with copied skill dire
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-legacy-link-'));
   const toolkitHome = path.join(tempDir, '.apollo-toolkit');
   const codexRoot = path.join(tempDir, 'codex-skills');
-  const sourceSkill = path.join(toolkitHome, 'alpha-skill');
+  const sourceSkill = path.join(toolkitHome, 'skills', 'alpha-skill');
   const targetSkill = path.join(codexRoot, 'alpha-skill');
 
   await fs.mkdir(sourceSkill, { recursive: true });
@@ -597,8 +599,8 @@ test('run uninstall supports --yes with default all-target cleanup', async () =>
 
   await fs.mkdir(sourceRoot, { recursive: true });
   await createFixtureSource(sourceRoot);
-  await fs.mkdir(path.join(toolkitHome, 'alpha-skill'), { recursive: true });
-  await fs.writeFile(path.join(toolkitHome, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(path.join(toolkitHome, 'skills', 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'skills', 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
   await fs.mkdir(path.join(codexRoot, 'alpha-skill'), { recursive: true });
   await writeManifest(codexRoot, {
     version: '1.0.0',
@@ -645,7 +647,7 @@ test('installLinks in symlink mode creates symlinks instead of copies', async ()
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-symlink-'));
   const toolkitHome = path.join(tempDir, '.apollo-toolkit');
   const codexRoot = path.join(tempDir, 'codex-skills');
-  const sourceSkill = path.join(toolkitHome, 'alpha-skill');
+  const sourceSkill = path.join(toolkitHome, 'skills', 'alpha-skill');
 
   await fs.mkdir(sourceSkill, { recursive: true });
   await fs.writeFile(path.join(sourceSkill, 'SKILL.md'), '# alpha\n', 'utf8');
@@ -675,7 +677,7 @@ test('installLinks in copy mode copies files (not symlink)', async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'apollo-toolkit-copy-'));
   const toolkitHome = path.join(tempDir, '.apollo-toolkit');
   const codexRoot = path.join(tempDir, 'codex-skills');
-  const sourceSkill = path.join(toolkitHome, 'alpha-skill');
+  const sourceSkill = path.join(toolkitHome, 'skills', 'alpha-skill');
 
   await fs.mkdir(sourceSkill, { recursive: true });
   await fs.writeFile(path.join(sourceSkill, 'SKILL.md'), '# alpha\n', 'utf8');
@@ -708,10 +710,10 @@ test('listAllKnownSkillNames combines current and historical skills with dedup',
   const codexRoot = path.join(tempDir, 'codex-skills');
 
   // Current skills in toolkit home
-  await fs.mkdir(path.join(toolkitHome, 'alpha-skill'), { recursive: true });
-  await fs.writeFile(path.join(toolkitHome, 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
-  await fs.mkdir(path.join(toolkitHome, 'beta-skill'), { recursive: true });
-  await fs.writeFile(path.join(toolkitHome, 'beta-skill', 'SKILL.md'), '# beta\n', 'utf8');
+  await fs.mkdir(path.join(toolkitHome, 'skills', 'alpha-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'skills', 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
+  await fs.mkdir(path.join(toolkitHome, 'skills', 'beta-skill'), { recursive: true });
+  await fs.writeFile(path.join(toolkitHome, 'skills', 'beta-skill', 'SKILL.md'), '# beta\n', 'utf8');
 
   // Manifest with historical skills (including an old one)
   await fs.mkdir(codexRoot, { recursive: true });

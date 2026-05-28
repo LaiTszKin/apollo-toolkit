@@ -36,10 +36,10 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R1.1 `skills/` 目錄存在於 repo 根目錄
-- [ ] R1.2 全部 42 個技能目錄（含 SKILL.md）位於 `skills/` 下
-- [ ] R1.3 根目錄不再有含 SKILL.md 的子目錄
-- [ ] R1.4 非技能目錄的結構保持不變
+- [x] R1.1 `skills/` 目錄存在於 repo 根目錄
+- [x] R1.2 全部 42 個技能目錄（含 SKILL.md）位於 `skills/` 下
+- [x] R1.3 根目錄不再有含 SKILL.md 的子目錄
+- [x] R1.4 非技能目錄的結構保持不變
 
 ### Requirement 2: 安裝腳本路徑更新
 **GIVEN** 技能目錄已移至 `skills/` 下
@@ -51,10 +51,10 @@
 **Uncertainty Level**: Known
 
 **Requirements**:
-- [ ] R2.1 `collect_skills()` 的 SHARED_SKILL_PATHS 從 `skills/` 目錄收集技能
-- [ ] R2.2 `scripts/install_skills.ps1` 的對應邏輯同步更新
-- [ ] R2.3 安裝命令正確將 `skills/<name>/` 安裝至目標平台的 skills 目錄
-- [ ] R2.4 `scripts/install_skills.sh` 的 curl/pipe 模式（`bootstrap_repo_if_needed`）不受影響
+- [x] R2.1 `collect_skills()` 的 SHARED_SKILL_PATHS 從 `skills/` 目錄收集技能
+- [x] R2.2 `scripts/install_skills.ps1` 的對應邏輯同步更新
+- [x] R2.3 安裝命令正確將 `skills/<name>/` 安裝至目標平台的 skills 目錄
+- [x] R2.4 `scripts/install_skills.sh` 的 curl/pipe 模式（`bootstrap_repo_if_needed`）不受影響
 
 ### Requirement 3: 其他代碼路徑引用更新
 **GIVEN** 技能目錄已移至 `skills/` 下
@@ -66,9 +66,9 @@
 **Uncertainty Level**: Exploratory（需先搜尋確認哪些檔案引用了技能路徑）
 
 **Requirements**:
-- [ ] R3.1 搜尋所有引用技能目錄路徑的代碼並完成更新
-- [ ] R3.2 `npm test` 全部通過
-- [ ] R3.3 `apltk validate-skill-frontmatter` 正確掃描 `skills/` 目錄
+- [x] R3.1 搜尋所有引用技能目錄路徑的代碼並完成更新
+- [x] R3.2 `npm test` 全部通過
+- [x] R3.3 `apltk validate-skill-frontmatter` 正確掃描 `skills/` 目錄
 
 ## Error and Edge Cases
 - [ ] `skills/` 目錄已存在時的行為（冪等性）

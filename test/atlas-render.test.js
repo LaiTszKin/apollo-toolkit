@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const render = require('../init-project-html/lib/atlas/render');
+const render = require('../skills/init-project-html/lib/atlas/render');
 const {
   layoutMacro,
   assertNoOverlap,
@@ -15,7 +15,7 @@ const {
   buildGraph,
   SUB_WIDTH_MAX,
   SUB_HEIGHT_MIN,
-} = require('../init-project-html/lib/atlas/layout');
+} = require('../skills/init-project-html/lib/atlas/layout');
 
 function fixtureState() {
   return {
@@ -211,14 +211,14 @@ test('renderAll renders an empty atlas with a placeholder SVG', async () => {
 });
 
 test('shipped architecture.css gives the viewport a fixed height so horizontal atlases keep their block', () => {
-  const css = fs.readFileSync(path.join(__dirname, '..', 'init-project-html', 'lib', 'atlas', 'assets', 'architecture.css'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'skills', 'init-project-html', 'lib', 'atlas', 'assets', 'architecture.css'), 'utf8');
   assert.match(css, /\.atlas-canvas__viewport\b[^{]*\{[^}]*height:\s*clamp\(/, 'macro viewport has a clamp() height');
   assert.match(css, /\.sub-dataflow__viewport\b[^{]*\{[^}]*height:\s*clamp\(/, 'sub dataflow viewport has a clamp() height');
   assert.match(css, /\.atlas-svg\b[^{]*\{[^}]*height:\s*100%/, 'atlas-svg fills the viewport height');
 });
 
 test('shipped viewer.client.js claims the wheel gesture so the host page never scrolls', () => {
-  const js = fs.readFileSync(path.join(__dirname, '..', 'init-project-html', 'lib', 'atlas', 'assets', 'viewer.client.js'), 'utf8');
+  const js = fs.readFileSync(path.join(__dirname, '..', 'skills', 'init-project-html', 'lib', 'atlas', 'assets', 'viewer.client.js'), 'utf8');
   const wheelBlock = js.match(/addEventListener\('wheel',[\s\S]*?\}, \{ passive: false \}\)/);
   assert.ok(wheelBlock, 'wheel handler exists');
   assert.match(wheelBlock[0], /evt\.preventDefault\(\)/);
@@ -366,7 +366,7 @@ test('renderMacroSvg paints multi-line edge labels as <tspan> lines centered on 
 });
 
 test('shipped architecture.css gives edge labels a dark halo so they stay legible over arrows', () => {
-  const css = fs.readFileSync(path.join(__dirname, '..', 'init-project-html', 'lib', 'atlas', 'assets', 'architecture.css'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'skills', 'init-project-html', 'lib', 'atlas', 'assets', 'architecture.css'), 'utf8');
   const rule = css.match(/\.m-edge__label\b[^{]*\{[^}]*\}/);
   assert.ok(rule, '.m-edge__label rule exists');
   assert.match(rule[0], /paint-order:\s*stroke/);
@@ -450,7 +450,7 @@ test('renderMacroSvg tags cross-feature edges with m-edge--cross so CSS can dim 
 });
 
 test('shipped architecture.css dims cross-feature edges and restores them on hover', () => {
-  const css = fs.readFileSync(path.join(__dirname, '..', 'init-project-html', 'lib', 'atlas', 'assets', 'architecture.css'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'skills', 'init-project-html', 'lib', 'atlas', 'assets', 'architecture.css'), 'utf8');
   assert.match(css, /\.m-edge--cross path\s*\{[^}]*opacity:\s*0?\.\d+/, 'cross edges are dimmed by default');
   assert.match(css, /\.m-edge--cross:hover path\b[^{]*\{[^}]*opacity:\s*1/, 'hover restores full strength');
 });

@@ -6,8 +6,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const schema = require('../init-project-html/lib/atlas/schema');
-const stateLib = require('../init-project-html/lib/atlas/state');
+const schema = require('../skills/init-project-html/lib/atlas/schema');
+const stateLib = require('../skills/init-project-html/lib/atlas/state');
 
 function mkTmp() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-atlas-state-'));

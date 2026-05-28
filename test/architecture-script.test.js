@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const atlasCli = require('../init-project-html/lib/atlas/cli');
+const atlasCli = require('../skills/init-project-html/lib/atlas/cli');
 const { listToolCommands, resolveToolCommand } = require('../dist/lib/tool-runner');
 const { parseArguments, buildHelpText } = require('../dist/lib/cli');
 

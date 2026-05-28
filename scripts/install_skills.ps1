@@ -75,7 +75,11 @@ function Test-RepoRoot {
     return $false
   }
 
-  $dirs = Get-ChildItem -Path $Path -Directory -ErrorAction SilentlyContinue
+  $skillsPath = Join-Path $Path "skills"
+  if (-not (Test-Path -LiteralPath $skillsPath -PathType Container)) {
+    return $false
+  }
+  $dirs = Get-ChildItem -Path $skillsPath -Directory -ErrorAction SilentlyContinue
   foreach ($dir in $dirs) {
     if (Test-Path -LiteralPath (Join-Path $dir.FullName "SKILL.md") -PathType Leaf) {
       return $true
@@ -122,7 +126,7 @@ else {
 function Get-SkillPathGroups {
   param([string[]]$SelectedModes)
 
-  $dirs = Get-ChildItem -Path $Script:RepoRoot -Directory | Sort-Object Name
+  $dirs = Get-ChildItem -Path (Join-Path $Script:RepoRoot "skills") -Directory | Sort-Object Name
   $sharedSkills = @()
   $codexSkills = @()
 

@@ -76,7 +76,7 @@ if [[ -n "$SCRIPT_SOURCE" && -f "$SCRIPT_SOURCE" ]]; then
   REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 else
   # curl/pipe mode: use current directory only when it looks like this repo.
-  if find "$PWD" -mindepth 1 -maxdepth 1 -type d -exec test -f '{}/SKILL.md' ';' -print -quit | grep -q .; then
+  if find "$PWD/skills" -mindepth 1 -maxdepth 1 -type d -exec test -f '{}/SKILL.md' ';' -print -quit 2>/dev/null | grep -q .; then
     REPO_ROOT="$PWD"
   else
     bootstrap_repo_if_needed
@@ -100,7 +100,7 @@ collect_skills() {
     if [[ -f "$dir/SKILL.md" ]]; then
       SHARED_SKILL_PATHS+=("$dir")
     fi
-  done < <(find "$REPO_ROOT" -mindepth 1 -maxdepth 1 -type d | sort)
+  done < <(find "$REPO_ROOT/skills" -mindepth 1 -maxdepth 1 -type d | sort)
 
   if [[ " ${SELECTED_MODES[*]} " =~ " codex " ]]; then
     local codex_dir="$REPO_ROOT/codex"

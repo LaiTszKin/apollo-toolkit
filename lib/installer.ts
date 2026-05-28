@@ -66,12 +66,15 @@ export function normalizeModes(inputModes: string[]): InstallMode[] {
 }
 
 export async function listSkillNames(rootDir: string, modes: InstallMode[] = []): Promise<string[]> {
-  const entries = await fsp.readdir(rootDir, { withFileTypes: true });
+  const skillsDir = path.join(rootDir, 'skills');
+  const entries = fs.existsSync(skillsDir)
+    ? await fsp.readdir(skillsDir, { withFileTypes: true })
+    : [];
   const skillNames = new Set<string>();
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    if (fs.existsSync(path.join(rootDir, entry.name, 'SKILL.md'))) {
+    if (fs.existsSync(path.join(skillsDir, entry.name, 'SKILL.md'))) {
       skillNames.add(entry.name);
     }
   }
@@ -188,13 +191,15 @@ function resolveInstallSourcePath({ toolkitHome, targetMode, skillName, codexSki
   if (targetMode === 'codex' && codexSkillNames.includes(skillName)) {
     return path.join(toolkitHome, 'codex', skillName);
   }
-  return path.join(toolkitHome, skillName);
+  return path.join(toolkitHome, 'skills', skillName);
 }
 
 function shouldCopyEntry(sourceRoot: string, entry: fs.Dirent): boolean {
   if (entry.isFile()) return COPY_FILES.has(entry.name);
   if (!entry.isDirectory()) return false;
   if (COPY_DIRS.has(entry.name)) return true;
+  // skills/ container directory: skill subdirectories are inside it
+  if (entry.name === 'skills') return true;
   return fs.existsSync(path.join(sourceRoot, entry.name, 'SKILL.md'));
 }
 
