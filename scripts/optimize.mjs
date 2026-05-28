@@ -20,13 +20,15 @@
  * 僅使用 Node.js 內建模組。
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync, statSync } from 'fs';
-import { resolve, join, dirname, basename } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync } from 'fs';
+import { resolve, join } from 'path';
 import { execSync } from 'child_process';
 
 const __dirname = new URL('.', import.meta.url).pathname;
 const ROOT_DIR = resolve(__dirname, '..');
+
+/** Severity ranking for consistent sorting */
+const SEVERITY_RANK = { P0: 0, P1: 1, P2: 2 };
 
 // --- Common words to filter out in keyword extraction ---
 const STOP_WORDS = new Set([
@@ -168,16 +170,12 @@ function jaccardSimilarity(setA, setB) {
   return intersection / (union - intersection || 1);
 }
 
-// --- Judge Model API ---
-
 /**
- * Call the judge model API (OpenAI-compatible /v1/chat/completions).
- *
- * @param {Array<{role: string, content: string}>} messages
- * @param {object} env - environment variables with JUDGE_* keys
- * @returns {Promise<object>} API response JSON
+ * Call the judge model and return both raw result and parsed content.
+ * Thin wrapper around the shared callJudgeModel that preserves the {result, content} interface
+ * used by optimize.mjs.
  */
-async function callJudgeModel(messages, env) {
+async function callJudgeModelWithRaw(messages, env) {
   const url = `${env.JUDGE_BASE_URL}/v1/chat/completions`;
 
   const body = {
@@ -186,7 +184,6 @@ async function callJudgeModel(messages, env) {
     stream: false,
   };
 
-  // Only add reasoning_effort if explicitly set
   if (env.JUDGE_REASONING_EFFORT) {
     body.reasoning_effort = env.JUDGE_REASONING_EFFORT;
   }
@@ -215,42 +212,7 @@ async function callJudgeModel(messages, env) {
   return { result, content };
 }
 
-/**
- * Safely parse JSON from judge model output, with fallback handling.
- *
- * @param {string} content
- * @returns {object}
- */
-function parseJudgeJSON(content) {
-  // Try direct parse
-  try {
-    return JSON.parse(content);
-  } catch (_) {
-    // not valid JSON directly
-  }
-
-  // Try ```json ... ``` block
-  const jsonBlock = content.match(/```json\s*([\s\S]*?)\s*```/);
-  if (jsonBlock) {
-    try {
-      return JSON.parse(jsonBlock[1]);
-    } catch (_) {
-      // still not valid
-    }
-  }
-
-  // Try { ... } extraction
-  const braceMatch = content.match(/\{[\s\S]*\}/);
-  if (braceMatch) {
-    try {
-      return JSON.parse(braceMatch[0]);
-    } catch (_) {
-      // still not valid
-    }
-  }
-
-  throw new Error(`Cannot parse judge model output as JSON: ${content.substring(0, 500)}`);
-}
+// (parseJudgeOutput is imported from shared lib/judge-api.mjs; parseJudgeJSON alias removed)
 
 // --- Task 1: Score aggregation and deduplication ---
 
@@ -394,7 +356,7 @@ async function deduplicateIssues(issues, env, judgeAvailable) {
       const maxSeverity = cluster
         .map(i => i.severity)
         .reduce((max, s) => {
-          const rank = { P0: 0, P1: 1, P2: 2 };
+          const rank = SEVERITY_RANK;
           return (rank[s] ?? 2) < (rank[max] ?? 2) ? s : max;
         }, 'P2');
 
@@ -469,36 +431,45 @@ async function refineDedupWithJudge(deduped, env) {
 
   if (pairs.length === 0) return deduped;
 
-  // Send to judge model for pair comparison
-  const comparisons = [];
-  for (const { a, b } of pairs) {
+  // Send to judge model for pair comparison (parallelized with promise pool)
+  const { promisePool } = await import('./lib/promise-pool.mjs');
+  const judgeConcurrency = env.JUDGE_CONCURRENCY ? parseInt(env.JUDGE_CONCURRENCY, 10) : 5;
+
+  const comparisonResults = await promisePool(pairs, async ({ a, b }) => {
+    // Quick pre-filter: compute keyword similarity on-the-fly, skip if too different
+    const aKeys = extractKeywords(a.description);
+    const bKeys = extractKeywords(b.description);
+    const descSim = jaccardSimilarity(aKeys, bKeys);
+    if (descSim < 0.25) return null;
+
     const prompt = [
       'You are comparing two optimization issues to determine if they describe the same underlying problem.',
       '',
       'Issue A:',
       `  Description: ${a.description}`,
-      `  Evidence: ${a.evidence.join('; ') || '(none)'}`,
+      `  Evidence: ${a.evidence?.join?.('; ') || '(none)'}`,
       '',
       'Issue B:',
       `  Description: ${b.description}`,
-      `  Evidence: ${b.evidence.join('; ') || '(none)'}`,
+      `  Evidence: ${b.evidence?.join?.('; ') || '(none)'}`,
       '',
       'Reply with exactly one word: "YES" if they describe the same issue, "NO" otherwise.',
     ].join('\n');
 
     try {
-      const { content } = await callJudgeModel(
+      const { content } = await callJudgeModelWithRaw(
         [{ role: 'user', content: prompt }],
         env
       );
       const trimmed = content.trim().toUpperCase();
-      const shouldMerge = trimmed.startsWith('YES');
-      comparisons.push({ a, b, shouldMerge });
+      return { a, b, shouldMerge: trimmed.startsWith('YES') };
     } catch (err) {
-      // Skip this pair on error
       console.warn(`Judge comparison failed for pair: ${err.message.split('\n')[0]}`);
+      return null;
     }
-  }
+  }, judgeConcurrency);
+
+  const comparisons = comparisonResults.filter(Boolean);
 
   // Build merge groups using union-find
   const parent = new Map();
@@ -592,7 +563,7 @@ async function generateSuggestedFix(issue, env, judgeAvailable) {
         'Reply with just the fix suggestion text, no extra formatting.',
       ].join('\n');
 
-      const { content } = await callJudgeModel(
+      const { content } = await callJudgeModelWithRaw(
         [{ role: 'user', content: prompt }],
         env
       );
@@ -807,7 +778,7 @@ async function optimizeSkillMd(plan, skillMdPath, env, dryRun, date, judgeAvaila
         patchLines.push('');
 
         const judgePrompt = buildSkillOptimizationPrompt(skillIssues, currentContent);
-        const { content } = await callJudgeModel(
+        const { content } = await callJudgeModelWithRaw(
           [{ role: 'user', content: judgePrompt }],
           env
         );
@@ -849,7 +820,7 @@ async function optimizeSkillMd(plan, skillMdPath, env, dryRun, date, judgeAvaila
   // 2. Get judge model suggestions
   try {
     const judgePrompt = buildSkillOptimizationPrompt(skillIssues, currentContent);
-    const { content } = await callJudgeModel(
+    const { content } = await callJudgeModelWithRaw(
       [{ role: 'user', content: judgePrompt }],
       env
     );
@@ -863,7 +834,7 @@ async function optimizeSkillMd(plan, skillMdPath, env, dryRun, date, judgeAvaila
 
     // 4. Validate frontmatter
     try {
-      execSync('apltk validate-skill-frontmatter', {
+      execSync('node dist/bin/apollo-toolkit.js validate-skill-frontmatter', {
         cwd: ROOT_DIR,
         stdio: 'pipe',
         timeout: 30000,
@@ -1130,7 +1101,7 @@ async function optimizeApltkTools(plan, sourceRoot, env, dryRun, date, judgeAvai
     if (judgeAvailable) {
       try {
         const judgePrompt = buildApltkOptimizationPrompt(issues, currentCode, relativePath);
-        const { content } = await callJudgeModel(
+        const { content } = await callJudgeModelWithRaw(
           [{ role: 'user', content: judgePrompt }],
           env
         );
@@ -1351,7 +1322,7 @@ function generateApltkTemplateChanges(issues, currentCode, filePath) {
     if (filePath.includes('architecture')) {
       lines.push('');
       lines.push('The architecture handler is a thin delegate to the atlas CLI.');
-      lines.push('Issues may originate in `init-project-html/lib/atlas/cli.js`.');
+      lines.push('Issues may originate in `skills/init-project-html/lib/atlas/cli.js`.');
       lines.push('Check if the delegate needs additional error context or validation.');
     }
 

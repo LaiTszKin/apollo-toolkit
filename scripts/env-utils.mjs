@@ -13,7 +13,8 @@
  */
 
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 /**
  * 所有必要的環境變數清單。
@@ -169,7 +170,8 @@ function selfTest() {
 
   // Test 2: Parse .env content (via env.example for format validation)
   console.log('\n2. 測試解析 .env.example:');
-  const envExamplePath = resolve(import.meta.dirname || resolve('.'), '..', '.env.example');
+  const __selfDirname = dirname(fileURLToPath(import.meta.url));
+  const envExamplePath = resolve(__selfDirname, '..', '.env.example');
   try {
     const content = readFileSync(envExamplePath, 'utf-8');
     const lines = content.split('\n').filter(l => l.includes('=') && !l.startsWith('#'));
@@ -188,7 +190,6 @@ function selfTest() {
 }
 
 // Run self-test when executed directly
-import { fileURLToPath } from 'url';
 const isDirectRun = process.argv[1] && (
   process.argv[1].endsWith('env-utils.mjs') ||
   process.argv[1].endsWith('env-utils')

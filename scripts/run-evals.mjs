@@ -16,136 +16,78 @@
  * 僅使用 Node.js 內建模組。
  */
 
-import { readFileSync, mkdirSync, writeFileSync, appendFileSync, existsSync } from 'fs';
+import { existsSync } from 'fs';
+import { appendFile, mkdir, writeFile, rm } from 'fs/promises';
 import { resolve, join } from 'path';
-import { fileURLToPath } from 'url';
 
 // ESM __dirname equivalent
 const __dirname = new URL('.', import.meta.url).pathname;
 
 /**
- * 低階：將 trace event 寫入 JSONL 檔案。
- * @param {string} tracePath - 追蹤檔案的絕對路徑
- * @param {object} event - 要寫入的事件
+ * 低階：將 trace event 寫入 JSONL 檔案（非同步版本）。
  */
-function appendTrace(tracePath, event) {
-  appendFileSync(tracePath, JSON.stringify(event) + '\n', 'utf-8');
+async function appendTrace(tracePath, event) {
+  await appendFile(tracePath, JSON.stringify(event) + '\n', 'utf-8');
 }
 
 /**
  * 建立隔離的工作區目錄和初始檔案。
- *
- * @param {string} testNo - 題目編號 (如 "Q001")
- * @param {object} projectContext - 題目的 projectContext
- * @param {string} date - 日期字串
- * @returns {string} 工作區目錄的絕對路徑
  */
-function initWorkspace(testNo, projectContext, date) {
+async function initWorkspace(testNo, projectContext, date) {
   const rootDir = resolve(__dirname, '..');
   const workspaceDir = resolve(rootDir, 'assets', 'spec', date, `test_${testNo}`);
   const resultsDir = resolve(rootDir, 'results', 'spec', date, `test_${testNo}`);
 
-  // 建立目錄
-  mkdirSync(workspaceDir, { recursive: true });
-  mkdirSync(resultsDir, { recursive: true });
+  await mkdir(workspaceDir, { recursive: true });
+  await mkdir(resultsDir, { recursive: true });
 
-  // 寫入 projectContext 中宣告的檔案
   for (const file of projectContext.files) {
     const filePath = join(workspaceDir, file.path);
     const fileDir = file.path.includes('/') ? file.path.substring(0, file.path.lastIndexOf('/')) : null;
 
     if (fileDir) {
-      mkdirSync(join(workspaceDir, fileDir), { recursive: true });
+      await mkdir(join(workspaceDir, fileDir), { recursive: true });
     }
 
-    writeFileSync(filePath, file.content, 'utf-8');
+    await writeFile(filePath, file.content, 'utf-8');
   }
 
   return workspaceDir;
 }
 
 /**
- * 呼叫執行模型 API (OpenAI-compatible /v1/chat/completions)。
- *
- * @param {Array<{role: string, content: string}>} messages - 對話訊息
- * @param {object} env - 環境變數（來自 loadEnv）
- * @param {AbortSignal} [signal] - 用於超時取消的 AbortSignal
- * @returns {Promise<object>} API 的回應 JSON
- */
-async function callExecModel(messages, env, signal) {
-  const url = `${env.EXEC_BASE_URL}/v1/chat/completions`;
-
-  const body = {
-    model: env.EXEC_MODEL,
-    messages,
-    reasoning_effort: env.EXEC_REASONING_EFFORT,
-    stream: false,
-  };
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${env.EXEC_API_KEY}`,
-    },
-    body: JSON.stringify(body),
-    signal,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => '(unable to read error body)');
-    throw new Error(`API error ${response.status}: ${errorText}`);
-  }
-
-  return response.json();
-}
-
-/**
  * 執行單一測試題目。
- *
- * 流程：
- *   1. 剝離評分標準
- *   2. 建立隔離工作區
- *   3. 建構系統提示詞
- *   4. 呼叫執行模型
- *   5. 寫入 trace.jsonl 執行追蹤
- *   6. 寫入 .done 標記
- *
- * @param {object} question - 完整題目物件
- * @param {object} stripScoringCriteria - 剝離函數
- * @param {object} env - 環境變數
- * @param {string} date - 日期字串
- * @returns {Promise<{testId: string, success: boolean, error?: string}>}
  */
-async function runSingleTest(question, stripScoringCriteria, env, date) {
+async function runSingleTest(question, stripScoringCriteria, env, date, skillName = 'spec') {
   const testNo = question.id;
   const rootDir = resolve(__dirname, '..');
   const resultsDir = resolve(rootDir, 'results', 'spec', date, `test_${testNo}`);
   const tracePath = join(resultsDir, 'trace.jsonl');
   const donePath = join(resultsDir, '.done');
 
-  // 確保 results 目錄存在
-  mkdirSync(resultsDir, { recursive: true });
+  // Ensure results dir and clean up old trace on retry
+  await mkdir(resultsDir, { recursive: true });
+
+  // Remove old trace if it exists (from a previous failed attempt) but no .done marker
+  if (existsSync(tracePath) && !existsSync(donePath)) {
+    await rm(tracePath, { force: true });
+  }
 
   const startTime = Date.now();
 
-  // 寫入 start event
-  appendTrace(tracePath, {
+  await appendTrace(tracePath, {
     type: 'start',
     timestamp: new Date().toISOString(),
     data: { testId: testNo, difficulty: question.difficulty },
   });
 
   try {
-    // 1. 剝離評分標準
     const stripped = stripScoringCriteria(question);
+    const workspaceDir = await initWorkspace(testNo, stripped.projectContext, date);
 
-    // 2. 建立隔離工作區
-    const workspaceDir = initWorkspace(testNo, stripped.projectContext, date);
-
-    // 3. 建構 messages
+    const skillCapName = skillName.charAt(0).toUpperCase() + skillName.slice(1);
     const systemPrompt = [
-      '你是一個 spec-writing agent，負責根據使用者需求撰寫規格文件。',
+      `你是一個 ${skillName}-writing agent，負責根據使用者需求撰寫規格文件。`,
       '',
       '重要限制：',
       `- 你只能在以下工作目錄中讀取和寫入檔案：${workspaceDir}`,
@@ -164,18 +106,16 @@ async function runSingleTest(question, stripScoringCriteria, env, date) {
       { role: 'user', content: stripped.userPrompt },
     ];
 
-    // 寫入 thinking phase marker
-    appendTrace(tracePath, {
+    await appendTrace(tracePath, {
       type: 'thinking',
       timestamp: new Date().toISOString(),
       data: { systemPrompt, userPrompt: stripped.userPrompt },
     });
 
-    // 4. 呼叫執行模型 (含 timeout)
+    // Call exec model with timeout
+    const { callExecModel } = await import('./lib/judge-api.mjs');
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, env.EXEC_TIMEOUT * 1000);
+    const timeoutId = setTimeout(() => controller.abort(), env.EXEC_TIMEOUT * 1000);
 
     let response;
     try {
@@ -184,9 +124,8 @@ async function runSingleTest(question, stripScoringCriteria, env, date) {
       clearTimeout(timeoutId);
     }
 
-    // 5. 寫入 response event
     const assistantMessage = response.choices?.[0]?.message;
-    appendTrace(tracePath, {
+    await appendTrace(tracePath, {
       type: 'response',
       timestamp: new Date().toISOString(),
       data: {
@@ -196,16 +135,14 @@ async function runSingleTest(question, stripScoringCriteria, env, date) {
       },
     });
 
-    // 6. 寫入 end event
     const duration = Date.now() - startTime;
-    appendTrace(tracePath, {
+    await appendTrace(tracePath, {
       type: 'end',
       timestamp: new Date().toISOString(),
       data: { duration_ms: duration, status: 'completed' },
     });
 
-    // 7. 寫入 .done 標記
-    writeFileSync(donePath, JSON.stringify({
+    await writeFile(donePath, JSON.stringify({
       testId: testNo,
       completedAt: new Date().toISOString(),
       duration_ms: duration,
@@ -215,34 +152,22 @@ async function runSingleTest(question, stripScoringCriteria, env, date) {
     return { testId: testNo, success: true };
 
   } catch (err) {
-    // 判斷是否為超時
     const isTimeout = err.name === 'AbortError' || err.name === 'TimeoutError';
 
-    // 寫入 error event
-    appendTrace(tracePath, {
+    await appendTrace(tracePath, {
       type: 'error',
       timestamp: new Date().toISOString(),
-      data: {
-        error: err.message,
-        name: err.name,
-        timeout: isTimeout,
-      },
+      data: { error: err.message, name: err.name, timeout: isTimeout },
     });
 
-    // 寫入 end event (failure)
     const duration = Date.now() - startTime;
-    appendTrace(tracePath, {
+    await appendTrace(tracePath, {
       type: 'end',
       timestamp: new Date().toISOString(),
-      data: {
-        duration_ms: duration,
-        status: isTimeout ? 'timeout' : 'error',
-        error: err.message,
-      },
+      data: { duration_ms: duration, status: isTimeout ? 'timeout' : 'error', error: err.message },
     });
 
-    // 即使失敗也寫入 .done，讓 scorer 可以對超時/錯誤進行評分
-    writeFileSync(donePath, JSON.stringify({
+    await writeFile(donePath, JSON.stringify({
       testId: testNo,
       completedAt: new Date().toISOString(),
       duration_ms: duration,
@@ -255,43 +180,7 @@ async function runSingleTest(question, stripScoringCriteria, env, date) {
 }
 
 /**
- * Promise pool 並發控制。
- * 限制同時執行的 Promise 數量。
- *
- * @param {Array} items - 要處理的項目陣列
- * @param {Function} fn - 處理函數，接受 (item, index) 並回傳 Promise
- * @param {number} concurrency - 最大同時執行數量
- * @returns {Promise<Array>} 處理結果陣列
- */
-async function promisePool(items, fn, concurrency) {
-  const results = new Array(items.length);
-  let index = 0;
-
-  async function worker() {
-    while (index < items.length) {
-      const i = index++;
-      if (i >= items.length) break;
-      results[i] = await fn(items[i], i);
-    }
-  }
-
-  const workers = [];
-  const limit = Math.min(concurrency, items.length);
-  for (let i = 0; i < limit; i++) {
-    workers.push(worker());
-  }
-
-  await Promise.all(workers);
-  return results;
-}
-
-/**
  * 帶指數退避的重試包裝函數。
- *
- * @param {Function} fn - 要執行的非同步函數
- * @param {number} maxRetries - 最大重試次數 (預設 3)
- * @param {Array<number>} delays - 延遲秒數陣列 (預設 [1, 2, 4])
- * @returns {Promise<any>}
  */
 async function withRetry(fn, maxRetries = 3, delays = [1, 2, 4]) {
   let lastError;
@@ -313,23 +202,35 @@ async function withRetry(fn, maxRetries = 3, delays = [1, 2, 4]) {
 }
 
 /**
+ * 解析 CLI 參數。
+ */
+function parseArgs(args) {
+  const flags = args.filter(a => a.startsWith('--'));
+  const positionals = args.filter(a => !a.startsWith('--'));
+  const date = positionals[0] || '2026-05-28';
+  const skillName = flags.find(f => f.startsWith('--skill='))?.split('=')[1] || 'spec';
+  return { date, skillName };
+}
+
+/**
  * 主入口：載入題目、並發執行所有測試。
  */
 async function main() {
-  // 動態 import 相依模組
-  const { loadEnv } = await import('./env-utils.mjs');
-  const { loadQuestions, stripScoringCriteria } = await import('./question-utils.mjs');
+  const [{ loadEnv }, { loadQuestions, stripScoringCriteria }, { promisePool }] = await Promise.all([
+    import('./env-utils.mjs'),
+    import('./question-utils.mjs'),
+    import('./lib/promise-pool.mjs'),
+  ]);
 
-  // 解析 CLI 參數
-  const date = process.argv[2] || '2026-05-28';
+  const { date, skillName } = parseArgs(process.argv.slice(2));
   const rootDir = resolve(__dirname, '..');
   const questionsPath = resolve(rootDir, 'assets', 'spec', date, 'test-questions.json');
 
   console.log('=== run-evals.mjs ===');
   console.log(`日期: ${date}`);
+  console.log(`技能: ${skillName}`);
   console.log(`題目檔案: ${questionsPath}`);
 
-  // 載入環境變數
   let env;
   try {
     env = loadEnv();
@@ -343,7 +244,6 @@ async function main() {
   console.log(`逾時設定: ${env.EXEC_TIMEOUT}s`);
   console.log(`重試設定: 最多 3 次 (1s / 2s / 4s)`);
 
-  // 載入題目
   let questions;
   try {
     questions = loadQuestions(questionsPath);
@@ -357,7 +257,6 @@ async function main() {
   questions.forEach(q => diffCount[q.difficulty]++);
   console.log(`難度分佈: basic=${diffCount.basic}, advanced=${diffCount.advanced}, edge=${diffCount.edge}\n`);
 
-  // 執行所有測試（並發控制）
   const startTime = Date.now();
   let completed = 0;
   let failed = 0;
@@ -368,7 +267,7 @@ async function main() {
 
     try {
       const result = await withRetry(() =>
-        runSingleTest(question, stripScoringCriteria, env, date)
+        runSingleTest(question, stripScoringCriteria, env, date, skillName)
       );
       completed++;
       if (result.success) {
@@ -385,9 +284,7 @@ async function main() {
     }
   }, env.EXEC_CONCURRENCY);
 
-  // 輸出摘要
   const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-  const succeeded = completed - failed;
 
   console.log(`\n=== 執行完成 ===`);
   console.log(`總題數: ${total}`);
@@ -395,7 +292,6 @@ async function main() {
   console.log(`失敗: ${failed}`);
   console.log(`耗時: ${duration}s`);
 
-  // 回傳非零 exit code 若有失敗
   if (failed > 0) {
     process.exitCode = 1;
   }

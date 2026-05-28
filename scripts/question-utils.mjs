@@ -89,17 +89,10 @@ function validateQuestion(question) {
   }
 
   // scoringCriteria
-  const dimensionsConfig = [
-    { key: 'outcome', label: '任務完成' },
-    { key: 'process', label: '流程遵循' },
-    { key: 'style', label: '輸出格式' },
-    { key: 'efficiency', label: '效率' },
-  ];
-
   if (!question.scoringCriteria || typeof question.scoringCriteria !== 'object') {
     errors.push('question.scoringCriteria 必須是物件');
   } else {
-    dimensionsConfig.forEach(({ key, label }) => {
+    SCORING_DIMENSIONS.forEach(({ key, label }) => {
       const dim = question.scoringCriteria[key];
       if (!dim || typeof dim !== 'object') {
         errors.push(`scoringCriteria.${key} (${label}) 必須是物件`);
@@ -129,7 +122,29 @@ function validateQuestion(question) {
   return { valid: errors.length === 0, errors };
 }
 
-// --- Public API ---
+/**
+ * 評分維度定義（供其他模組引用）。
+ */
+export const SCORING_DIMENSIONS = [
+  { key: 'outcome', label: '任務完成' },
+  { key: 'process', label: '流程遵循' },
+  { key: 'style', label: '輸出格式' },
+  { key: 'efficiency', label: '效率' },
+];
+
+/**
+ * Spec 技能工作流程八步驟定義（供步驟覆蓋率驗證使用）。
+ */
+export const SPEC_WORKFLOW_STEPS = [
+  { key: 'understand-requirements', label: '理解需求' },
+  { key: 'design-architecture', label: '拆分設計' },
+  { key: 'split-tasks', label: '拆分任務' },
+  { key: 'define-acceptance', label: '制定驗收條件' },
+  { key: 'research-docs', label: '查找文檔' },
+  { key: 'use-cli', label: '使用 CLI 工具' },
+  { key: 'architecture-diff', label: '產生架構 diff' },
+  { key: 'self-review', label: '交付前自我審查' },
+];
 
 /**
  * 載入題目檔案，讀取 JSON 並驗證每道題目。
@@ -188,8 +203,8 @@ export function loadQuestions(filePath) {
 }
 
 /**
- * 剝離評分標準，僅回傳不包含 scoringCriteria 和 difficulty 的題目物件。
- * 此函數確保被測 agent 無法看到評分標準。
+ * 剝離評分標準與難度資訊，僅回傳 { id, userPrompt, projectContext }。
+ * 此函數確保被測 agent 無法看到評分標準和難度等級。
  *
  * @param {object} question - 完整題目物件
  * @returns {{ id: string, userPrompt: string, projectContext: object }} 剝離後的題目
@@ -315,8 +330,39 @@ function selfTest() {
     process.exit(1);
   }
 
-  // Test 8: Verify all scoring criteria weights sum close to 1
-  console.log(`\n8. 檢查評分權重總和:`);
+  // Test 8: Verify step coverage (spec workflow 8 steps)
+  console.log(`\n8. 檢查 spec 工作流程步驟覆蓋率 (每步驟至少 5 題):`);
+  const stepCounts = {};
+  SPEC_WORKFLOW_STEPS.forEach(s => stepCounts[s.key] = 0);
+
+  for (const q of questions) {
+    if (Array.isArray(q.coveredSteps)) {
+      for (const step of q.coveredSteps) {
+        if (stepCounts.hasOwnProperty(step)) {
+          stepCounts[step]++;
+        }
+      }
+    }
+  }
+
+  const lowCoverage = [];
+  for (const step of SPEC_WORKFLOW_STEPS) {
+    const count = stepCounts[step.key];
+    console.log(`   ${step.label}: ${count} 題`);
+    if (count < 5) {
+      lowCoverage.push(`${step.label} (${count} 題)`);
+    }
+  }
+
+  if (lowCoverage.length > 0) {
+    console.log(`   警告: 以下步驟題目不足 5 道: ${lowCoverage.join(', ')}`);
+    console.log('   部分步驟可能缺乏足夠的測試覆蓋率');
+  } else {
+    console.log('   通過: 所有步驟至少有 5 道題目覆蓋');
+  }
+
+  // Test 9: Verify all scoring criteria weights sum close to 1
+  console.log(`\n9. 檢查評分權重總和:`);
   const badWeights = questions.filter((q) => {
     const dims = q.scoringCriteria;
     const sum = dims.outcome.weight + dims.process.weight + dims.style.weight + dims.efficiency.weight;

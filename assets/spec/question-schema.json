@@ -14,6 +14,23 @@
       "type": "string",
       "description": "使用者輸入的需求描述（繁體中文）"
     },
+    "coveredSteps": {
+      "type": "array",
+      "description": "此題目覆蓋的 spec 技能工作流程步驟（可選）",
+      "items": {
+        "type": "string",
+        "enum": [
+          "understand-requirements",
+          "design-architecture",
+          "split-tasks",
+          "define-acceptance",
+          "research-docs",
+          "use-cli",
+          "architecture-diff",
+          "self-review"
+        ]
+      }
+    },
     "difficulty": {
       "type": "string",
       "enum": ["basic", "advanced", "edge"],
