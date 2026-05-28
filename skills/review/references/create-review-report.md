@@ -19,5 +19,5 @@ apltk create-review-report [options] [<spec-path>]
 | `--force, -f` | 覆蓋已存在的 `REPORT.md` |
 
 ## 放置邏輯
-- 單一 spec：放在 `spec.md` 旁
-- Batch spec：放在 batch 根目錄（`coordination.md` 旁）
+- 單一 spec：放在 spec.md 旁
+- Batch spec：放在 batch 根目錄

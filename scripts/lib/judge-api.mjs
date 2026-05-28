@@ -6,33 +6,27 @@
  */
 
 /**
- * Call the judge model API (OpenAI-compatible /v1/chat/completions).
+ * Low-level judge model API call. Returns raw result and content.
+ * Used directly by optimize.mjs when it needs the raw response.
  *
- * @param {string} prompt - 評分提示詞
+ * @param {Array<{role: string, content: string}>} messages - 對話訊息
  * @param {object} env - 環境變數 (JUDGE_BASE_URL, JUDGE_MODEL, JUDGE_API_KEY, JUDGE_REASONING_EFFORT)
  * @param {object} [options] - 額外選項
- * @param {boolean} [options.jsonMode] - 是否啟用 response_format json_object (預設 false)
  * @param {number} [options.timeoutMs] - 逾時毫秒數
- * @returns {Promise<object>} 解析後的 JSON 物件
+ * @returns {Promise<{result: object, content: string}>}
  */
-export async function callJudgeModel(prompt, env, options = {}) {
-  const { jsonMode = false, timeoutMs = 0 } = options;
+export async function callJudgeModelRaw(messages, env, options = {}) {
+  const { timeoutMs = 0 } = options;
   const url = `${env.JUDGE_BASE_URL}/v1/chat/completions`;
 
   const body = {
     model: env.JUDGE_MODEL,
-    messages: [{ role: 'user', content: prompt }],
+    messages,
     stream: false,
   };
 
-  // Only add reasoning_effort if explicitly set (only supported by OpenAI o-series models)
   if (env.JUDGE_REASONING_EFFORT) {
     body.reasoning_effort = env.JUDGE_REASONING_EFFORT;
-  }
-
-  // Only add response_format when explicitly requested (not all APIs support it)
-  if (jsonMode) {
-    body.response_format = { type: 'json_object' };
   }
 
   const controller = new AbortController();
@@ -64,10 +58,28 @@ export async function callJudgeModel(prompt, env, options = {}) {
       throw new Error('Judge 模型回覆中沒有 content');
     }
 
-    return parseJudgeOutput(content);
+    return { result, content };
   } finally {
     if (timeoutId) clearTimeout(timeoutId);
   }
+}
+
+/**
+ * Call the judge model API (OpenAI-compatible /v1/chat/completions).
+ *
+ * @param {string} prompt - 評分提示詞
+ * @param {object} env - 環境變數 (JUDGE_BASE_URL, JUDGE_MODEL, JUDGE_API_KEY, JUDGE_REASONING_EFFORT)
+ * @param {object} [options] - 額外選項
+ * @param {number} [options.timeoutMs] - 逾時毫秒數
+ * @returns {Promise<object>} 解析後的 JSON 物件
+ */
+export async function callJudgeModel(prompt, env, options = {}) {
+  const { content } = await callJudgeModelRaw(
+    [{ role: 'user', content: prompt }],
+    env,
+    options
+  );
+  return parseJudgeOutput(content);
 }
 
 /**
@@ -163,5 +175,10 @@ export async function callExecModel(messages, env, signal) {
     throw new Error(`API error ${response.status}: ${errorText}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  const content = result.choices?.[0]?.message?.content;
+  if (content === undefined) {
+    throw new Error('Exec model response missing choices[0].message.content');
+  }
+  return result;
 }

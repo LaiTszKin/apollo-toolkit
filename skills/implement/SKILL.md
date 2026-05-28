@@ -13,7 +13,7 @@ description: 讀取 plan 產出的 PROMPT.md，嚴格按照其中的實作計畫
 - PROMPT.md 中所有定義的任務 checkboxes 全部被勾選為完成
 - 所有實作已通過 PROMPT.md 中定義的驗證檢查點
 - 若使用 subagent，所有 worktree 已被清理、無遺留分支
-- spec.md 中的需求 checkboxes 已回填
+- SPEC.md 中的需求 checkboxes 已回填
 
 ## 工作流程
 
@@ -28,7 +28,7 @@ description: 讀取 plan 產出的 PROMPT.md，嚴格按照其中的實作計畫
 - 錯誤恢復策略（Error Recovery）
 - 邊界規則（Boundaries）
 
-同時閱讀 spec 文檔組以理解實作上下文（spec.md、tasks.md、design.md、checklist.md）。
+同時閱讀 SPEC.md、DESIGN.md、CHECKLIST.md 以理解實作上下文。
 
 ### 2. 判斷是否需要隔離環境
 
@@ -104,7 +104,7 @@ description: 讀取 plan 產出的 PROMPT.md，嚴格按照其中的實作計畫
 
 ### 7. 回填 spec
 
-確保所有實作任務完成並通過驗收之後，更新 spec.md 中的需求 checkboxes。
+確保所有實作任務完成並通過驗收之後，更新 SPEC.md 中的需求 checkboxes。
 
 ### 8. 提交變更
 

@@ -24,20 +24,21 @@ const REQUIRED_VARS = {
   EXEC_BASE_URL: 'Execution model API base URL',
   EXEC_MODEL: 'Execution model name',
   EXEC_API_KEY: 'API key for execution model',
-  EXEC_REASONING_EFFORT: 'Reasoning effort for execution model',
   JUDGE_BASE_URL: 'Judge model API base URL',
   JUDGE_MODEL: 'Judge model name',
   JUDGE_API_KEY: 'API key for judge model',
-  JUDGE_REASONING_EFFORT: 'Reasoning effort for judge model',
 };
 
 /**
  * 具有預設值的環境變數。
  */
 const DEFAULTS = {
+  EXEC_REASONING_EFFORT: '',
+  JUDGE_REASONING_EFFORT: '',
   EXEC_CONCURRENCY: '10',
   JUDGE_CONCURRENCY: '5',
   EXEC_TIMEOUT: '600',
+  JUDGE_TIMEOUT: '120',
 };
 
 /**
@@ -142,9 +143,14 @@ export function loadEnv(envPath) {
   }
 
   // 數值轉換
-  result.EXEC_CONCURRENCY = parseInt(result.EXEC_CONCURRENCY, 10);
-  result.JUDGE_CONCURRENCY = parseInt(result.JUDGE_CONCURRENCY, 10);
-  result.EXEC_TIMEOUT = parseInt(result.EXEC_TIMEOUT, 10);
+  const parsePositiveInt = (val, defaultVal) => {
+    const n = parseInt(val, 10);
+    return Number.isFinite(n) && n > 0 ? n : defaultVal;
+  };
+  result.EXEC_CONCURRENCY = parsePositiveInt(result.EXEC_CONCURRENCY, 10);
+  result.JUDGE_CONCURRENCY = parsePositiveInt(result.JUDGE_CONCURRENCY, 5);
+  result.EXEC_TIMEOUT = parsePositiveInt(result.EXEC_TIMEOUT, 600);
+  result.JUDGE_TIMEOUT = parsePositiveInt(result.JUDGE_TIMEOUT, 120);
 
   return result;
 }
