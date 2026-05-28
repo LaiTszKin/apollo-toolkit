@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.17.2] - 2026-05-28
+
+### Docs
+
+- Limit each spec to at most 3 user requirements.
+
 ## [v3.17.1] - 2026-05-28
 
 ### Docs
