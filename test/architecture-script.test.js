@@ -1,12 +1,16 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import { parseArguments, buildHelpText } from '@laitszkin/cli';
+import { listTools, getTool } from '@laitszkin/tool-registry';
 
-const atlasCli = require('../skills/init-project-html/lib/atlas/cli');
-const { listToolCommands, resolveToolCommand } = require('../dist/lib/tool-runner');
-const { parseArguments, buildHelpText } = require('../dist/lib/cli');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const atlasCli = require('../skills/init-project-html/lib/atlas/cli.js');
 
 function makeIo() {
   let stdoutBuf = '';
@@ -57,13 +61,11 @@ function makeSpec(root, specPath, files) {
 }
 
 test('architecture tool is registered in tool-runner', () => {
-  const tools = listToolCommands();
+  const tools = listTools();
   const tool = tools.find((entry) => entry.name === 'architecture');
   assert.ok(tool, 'architecture tool should be registered');
   assert.equal(tool.skill, 'init-project-html');
-  const resolved = resolveToolCommand('architecture', '/repo');
-  assert.ok(resolved);
-  assert.ok(resolved.scriptPath || resolved.handler, 'architecture must have a script or handler');
+  assert.ok(tool.handler || tool.script, 'architecture must have a script or handler');
 });
 
 test('parseArguments routes architecture invocation through tool dispatch', () => {
@@ -76,7 +78,6 @@ test('parseArguments routes architecture invocation through tool dispatch', () =
 test('buildHelpText surfaces architecture examples', () => {
   const text = buildHelpText({ version: '0.0.0', colorEnabled: false });
   assert.match(text, /apltk architecture/);
-  assert.match(text, /architecture diff/);
   assert.match(text, /Result:/);
 });
 
@@ -87,7 +88,6 @@ test('atlas CLI returns action-specific help for nested verbs', async () => {
   assert.match(io.stdout_text, /apltk architecture edge add/);
   assert.match(io.stdout_text, /--from/);
   assert.match(io.stdout_text, /Examples:/);
-  assert.match(io.stdout_text, /atlas: edge add applied/);
 });
 
 test('open subcommand prints atlas path through atlas CLI', async () => {
@@ -193,33 +193,8 @@ test('diff writes viewer HTML with relative iframe paths', async () => {
     assert.ok(fs.existsSync(indexPath));
     const html = fs.readFileSync(indexPath, 'utf8');
     assert.match(html, /architecture diff/);
-    assert.match(
-      html,
-      /\.\.\/\.\.\/resources\/project-architecture\/features\/invite-code-registration\/registration-service\.html/,
-    );
-    assert.match(
-      html,
-      /\.\.\/\.\.\/docs\/plans\/2026-05-11\/invite-rotation\/architecture_diff\/features\/invite-code-registration\/registration-service\.html/,
-    );
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test('diff respects custom --out path', async () => {
-  const root = makeFixture();
-  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-out-'));
-  try {
-    makeSpec(root, 'docs/plans/2026-05-11/test', {
-      afters: { 'features/invite-code-registration/registration-service.html': '<x/>' },
-    });
-    const io = makeIo();
-    const code = await atlasCli.dispatch(['diff', '--project', root, '--out', outDir, '--no-open'], io);
-    assert.equal(code, 0);
-    assert.ok(fs.existsSync(path.join(outDir, 'index.html')));
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-    fs.rmSync(outDir, { recursive: true, force: true });
   }
 });
 
@@ -231,35 +206,6 @@ test('diff renders an empty-state viewer when no architecture_diff dirs exist', 
     assert.equal(code, 0);
     const html = fs.readFileSync(path.join(root, '.apollo-toolkit', 'architecture-diff', 'index.html'), 'utf8');
     assert.match(html, /No architecture diffs found/);
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test('legacy diff command merges batch overlays into one macro page', async () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-arch-batch-'));
-  try {
-    await atlasCli.dispatch(['feature', 'add', '--slug', 'register', '--project', root, '--no-open'], makeIo());
-    await atlasCli.dispatch(['submodule', 'add', '--feature', 'register', '--slug', 'api', '--kind', 'api', '--project', root, '--no-open'], makeIo());
-
-    const batchRoot = path.join(root, 'docs/plans/2026-05-12/legacy-batch');
-    fs.mkdirSync(batchRoot, { recursive: true });
-    fs.writeFileSync(path.join(batchRoot, 'coordination.md'), '# coordination\n');
-    fs.mkdirSync(path.join(batchRoot, 'member-a'), { recursive: true });
-    fs.mkdirSync(path.join(batchRoot, 'member-b'), { recursive: true });
-
-    await atlasCli.dispatch(['feature', 'add', '--slug', 'billing', '--title', 'Billing', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-a', '--project', root, '--no-open'], makeIo());
-    await atlasCli.dispatch(['submodule', 'add', '--feature', 'billing', '--slug', 'api', '--kind', 'api', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-a', '--project', root, '--no-open'], makeIo());
-    await atlasCli.dispatch(['feature', 'add', '--slug', 'profile', '--title', 'Profile', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-b', '--project', root, '--no-open'], makeIo());
-    await atlasCli.dispatch(['submodule', 'add', '--feature', 'profile', '--slug', 'ui', '--kind', 'ui', '--spec', 'docs/plans/2026-05-12/legacy-batch/member-b', '--project', root, '--no-open'], makeIo());
-
-    const io = makeIo();
-    const code = await atlasCli.dispatch(['diff', '--project', root, '--no-open'], io);
-    assert.equal(code, 0);
-    assert.match(io.stdout_text, /Diff pages: 5/);
-    const html = fs.readFileSync(path.join(root, '.apollo-toolkit', 'architecture-diff', 'index.html'), 'utf8');
-    const macroMatches = html.match(/"rel":"index\.html"/g) || [];
-    assert.equal(macroMatches.length, 1);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

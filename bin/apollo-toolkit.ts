@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
-import { run } from '../lib/cli';
+import { run } from '@laitszkin/cli';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-run(process.argv.slice(2)).then((code: number) => {
+const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+run(process.argv.slice(2), { sourceRoot }).then((code: number) => {
   process.exitCode = code;
 });

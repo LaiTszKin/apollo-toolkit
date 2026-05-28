@@ -1,13 +1,13 @@
-'use strict';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { createRequire } from 'node:module';
 
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-
-const schema = require('../skills/init-project-html/lib/atlas/schema');
-const stateLib = require('../skills/init-project-html/lib/atlas/state');
+const require = createRequire(import.meta.url);
+const schema = require('../skills/init-project-html/lib/atlas/schema.js');
+const stateLib = require('../skills/init-project-html/lib/atlas/state.js');
 
 function mkTmp() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-atlas-state-'));

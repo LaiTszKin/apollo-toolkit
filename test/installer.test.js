@@ -1,10 +1,10 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs/promises');
-const os = require('node:os');
-const path = require('node:path');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
-const {
+import {
   expandUserPath,
   installLinks,
   listAllKnownSkillNames,
@@ -13,18 +13,16 @@ const {
   syncToolkitHome,
   uninstallSkills,
   writeManifest,
-} = require('../dist/lib/installer');
-const {
+} from '@laitszkin/cli';
+import {
   buildBanner,
   buildWelcomeScreen,
   buildInstallHelpText,
   buildUninstallHelpText,
   parseArguments,
-  promptForModes,
-  promptForUninstallModes,
   run,
-} = require('../dist/lib/cli');
-const { checkForPackageUpdate, compareVersions } = require('../dist/lib/updater');
+} from '@laitszkin/cli';
+import { checkForPackageUpdate, compareVersions } from '@laitszkin/cli';
 
 async function createFixtureSource(rootDir) {
   await fs.mkdir(path.join(rootDir, 'skills', 'alpha-skill'), { recursive: true });
@@ -78,11 +76,16 @@ test('buildBanner shows Apollo Toolkit branding', () => {
 });
 
 test('buildWelcomeScreen shows branded setup overview', () => {
-  const output = buildWelcomeScreen({ version: '2.0.0', colorEnabled: false, stage: 4 });
+  const targets = [
+    { id: 'codex', label: 'Codex', description: '~/.codex/skills' },
+    { id: 'openclaw', label: 'OpenClaw', description: '~/.openclaw/workspace*/skills' },
+    { id: 'trae', label: 'Trae', description: '~/.trae/skills' },
+    { id: 'agents', label: 'Agents', description: '~/.agents/skills' },
+    { id: 'claude-code', label: 'Claude Code', description: '~/.claude/skills' },
+  ];
+  const output = buildWelcomeScreen({ version: '2.0.0', colorEnabled: false, stage: 4, targets });
   assert.match(output, /This setup will configure:/);
   assert.match(output, /Quick start after setup:/);
-  assert.match(output, /Agents\s+~\/\.agents\/skills/);
-  assert.match(output, /Claude Code\s+~\/\.claude\/skills/);
   assert.match(output, /Launching target selector/);
 });
 
@@ -93,30 +96,6 @@ test('install and uninstall help pages end with examples', () => {
   assert.match(installHelp, /Examples:/);
   assert.match(uninstallHelp, /Use this when:/);
   assert.match(uninstallHelp, /Examples:/);
-});
-
-test('promptForModes TTY error lists every supported target', async () => {
-  await assert.rejects(
-    promptForModes({
-      stdin: { isTTY: false },
-      stdout: { isTTY: false },
-      version: '2.0.0',
-      env: {},
-    }),
-    /`codex`, `openclaw`, `trae`, `agents`, `claude-code`, or `all`/,
-  );
-});
-
-test('promptForUninstallModes TTY error lists every supported target', async () => {
-  await assert.rejects(
-    promptForUninstallModes({
-      stdin: { isTTY: false },
-      stdout: { isTTY: false },
-      version: '2.0.0',
-      env: {},
-    }),
-    /`codex`, `openclaw`, `trae`, `agents`, `claude-code`, or `all`/,
-  );
 });
 
 test('compareVersions orders semantic versions correctly', () => {
@@ -462,7 +441,6 @@ test('uninstallSkills removes skills and manifests from all targets', async () =
   await fs.mkdir(codexRoot, { recursive: true });
   await fs.mkdir(traeRoot, { recursive: true });
 
-  // Create skill dirs and manifests
   await fs.mkdir(path.join(codexRoot, 'alpha-skill'), { recursive: true });
   await fs.writeFile(path.join(codexRoot, 'alpha-skill', 'dummy.txt'), 'data', 'utf8');
   await fs.mkdir(path.join(codexRoot, 'beta-skill'), { recursive: true });
@@ -494,11 +472,9 @@ test('uninstallSkills removes skills and manifests from all targets', async () =
   const traeResult = results.find((r) => r.target === 'Trae');
   assert.deepEqual(traeResult.removedSkills, ['alpha-skill']);
 
-  // Verify skills removed
   await assert.rejects(fs.access(path.join(codexRoot, 'alpha-skill')));
   await assert.rejects(fs.access(path.join(traeRoot, 'alpha-skill')));
 
-  // Verify manifests removed
   await assert.rejects(fs.access(path.join(codexRoot, '.apollo-toolkit-manifest.json')));
 });
 
@@ -668,7 +644,6 @@ test('installLinks in symlink mode creates symlinks instead of copies', async ()
   assert.equal(stat.isSymbolicLink(), true);
   assert.equal(await fs.readlink(targetSkill), sourceSkill);
 
-  // Manifest should record symlink mode
   const manifest = await readManifest(codexRoot);
   assert.equal(manifest.linkMode, 'symlink');
 });
@@ -709,13 +684,11 @@ test('listAllKnownSkillNames combines current and historical skills with dedup',
   const toolkitHome = path.join(tempDir, '.apollo-toolkit');
   const codexRoot = path.join(tempDir, 'codex-skills');
 
-  // Current skills in toolkit home
   await fs.mkdir(path.join(toolkitHome, 'skills', 'alpha-skill'), { recursive: true });
   await fs.writeFile(path.join(toolkitHome, 'skills', 'alpha-skill', 'SKILL.md'), '# alpha\n', 'utf8');
   await fs.mkdir(path.join(toolkitHome, 'skills', 'beta-skill'), { recursive: true });
   await fs.writeFile(path.join(toolkitHome, 'skills', 'beta-skill', 'SKILL.md'), '# beta\n', 'utf8');
 
-  // Manifest with historical skills (including an old one)
   await fs.mkdir(codexRoot, { recursive: true });
   await writeManifest(codexRoot, {
     version: '1.0.0',

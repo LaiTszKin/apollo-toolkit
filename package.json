@@ -12,15 +12,19 @@
   "bugs": {
     "url": "https://github.com/LaiTszKin/apollo-toolkit/issues"
   },
-  "type": "commonjs",
-  "main": "dist/lib/cli.js",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "packages/tools/*"
+  ],
+  "main": "dist/bin/apollo-toolkit.js",
   "bin": {
     "apollo-toolkit": "dist/bin/apollo-toolkit.js",
     "apltk": "dist/bin/apollo-toolkit.js"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
+    "build": "tsc --build",
+    "watch": "tsc --build --watch",
     "test": "node --test",
     "test:ts": "node --test dist/test/"
   },

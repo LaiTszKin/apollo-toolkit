@@ -1,6 +1,6 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { parseArguments } = require('../dist/lib/cli');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { parseArguments } from '@laitszkin/cli';
 
 test('parseArguments recognizes --help flag', () => {
   const result = parseArguments(['--help']);

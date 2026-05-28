@@ -1,0 +1,19 @@
+{
+  "name": "@laitszkin/tool-registry",
+  "version": "3.18.0",
+  "description": "Apollo Toolkit — unified tool registration, lookup, and dispatch",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "test": "node --test dist/"
+  }
+}

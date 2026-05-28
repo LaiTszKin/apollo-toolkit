@@ -1,0 +1,44 @@
+{
+  "name": "@laitszkin/cli",
+  "version": "3.18.0",
+  "description": "Apollo Toolkit — CLI command management (install, uninstall, tool routing)",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "test": "node --test dist/"
+  },
+  "dependencies": {
+    "@laitszkin/tui": "*",
+    "@laitszkin/tool-registry": "*",
+    "@laitszkin/tool-filter-logs": "*",
+    "@laitszkin/tool-search-logs": "*",
+    "@laitszkin/tool-validate-skill-frontmatter": "*",
+    "@laitszkin/tool-validate-openai-agent-config": "*",
+    "@laitszkin/tool-sync-memory-index": "*",
+    "@laitszkin/tool-open-github-issue": "*",
+    "@laitszkin/tool-find-github-issues": "*",
+    "@laitszkin/tool-read-github-issue": "*",
+    "@laitszkin/tool-review-threads": "*",
+    "@laitszkin/tool-extract-conversations": "*",
+    "@laitszkin/tool-docs-to-voice": "*",
+    "@laitszkin/tool-render-katex": "*",
+    "@laitszkin/tool-render-error-book": "*",
+    "@laitszkin/tool-generate-storyboard-images": "*",
+    "@laitszkin/tool-enforce-video-aspect-ratio": "*",
+    "@laitszkin/tool-architecture": "*",
+    "@laitszkin/tool-create-specs": "*",
+    "@laitszkin/tool-create-review-report": "*",
+    "@laitszkin/tool-extract-pdf-text": "*",
+    "yargs": "^18.0.0",
+    "js-yaml": "^4.1.1"
+  }
+}

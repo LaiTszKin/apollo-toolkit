@@ -1,9 +1,13 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-const { createSpecsHandler } = require('../../dist/lib/tools/create-specs');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { tool as createSpecsTool } from '@laitszkin/tool-create-specs';
+
+const createSpecsHandler = /** @type {import('@laitszkin/tool-registry').ToolDefinition['handler']} */ (createSpecsTool.handler);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function createMemoryStream() {
   let data = '';
@@ -18,9 +22,6 @@ function createMemoryStream() {
   };
 }
 
-/**
- * Override Date.toISOString so the handler always sees a fixed date.
- */
 function withFixedDate(isoString, fn) {
   const origToISO = Date.prototype.toISOString;
   Date.prototype.toISOString = () => isoString;
@@ -34,7 +35,6 @@ function withFixedDate(isoString, fn) {
 const FIXED_DATE = '2026-05-16';
 const FIXED_ISO = `${FIXED_DATE}T00:00:00.000Z`;
 
-// Real template directory from the repo
 const TEMPLATE_DIR = path.resolve(__dirname, '../../skills/spec/assets/templates');
 
 function testHandler(args) {
@@ -55,7 +55,6 @@ test('createSpecsHandler creates correct directory structure (default)', async (
 
   assert.equal(code, 0, stderr.toString());
   assert.ok(fs.existsSync(path.join(tmpDir, FIXED_DATE, 'my-feature', 'SPEC.md')));
-  // No nested date directory
   assert.ok(!fs.existsSync(path.join(tmpDir, FIXED_DATE, FIXED_DATE)));
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -76,7 +75,6 @@ test('createSpecsHandler with --batch-name creates batch structure', async () =>
 
 test('createSpecsHandler prevents double-nesting when output-dir points to existing date folder', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apltk-create-specs-'));
-  // Pre-create a date folder to simulate existing specs
   const existingDateDir = path.join(tmpDir, FIXED_DATE);
   fs.mkdirSync(existingDateDir, { recursive: true });
 
@@ -86,7 +84,6 @@ test('createSpecsHandler prevents double-nesting when output-dir points to exist
   );
 
   assert.equal(code, 0, stderr.toString());
-  // Should NOT nest: docs/plans/2026-05-16/another-feature/ (not docs/plans/2026-05-16/2026-05-16/another-feature/)
   assert.ok(fs.existsSync(path.join(existingDateDir, 'another-feature', 'SPEC.md')));
   assert.ok(!fs.existsSync(path.join(existingDateDir, FIXED_DATE)));
 

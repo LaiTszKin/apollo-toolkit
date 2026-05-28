@@ -1,13 +1,13 @@
-'use strict';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { createRequire } from 'node:module';
 
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-
-const cli = require('../skills/init-project-html/lib/atlas/cli');
-const stateLib = require('../skills/init-project-html/lib/atlas/state');
+const require = createRequire(import.meta.url);
+const cli = require('../skills/init-project-html/lib/atlas/cli.js');
+const stateLib = require('../skills/init-project-html/lib/atlas/state.js');
 
 function makeIo() {
   let outBuf = '';

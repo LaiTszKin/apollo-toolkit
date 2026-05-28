@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "dist",
     "rootDir": ".",
     "declaration": true,
@@ -10,19 +11,14 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
     "types": ["node"]
   },
-  "include": [
-    "bin/**/*.ts",
-    "lib/**/*.ts",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".claude",
-    "resources"
+  "include": ["bin/**/*.ts"],
+  "exclude": ["node_modules", "dist", ".claude", "resources"],
+  "references": [
+    { "path": "packages/tui" },
+    { "path": "packages/tool-registry" },
+    { "path": "packages/tool-utils" },
+    { "path": "packages/cli" }
   ]
 }
