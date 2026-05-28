@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.17.3] - 2026-05-28
+
+### Docs
+
+- Add apltk tool reference files to 17 skills, covering all CLI flags, parameters, output formats, and usage notes for each tool.
+
 ## [v3.17.2] - 2026-05-28
 
 ### Docs
