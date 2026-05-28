@@ -2,6 +2,29 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v3.18.0] - 2026-05-29
+
+### Added
+
+- `plan` skill: converts SPEC.md + DESIGN.md + CHECKLIST.md into PROMPT.md with task decomposition, dependency analysis, batch scheduling, and subagent routing.
+- `design` skill: research-first technical design (feasibility, existing implementations, compatible tech stack) producing DESIGN.md, CHECKLIST.md, and Architecture Diff.
+- `qa` skill (new): converts REPORT.md + spec documents into FIX.md with fix dependency analysis, file overlap detection, batch scheduling, and subagent routing.
+- `review` skill: renamed from old `qa`, produces REPORT.md (issue list only, no solutions).
+
+### Changed
+
+- Refactor spec skill to only produce SPEC.md (pure business requirements). BDD requirements > 5 triggers batch spec; each spec focuses on 3-5 requirements.
+- Delete unused spec templates: tasks.md, checklist.md, contract.md, design.md, coordination.md, preparation.md.
+- Update `implement` skill to read PROMPT.md and execute mechanically (no coordination decisions).
+- Update `fix` skill to read FIX.md and execute mechanically (no planning decisions).
+- Update `develop-new-features` skill to follow the spec → design → plan → implement four-phase pipeline.
+- Simplify `apltk create-specs` CLI to only generate SPEC.md (remove --with-coordination / --with-preparation).
+- Update `apltk create-review-report` CLI: output REPORT.md, support SPEC.md and spec.md detection.
+
+### Removed
+
+- `implement-with-subagents` skill: coordination logic moved to `plan`, execution merged into `implement`.
+
 ## [v3.17.3] - 2026-05-28
 
 ### Docs
