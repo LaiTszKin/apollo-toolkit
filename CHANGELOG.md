@@ -2,6 +2,31 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v4.0.0] - 2026-05-29
+
+### Changed
+
+- **Breaking:** Migrate from single CommonJS package to npm workspaces monorepo with ESM (`"type": "module"`, `"module": "NodeNext"`).
+- **Breaking:** Split codebase into scoped packages: `@laitszkin/cli`, `@laitszkin/tui`, `@laitszkin/tool-registry`, `@laitszkin/tool-utils`, and 20 `@laitszkin/tool-*` packages.
+- **Breaking:** Replace static `require()` with dynamic `import()` for lazy tool loading; CLI no longer loads all tool handlers at startup.
+- **Breaking:** CLI entry point now at `dist/bin/apollo-toolkit.js`; old `bin/apollo-toolkit.js` removed.
+- Tool registration uses `isKnownToolName()` (sync, Set-based) for argument parsing and `registerAllTools()` (async, `Promise.all` dynamic import) for tool dispatch.
+- Add `aliases` field to `ToolDefinition` interface; `registerTool()` auto-registers aliases with canonical name tracking.
+- Add `Subagent Prompt` blocks to `PROMPT.md` and `FIX.md` plan/qa templates.
+
+### Fixed
+
+- Correct `sourceRoot` path in compiled entry point so `apltk architecture` and other tools resolve `package.json` correctly.
+- Prevent crash in `open-github-issue` when `TEXT_FIELDS` snake_case keys are read against camelCase argument object.
+- Include actual tool names and aliases in `isKnownToolName` so `extract-pdf-text-pdfkit` and aliased tools are recognized.
+
+### Removed
+
+- Remove `yargs` and `js-yaml` from CLI package dependencies.
+- Remove dead `buildToolOverview()` and `buildToolExamples()` from tool-registry.
+- Remove `yargsCommand` export blocks from all 19 tool modules.
+- Delete stale CJS entry point (`bin/apollo-toolkit.js`) and legacy `dist/lib/` build artifacts.
+
 ## [v3.18.0] - 2026-05-29
 
 ### Added
