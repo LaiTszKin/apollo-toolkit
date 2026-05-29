@@ -199,6 +199,6 @@ Examples:
 export const tool: ToolDefinition = {
   name: 'create-review-report',
   category: 'Planning & architecture',
-  description: 'Copy the QA code review report template to the spec directory.',
+  description: 'Copy the code review report template (REPORT.md) to the spec directory.',
   handler: createReviewReportHandler,
 };

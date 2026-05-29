@@ -54,3 +54,16 @@
 - **實作遺漏**: [X 個 finding / 無發現]
 - **架構瑕疵**: [X 個 finding / 無發現]
 - **性能隱患**: [X 個 finding / 無發現]
+
+---
+
+## Review History
+
+> 每次重新執行 review 時，先將舊 REPORT.md 的判決與發現問題摘要濃縮為一筆歷史記錄，附加到此區段下方（保留過去所有輪次的記錄），再以新一輪審查結果覆蓋報告其餘部分。
+
+<!--
+### Round N — [YYYY-MM-DD]
+- **Verdict**: [Ready to Merge / Needs Attention / Needs Work]
+- **Issues**: P0:X, P1:X, P2:X, P3:X
+- **Key findings**: [1-2 句概述本輪最重要的發現]
+-->

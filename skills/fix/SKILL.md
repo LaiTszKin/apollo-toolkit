@@ -32,9 +32,11 @@ description: 載入 qa 產出的 FIX.md，扮演修復協調器角色（fix coor
 - **Section 6**: 每個修復的預先寫好 worker prompt
 - **Section 7**: 批次排程與 Gate 條件
 - **Section 8**: 回歸測試策略
-- **Section 9-11**: 驗證檢查點、錯誤恢復、邊界規則
+- **Section 9-12**: 驗證檢查點、錯誤恢復、歷史記錄、邊界規則
 
 同時閱讀 SPEC.md、DESIGN.md、REPORT.md 以理解完整上下文。
+
+若有舊有的 FIX.md（例如前一輪修復殘留），先將其修復摘要濃縮為一筆歷史記錄，附加到 FIX.md 的「Fix History」區段，保留過去所有輪次的記錄。然後以新一輪修復計劃覆蓋文件其餘部分。
 
 ### 2. 準備執行環境
 

@@ -323,7 +323,20 @@ Oracle: [通過條件 — 此測試在修復前的代碼上執行必須失敗，
 
 ---
 
-## 11. Boundaries
+## 11. Fix History
+
+> 每次重新產生 FIX.md 時，先將舊 FIX.md 的修復摘要濃縮為一筆歷史記錄，附加到此區段下方（保留過去所有輪次的記錄），再以新一輪修復計劃覆蓋文件其餘部分。
+
+<!--
+### Round N — [YYYY-MM-DD]
+- **Issues fixed**: FIX-01, FIX-02, ... (P0:X, P1:X, P2:X, P3:X)
+- **Outcome**: [全部修復成功 / 部分修復、X 個問題殘留]
+- **Key notes**: [1-2 句概述本輪修復的重要決策或殘留風險]
+-->
+
+---
+
+## 12. Boundaries
 
 ### ALWAYS
 
