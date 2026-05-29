@@ -2,6 +2,13 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v4.0.7] - 2026-05-30
+
+### Changed
+
+- `qa` skill: add no-defer enforcement — FIX.md must cover all issues from REPORT.md (including P2/P3) with complete fix plans and worker prompts. No issue may be deferred to a future round or marked as "later". Large issue sets are handled via batch scheduling rather than omission.
+- `qa` skill template (FIX.md): add NEVER-defer rule to Section 12 Boundaries, so the constraint propagates to the fix coordinator agent.
+
 ## [v4.0.6] - 2026-05-30
 
 ### Changed
