@@ -94,11 +94,13 @@ export async function readTrace(tracePath: string): Promise<{ events: TraceEvent
     } catch (err) {
       hasCorruption = true;
       // Corrupted line: record as parse_error and continue
-      events.push({
+      const parseErrorEvent: TraceEventWithLine = {
         type: 'parse_error',
         timestamp: new Date().toISOString(),
         data: { line: i + 1, raw: line.substring(0, 200), error: (err as Error).message },
-      } as TraceEvent);
+      };
+      parseErrorEvent._lineNumber = i + 1;
+      events.push(parseErrorEvent);
     }
   }
 
@@ -339,41 +341,7 @@ export async function scoreSingleTest(
 
   // Build judge prompt
   const prompt = buildJudgePrompt(trace, scoringCriteria, testNo, skillName);
-
-  // Call judge model with timeout
   const timeoutMs = env.JUDGE_TIMEOUT > 0 ? env.JUDGE_TIMEOUT * 1000 : 120_000;
-  const judgment = await callJudgeModel(prompt, env, { timeoutMs });
-
-  // Warn if judge output had a parse error
-  if ((judgment as Record<string, unknown>)._parseError) {
-    console.warn(`${testNo}: Judge 輸出解析失敗，使用預設評分結構`);
-  }
-
-  // Build ScoreResult from judgment
-  const rawDims = (judgment.dimensions as Array<Record<string, unknown>> | undefined) ?? [];
-  const rawIssues = (judgment.issues as Array<Record<string, unknown>> | undefined) ?? [];
-
-  const score: ScoreResult = {
-    testId: testNo,
-    overallScore: (judgment.overallScore as number) ?? 0,
-    dimensions: rawDims.map(dim => ({
-      name: (dim.name as string) ?? '',
-      score: (dim.score as number) ?? 0,
-      maxScore: (dim.maxScore as number) ?? 100,
-      weight: (dim.weight as number) ?? 0,
-      comments: (dim.comments as string) ?? '',
-    })),
-    issues: rawIssues.map(issue => ({
-      severity: (issue.severity as Issue['severity']) ?? 'P1',
-      category: (issue.category as Issue['category']) ?? 'other',
-      description: (issue.description as string) ?? '',
-      evidence: (issue.evidence as string) ?? '',
-    })),
-    summary: (judgment.summary as string) ?? '',
-    scoredAt: new Date().toISOString(),
-    scorable: !hasCorruption,
-    scoringNote: hasCorruption ? '無法評分：軌跡檔案損壞' : undefined,
-  };
 
   // Atomic write: use mkdir as mutex to prevent race between concurrent scorers
   const lockDir = join(resultsDir, '.scoring-lock');
@@ -386,13 +354,82 @@ export async function scoreSingleTest(
   }
 
   try {
+    // Double-check: another process might have scored this while we waited for the lock
+    try {
+      await access(scoredPath);
+      console.warn(`${testNo}: already scored (detected after lock acquisition), skipping`);
+      return { testId: testNo, score: null, skipped: true };
+    } catch { /* .scored not found — safe to score */ }
+
+    // Skip if trace has corruption — don't waste judge API calls
+    if (hasCorruption) {
+      const score: ScoreResult = {
+        testId: testNo,
+        overallScore: 0,
+        dimensions: [],
+        issues: [{
+          severity: 'P2',
+          category: 'other',
+          description: '軌跡檔案損壞，無法評分',
+          evidence: 'Trace file contains corrupted JSON lines',
+        }],
+        summary: '無法評分：軌跡檔案損壞',
+        scoredAt: new Date().toISOString(),
+        scorable: false,
+        scoringNote: '無法評分：軌跡檔案損壞',
+      };
+      await writeFile(scorePath, JSON.stringify(score, null, 2), 'utf-8');
+      const sd = JSON.stringify({
+        testId: testNo,
+        scoredAt: score.scoredAt,
+        overallScore: score.overallScore,
+      });
+      await writeFile(scoredPath, sd, 'utf-8');
+      return { testId: testNo, score };
+    }
+
+    // Call judge model with timeout
+    const judgment = await callJudgeModel(prompt, env, { timeoutMs });
+
+    // Warn if judge output had a parse error
+    if ((judgment as Record<string, unknown>)._parseError) {
+      console.warn(`${testNo}: Judge 輸出解析失敗，使用預設評分結構`);
+    }
+
+    // Build ScoreResult from judgment
+    const rawDims = (judgment.dimensions as Array<Record<string, unknown>> | undefined) ?? [];
+    const rawIssues = (judgment.issues as Array<Record<string, unknown>> | undefined) ?? [];
+
+    const score: ScoreResult = {
+      testId: testNo,
+      overallScore: (judgment.overallScore as number) ?? 0,
+      dimensions: rawDims.map(dim => ({
+        name: (dim.name as string) ?? '',
+        score: (dim.score as number) ?? 0,
+        maxScore: (dim.maxScore as number) ?? 100,
+        weight: (dim.weight as number) ?? 0,
+        comments: (dim.comments as string) ?? '',
+      })),
+      issues: rawIssues.map(issue => ({
+        severity: (issue.severity as Issue['severity']) ?? 'P1',
+        category: (issue.category as Issue['category']) ?? 'other',
+        description: (issue.description as string) ?? '',
+        evidence: (issue.evidence as string) ?? '',
+      })),
+      summary: (judgment.summary as string) ?? '',
+      scoredAt: new Date().toISOString(),
+      scorable: true,
+    };
+
+    // Write score.json FIRST, then .scored marker
+    await writeFile(scorePath, JSON.stringify(score, null, 2), 'utf-8');
     const scoredData = JSON.stringify({
       testId: testNo,
       scoredAt: score.scoredAt,
       overallScore: score.overallScore,
     });
     await writeFile(scoredPath, scoredData, 'utf-8');
-    await writeFile(scorePath, JSON.stringify(score, null, 2), 'utf-8');
+    return { testId: testNo, score };
   } finally {
     // Release lock
     try {
@@ -403,8 +440,6 @@ export async function scoreSingleTest(
       try { await rmdir(lockDir); } catch { /* ignore fallback failure */ }
     }
   }
-
-  return { testId: testNo, score };
 }
 
 // --- Batch Scoring ---
@@ -489,25 +524,6 @@ export async function scoreAllTests(date: string, env: EnvConfig): Promise<Score
  * @param resultsBase - Absolute path to results/spec/{date}/
  * @returns Array of test IDs (e.g. ["Q001", "Q002", ...])
  */
-function scanForDone(resultsBase: string): string[] {
-  if (!existsSync(resultsBase)) return [];
-
-  const entries = readdirSync(resultsBase, { withFileTypes: true });
-  const doneTests: string[] = [];
-
-  for (const entry of entries) {
-    if (entry.isDirectory() && entry.name.startsWith('test_')) {
-      const testNo = entry.name.replace('test_', '');
-      const donePath = join(resultsBase, entry.name, '.done');
-      if (existsSync(donePath)) {
-        doneTests.push(testNo);
-      }
-    }
-  }
-
-  return doneTests;
-}
-
 /**
  * Check whether a test has already been scored.
  *

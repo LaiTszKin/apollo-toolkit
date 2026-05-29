@@ -307,3 +307,62 @@ describe('REGTEST-C: scoreAllTests should use scanForDoneAsync', () => {
     }
   });
 });
+
+// =========================================================================
+// REGTEST-02 (FIX-B): 評分鎖定原子性
+// =========================================================================
+describe('REGTEST-02: scoreSingleTest should acquire lock before calling judge API', () => {
+  it('should verify mkdir(lockDir) appears before callJudgeModel in source', () => {
+    const source = fs.readFileSync(
+      new URL('../scorer.ts', import.meta.url), 'utf-8'
+    );
+
+    const mkdirLockIndex = source.indexOf('await mkdir(lockDir)');
+    const callJudgeIndex = source.indexOf('callJudgeModel(prompt');
+
+    assert.ok(mkdirLockIndex >= 0, 'Source must contain mkdir(lockDir)');
+    assert.ok(callJudgeIndex >= 0, 'Source must contain callJudgeModel');
+    assert.ok(
+      mkdirLockIndex < callJudgeIndex,
+      'Lock acquisition (mkdir) must occur BEFORE judge API call (callJudgeModel)'
+    );
+
+    // Also verify .scored is written after score.json
+    const scoreJsonWriteIndex = source.indexOf('scorePath, JSON.stringify(score');
+    const scoredMarkerWriteIndex = source.indexOf('scoredPath, JSON.stringify');
+    if (scoreJsonWriteIndex >= 0 && scoredMarkerWriteIndex >= 0) {
+      assert.ok(
+        scoreJsonWriteIndex < scoredMarkerWriteIndex,
+        'score.json must be written BEFORE .scored marker'
+      );
+    }
+  });
+});
+
+// =========================================================================
+// REGTEST-03 (FIX-B): JSONL 損壞跳過
+// =========================================================================
+describe('REGTEST-03: should skip judge API call when trace has corruption', () => {
+  it('should verify corruption block does not call judge model', () => {
+    const source = fs.readFileSync(
+      new URL('../scorer.ts', import.meta.url), 'utf-8'
+    );
+
+    const corruptionCheck = source.indexOf('if (hasCorruption)');
+    assert.ok(corruptionCheck >= 0, 'Source must have if (hasCorruption) check');
+
+    const corruptionSection = source.slice(corruptionCheck, corruptionCheck + 800);
+
+    // Should return early WITHOUT calling judge model when corrupted
+    assert.ok(
+      corruptionSection.includes('callJudgeModel') === false,
+      'Corruption handling block should NOT call judge model'
+    );
+
+    // Should write score and return
+    assert.ok(
+      corruptionSection.includes('return { testId'),
+      'Corruption handling should return a result'
+    );
+  });
+});

@@ -40,6 +40,71 @@ function judgeScoreJSON(overallScore) {
 }
 
 // =========================================================================
+// REGTEST-06: dry-run 模式不應呼叫 generateOptimizationPlan / deduplicateIssues
+// =========================================================================
+describe('REGTEST-06: dry-run 零副作用', () => {
+  it('dry-run mode should not call generateOptimizationPlan or deduplicateIssues', () => {
+    const source = fs.readFileSync(
+      new URL('../index.ts', import.meta.url), 'utf-8',
+    );
+
+    // Find the optimize block
+    const optimizeStart = source.indexOf('if (optimize)');
+    assert.ok(optimizeStart >= 0, 'optimize block must exist');
+
+    const optimizeSection = source.slice(optimizeStart);
+
+    // Find generateOptimizationPlan in the context of dry-run
+    const planCallIndex = optimizeSection.indexOf('generateOptimizationPlan');
+
+    if (planCallIndex >= 0) {
+      // Verify that generateOptimizationPlan is ONLY in the non-dry-run path
+      const sectionBeforePlan = optimizeSection.slice(0, planCallIndex);
+
+      // If there's an else block before generateOptimizationPlan,
+      // it means the plan generation is in the full mode path, not dry-run
+      const lastElseIndex = sectionBeforePlan.lastIndexOf('} else {');
+
+      // In the vicinity of generateOptimizationPlan, we should NOT see dryRun check
+      const vicinity = optimizeSection.slice(
+        Math.max(0, planCallIndex - 200),
+        planCallIndex + 100,
+      );
+
+      // The path containing generateOptimizationPlan should not be evaluating dryRun
+      const hasDryRunInVicinity = vicinity.match(/dryRun|dry\.run|dry_run/i);
+
+      // This is acceptable if generateOptimizationPlan is inside an else branch (non-dry-run)
+      if (hasDryRunInVicinity && lastElseIndex < 0) {
+        // If dryRun appears near generateOptimizationPlan without a preceding else,
+        // that means it's NOT properly separated
+        assert.ok(false,
+          'generateOptimizationPlan appears near dryRun check (not in separate else branch)',
+        );
+      }
+    }
+
+    // Verify the dry-run path uses template-based approach (not full optimization)
+    const firstDryRun = optimizeSection.indexOf('dryRun');
+    assert.ok(firstDryRun >= 0, 'dryRun must appear in optimize section');
+
+    const dryRunSection = optimizeSection.slice(firstDryRun, firstDryRun + 1000);
+
+    // Dry-run path should contain optimizeSkillMd (template-based)
+    assert.ok(
+      dryRunSection.includes('optimizeSkillMd'),
+      'Dry-run path should call optimizeSkillMd',
+    );
+
+    // Dry-run path should NOT contain deduplicateIssues (judge API call)
+    assert.ok(
+      !dryRunSection.includes('deduplicateIssues'),
+      'Dry-run path should NOT call deduplicateIssues (judge API)',
+    );
+  });
+});
+
+// =========================================================================
 // REGTEST-14
 // =========================================================================
 describe('REGTEST-14: exit code 低分檢查', () => {

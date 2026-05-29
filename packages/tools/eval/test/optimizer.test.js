@@ -267,3 +267,65 @@ describe('REGTEST-E: deduplicateIssues pair cap', () => {
     );
   });
 });
+
+// =========================================================================
+// REGTEST-04: isAllowedFile CWD independence (FIX-C regression test)
+// =========================================================================
+it('REGTEST-04: isAllowedFile should be CWD-independent', () => {
+  const originalCwd = process.cwd();
+  try {
+    process.chdir('/tmp');
+    assert.ok(
+      isAllowedFile('/any/project/skills/spec/SKILL.md', 'spec'),
+      'SKILL.md in skills/spec/ should be allowed regardless of CWD'
+    );
+    assert.ok(
+      !isAllowedFile('/any/project/skills/spec/SKILL.md.backup', 'spec'),
+      '.backup should be rejected regardless of CWD'
+    );
+    assert.ok(
+      !isAllowedFile('/any/project/skills/special-tool/SKILL.md', 'spec'),
+      'different skill dir should be rejected regardless of CWD'
+    );
+
+    process.chdir('/');
+    assert.ok(
+      isAllowedFile('/any/project/skills/spec/SKILL.md', 'spec'),
+      'Should still allow SKILL.md when CWD=/'
+    );
+  } finally {
+    process.chdir(originalCwd);
+  }
+});
+
+// =========================================================================
+// REGTEST-05: backup uniqueness + inline validation + no execSync
+//             (FIX-D/E/F regression tests)
+// =========================================================================
+it('REGTEST-05: optimizer backup should use unique names and inline validation', async () => {
+  const source = fs.readFileSync(
+    new URL('../optimizer.ts', import.meta.url), 'utf-8'
+  );
+
+  // 1. Backup should use dynamic name (not fixed .bak)
+  assert.ok(
+    source.match(/const\s+bakPath\s*=\s*skillMdPath\s*\+\s*'\.bak\.'\s*\+/),
+    'Primary backup should use timestamp after .bak.'
+  );
+
+  // 2. Frontmatter validation should be inline (not execSync CLI call)
+  assert.ok(
+    source.includes('---') && (source.includes('frontmatterMatch') || source.includes('frontmatter')),
+    'Frontmatter validation should use inline parsing'
+  );
+
+  // 3. No execSync in optimizeSkillMd function
+  const funcStart = source.indexOf('export async function optimizeSkillMd');
+  assert.ok(funcStart >= 0, 'optimizeSkillMd function must exist');
+
+  const funcBody = source.slice(funcStart);
+  assert.ok(
+    !funcBody.includes('execSync'),
+    'optimizeSkillMd should not use execSync'
+  );
+});

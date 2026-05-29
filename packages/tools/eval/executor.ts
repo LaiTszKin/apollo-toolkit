@@ -213,7 +213,26 @@ async function executeSingleTest(
 
   const startTime = Date.now();
 
-  await appendTrace(tracePath, {
+  // Write buffer for trace events — reduces sequential I/O
+  const traceBuffer: string[] = [];
+  const MAX_BUFFER_SIZE = 10;
+
+  async function appendTraceBuffered(event: TraceEvent): Promise<void> {
+    traceBuffer.push(JSON.stringify(event) + '\n');
+    if (traceBuffer.length >= MAX_BUFFER_SIZE) {
+      await appendFile(tracePath, traceBuffer.join(''), 'utf-8');
+      traceBuffer.length = 0;
+    }
+  }
+
+  async function flushTraceBuffer(): Promise<void> {
+    if (traceBuffer.length > 0) {
+      await appendFile(tracePath, traceBuffer.join(''), 'utf-8');
+      traceBuffer.length = 0;
+    }
+  }
+
+  await appendTraceBuffered({
     type: 'start',
     timestamp: new Date().toISOString(),
     data: { testId: testNo, difficulty: question.difficulty },
@@ -225,7 +244,7 @@ async function executeSingleTest(
     const workspaceDir = await initWorkspace(testNo, stripped.projectContext, date);
     const systemPrompt = buildSystemPrompt(workspaceDir, stripped.projectContext, skillName);
 
-    await appendTrace(tracePath, {
+    await appendTraceBuffered({
       type: 'thinking',
       timestamp: new Date().toISOString(),
       data: { systemPrompt, userPrompt: stripped.userPrompt },
@@ -267,7 +286,7 @@ async function executeSingleTest(
 
       if (finishReason === 'stop' || (finishReason !== 'tool_calls' && round > 0)) {
         // 記錄最終 response
-        await appendTrace(tracePath, {
+        await appendTraceBuffered({
           type: 'response',
           timestamp: new Date().toISOString(),
           data: {
@@ -287,7 +306,7 @@ async function executeSingleTest(
         const toolCalls = assistantMessage?.tool_calls as Array<Record<string, unknown>> | undefined;
         if (!toolCalls || toolCalls.length === 0) {
           // 異常：finish_reason 為 tool_calls 但無 tool_calls 資料
-          await appendTrace(tracePath, {
+          await appendTraceBuffered({
             type: 'error',
             timestamp: new Date().toISOString(),
             data: { error: 'finish_reason is tool_calls but no tool_calls in response' },
@@ -315,21 +334,27 @@ async function executeSingleTest(
           }
 
           const toolCall: ToolCall = { tool: toolName, params: args };
-          const result = await dispatcher.dispatch(toolCall);
+          let result = await dispatcher.dispatch(toolCall);
 
           // 記錄 tool_call event
-          await appendTrace(tracePath, {
+          await appendTraceBuffered({
             type: 'tool_call',
             timestamp: new Date().toISOString(),
             data: { id, tool: toolName, params: args },
           });
 
           // 記錄 tool_result event
-          await appendTrace(tracePath, {
+          await appendTraceBuffered({
             type: 'tool_result',
             timestamp: new Date().toISOString(),
             data: { id, tool: toolName, result },
           });
+
+          // Truncate large tool results to prevent unbounded growth
+          const MAX_RESULT_LENGTH = 5000;
+          if (result.data && typeof result.data === 'string' && result.data.length > MAX_RESULT_LENGTH) {
+            result = { ...result, data: result.data.substring(0, MAX_RESULT_LENGTH) + '...(truncated)' };
+          }
 
           // 將 tool result 加入 messages
           messages.push({
@@ -346,7 +371,7 @@ async function executeSingleTest(
       }
 
       // 首輪 finish_reason 非 tool_calls 也非 stop（如 length 或 content_filter）
-      await appendTrace(tracePath, {
+      await appendTraceBuffered({
         type: 'response',
         timestamp: new Date().toISOString(),
         data: {
@@ -365,7 +390,7 @@ async function executeSingleTest(
     }
 
     const duration = Date.now() - startTime;
-    await appendTrace(tracePath, {
+    await appendTraceBuffered({
       type: 'end',
       timestamp: new Date().toISOString(),
       data: { duration_ms: duration, status: 'completed' },
@@ -382,19 +407,20 @@ async function executeSingleTest(
       'utf-8',
     );
 
+    await flushTraceBuffer();
     return { testId: testNo, success: true };
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
     const isTimeout = error.name === 'AbortError' || error.name === 'TimeoutError';
 
-    await appendTrace(tracePath, {
+    await appendTraceBuffered({
       type: 'error',
       timestamp: new Date().toISOString(),
       data: { error: error.message, name: error.name, timeout: isTimeout },
     });
 
     const duration = Date.now() - startTime;
-    await appendTrace(tracePath, {
+    await appendTraceBuffered({
       type: 'end',
       timestamp: new Date().toISOString(),
       data: {
@@ -416,6 +442,7 @@ async function executeSingleTest(
       'utf-8',
     );
 
+    await flushTraceBuffer();
     return { testId: testNo, success: false, error: error.message };
   }
 }
@@ -487,6 +514,8 @@ export async function runAllTests(
   }
 
   // 執行階段並發鎖 (FIX-11)
+  // 先確保 resultsBase 目錄存在（不影響鎖定語意），再建立不帶 recursive 的鎖定目錄
+  await mkdir(resultsBase, { recursive: true });
   const lockPath = resolve(resultsBase, '.exec-lock');
   try {
     await mkdir(lockPath);
@@ -495,7 +524,7 @@ export async function runAllTests(
     if (nodeErr.code === 'EEXIST') {
       throw new Error('Another eval is already in progress');
     }
-    throw err;
+    throw new Error(`Cannot create exec lock at ${lockPath}: ${nodeErr.message}`);
   }
 
   try {

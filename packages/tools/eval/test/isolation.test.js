@@ -109,3 +109,37 @@ describe('FIX-01: isolation.ts dispatch() 真實執行 Read 工具', () => {
     assert.ok(writeResult.success);
   });
 });
+
+// =========================================================================
+// FIX-A: Bash 讀寫分離 — 安全唯讀命令應在 workspace 真實執行
+// =========================================================================
+describe('FIX-A: Bash 讀寫分離', () => {
+  it('REGTEST-01: should execute safe Bash commands in workspace, not simulate', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'regtest01-'));
+    const testFile = path.join(tmpDir, 'hello.txt');
+    fs.writeFileSync(testFile, 'world', 'utf-8');
+
+    const dispatcher = createToolDispatcher({ workspaceDir: tmpDir });
+
+    // "ls" is a safe read-only command — should execute for real
+    const lsResult = await dispatcher.dispatch({
+      tool: 'Bash',
+      params: { command: 'ls' },
+    });
+    assert.ok(lsResult.success);
+    assert.ok(lsResult.data.includes('hello.txt'),
+      `ls output should include hello.txt, got: "${lsResult.data}"`);
+
+    // "cat" should also execute for real
+    const catResult = await dispatcher.dispatch({
+      tool: 'Bash',
+      params: { command: 'cat hello.txt' },
+    });
+    assert.ok(catResult.success);
+    assert.ok(catResult.data.includes('world'),
+      `cat output should include "world", got: "${catResult.data}"`);
+
+    // Cleanup
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+});

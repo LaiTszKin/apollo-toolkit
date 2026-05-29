@@ -50,7 +50,20 @@ jobs:
           JUDGE_API_KEY: ${{ secrets.JUDGE_API_KEY }}
           EVAL_MIN_SCORE: 60
           EVAL_MAX_P0: 0
-      - name: Post result summary
+      - name: Post result to PR comment
+        if: always() && steps.check-secrets.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ steps.skill-eval.outcome }}" = "success" ]; then
+            gh pr comment ${{ github.event.number }} --body "✅ **Skill Eval Gate**: Evaluation passed"
+          else
+            gh pr comment ${{ github.event.number }} --body \
+              "❌ **Skill Eval Gate**: Evaluation failed or encountered errors
+
+          See [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+          fi
+      - name: Write workflow summary
         if: always()
         run: |
           echo "## Skill Eval Gate Results" >> $GITHUB_STEP_SUMMARY
@@ -60,5 +73,4 @@ jobs:
             echo "✅ Evaluation passed" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Evaluation failed or encountered errors" >> $GITHUB_STEP_SUMMARY
-            echo "See workflow logs for details." >> $GITHUB_STEP_SUMMARY
           fi

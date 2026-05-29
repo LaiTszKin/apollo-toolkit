@@ -97,18 +97,6 @@ export function generateReport(
     }
   }
 
-  // If no dimension data found in any result, try a broader scan
-  if (dimNames.length === 0) {
-    for (const s of scores) {
-      for (const d of s.dimensions) {
-        if (!dimNames.includes(d.name)) {
-          dimNames.push(d.name);
-        }
-      }
-      if (dimNames.length > 0) break;
-    }
-  }
-
   const dimStats = dimNames.map(name => {
     const dimScores = scores
       .filter(s => s.dimensions.some(d => d.name === name))

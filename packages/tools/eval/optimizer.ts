@@ -13,8 +13,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
-import { resolve, join, relative } from 'node:path';
-import { execSync } from 'node:child_process';
+import { resolve, join } from 'node:path';
 
 import type { ScoreResult } from './scorer.js';
 import { getProjectRoot } from './lib/project-root.js';
@@ -357,16 +356,16 @@ export function jaccardSimilarity(setA: Set<string>, setB: Set<string>): number 
  * @returns true if the file path matches an allowed target
  */
 export function isAllowedFile(filePath: string, skillName: string): boolean {
-  const normalized = filePath.replace(/\\/g, '/');
+  const normalized = resolve(filePath).replace(/\\/g, '/');
   for (const pattern of ALLOWED_FILES) {
     const resolved = pattern.replace(/<name>/g, skillName);
     if (resolved.endsWith('/')) {
-      // Directory pattern: use path.relative to prevent prefix false positives
-      const rel = relative(resolved, normalized);
-      if (!rel.startsWith('..') && rel !== normalized) return true;
+      // Directory pattern: check normalized contains /{directory}/
+      const dirCheck = '/' + resolved;
+      if (normalized.includes(dirCheck)) return true;
     } else {
-      // File pattern: exact suffix match to prevent .bak false positives
-      if (normalized === resolved || normalized.endsWith('/' + resolved)) return true;
+      // File pattern: exact suffix match (with leading /) or exact match
+      if (normalized.endsWith('/' + resolved) || normalized === resolved) return true;
     }
   }
   return false;
@@ -1142,8 +1141,8 @@ export async function optimizeSkillMd(
     }
   }
 
-  if (dryRun) {
-    // Build a detailed suggestions document (template only)
+  // Build shared template patch (used by dry-run and judge-unavailable paths)
+  function buildTemplatePatch(skillIssues: OptimizationPlan['issues']): string {
     const patchLines: string[] = [
       '# SKILL.md Optimization Suggestions',
       '',
@@ -1156,7 +1155,6 @@ export async function optimizeSkillMd(
       '## Identified Issues',
       '',
     ];
-
     for (const issue of skillIssues) {
       patchLines.push(`### ${issue.id}: ${issue.severity} - ${issue.description.substring(0, 120)}`);
       patchLines.push('');
@@ -1166,11 +1164,7 @@ export async function optimizeSkillMd(
       patchLines.push(`- **Suggested Fix**: ${issue.suggestedFix || '(none)'}`);
       patchLines.push('');
     }
-
-    patchLines.push('---');
-    patchLines.push('');
-    patchLines.push('## Template-Based Suggestions');
-    patchLines.push('');
+    patchLines.push('---', '', '## Template-Based Suggestions', '');
     patchLines.push(generateSkillTemplateChanges(skillIssues));
 
     const root = getProjectRoot();
@@ -1178,6 +1172,12 @@ export async function optimizeSkillMd(
     mkdirSync(resultsDir, { recursive: true });
     const patchPath = join(resultsDir, 'skill-optimization-patch.md');
     writeFileSync(patchPath, patchLines.join('\n'), 'utf-8');
+
+    return patchPath;
+  }
+
+  if (dryRun) {
+    const patchPath = buildTemplatePatch(skillIssues);
     console.log(`Skill optimization patch written: ${patchPath}`);
 
     return {
@@ -1187,41 +1187,7 @@ export async function optimizeSkillMd(
   }
 
   if (!judgeAvailable) {
-    // Build a detailed suggestions document (template only)
-    const patchLines: string[] = [
-      '# SKILL.md Optimization Suggestions',
-      '',
-      `Generated: ${new Date().toISOString()}`,
-      `Source: ${skillMdPath}`,
-      `Issues analyzed: ${skillIssues.length}`,
-      '',
-      '---',
-      '',
-      '## Identified Issues',
-      '',
-    ];
-
-    for (const issue of skillIssues) {
-      patchLines.push(`### ${issue.id}: ${issue.severity} - ${issue.description.substring(0, 120)}`);
-      patchLines.push('');
-      patchLines.push(`- **Frequency**: ${issue.frequency} tests affected`);
-      patchLines.push(`- **Affected Tests**: ${issue.affectedTests.join(', ')}`);
-      patchLines.push(`- **Evidence**: ${issue.evidence.join('; ') || '(none)'}`);
-      patchLines.push(`- **Suggested Fix**: ${issue.suggestedFix || '(none)'}`);
-      patchLines.push('');
-    }
-
-    patchLines.push('---');
-    patchLines.push('');
-    patchLines.push('## Template-Based Suggestions');
-    patchLines.push('');
-    patchLines.push(generateSkillTemplateChanges(skillIssues));
-
-    const root = getProjectRoot();
-    const resultsDir = resolve(root, 'results', 'spec', date);
-    mkdirSync(resultsDir, { recursive: true });
-    const patchPath = join(resultsDir, 'skill-optimization-patch.md');
-    writeFileSync(patchPath, patchLines.join('\n'), 'utf-8');
+    const patchPath = buildTemplatePatch(skillIssues);
     console.log(`Skill optimization patch written: ${patchPath}`);
 
     return {
@@ -1231,10 +1197,15 @@ export async function optimizeSkillMd(
   }
 
   // Real mode: apply changes
-  // 1. Backup
-  const bakPath = skillMdPath + '.bak';
+  // 1. Backup -- use unique timestamp to prevent overwrite on retry
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const bakPath = skillMdPath + '.bak.' + timestamp;
   copyFileSync(skillMdPath, bakPath);
   console.log(`Backup created: ${bakPath}`);
+
+  // Also keep a latest backup for restore reference
+  const latestBakPath = skillMdPath + '.bak';
+  copyFileSync(skillMdPath, latestBakPath);
 
   // 2. Get judge model suggestions
   try {
@@ -1260,43 +1231,45 @@ export async function optimizeSkillMd(
     writeFileSync(skillMdPath, newContent, 'utf-8');
     console.log(`SKILL.md updated: ${skillMdPath}`);
 
-    // 4. Validate frontmatter
-    try {
-      const root = getProjectRoot();
-      execSync('node dist/bin/apollo-toolkit.js validate-skill-frontmatter', {
-        cwd: root,
-        stdio: 'pipe',
-        timeout: 30000,
-      });
-      console.log('Frontmatter validation: PASSED');
-
-      // 5. Validate Markdown structure
-      const mdValidation = validateMarkdownStructure(newContent);
-      if (!mdValidation.valid) {
-        console.error('Markdown structure validation FAILED. Restoring backup...');
-        copyFileSync(bakPath, skillMdPath);
-        return {
-          success: false,
-          message: `Markdown structure validation failed. Backup restored. Issues: ${mdValidation.issues.join('; ')}`,
-        };
-      }
-    } catch (valErr) {
-      const errorMsg = valErr instanceof Error ? valErr.message : String(valErr);
+    // 4. Validate frontmatter inline (no external CLI dependency)
+    const frontmatterMatch = newContent.match(/^---\n([\s\S]*?)\n---/);
+    if (!frontmatterMatch) {
       console.error('Frontmatter validation FAILED. Restoring backup...');
-      copyFileSync(bakPath, skillMdPath);
+      copyFileSync(latestBakPath, skillMdPath);
       return {
         success: false,
-        message: `Frontmatter validation failed. Backup restored from ${bakPath}. Error: ${errorMsg}`,
+        message: 'Frontmatter validation failed: missing YAML delimiters (---). Backup restored.',
+      };
+    }
+    const frontmatter = frontmatterMatch[1];
+    if (frontmatter.trim().length === 0 || !/^[a-zA-Z]/.test(frontmatter.trim())) {
+      console.error('Frontmatter validation FAILED. Restoring backup...');
+      copyFileSync(latestBakPath, skillMdPath);
+      return {
+        success: false,
+        message: 'Frontmatter validation failed: empty or malformed content. Backup restored.',
+      };
+    }
+    console.log('Frontmatter validation: PASSED');
+
+    // 5. Validate Markdown structure
+    const mdValidation = validateMarkdownStructure(newContent);
+    if (!mdValidation.valid) {
+      console.error('Markdown structure validation FAILED. Restoring backup...');
+      copyFileSync(latestBakPath, skillMdPath);
+      return {
+        success: false,
+        message: `Markdown structure validation failed. Backup restored. Issues: ${mdValidation.issues.join('; ')}`,
       };
     }
 
-    return { success: true, message: `SKILL.md optimized successfully. Backup: ${bakPath}` };
+    return { success: true, message: `SKILL.md optimized successfully. Backup: ${latestBakPath}` };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`SKILL.md optimization failed: ${msg}`);
     // Restore backup
-    copyFileSync(bakPath, skillMdPath);
-    console.log(`Backup restored from ${bakPath}`);
+    copyFileSync(latestBakPath, skillMdPath);
+    console.log(`Backup restored from ${latestBakPath}`);
     return { success: false, message: `Optimization failed: ${msg}. Backup restored.` };
   }
 }

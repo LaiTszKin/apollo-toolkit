@@ -145,7 +145,7 @@ function parseJudgeOutput(content: string): Record<string, unknown> {
   }
 
   // 3. Extract { ... } brace block
-  const braceMatch = content.match(/\{[\s\S]*\}/);
+  const braceMatch = content.match(/\{[\s\S]*?\}/);
   if (braceMatch) {
     try {
       return JSON.parse(braceMatch[0]) as Record<string, unknown>;

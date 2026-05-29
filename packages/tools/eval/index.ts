@@ -24,7 +24,6 @@ import { loadEnv } from './lib/env-utils.js';
 import { getProjectRoot } from './lib/project-root.js';
 import type { EnvConfig } from './lib/env-utils.js';
 import { loadQuestions, sampleQuestions } from './question-loader.js';
-import type { Question } from './question-loader.js';
 import { runAllTests } from './executor.js';
 import type { TestResult } from './executor.js';
 import { scoreAllTests } from './scorer.js';
@@ -38,7 +37,7 @@ import {
   generateOptimizationPlan,
   optimizeSkillMd,
 } from './optimizer.js';
-import type { DedupedIssue } from './optimizer.js';
+import type { DedupedIssue, OptimizationPlan } from './optimizer.js';
 import { promisePool } from './lib/promise-pool.js';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -261,7 +260,7 @@ async function evalHandler(
       'test-questions.json',
     );
     stderr.write(`[2/7] Loading question bank: ${questionsPath}...\n`);
-    const allQuestions: Question[] = loadQuestions(questionsPath);
+    const allQuestions = loadQuestions(questionsPath);
     stderr.write(`[2/7] Loaded ${allQuestions.length} questions\n`);
 
     // 3. Stratified sampling
@@ -311,37 +310,48 @@ async function evalHandler(
 
     // 7. Optimisation (optional)
     if (optimize) {
-      stderr.write('[7/7] Generating optimisation plan...\n');
-      const allScores = await loadAllScores(today);
-      const rawIssues = extractIssues(allScores);
-      const deduped: DedupedIssue[] = await deduplicateIssues(
-        rawIssues,
-        env,
-        true,
-      );
-
-      // Generate suggested fixes for each deduped issue
-      stderr.write(
-        `[7/7] Generating suggested fixes for ${deduped.length} issues...\n`,
-      );
-      const fixResults = await promisePool(
-        deduped,
-        async (issue) => { issue.suggestedFix = await generateSuggestedFix(issue, env, true); },
-        env.JUDGE_CONCURRENCY,
-      );
-
-      const plan = generateOptimizationPlan(deduped, today, allScores);
-
-      stderr.write('[7/7] Optimising SKILL.md...\n');
-      const optResult = await optimizeSkillMd(
-        plan,
-        skillMdPath,
-        env,
-        dryRun,
-        today,
-        true,
-      );
-      stderr.write(`[7/7] ${optResult.message}\n`);
+      if (dryRun) {
+        // Dry-run: skip judge API calls entirely, only template-based suggestions
+        stderr.write('[7/7] Dry-run mode: generating template-based suggestions...\n');
+        // Pass empty plan + judgeAvailable=false to skip API calls in optimizeSkillMd
+        const emptyPlan = {
+          date: today,
+          generatedAt: new Date().toISOString(),
+          summary: { totalScores: 0, totalIssues: 0, dedupedIssues: 0 },
+          issues: [],
+        };
+        const optResult = await optimizeSkillMd(
+          emptyPlan as unknown as OptimizationPlan,
+          skillMdPath,
+          env,
+          true,   // dryRun
+          today,
+          false,  // judgeAvailable = false to skip API
+        );
+        stderr.write(`[7/7] ${optResult.message}\n`);
+      } else {
+        stderr.write('[7/7] Generating optimisation plan...\n');
+        const allScores = await loadAllScores(today);
+        const rawIssues = extractIssues(allScores);
+        const deduped: DedupedIssue[] = await deduplicateIssues(rawIssues, env, true);
+        stderr.write(`[7/7] Generating suggested fixes for ${deduped.length} issues...\n`);
+        await promisePool(
+          deduped,
+          async (issue) => { issue.suggestedFix = await generateSuggestedFix(issue, env, true); },
+          env.JUDGE_CONCURRENCY,
+        );
+        const plan = generateOptimizationPlan(deduped, today, allScores);
+        stderr.write('[7/7] Optimising SKILL.md...\n');
+        const optResult = await optimizeSkillMd(
+          plan,
+          skillMdPath,
+          env,
+          false,  // dryRun
+          today,
+          true,   // judgeAvailable
+        );
+        stderr.write(`[7/7] ${optResult.message}\n`);
+      }
     } else {
       stderr.write('[7/7] Skipped (use --optimize to enable)\n');
     }

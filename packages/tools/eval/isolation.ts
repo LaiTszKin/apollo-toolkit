@@ -12,6 +12,10 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { access, stat, readFile } from 'node:fs/promises';
 import { join, resolve, relative } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
 
 // --- Public Types ---
 
@@ -85,7 +89,7 @@ const WRITE_TOOLS: ReadonlySet<string> = new Set([
   'Write',
   'Edit',
   'NotebookEdit',
-  'Bash',
+  // 'Bash' — 已移除：Bash 需要支援唯讀命令的真實執行
 ]);
 
 /**
@@ -216,12 +220,14 @@ function executeGrep(
   }
 
   const results: string[] = [];
+  let skippedCount = 0;
 
   function walkDir(dir: string): void {
     let entries;
     try {
       entries = readdirSync(dir, { withFileTypes: true });
     } catch {
+      skippedCount++;
       return; // 無法讀取的目錄（權限問題等），跳過
     }
 
@@ -252,6 +258,10 @@ function executeGrep(
   }
 
   walkDir(workspaceDir);
+
+  if (skippedCount > 0) {
+    results.push(`[isolation] Warning: ${skippedCount} path(s) could not be read`);
+  }
 
   if (results.length === 0) {
     return {
@@ -308,12 +318,14 @@ function executeGlob(
   }
 
   const matches: string[] = [];
+  let skippedCount = 0;
 
   function walkDir(dir: string): void {
     let entries;
     try {
       entries = readdirSync(dir, { withFileTypes: true });
     } catch {
+      skippedCount++;
       return;
     }
 
@@ -335,6 +347,10 @@ function executeGlob(
 
   walkDir(workspaceDir);
 
+  if (skippedCount > 0) {
+    matches.push(`[isolation] Warning: ${skippedCount} path(s) could not be read`);
+  }
+
   if (matches.length === 0) {
     return {
       success: true,
@@ -344,6 +360,42 @@ function executeGlob(
   }
 
   return { success: true, data: matches.join('\n'), tool: 'Glob' };
+}
+
+const SAFE_BASH_COMMANDS = new Set([
+  'ls', 'cat', 'pwd', 'echo', 'head', 'tail', 'wc', 'find',
+  'grep', 'sort', 'uniq', 'which', 'date', 'printf', 'tree',
+]);
+
+async function executeBash(
+  workspaceDir: string,
+  params: Record<string, unknown>,
+): Promise<MockToolResult> {
+  const command = typeof params.command === 'string' ? params.command.trim() : '';
+  if (!command) {
+    return { success: false, data: 'Error: No command provided for Bash', tool: 'Bash' };
+  }
+
+  const baseCmd = command.split(/\s+/)[0];
+  if (!SAFE_BASH_COMMANDS.has(baseCmd)) {
+    console.warn(`[isolation] Unsafe Bash command intercepted: ${baseCmd}`);
+    return { success: true, data: `[Simulated] ${command} completed.`, tool: 'Bash' };
+  }
+
+  try {
+    const { stdout, stderr } = await execFileAsync(baseCmd, command.split(/\s+/).slice(1), {
+      cwd: workspaceDir,
+      timeout: 5000,
+    });
+    const output = stderr ? `${stdout}\n${stderr}` : stdout;
+    return { success: true, data: output || '(no output)', tool: 'Bash' };
+  } catch (err) {
+    return {
+      success: false,
+      data: `Error: ${err instanceof Error ? err.message : String(err)}`,
+      tool: 'Bash',
+    };
+  }
 }
 
 /**
@@ -399,7 +451,10 @@ export function createToolDispatcher(
 
       let result: MockToolResult;
 
-      if (WORKSPACE_TOOLS.has(tool) && workspaceDir) {
+      if (tool === 'Bash' && workspaceDir) {
+        // 在 workspace 內真實執行 Bash 唯讀命令
+        result = await executeBash(workspaceDir, params);
+      } else if (WORKSPACE_TOOLS.has(tool) && workspaceDir) {
         // 在 workspace 內真實執行
         result = await executeInWorkspace(tool, workspaceDir, params);
       } else if (

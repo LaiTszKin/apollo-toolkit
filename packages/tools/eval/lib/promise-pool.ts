@@ -19,6 +19,9 @@ export async function promisePool<T, R>(
   }
   const results: R[] = new Array<R>(items.length);
   let index = 0;
+  // Shared mutable index — do NOT add await between index++ and the fn() call below
+  // (JavaScript single-threaded execution makes the current pattern safe,
+  // but adding an await before fn(items[i], i) would introduce a race)
 
   async function worker(): Promise<void> {
     while (index < items.length) {
