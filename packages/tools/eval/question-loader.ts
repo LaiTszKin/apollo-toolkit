@@ -14,8 +14,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { loadQuestionsFromFile } from './lib/question-utils.js';
+import { loadQuestionsFromFile, generateVariants } from './lib/question-utils.js';
 import type { Question } from './lib/question-utils.js';
+import type { EnvConfig } from './lib/env-utils.js';
 
 // --- Re-exports ---
 
@@ -137,5 +138,32 @@ export function sampleQuestions(
   }
 
   return shuffleArray(selected);
+}
+
+/**
+ * Ensure sufficient questions by generating variants if needed.
+ * Uses LLM to generate variants when question bank is too small.
+ *
+ * @param questions   - Existing question pool
+ * @param targetCount - Desired number of questions
+ * @param env         - Environment config (used for model API calls)
+ * @returns           Original questions plus generated variants to reach targetCount
+ */
+export async function supplyQuestions(
+  questions: Question[],
+  targetCount: number,
+  env: EnvConfig,
+): Promise<Question[]> {
+  if (questions.length >= targetCount) return questions;
+
+  const needed = targetCount - questions.length;
+  const variants: Question[] = [];
+  for (let i = 0; i < needed && i < questions.length; i++) {
+    const source = questions[i % questions.length];
+    const generated = await generateVariants(source, 1, env);
+    variants.push(...generated);
+  }
+
+  return [...questions, ...variants];
 }
 

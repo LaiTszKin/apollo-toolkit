@@ -18,28 +18,13 @@ export interface Message {
   tool_call_id?: string;
 }
 
-export interface CallOptions {
+interface CallOptions {
   timeoutMs?: number;
 }
 
-export interface JudgeRawResult {
+interface JudgeRawResult {
   result: Record<string, unknown>;
   content: string;
-}
-
-/** Structure returned by parseJudgeOutput when all parsing fallbacks fail. */
-export interface ParseErrorResult {
-  overallScore: number;
-  dimensions: unknown[];
-  issues: Array<{
-    severity: string;
-    category: string;
-    description: string;
-    evidence: string;
-  }>;
-  summary: string;
-  _parseError: boolean;
-  _rawContent: string;
 }
 
 // --- Functions ---
@@ -141,7 +126,7 @@ export async function callJudgeModel(
  * @param content - Judge model response text
  * @returns Parsed JSON object (or error structure if parsing fails)
  */
-export function parseJudgeOutput(content: string): Record<string, unknown> {
+function parseJudgeOutput(content: string): Record<string, unknown> {
   // 1. Direct parse
   try {
     return JSON.parse(content) as Record<string, unknown>;

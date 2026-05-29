@@ -253,3 +253,57 @@ describe('REGTEST-14: buildJudgePrompt trace events section', () => {
     assert.ok(prompt.includes('tool_result'), 'prompt should contain tool_result event type');
   });
 });
+
+// =========================================================================
+// REGTEST-B: 鎖定清理 catch 非空
+// =========================================================================
+describe('REGTEST-B: scoring lock cleanup catch should log errors', () => {
+  it('should verify the catch block near .scoring-lock is not empty and uses console.error', () => {
+    const source = fs.readFileSync(
+      new URL('../scorer.ts', import.meta.url), 'utf-8'
+    );
+    // Find the ".scoring-lock" area and check the catch block
+    const lockIdx = source.indexOf('.scoring-lock');
+    assert.ok(lockIdx >= 0, 'Source should reference .scoring-lock');
+
+    const afterLock = source.slice(lockIdx, lockIdx + 800);
+    // The catch block near scoring-lock should have console.error or similar
+    const catchMatch = afterLock.match(/catch\s*\([^)]*\)\s*\{([^}]*)\}/);
+    if (catchMatch) {
+      const catchBody = catchMatch[1].trim();
+      assert.ok(catchBody.length > 0, 'Catch block should not be empty');
+      assert.ok(
+        catchBody.includes('console.error'),
+        `Catch should use console.error, got: "${catchBody.substring(0, 100)}"`
+      );
+    }
+  });
+});
+
+// =========================================================================
+// REGTEST-C: scoreAllTests 使用 scanForDoneAsync
+// =========================================================================
+describe('REGTEST-C: scoreAllTests should use scanForDoneAsync', () => {
+  it('should verify scoreAllTests calls scanForDoneAsync (not sync scanForDone)', () => {
+    const source = fs.readFileSync(
+      new URL('../scorer.ts', import.meta.url), 'utf-8'
+    );
+
+    // Find the scoreAllTests function body
+    const funcStart = source.indexOf('export async function scoreAllTests');
+    assert.ok(funcStart >= 0, 'scoreAllTests function should exist');
+
+    // Read until the directory scanning section (~600 chars should be enough)
+    const funcBody = source.slice(funcStart, funcStart + 1000);
+
+    assert.ok(
+      funcBody.includes('scanForDoneAsync'),
+      'scoreAllTests should call scanForDoneAsync'
+    );
+    // The sync version should NOT be the call site
+    const syncCallMatch = funcBody.match(/scanForDone\([^)]+\)/);
+    if (syncCallMatch) {
+      assert.fail(`scoreAllTests should NOT call scanForDone (sync), found: "${syncCallMatch[0]}"`);
+    }
+  });
+});

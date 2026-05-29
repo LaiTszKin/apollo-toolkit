@@ -3,7 +3,8 @@
  *
  * Reads executor-produced JSONL traces, calls the Judge Model API to score
  * along three dimensions (instruction_adherence, tool_calling, result_quality),
- * and produces score.json per test.
+ * and produces score.json per test. Uses async directory scanning for the
+ * main scoring path.
  *
  * Scoring dimensions (used only for the judge prompt) are:
  *   - instruction_adherence: Did the agent understand and follow instructions?
@@ -17,7 +18,7 @@
  */
 
 import { existsSync, readdirSync } from 'node:fs';
-import { readFile, mkdir, writeFile, rm, readdir, access } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, rm, rmdir, readdir, access } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
 import type { TraceEvent } from './executor.js';
@@ -30,7 +31,7 @@ import { getProjectRoot } from './lib/project-root.js';
 
 // --- Public Types ---
 
-export interface ScoreDimension {
+interface ScoreDimension {
   name: string;
   score: number;
   maxScore: number;
@@ -396,8 +397,10 @@ export async function scoreSingleTest(
     // Release lock
     try {
       await rm(lockDir, { recursive: true });
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.error(`[scorer] Failed to remove scoring lock at ${lockDir}: ${err instanceof Error ? err.message : String(err)}`);
+      // Fallback: try rmdir (succeeds only if lock dir is empty, i.e. normal case)
+      try { await rmdir(lockDir); } catch { /* ignore fallback failure */ }
     }
   }
 
@@ -419,7 +422,7 @@ export async function scoreSingleTest(
 export async function scoreAllTests(date: string, env: EnvConfig): Promise<ScoreResult[]> {
   const rootDir = getProjectRoot();
   const resultsBase = resolve(rootDir, 'results', 'spec', date);
-  const doneTests = scanForDone(resultsBase);
+  const doneTests = await scanForDoneAsync(resultsBase);
   const unscoredTests = doneTests.filter(t => !isAlreadyScored(resultsBase, t));
 
   if (unscoredTests.length === 0) {

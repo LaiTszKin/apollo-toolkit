@@ -112,8 +112,7 @@ export function generateReport(
   const dimStats = dimNames.map(name => {
     const dimScores = scores
       .filter(s => s.dimensions.some(d => d.name === name))
-      .map(s => s.dimensions.find(d => d.name === name)!)
-      .map(d => d.score);
+      .map(s => { const d = s.dimensions.find(dim => dim.name === name); return d ? d.score : 0; });
 
     return {
       name,
@@ -121,9 +120,7 @@ export function generateReport(
       min: dimScores.length > 0 ? Math.min(...dimScores) : 0,
       max: dimScores.length > 0 ? Math.max(...dimScores) : 0,
       count: dimScores.length,
-      weight: scores.length > 0 && scores[0].dimensions.some(d => d.name === name)
-        ? scores[0].dimensions.find(d => d.name === name)!.weight
-        : 0,
+      weight: scores.length > 0 ? (scores[0].dimensions.find(d => d.name === name)?.weight ?? 0) : 0,
     };
   });
 
@@ -348,7 +345,8 @@ export function writeReport(
     mkdirSync(reportDir, { recursive: true });
   }
 
-  const reportPath = join(reportDir, 'REPORT.md');
+  const reportFileName = skillName ? `REPORT-${skillName}.md` : 'REPORT.md';
+  const reportPath = join(reportDir, reportFileName);
   writeFileSync(reportPath, reportContent, 'utf-8');
 
   return reportPath;

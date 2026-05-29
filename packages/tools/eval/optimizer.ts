@@ -13,7 +13,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { resolve, join, relative } from 'node:path';
 import { execSync } from 'node:child_process';
 
 import type { ScoreResult } from './scorer.js';
@@ -88,6 +88,9 @@ interface DedupedIssueInternal {
 
 /** Severity ranking for consistent sorting. Lower rank = more severe. */
 const SEVERITY_RANK: Record<string, number> = { P0: 0, P1: 1, P2: 2 };
+
+/** Maximum Phase 1 pair comparisons before truncation. */
+const MAX_PHASE1_PAIRS = 10000;
 
 /**
  * Common words to filter out in keyword extraction.
@@ -356,8 +359,15 @@ export function jaccardSimilarity(setA: Set<string>, setB: Set<string>): number 
 export function isAllowedFile(filePath: string, skillName: string): boolean {
   const normalized = filePath.replace(/\\/g, '/');
   for (const pattern of ALLOWED_FILES) {
-    const resolved = pattern.replace(/<name>/g, skillName).replace(/\/$/, '');
-    if (normalized.includes(resolved)) return true;
+    const resolved = pattern.replace(/<name>/g, skillName);
+    if (resolved.endsWith('/')) {
+      // Directory pattern: use path.relative to prevent prefix false positives
+      const rel = relative(resolved, normalized);
+      if (!rel.startsWith('..') && rel !== normalized) return true;
+    } else {
+      // File pattern: exact suffix match to prevent .bak false positives
+      if (normalized === resolved || normalized.endsWith('/' + resolved)) return true;
+    }
   }
   return false;
 }
@@ -477,6 +487,7 @@ async function refineDedupWithJudge(
         const { content } = await callJudgeModelRaw(
           [{ role: 'user', content: prompt } as Message],
           env,
+          { timeoutMs: 30_000 },
         );
         const trimmed = content.trim().toUpperCase();
         return { a, b, shouldMerge: trimmed.startsWith('YES') };
@@ -667,7 +678,9 @@ export async function deduplicateIssues(
     const used = new Set<number>();
     const merged: DedupedIssueInternal[] = [];
 
-    for (let i = 0; i < groupIssues.length; i++) {
+    let pairCount = 0;
+
+    outer: for (let i = 0; i < groupIssues.length; i++) {
       if (used.has(i)) continue;
 
       const base = groupIssues[i];
@@ -676,6 +689,11 @@ export async function deduplicateIssues(
 
       // Find similar issues
       for (let j = i + 1; j < groupIssues.length; j++) {
+        pairCount++;
+        if (pairCount > MAX_PHASE1_PAIRS) {
+          console.warn(`[optimizer] Dedup Phase 1 pair limit (${MAX_PHASE1_PAIRS}) reached — truncating`);
+          break outer;
+        }
         if (used.has(j)) continue;
 
         const candidate = groupIssues[j];
@@ -803,6 +821,7 @@ export async function generateSuggestedFix(
       const { content } = await callJudgeModelRaw(
         [{ role: 'user', content: prompt } as Message],
         env,
+        { timeoutMs: 30_000 },
       );
 
       return content.trim();
@@ -1091,10 +1110,9 @@ export async function optimizeSkillMd(
   console.log(`\n=== Optimizing SKILL.md (${skillIssues.length} issues) ===`);
 
   // ALLOWED_FILES check (FIX-09): verify the target path is within allowed ranges
-  const skillName = skillMdPath.split('/').pop()?.replace('/SKILL.md', '') || '';
   const resolvedSkillName = skillMdPath.includes('/skills/')
-    ? skillMdPath.split('/skills/')[1]?.split('/')[0] || skillName
-    : skillName;
+    ? skillMdPath.split('/skills/')[1]?.split('/')[0] || ''
+    : skillMdPath.split('/').pop()?.replace(/\.md$/i, '') || '';
   if (!isAllowedFile(skillMdPath, resolvedSkillName)) {
     return {
       success: false,
@@ -1124,8 +1142,8 @@ export async function optimizeSkillMd(
     }
   }
 
-  if (dryRun || !judgeAvailable) {
-    // Build a detailed suggestions document
+  if (dryRun) {
+    // Build a detailed suggestions document (template only)
     const patchLines: string[] = [
       '# SKILL.md Optimization Suggestions',
       '',
@@ -1149,36 +1167,11 @@ export async function optimizeSkillMd(
       patchLines.push('');
     }
 
-    if (judgeAvailable) {
-      // Use judge model to generate detailed fix suggestions
-      try {
-        patchLines.push('---');
-        patchLines.push('');
-        patchLines.push('## Judge Model Suggested Changes');
-        patchLines.push('');
-
-        const judgePrompt = buildSkillOptimizationPrompt(skillIssues, currentContent);
-        const { content } = await callJudgeModelRaw(
-          [{ role: 'user', content: judgePrompt } as Message],
-          env,
-        );
-
-        patchLines.push(content);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        patchLines.push(`Judge model call failed: ${msg}`);
-        patchLines.push('');
-        patchLines.push('## Template-Based Suggestions');
-        patchLines.push('');
-        patchLines.push(generateSkillTemplateChanges(skillIssues));
-      }
-    } else {
-      patchLines.push('---');
-      patchLines.push('');
-      patchLines.push('## Template-Based Suggestions');
-      patchLines.push('');
-      patchLines.push(generateSkillTemplateChanges(skillIssues));
-    }
+    patchLines.push('---');
+    patchLines.push('');
+    patchLines.push('## Template-Based Suggestions');
+    patchLines.push('');
+    patchLines.push(generateSkillTemplateChanges(skillIssues));
 
     const root = getProjectRoot();
     const resultsDir = resolve(root, 'results', 'spec', date);
@@ -1189,7 +1182,51 @@ export async function optimizeSkillMd(
 
     return {
       success: true,
-      message: `Dry-run: patch written to ${patchPath}`,
+      message: `Dry-run patch written to ${patchPath}`,
+    };
+  }
+
+  if (!judgeAvailable) {
+    // Build a detailed suggestions document (template only)
+    const patchLines: string[] = [
+      '# SKILL.md Optimization Suggestions',
+      '',
+      `Generated: ${new Date().toISOString()}`,
+      `Source: ${skillMdPath}`,
+      `Issues analyzed: ${skillIssues.length}`,
+      '',
+      '---',
+      '',
+      '## Identified Issues',
+      '',
+    ];
+
+    for (const issue of skillIssues) {
+      patchLines.push(`### ${issue.id}: ${issue.severity} - ${issue.description.substring(0, 120)}`);
+      patchLines.push('');
+      patchLines.push(`- **Frequency**: ${issue.frequency} tests affected`);
+      patchLines.push(`- **Affected Tests**: ${issue.affectedTests.join(', ')}`);
+      patchLines.push(`- **Evidence**: ${issue.evidence.join('; ') || '(none)'}`);
+      patchLines.push(`- **Suggested Fix**: ${issue.suggestedFix || '(none)'}`);
+      patchLines.push('');
+    }
+
+    patchLines.push('---');
+    patchLines.push('');
+    patchLines.push('## Template-Based Suggestions');
+    patchLines.push('');
+    patchLines.push(generateSkillTemplateChanges(skillIssues));
+
+    const root = getProjectRoot();
+    const resultsDir = resolve(root, 'results', 'spec', date);
+    mkdirSync(resultsDir, { recursive: true });
+    const patchPath = join(resultsDir, 'skill-optimization-patch.md');
+    writeFileSync(patchPath, patchLines.join('\n'), 'utf-8');
+    console.log(`Skill optimization patch written: ${patchPath}`);
+
+    return {
+      success: true,
+      message: `Judge model unavailable. Template-based patch written to ${patchPath}`,
     };
   }
 
@@ -1205,6 +1242,7 @@ export async function optimizeSkillMd(
     const { content } = await callJudgeModelRaw(
       [{ role: 'user', content: judgePrompt } as Message],
       env,
+      { timeoutMs: env.JUDGE_TIMEOUT * 1000 },
     );
 
     // Parse the judge's suggested changes
@@ -1231,6 +1269,17 @@ export async function optimizeSkillMd(
         timeout: 30000,
       });
       console.log('Frontmatter validation: PASSED');
+
+      // 5. Validate Markdown structure
+      const mdValidation = validateMarkdownStructure(newContent);
+      if (!mdValidation.valid) {
+        console.error('Markdown structure validation FAILED. Restoring backup...');
+        copyFileSync(bakPath, skillMdPath);
+        return {
+          success: false,
+          message: `Markdown structure validation failed. Backup restored. Issues: ${mdValidation.issues.join('; ')}`,
+        };
+      }
     } catch (valErr) {
       const errorMsg = valErr instanceof Error ? valErr.message : String(valErr);
       console.error('Frontmatter validation FAILED. Restoring backup...');

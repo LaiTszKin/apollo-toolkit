@@ -26,6 +26,15 @@ import { getProjectRoot } from './lib/project-root.js';
 import { createToolDispatcher } from './isolation.js';
 import type { ToolCall } from './isolation.js';
 
+// --- Error Classes ---
+
+class DiskSpaceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DiskSpaceError';
+  }
+}
+
 // --- Public Types ---
 
 export interface TraceEvent {
@@ -153,7 +162,7 @@ async function withRetry<T>(
       if (attempt < maxRetries) {
         const delaySec = delays[Math.min(attempt, delays.length - 1)];
         console.error(
-          `  重试中 (${attempt + 1}/${maxRetries})... ${delaySec}s 后重试: ${lastError.message.split('\n')[0]}`,
+          `[executor] Retry (${attempt + 1}/${maxRetries})... ${delaySec}s later: ${lastError.message.split('\n')[0]}`,
         );
         await new Promise(r => setTimeout(r, delaySec * 1000));
       }
@@ -467,10 +476,10 @@ export async function runAllTests(
     const stats = statfsSync(resultsBase);
     const availableMB = (stats.bavail * stats.bsize) / (1024 * 1024);
     if (availableMB < 100) {
-      throw new Error('Eval aborted: insufficient disk space (< 100MB available)');
+      throw new DiskSpaceError('Eval aborted: insufficient disk space (< 100MB available)');
     }
   } catch (err: unknown) {
-    if ((err as Error).message?.startsWith('Eval aborted')) {
+    if (err instanceof DiskSpaceError) {
       throw err;
     }
     // statfsSync 不支援或目錄不存在 — 跳過檢查

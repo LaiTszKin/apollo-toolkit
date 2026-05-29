@@ -125,7 +125,7 @@ function parseArgs(args: string[]): ParsedArgs {
 
       switch (key) {
         case 'mode':
-          result.mode = (value as string) === 'standard' ? 'standard' : 'fast';
+          result.mode = typeof value === 'string' && value === 'standard' ? 'standard' : 'fast';
           break;
         case 'optimize':
           result.optimize = true;
@@ -134,7 +134,7 @@ function parseArgs(args: string[]): ParsedArgs {
           result.dryRun = true;
           break;
         case 'output-dir':
-          result.outputDir = value as string;
+          result.outputDir = typeof value === 'string' ? value : null;
           break;
       }
     } else {
@@ -222,11 +222,29 @@ async function evalHandler(
     stderr.write(
       `Error: SKILL.md not found for skill "${skillName}".\nExpected: ${skillMdPath}\n`,
     );
+    const skills = listSkillNames(projectRoot);
+    if (skills.length > 0) {
+      stderr.write('\nAvailable skills:\n');
+      for (const sk of skills) { stderr.write(`  ${sk}\n`); }
+    }
+    stderr.write('\n');
     return 1;
   }
 
   // ── Pipeline ────────────────────────────────────────────────────────────
+  // SIGINT handler: preserve completed results
+  let sigintReceived = false;
+  const sigintHandler = () => {
+    if (!sigintReceived) {
+      sigintReceived = true;
+      stderr.write('\n[eval] Interrupted. Preserving completed results...\n');
+      process.exit(1);
+    }
+  };
+
   try {
+    process.on('SIGINT', sigintHandler);
+
     // 1. Load environment variables
     stderr.write('[1/7] Loading environment variables...\n');
     const env: EnvConfig = loadEnv();
@@ -345,16 +363,22 @@ async function evalHandler(
 
     if (avgScore < env.EVAL_MIN_SCORE && scores.length > 0) {
       stderr.write(`[FAIL] Average overall score ${avgScore.toFixed(1)}% is below threshold ${env.EVAL_MIN_SCORE}.\n`);
+      process.off('SIGINT', sigintHandler);
       return 1;
     }
     if (env.EVAL_MAX_P0 > 0 && p0Count > env.EVAL_MAX_P0) {
       stderr.write(`[FAIL] P0 issue count ${p0Count} exceeds limit ${env.EVAL_MAX_P0}.\n`);
+      process.off('SIGINT', sigintHandler);
       return 1;
     }
+    process.off('SIGINT', sigintHandler);
     return failed > 0 ? 1 : 0;
   } catch (err) {
+    process.off('SIGINT', sigintHandler);
     const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : '';
     stderr.write(`\nEval failed: ${message}\n`);
+    if (stack) stderr.write(`${stack}\n`);
     return 1;
   }
 }

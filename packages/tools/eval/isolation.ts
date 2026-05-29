@@ -3,13 +3,14 @@
  *
  * 提供工具調用攔截與隔離功能：
  * 1. 讀取工具（Read, Grep, Glob）在 workspace 內真實執行
- * 2. 無法在隔離環境真實執行的工具（LSP, WebSearch, WebFetch）維持模擬，標記 "[simulated]"
+ * 2. 無法在隔離環境真實執行的工具（LSP, WebSearch, WebFetch）維持模擬
  * 3. 寫入工具（Write, Edit, Bash 等）記錄調用意圖後模擬回傳
  *
  * 僅使用 Node.js 內建模組，無外部依賴。
  */
 
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { access, stat, readFile } from 'node:fs/promises';
 import { join, resolve, relative } from 'node:path';
 
 // --- Public Types ---
@@ -19,13 +20,13 @@ export interface ToolCall {
   params: Record<string, unknown>;
 }
 
-export interface MockToolResult {
+interface MockToolResult {
   success: boolean;
   data: string;
   tool: string;
 }
 
-export interface ToolCallRecord {
+interface ToolCallRecord {
   tool: string;
   params: object;
   result: MockToolResult;
@@ -37,7 +38,7 @@ export interface ToolDispatcher {
    * 分發工具調用請求。
    *
    * - 若 tool 為 Read/Grep/Glob 且 workspaceDir 存在 → 在 workspace 內真實執行
-   * - 若 tool 為 LSP/WebSearch/WebFetch → 回傳模擬結果（標記 [simulated]）
+   * - 若 tool 為 LSP/WebSearch/WebFetch → 回傳模擬結果
    * - 若 tool 在 WRITE_TOOLS 中 → 記錄調用意圖後模擬回傳
    * - 未知工具 → 記錄 warning 並回傳 pass-through 結果
    *
@@ -68,7 +69,7 @@ const WORKSPACE_TOOLS: ReadonlySet<string> = new Set([
 
 /**
  * 維持模擬回傳的工具集合。
- * 這些工具無法在隔離環境中真實執行，回傳標記 "[simulated]" 的模擬結果。
+ * 這些工具無法在隔離環境中真實執行，回傳模擬結果。
  */
 const SIMULATED_TOOLS: ReadonlySet<string> = new Set([
   'LSP',
@@ -128,10 +129,10 @@ const UNKNOWN_RESPONSE = 'Passthrough: not intercepted';
  * @param params - 工具參數（path 或 file_path）
  * @returns 檔案內容或錯誤訊息
  */
-function executeRead(
+async function executeRead(
   workspaceDir: string,
   params: Record<string, unknown>,
-): MockToolResult {
+): Promise<MockToolResult> {
   const filePath =
     typeof params.path === 'string'
       ? params.path
@@ -160,7 +161,8 @@ function executeRead(
     };
   }
 
-  if (!existsSync(fullPath)) {
+  const fileExists = await access(fullPath).then(() => true).catch(() => false);
+  if (!fileExists) {
     return {
       success: false,
       data: `Error: File not found: ${filePath}`,
@@ -168,8 +170,8 @@ function executeRead(
     };
   }
 
-  const stat = statSync(fullPath);
-  if (!stat.isFile()) {
+  const fileStat = await stat(fullPath);
+  if (!fileStat.isFile()) {
     return {
       success: false,
       data: `Error: Not a file: ${filePath}`,
@@ -178,7 +180,7 @@ function executeRead(
   }
 
   try {
-    const content = readFileSync(fullPath, 'utf-8');
+    const content = await readFile(fullPath, 'utf-8');
     return { success: true, data: content, tool: 'Read' };
   } catch (err) {
     return {
@@ -352,20 +354,20 @@ function executeGlob(
  * @param params - 工具參數
  * @returns 真實執行結果
  */
-function executeInWorkspace(
+async function executeInWorkspace(
   tool: string,
   workspaceDir: string,
   params: Record<string, unknown>,
-): MockToolResult {
+): Promise<MockToolResult> {
   switch (tool) {
     case 'Read':
-      return executeRead(workspaceDir, params);
+      return await executeRead(workspaceDir, params);
     case 'Grep':
       return executeGrep(workspaceDir, params);
     case 'Glob':
       return executeGlob(workspaceDir, params);
     default:
-      return { success: true, data: `[simulated] ${buildReadResponse(params)}`, tool };
+      return { success: true, data: buildReadResponse(params), tool };
   }
 }
 
@@ -374,8 +376,8 @@ function executeInWorkspace(
  *
  * 建立的 dispatcher 會攔截工具調用請求並根據工具類型決定行為：
  * - Read/Grep/Glob（有 workspaceDir）：在 workspace 內真實執行
- * - LSP/WebSearch/WebFetch：回傳模擬結果（標記 [simulated]）
- * - Read/Grep/Glob（無 workspaceDir）：回傳模擬結果（標記 [simulated]）
+ * - LSP/WebSearch/WebFetch：回傳模擬結果
+ * - Read/Grep/Glob（無 workspaceDir）：回傳模擬結果
  * - 寫入工具：記錄調用意圖後回傳模擬成功結果
  * - 未知工具：記錄 warning 並回傳 pass-through 結果
  *
@@ -399,15 +401,15 @@ export function createToolDispatcher(
 
       if (WORKSPACE_TOOLS.has(tool) && workspaceDir) {
         // 在 workspace 內真實執行
-        result = executeInWorkspace(tool, workspaceDir, params);
+        result = await executeInWorkspace(tool, workspaceDir, params);
       } else if (
         SIMULATED_TOOLS.has(tool) ||
         (WORKSPACE_TOOLS.has(tool) && !workspaceDir)
       ) {
-        // 維持模擬回傳，標記 [simulated] 以區分真實結果
+        // 維持模擬回傳，對被測模型透明
         result = {
           success: true,
-          data: `[simulated] ${buildReadResponse(params)}`,
+          data: buildReadResponse(params),
           tool,
         };
       } else if (WRITE_TOOLS.has(tool)) {

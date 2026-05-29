@@ -210,3 +210,60 @@ describe('REGTEST-12: 衝突保留', () => {
     assert.ok('message' in result, 'Result should have message field');
   });
 });
+
+// =========================================================================
+// REGTEST-D: isAllowedFile path safety (FIX-D regression tests)
+// =========================================================================
+describe('REGTEST-D: isAllowedFile path safety', () => {
+  it('should return true for the exact SKILL.md path', () => {
+    assert.ok(isAllowedFile('/project/skills/spec/SKILL.md', 'spec'));
+  });
+
+  it('should return false for SKILL.md.backup', () => {
+    assert.ok(!isAllowedFile('/project/skills/spec/SKILL.md.backup', 'spec'),
+      'SKILL.md.backup should be rejected');
+  });
+
+  it('should return false for similar directory names', () => {
+    assert.ok(!isAllowedFile('/project/skills/special-tool/SKILL.md', 'spec'),
+      'different skill dir should be rejected');
+  });
+
+  it('should allow scripts path under skill dir', () => {
+    assert.ok(isAllowedFile('skills/spec/scripts/custom.js', 'spec'));
+  });
+
+  it('should allow references path under skill dir', () => {
+    assert.ok(isAllowedFile('skills/spec/references/ref.md', 'spec'));
+  });
+});
+
+// =========================================================================
+// REGTEST-E: deduplicateIssues Phase 1 pair cap (FIX-E regression tests)
+// =========================================================================
+describe('REGTEST-E: deduplicateIssues pair cap', () => {
+  it('should define MAX_PHASE1_PAIRS constant', () => {
+    const source = fs.readFileSync(
+      new URL('../optimizer.ts', import.meta.url), 'utf-8'
+    );
+    assert.ok(
+      source.includes('MAX_PHASE1_PAIRS'),
+      'optimizer.ts should define MAX_PHASE1_PAIRS constant'
+    );
+  });
+
+  it('Phase 1 clustering should have pair count limiting logic', () => {
+    const source = fs.readFileSync(
+      new URL('../optimizer.ts', import.meta.url), 'utf-8'
+    );
+    // Check for pairCount or similar limiting mechanism in Phase 1
+    const phase1Start = source.indexOf('* Phase 1:');
+    assert.ok(phase1Start >= 0, 'Phase 1 clustering should exist');
+
+    const phase1Section = source.slice(phase1Start, phase1Start + 2500);
+    assert.ok(
+      phase1Section.includes('pairCount'),
+      'Phase 1 should have pairCount variable'
+    );
+  });
+});

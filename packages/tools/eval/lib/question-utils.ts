@@ -17,11 +17,13 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+
+import { callJudgeModelRaw } from './judge-api.js';
+import type { EnvConfig } from './env-utils.js';
 
 // --- Types ---
 
-export interface FileContext {
+interface FileContext {
   path: string;
   content: string;
 }
@@ -31,13 +33,13 @@ export interface ProjectContext {
   files: FileContext[];
 }
 
-export interface CheckItem {
+interface CheckItem {
   id: string;
   description: string;
   passCondition: string;
 }
 
-export interface ScoringDimension {
+interface ScoringDimension {
   weight: number;
   checks: CheckItem[];
 }
@@ -58,13 +60,13 @@ export interface Question {
   coveredSteps?: string[];
 }
 
-export interface StrippedQuestion {
+interface StrippedQuestion {
   id: string;
   userPrompt: string;
   projectContext: ProjectContext;
 }
 
-export interface StepDefinition {
+interface StepDefinition {
   key: string;
   label: string;
 }
@@ -81,7 +83,7 @@ const SCORING_DIMENSIONS: ScoringDimensionMeta[] = [
   { key: 'efficiency', label: '效率' },
 ];
 
-export interface ScoringDimensionMeta {
+interface ScoringDimensionMeta {
   key: string;
   label: string;
 }
@@ -99,29 +101,6 @@ const SPEC_WORKFLOW_STEPS: StepDefinition[] = [
   { key: 'architecture-diff', label: '產生架構 diff' },
   { key: 'self-review', label: '交付前自我審查' },
 ];
-
-// --- Schema loading ---
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-/**
- * Read and parse a question JSON Schema file.
- *
- * @param schemaPath - Schema file path; defaults to assets/spec/question-schema.json
- *                     relative to the project root (derived from script location)
- * @returns Parsed JSON Schema object
- */
-export function loadSchema(schemaPath?: string): Record<string, unknown> {
-  const resolved = schemaPath
-    ? path.resolve(schemaPath)
-    // In compiled output (packages/tools/eval/dist/lib/),
-    // navigates 5 levels up to project root via __dirname.
-    // __dirname for source = packages/tools/eval/lib/
-    // __dirname for compiled = packages/tools/eval/dist/lib/
-    : path.resolve(__dirname, '..', '..', '..', '..', '..', 'assets', 'spec', 'question-schema.json');
-  return JSON.parse(fs.readFileSync(resolved, 'utf-8')) as Record<string, unknown>;
-}
 
 // --- Validation ---
 
@@ -258,9 +237,15 @@ export function loadQuestionsFromFile(filePath: string): Question[] {
     throw new Error('題目陣列為空');
   }
 
+  if (questions.length < 3) {
+    throw new Error(
+      `題庫數量不足: 需要至少 3 題（目前 ${questions.length} 題）。請先建立足夠題庫。`,
+    );
+  }
+
   if (questions.length < 100) {
-    console.warn(
-      `警告: 題目數量為 ${questions.length}，少於預期的 100 道。測試覆蓋率可能不足。`,
+    console.log(
+      `提示: 題目數量為 ${questions.length}，少於預期的 100 道。測試覆蓋率可能不足。`,
     );
   }
 
@@ -319,174 +304,62 @@ export function getScoringCriteria(question: Question): ScoringCriteria {
   return question.scoringCriteria;
 }
 
-// --- Self-test (run with: node dist/lib/question-utils.js) ---
+/**
+ * Generate question variants by rewriting only the user prompt.
+ * Uses the judge model to generate semantically equivalent variants.
+ * Preserves scoringCriteria, difficulty, and projectContext from the original.
+ *
+ * @param question - The source question to generate variants from
+ * @param count    - Number of variants to generate
+ * @param env      - Environment config (used for judge model API call)
+ * @returns        Array of variant Question objects (may be fewer than count on parse failure)
+ */
+export async function generateVariants(
+  question: Question,
+  count: number,
+  env: EnvConfig,
+): Promise<Question[]> {
+  const prompt = `You are a test question variant generator. Given an evaluation question, create ${count} semantically equivalent variants by rewriting only the scenario description.
 
-function selfTest(): void {
-  console.log('=== question-utils 自我測試 ===\n');
+Original question:
+\`\`\`
+ID: ${question.id}
+User Prompt: ${question.userPrompt}
+Difficulty: ${question.difficulty}
+\`\`\`
 
-  const __filenameST = fileURLToPath(import.meta.url);
-  const __dirnameST = path.dirname(__filenameST);
-  // In compiled output (packages/tools/eval/dist/lib/), navigate 5 levels up to project root
-  const PROJECT_ROOT = path.resolve(__dirnameST, '..', '..', '..', '..', '..');
+For each variant:
+- Rewrite the userPrompt to be semantically equivalent but differently worded
+- Keep the same difficulty level
+- DO NOT change the scoring criteria, project context, or expected behavior
+- Output as a JSON array of objects, each with "id" and "userPrompt" fields
+- ID format: "${question.id}_v{1..${count}}"
 
-  // Test 1: loadQuestions with the test file
-  const questionsPath = path.resolve(PROJECT_ROOT, 'assets', 'spec', '2026-05-28', 'test-questions.json');
-  console.log(`1. 載入題目檔案: ${questionsPath}`);
-  let questions: Question[];
+Respond ONLY with the JSON array, no other text.`;
+
+  const { content } = await callJudgeModelRaw(
+    [{ role: 'user', content: prompt }],
+    env,
+  );
+
+  // Parse JSON with fallback
+  let variants: Array<{ id: string; userPrompt: string }> = [];
   try {
-    questions = loadQuestionsFromFile(questionsPath);
-    console.log(`   通過: 成功載入 ${questions.length} 道題目`);
-  } catch (err) {
-    console.error(`   失敗: ${(err as Error).message}`);
-    process.exit(1);
-  }
-
-  // Test 2: Verify difficulty distribution
-  console.log('\n2. 難度分佈:');
-  const diffCount: Record<string, number> = { basic: 0, advanced: 0, edge: 0 };
-  questions.forEach(q => { diffCount[q.difficulty]++; });
-  console.log(`   basic: ${diffCount.basic}, advanced: ${diffCount.advanced}, edge: ${diffCount.edge}`);
-  if (diffCount.basic !== 40 || diffCount.advanced !== 40 || diffCount.edge !== 20) {
-    console.error('   失敗: 難度分佈與預期不符 (預期 40/40/20)');
-    process.exit(1);
-  }
-  console.log('   通過: 難度分佈符合預期');
-
-  // Test 3: Verify all IDs are unique
-  console.log('\n3. 檢查 ID 唯一性:');
-  const ids = questions.map(q => q.id);
-  const uniqueIds = new Set(ids);
-  if (ids.length !== uniqueIds.size) {
-    console.error('   失敗: 存在重複的 ID');
-    process.exit(1);
-  }
-  console.log(`   通過: 所有 ${ids.length} 個 ID 都是唯一的`);
-
-  // Test 4: Test stripScoringCriteria
-  console.log('\n4. 測試 stripScoringCriteria:');
-  const stripped = stripScoringCriteria(questions[0]);
-  if ('scoringCriteria' in stripped || 'difficulty' in stripped) {
-    console.error('   失敗: 剝離後的物件仍包含 scoringCriteria 或 difficulty');
-    process.exit(1);
-  }
-  if (!('id' in stripped && 'userPrompt' in stripped && 'projectContext' in stripped)) {
-    console.error('   失敗: 剝離後的物件缺少必要欄位');
-    process.exit(1);
-  }
-  console.log('   通過: 評分標準和難度已正確剝離');
-  console.log(`   剝離後欄位: ${Object.keys(stripped).join(', ')}`);
-
-  // Test 5: Test getScoringCriteria
-  console.log('\n5. 測試 getScoringCriteria:');
-  const criteria = getScoringCriteria(questions[0]);
-  const requiredDims = ['outcome', 'process', 'style', 'efficiency'] as const;
-  const hasAllDims = requiredDims.every(dim => dim in criteria);
-  if (!hasAllDims) {
-    console.error('   失敗: scoringCriteria 缺少維度');
-    process.exit(1);
-  }
-  for (const dim of requiredDims) {
-    const w = criteria[dim].weight;
-    if (typeof w !== 'number' || w < 0 || w > 1) {
-      console.error(`   失敗: ${dim}.weight 不是有效的 0-1 數字: ${w}`);
-      process.exit(1);
-    }
-    if (!Array.isArray(criteria[dim].checks) || criteria[dim].checks.length === 0) {
-      console.error(`   失敗: ${dim}.checks 不是有效的非空陣列`);
-      process.exit(1);
-    }
-  }
-  console.log('   通過: scoringCriteria 包含所有四個維度，且格式正確');
-
-  // Test 6: Verify at least 10 edge questions are negative tests
-  console.log('\n6. 檢查反向測試題目 (至少 10 道):');
-  const negativeTests = questions.filter(q => {
-    const processChecks = q.scoringCriteria?.process?.checks || [];
-    return processChecks.some(c =>
-      (c.description && c.description.includes('沒有調用')) ||
-      (c.passCondition && c.passCondition.includes('不啟動 spec'))
-    );
-  });
-  console.log(`   反向測試題目數量: ${negativeTests.length}`);
-  if (negativeTests.length < 10) {
-    console.error('   失敗: 反向測試題目數量不足 (需要至少 10 道)');
-    process.exit(1);
-  }
-  console.log('   通過: 反向測試題目數量符合要求 (>= 10)');
-
-  // Test 7: Verify schema validation works
-  console.log('\n7. 測試 schema 載入:');
-  try {
-    const schema = loadSchema();
-    if (!schema || typeof schema !== 'object') {
-      throw new Error('schema 不是有效物件');
-    }
-    console.log(`   通過: Schema 載入成功 (title: ${String(schema.title ?? 'unknown')})`);
-  } catch (err) {
-    console.error(`   失敗: ${(err as Error).message}`);
-    process.exit(1);
-  }
-
-  // Test 8: Verify step coverage (spec workflow 8 steps)
-  console.log('\n8. 檢查 spec 工作流程步驟覆蓋率 (每步驟至少 5 題):');
-  const stepCounts: Record<string, number> = {};
-  SPEC_WORKFLOW_STEPS.forEach(s => { stepCounts[s.key] = 0; });
-
-  for (const q of questions) {
-    if (Array.isArray(q.coveredSteps)) {
-      for (const step of q.coveredSteps) {
-        if (Object.hasOwn(stepCounts, step)) {
-          stepCounts[step]++;
-        }
-      }
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed)) variants = parsed;
+  } catch {
+    const match = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (match) {
+      try { variants = JSON.parse(match[0]); } catch { /* fall through */ }
     }
   }
 
-  const lowCoverage: string[] = [];
-  for (const step of SPEC_WORKFLOW_STEPS) {
-    const count = stepCounts[step.key];
-    console.log(`   ${step.label}: ${count} 題`);
-    if (count < 5) {
-      lowCoverage.push(`${step.label} (${count} 題)`);
-    }
-  }
-
-  if (lowCoverage.length > 0) {
-    console.log(`   警告: 以下步驟題目不足 5 道: ${lowCoverage.join(', ')}`);
-    console.log('   部分步驟可能缺乏足夠的測試覆蓋率');
-  } else {
-    console.log('   通過: 所有步驟至少有 5 道題目覆蓋');
-  }
-
-  // Test 9: Verify all scoring criteria weights sum close to 1
-  console.log('\n9. 檢查評分權重總和:');
-  const badWeights = questions.filter(q => {
-    const dims = q.scoringCriteria;
-    const sum = dims.outcome.weight + dims.process.weight + dims.style.weight + dims.efficiency.weight;
-    return Math.abs(sum - 1.0) > 0.01;
-  });
-  if (badWeights.length > 0) {
-    console.log(
-      `   警告: ${badWeights.length} 道題目的權重總和不為 1.0: ${badWeights.map(q => q.id).join(', ')}`,
-    );
-  } else {
-    console.log('   通過: 所有題目的權重總和等於 1.0');
-  }
-
-  // Summary
-  console.log('\n=== 全部測試通過 ===');
-  console.log(`題目總數: ${questions.length}`);
-  console.log(`難度分佈: basic=${diffCount.basic}, advanced=${diffCount.advanced}, edge=${diffCount.edge}`);
-  console.log(`反向測試: ${negativeTests.length} 道`);
-}
-
-// Run self-test when executed directly
-const isDirectRun = process.argv[1] && (
-  process.argv[1].endsWith('question-utils.ts') ||
-  process.argv[1].endsWith('question-utils.js') ||
-  process.argv[1].endsWith('question-utils')
-);
-
-if (isDirectRun) {
-  selfTest();
+  return variants
+    .filter(v => v && typeof v.id === 'string' && typeof v.userPrompt === 'string')
+    .map(v => ({
+      ...question,
+      id: v.id,
+      userPrompt: v.userPrompt,
+    }))
+    .slice(0, count);
 }
