@@ -5,7 +5,7 @@ dependsOn: []
 submodules:
   - slug: judge-prompt-builder
     kind: service
-    role: 評分提示詞構建（trace+criteria→prompt）
+    role: 評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示
     functions: []
     variables: []
     dataflow: []

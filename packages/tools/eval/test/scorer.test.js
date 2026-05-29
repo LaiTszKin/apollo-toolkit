@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
-import { readTrace, scoreAllTests } from '../dist/scorer.js';
+import { readTrace, scoreAllTests, buildJudgePrompt } from '../dist/scorer.js';
 import { getProjectRoot } from '../dist/lib/project-root.js';
 
 // ---------------------------------------------------------------------------
@@ -223,5 +223,33 @@ describe('REGTEST-13: 非同步 I/O（並發度 3）', () => {
     assert.equal(results.length, 3, `Expected 3 results, got ${results.length}`);
     const ids = results.map((r) => r.testId).sort();
     assert.deepEqual(ids, ['Q001', 'Q002', 'Q003']);
+  });
+});
+
+// =========================================================================
+// REGTEST-14 (FIX-04): buildJudgePrompt trace events summary
+// =========================================================================
+describe('REGTEST-14: buildJudgePrompt trace events section', () => {
+  it('should include line-numbered tool_call and tool_result summaries', () => {
+    const trace = [
+      { type: 'thinking', timestamp: '2024-01-01T00:00:01.000Z', data: { systemPrompt: '', userPrompt: 'test' }, _lineNumber: 1 },
+      { type: 'tool_call', timestamp: '2024-01-01T00:00:02.000Z', data: { tool: 'Read', params: { file_path: 'test.md' } }, _lineNumber: 5 },
+      { type: 'tool_result', timestamp: '2024-01-01T00:00:03.000Z', data: { tool: 'Read', result: { data: 'content' } }, _lineNumber: 7 },
+      { type: 'response', timestamp: '2024-01-01T00:00:04.000Z', data: { message: { content: 'done' } }, _lineNumber: 10 },
+    ];
+
+    const scoringCriteria = {
+      outcome: { weight: 0.3, checks: [{ id: 'o1', description: 'Complete task', passCondition: 'Output exists' }] },
+      process: { weight: 0.3, checks: [{ id: 'p1', description: 'Follow process', passCondition: 'Steps done' }] },
+      style: { weight: 0.2, checks: [{ id: 's1', description: 'Correct format', passCondition: 'Valid format' }] },
+      efficiency: { weight: 0.2, checks: [{ id: 'e1', description: 'Efficient', passCondition: 'Quick' }] },
+    };
+
+    const prompt = buildJudgePrompt(trace, scoringCriteria, 'Q001');
+
+    assert.ok(prompt.includes('L5:'), 'prompt should contain L5: line number reference');
+    assert.ok(prompt.includes('L7:'), 'prompt should contain L7: line number reference');
+    assert.ok(prompt.includes('tool_call'), 'prompt should contain tool_call event type');
+    assert.ok(prompt.includes('tool_result'), 'prompt should contain tool_result event type');
   });
 });

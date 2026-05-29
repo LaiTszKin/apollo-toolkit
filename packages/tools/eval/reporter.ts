@@ -144,17 +144,15 @@ export function generateReport(
   });
 
   // Build reverse index: issue key -> test IDs (O(1) lookup in issue summary)
-  const issueToTestMap = new Map<string, string[]>();
+  const issueToTestMap = new Map<string, Set<string>>();
   for (const s of scores) {
     for (const issue of s.issues) {
       const key = `${issue.severity}:${issue.category}:${issue.description.substring(0, 80)}`;
       if (!issueToTestMap.has(key)) {
-        issueToTestMap.set(key, []);
+        issueToTestMap.set(key, new Set<string>());
       }
       const testIds = issueToTestMap.get(key)!;
-      if (!testIds.includes(s.testId)) {
-        testIds.push(s.testId);
-      }
+      testIds.add(s.testId);
     }
   }
 
@@ -280,7 +278,7 @@ export function generateReport(
     for (const issue of sortedIssues) {
       // Look up affected tests from reverse index (O(1))
       const key = `${issue.severity}:${issue.category}:${issue.description.substring(0, 80)}`;
-      const affectedTests = (issueToTestMap.get(key) || []).join(', ');
+      const affectedTests = [...(issueToTestMap.get(key) || [])].join(', ');
 
       const ev = issue.evidence.length > 40 ? issue.evidence.substring(0, 40) + '...' : issue.evidence;
       const desc = issue.description.length > 60 ? issue.description.substring(0, 60) + '...' : issue.description;

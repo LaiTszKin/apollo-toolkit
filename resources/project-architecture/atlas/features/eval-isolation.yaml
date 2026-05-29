@@ -5,14 +5,7 @@ dependsOn: []
 submodules:
   - slug: tool-dispatcher
     kind: service
-    role: 工具調用攔截：read passthrough / write mock
-    functions: []
-    variables: []
-    dataflow: []
-    errors: []
-  - slug: context-factory
-    kind: service
-    role: 獨立評分上下文工廠
+    role: 工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護
     functions: []
     variables: []
     dataflow: []

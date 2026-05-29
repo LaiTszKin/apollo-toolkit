@@ -14,6 +14,9 @@ export async function promisePool<T, R>(
   fn: (item: T, index: number) => Promise<R>,
   concurrency: number,
 ): Promise<R[]> {
+  if (concurrency <= 0) {
+    throw new Error(`promisePool: concurrency must be > 0, got ${concurrency}`);
+  }
   const results: R[] = new Array<R>(items.length);
   let index = 0;
 

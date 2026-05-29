@@ -15,7 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { loadQuestions as libLoadQuestions } from './lib/question-utils.js';
+import { loadQuestionsFromFile } from './lib/question-utils.js';
 import type { Question, FileContext } from './lib/question-utils.js';
 import type { EnvConfig } from './lib/env-utils.js';
 import { callJudgeModel } from './lib/judge-api.js';
@@ -60,7 +60,7 @@ export function loadQuestions(filePath: string): Question[] {
     );
   }
 
-  return libLoadQuestions(resolved);
+  return loadQuestionsFromFile(resolved);
 }
 
 /**

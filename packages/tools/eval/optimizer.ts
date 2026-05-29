@@ -20,7 +20,7 @@ import type { ScoreResult } from './scorer.js';
 import { getProjectRoot } from './lib/project-root.js';
 import type { EnvConfig } from './lib/env-utils.js';
 import { callJudgeModelRaw } from './lib/judge-api.js';
-import type { JudgeEnv, Message } from './lib/judge-api.js';
+import type { Message } from './lib/judge-api.js';
 import { promisePool } from './lib/promise-pool.js';
 
 // --- Public Types ---
@@ -457,7 +457,7 @@ async function refineDedupWithJudge(
       try {
         const { content } = await callJudgeModelRaw(
           [{ role: 'user', content: prompt } as Message],
-          env as unknown as JudgeEnv,
+          env,
         );
         const trimmed = content.trim().toUpperCase();
         return { a, b, shouldMerge: trimmed.startsWith('YES') };
@@ -783,7 +783,7 @@ export async function generateSuggestedFix(
 
       const { content } = await callJudgeModelRaw(
         [{ role: 'user', content: prompt } as Message],
-        env as unknown as JudgeEnv,
+        env,
       );
 
       return content.trim();
@@ -1141,7 +1141,7 @@ export async function optimizeSkillMd(
         const judgePrompt = buildSkillOptimizationPrompt(skillIssues, currentContent);
         const { content } = await callJudgeModelRaw(
           [{ role: 'user', content: judgePrompt } as Message],
-          env as unknown as JudgeEnv,
+          env,
         );
 
         patchLines.push(content);
@@ -1185,7 +1185,7 @@ export async function optimizeSkillMd(
     const judgePrompt = buildSkillOptimizationPrompt(skillIssues, currentContent);
     const { content } = await callJudgeModelRaw(
       [{ role: 'user', content: judgePrompt } as Message],
-      env as unknown as JudgeEnv,
+      env,
     );
 
     // Parse the judge's suggested changes

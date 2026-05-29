@@ -5,7 +5,7 @@ dependsOn: []
 submodules:
   - slug: trace-recorder
     kind: service
-    role: JSONL軌跡記錄與.done標記
+    role: 多輪tool-use loop軌跡記錄：tool_call/tool_result事件序列、JSONL行號標記、.done完成標記
     functions: []
     variables: []
     dataflow: []

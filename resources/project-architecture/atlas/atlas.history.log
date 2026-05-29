@@ -1,2 +1,6 @@
 {"ts":"2026-05-29T11:15:37.710Z","action":"merge","args":{"specs":["docs/plans/2026-05-29/skill-eval-optimizer/eval-core"]},"mode":"base"}
 {"ts":"2026-05-29T11:15:40.385Z","action":"merge","args":{"specs":["docs/plans/2026-05-29/skill-eval-optimizer/optimize-and-integrate"]},"mode":"base"}
+{"ts":"2026-05-29T13:27:26.349Z","action":"submodule set","args":{"feature":"eval-isolation","slug":"tool-dispatcher","role":"工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護"},"mode":"base"}
+{"ts":"2026-05-29T13:27:26.796Z","action":"submodule remove","args":{"feature":"eval-isolation","slug":"context-factory"},"mode":"base"}
+{"ts":"2026-05-29T13:27:29.784Z","action":"submodule set","args":{"feature":"eval-executor","slug":"trace-recorder","role":"多輪tool-use loop軌跡記錄：tool_call/tool_result事件序列、JSONL行號標記、.done完成標記"},"mode":"base"}
+{"ts":"2026-05-29T13:27:30.597Z","action":"submodule set","args":{"feature":"eval-scorer","slug":"judge-prompt-builder","role":"評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示"},"mode":"base"}

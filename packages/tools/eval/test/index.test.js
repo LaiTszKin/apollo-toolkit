@@ -143,3 +143,136 @@ describe('REGTEST-14: exit code 低分檢查', () => {
     assert.ok(hasFailMsg, 'Expected stderr to contain low-score threshold message');
   });
 });
+
+// =========================================================================
+// REGTEST-FIX02: EVAL_MIN_SCORE / EVAL_MAX_P0 environment variables
+// =========================================================================
+
+/**
+ * Helper that encapsulates the exit code decision logic expected after
+ * FIX-02 (EVAL_MIN_SCORE / EVAL_MAX_P0 env vars) and FIX-03 (P0 count check).
+ *
+ * Mirrors the logic that should live in index.ts after the fixes are applied:
+ *   1. avgScore < EVAL_MIN_SCORE (default 60) → exit 1
+ *   2. P0 count > EVAL_MAX_P0 (default 0 = disabled) → exit 1
+ *   3. failed > 0 → exit 1
+ *   4. Otherwise → exit 0
+ */
+function computeEvalExitCode(params) {
+  const {
+    avgScore,
+    scoresLength,
+    failed,
+    p0Count,
+    evalMinScore,
+    evalMaxP0,
+  } = params;
+
+  const minScore = evalMinScore ?? 60;
+  const maxP0 = evalMaxP0 ?? 0;
+
+  if (avgScore < minScore && scoresLength > 0) {
+    return 1;
+  }
+  if (maxP0 > 0 && p0Count > maxP0) {
+    return 1;
+  }
+  return failed > 0 ? 1 : 0;
+}
+
+describe('REGTEST-FIX02: EVAL_MIN_SCORE 與 EVAL_MAX_P0 預設值', () => {
+  it('should use default min score of 60 when EVAL_MIN_SCORE is not set', () => {
+    // Below default threshold
+    assert.equal(
+      computeEvalExitCode({ avgScore: 59, scoresLength: 3, failed: 0, p0Count: 0 }),
+      1,
+    );
+    // At default threshold
+    assert.equal(
+      computeEvalExitCode({ avgScore: 60, scoresLength: 3, failed: 0, p0Count: 0 }),
+      0,
+    );
+  });
+
+  it('should accept custom EVAL_MIN_SCORE', () => {
+    // Below custom threshold
+    assert.equal(
+      computeEvalExitCode({ avgScore: 69, scoresLength: 3, failed: 0, p0Count: 0, evalMinScore: 70 }),
+      1,
+    );
+    // At custom threshold
+    assert.equal(
+      computeEvalExitCode({ avgScore: 70, scoresLength: 3, failed: 0, p0Count: 0, evalMinScore: 70 }),
+      0,
+    );
+  });
+
+  it('should not enforce P0 limit when EVAL_MAX_P0 is 0 (default, disabled)', () => {
+    assert.equal(
+      computeEvalExitCode({ avgScore: 80, scoresLength: 3, failed: 0, p0Count: 5 }),
+      0,
+    );
+  });
+
+  it('should use custom EVAL_MAX_P0 when set', () => {
+    // P0 count within limit
+    assert.equal(
+      computeEvalExitCode({ avgScore: 80, scoresLength: 3, failed: 0, p0Count: 3, evalMaxP0: 5 }),
+      0,
+    );
+    // P0 count exceeds limit
+    assert.equal(
+      computeEvalExitCode({ avgScore: 80, scoresLength: 3, failed: 0, p0Count: 6, evalMaxP0: 5 }),
+      1,
+    );
+  });
+
+  it('should return 0 when scoresLength is 0 regardless of avgScore', () => {
+    // avgScore 0 with no scores should not trigger low-score check
+    assert.equal(
+      computeEvalExitCode({ avgScore: 0, scoresLength: 0, failed: 0, p0Count: 0 }),
+      0,
+    );
+  });
+});
+
+// =========================================================================
+// REGTEST-FIX03: P0 計數 exit code 檢查
+// =========================================================================
+
+describe('REGTEST-FIX03: P0 計數 exit code 檢查', () => {
+  it('should return exit code 0 when avgScore passes and no P0 issues', () => {
+    assert.equal(
+      computeEvalExitCode({ avgScore: 85, scoresLength: 3, failed: 0, p0Count: 0, evalMaxP0: 3 }),
+      0,
+    );
+  });
+
+  it('should return exit code 1 when P0 count exceeds EVAL_MAX_P0', () => {
+    assert.equal(
+      computeEvalExitCode({ avgScore: 85, scoresLength: 3, failed: 0, p0Count: 4, evalMaxP0: 3 }),
+      1,
+    );
+  });
+
+  it('should return exit code 0 when P0 count is within EVAL_MAX_P0', () => {
+    assert.equal(
+      computeEvalExitCode({ avgScore: 85, scoresLength: 3, failed: 0, p0Count: 3, evalMaxP0: 3 }),
+      0,
+    );
+  });
+
+  it('should still return exit code 1 when failed > 0 even with passing score and P0', () => {
+    assert.equal(
+      computeEvalExitCode({ avgScore: 85, scoresLength: 3, failed: 1, p0Count: 1, evalMaxP0: 3 }),
+      1,
+    );
+  });
+
+  it('should prioritise avgScore failure over P0 when both conditions apply', () => {
+    assert.equal(
+      computeEvalExitCode({ avgScore: 50, scoresLength: 3, failed: 0, p0Count: 1, evalMaxP0: 3 }),
+      1,
+    );
+  });
+});

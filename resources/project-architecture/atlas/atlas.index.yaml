@@ -1,7 +1,7 @@
 meta:
   title: Project architecture
   summary: ''
-  updatedAt: '2026-05-29T11:15:40.382Z'
+  updatedAt: '2026-05-29T13:27:30.595Z'
 actors:
   - id: judge-model-api
     label: Judge Model API

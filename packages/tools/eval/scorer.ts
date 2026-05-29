@@ -23,9 +23,8 @@ import { resolve, join } from 'node:path';
 import type { TraceEvent } from './executor.js';
 import type { EnvConfig } from './lib/env-utils.js';
 import { callJudgeModel } from './lib/judge-api.js';
-import type { JudgeEnv } from './lib/judge-api.js';
 import { promisePool } from './lib/promise-pool.js';
-import { loadQuestions, getScoringCriteria } from './lib/question-utils.js';
+import { loadQuestionsFromFile, getScoringCriteria } from './lib/question-utils.js';
 import type { Question, ScoringCriteria } from './lib/question-utils.js';
 import { getProjectRoot } from './lib/project-root.js';
 export { getProjectRoot };
@@ -204,6 +203,27 @@ export function buildJudgePrompt(
 
   const skillContext = skillName ? `\n## 測試技能\n${skillName}\n` : '';
 
+  // Build trace events summary with JSONL line numbers
+  const traceSummaryLines = trace
+    .filter((e): e is TraceEvent & { _lineNumber: number } => e._lineNumber != null)
+    .map(e => {
+      const type = e.type;
+      let detail = '';
+      if (type === 'tool_call' || type === 'tool_result') {
+        const tool = (e.data as Record<string, unknown> | undefined)?.tool;
+        if (tool) detail = ` — ${String(tool)}`;
+      } else if (type === 'thinking') {
+        const up = (e.data as Record<string, unknown> | undefined)?.userPrompt;
+        if (typeof up === 'string') detail = ` — "${up.substring(0, 60)}"`;
+      } else if (type === 'response') {
+        const msg = (e.data as Record<string, unknown> | undefined)?.message as Record<string, unknown> | undefined;
+        const content = msg?.content as string | undefined;
+        if (content) detail = ` — ${content.substring(0, 100)}`;
+      }
+      return `L${e._lineNumber}: ${type}${detail}`;
+    });
+  const traceSummary = traceSummaryLines.length > 0 ? traceSummaryLines.join('\n') : '(無事件)';
+
   const prompt = [
     '你是一個專業的 AI agent 評審。請根據以下資訊對 agent 的測試表現進行三維度評分。',
     '',
@@ -219,6 +239,9 @@ export function buildJudgePrompt(
     `- 狀態: ${status}`,
     `- 耗時: ${duration}ms`,
     errors.length > 0 ? `- 錯誤: ${errors.join('; ')}` : '',
+    '',
+    '## 執行軌跡事件',
+    traceSummary,
     '',
     '## 原始評分標準 (參考)',
     '以下是題庫定義的原始評分標準，請作為評分參考：',
@@ -291,7 +314,7 @@ export async function scoreSingleTest(
     scoringCriteria = getScoringCriteria(questionMap[testNo]);
   } else {
     const questionsPath = resolve(rootDir, 'assets', 'spec', date, 'test-questions.json');
-    const questions = loadQuestions(questionsPath);
+    const questions = loadQuestionsFromFile(questionsPath);
     const question = questions.find(q => q.id === testNo);
     if (!question) {
       throw new Error(`找不到題目: ${testNo}`);
@@ -304,7 +327,7 @@ export async function scoreSingleTest(
 
   // Call judge model with timeout
   const timeoutMs = env.JUDGE_TIMEOUT > 0 ? env.JUDGE_TIMEOUT * 1000 : 120_000;
-  const judgment = await callJudgeModel(prompt, env as unknown as JudgeEnv, { timeoutMs });
+  const judgment = await callJudgeModel(prompt, env, { timeoutMs });
 
   // Warn if judge output had a parse error
   if ((judgment as Record<string, unknown>)._parseError) {
@@ -393,7 +416,7 @@ export async function scoreAllTests(date: string, env: EnvConfig): Promise<Score
   let questionMap: Record<string, Question> | undefined;
   try {
     const questionsPath = resolve(rootDir, 'assets', 'spec', date, 'test-questions.json');
-    const questions = loadQuestions(questionsPath);
+    const questions = loadQuestionsFromFile(questionsPath);
     questionMap = {};
     for (const q of questions) {
       questionMap[q.id] = q;
@@ -503,7 +526,7 @@ export async function watchMode(date: string, env: EnvConfig): Promise<void> {
   let questionMap: Record<string, Question> | undefined;
   try {
     const questionsPath = resolve(rootDir, 'assets', 'spec', date, 'test-questions.json');
-    const questions = loadQuestions(questionsPath);
+    const questions = loadQuestionsFromFile(questionsPath);
     questionMap = {};
     for (const q of questions) {
       questionMap[q.id] = q;

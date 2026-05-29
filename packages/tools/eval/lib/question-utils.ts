@@ -6,7 +6,7 @@
  * Question loading, validation, and stripping utilities.
  *
  * Purposes:
- *   - loadQuestions(filePath): read JSON question file, validate, return question array
+ *   - loadQuestionsFromFile(filePath): read JSON question file, validate, return question array
  *   - stripScoringCriteria(question): strip scoring criteria, return { id, userPrompt, projectContext }
  *   - getScoringCriteria(question): return full scoringCriteria object
  *
@@ -234,7 +234,7 @@ function validateQuestion(question: unknown): { valid: boolean; errors: string[]
  * @returns Array of validated Question objects
  * @throws Error if JSON is invalid, the array is empty, or any question fails validation
  */
-export function loadQuestions(filePath: string): Question[] {
+export function loadQuestionsFromFile(filePath: string): Question[] {
   const resolved = path.resolve(filePath);
   let raw: string;
   try {
@@ -334,7 +334,7 @@ function selfTest(): void {
   console.log(`1. 載入題目檔案: ${questionsPath}`);
   let questions: Question[];
   try {
-    questions = loadQuestions(questionsPath);
+    questions = loadQuestionsFromFile(questionsPath);
     console.log(`   通過: 成功載入 ${questions.length} 道題目`);
   } catch (err) {
     console.error(`   失敗: ${(err as Error).message}`);

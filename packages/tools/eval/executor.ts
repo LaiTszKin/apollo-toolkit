@@ -19,6 +19,7 @@ import { resolve, join } from 'node:path';
 import type { EnvConfig } from './lib/env-utils.js';
 import type { Question, ProjectContext } from './lib/question-utils.js';
 import { callExecModel } from './lib/judge-api.js';
+import type { Message } from './lib/judge-api.js';
 import { promisePool } from './lib/promise-pool.js';
 import { stripScoringCriteria } from './lib/question-utils.js';
 import { getProjectRoot } from './lib/project-root.js';
@@ -224,8 +225,7 @@ async function executeSingleTest(
     // 建立工具分發器 (每個 test 一個)
     const dispatcher = createToolDispatcher({ workspaceDir });
 
-    // 使用寬鬆型別以容納 tool_calls 和 tool_call_id 欄位
-    const messages: Record<string, unknown>[] = [
+    const messages: Message[] = [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: stripped.userPrompt },
     ];
@@ -244,7 +244,7 @@ async function executeSingleTest(
       let response: Record<string, unknown>;
       try {
         response = await callExecModel(
-          messages as unknown as Parameters<typeof callExecModel>[0],
+          messages,
           env,
           controller.signal,
         );

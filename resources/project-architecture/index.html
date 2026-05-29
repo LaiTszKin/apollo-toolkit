@@ -23,7 +23,7 @@
         <button type="button" data-pan-zoom="fit" aria-label="Reset view">Fit</button>
       </div>
       <div class="atlas-canvas__viewport" data-pan-zoom-viewport>
-<svg class="atlas-svg" viewBox="0 0 1659 1465" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Project architecture atlas" data-atlas-svg="macro">
+<svg class="atlas-svg" viewBox="0 0 1867 1497" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Project architecture atlas" data-atlas-svg="macro">
   <defs>
     <marker id="arrow-call" class="m-arrow m-arrow--call" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>
     <marker id="arrow-return" class="m-arrow m-arrow--return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>
@@ -32,8 +32,8 @@
   </defs>
   <g transform="translate(24,24)">
     <g class="m-cluster" data-feature="eval-optimizer">
-      <rect class="m-cluster__bg" x="1275.00" y="558.00" width="255.00" height="405.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="1402.50" y="584.00" text-anchor="middle">優化引擎</text>
+      <rect class="m-cluster__bg" x="1275.00" y="585.50" width="255.00" height="405.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="1402.50" y="611.50" text-anchor="middle">優化引擎</text>
     </g>
     <g class="m-cluster" data-feature="eval-cli">
       <rect class="m-cluster__bg" x="688.00" y="804.00" width="291.00" height="295.00" rx="14" ry="14" />
@@ -44,20 +44,20 @@
       <text class="m-cluster__title" x="191.00" y="830.00" text-anchor="middle">PR閘門</text>
     </g>
     <g class="m-cluster" data-feature="eval-isolation">
-      <rect class="m-cluster__bg" x="1275.00" y="995.00" width="316.00" height="295.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="1433.00" y="1021.00" text-anchor="middle">上下文隔離與工具模擬</text>
+      <rect class="m-cluster__bg" x="1275.00" y="1022.50" width="524.00" height="185.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="1537.00" y="1048.50" text-anchor="middle">上下文隔離與工具模擬</text>
     </g>
     <g class="m-cluster" data-feature="eval-question">
       <rect class="m-cluster__bg" x="20.00" y="20.00" width="252.00" height="266.00" rx="14" ry="14" />
       <text class="m-cluster__title" x="146.00" y="46.00" text-anchor="middle">評測題庫</text>
     </g>
     <g class="m-cluster" data-feature="eval-executor">
-      <rect class="m-cluster__bg" x="680.00" y="1131.00" width="259.00" height="266.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="809.50" y="1157.00" text-anchor="middle">評測執行器</text>
+      <rect class="m-cluster__bg" x="617.00" y="1131.00" width="322.00" height="298.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="778.00" y="1157.00" text-anchor="middle">評測執行器</text>
     </g>
     <g class="m-cluster" data-feature="eval-scorer">
-      <rect class="m-cluster__bg" x="620.00" y="506.00" width="319.00" height="266.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="779.50" y="532.00" text-anchor="middle">評分引擎</text>
+      <rect class="m-cluster__bg" x="488.00" y="506.00" width="451.00" height="266.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="713.50" y="532.00" text-anchor="middle">評分引擎</text>
     </g>
     <g class="m-cluster" data-feature="eval-reporter">
       <rect class="m-cluster__bg" x="20.00" y="318.00" width="252.00" height="156.00" rx="14" ry="14" />
@@ -65,24 +65,24 @@
     </g>
     <a class="m-node m-node--service" href="features/eval-optimizer/issue-extractor.html" data-feature="eval-optimizer" data-submodule="issue-extractor" tabindex="0" aria-label="issue-extractor — 從score.json提取問題、分類統計 — open sub-module page">
       <title>issue-extractor — 從score.json提取問題、分類統計</title>
-      <rect x="1292.50" y="741.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="1402.50" y="771.00" text-anchor="middle">issue-extractor</text>
-      <text class="m-node__kind" x="1402.50" y="787.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="1402.50" y="807.00" text-anchor="middle">從score.json提取問題、分類統計</text>
+      <rect x="1292.50" y="768.50" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1402.50" y="798.50" text-anchor="middle">issue-extractor</text>
+      <text class="m-node__kind" x="1402.50" y="814.50" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="1402.50" y="834.50" text-anchor="middle">從score.json提取問題、分類統計</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-optimizer/dedup-engine.html" data-feature="eval-optimizer" data-submodule="dedup-engine" tabindex="0" aria-label="dedup-engine — Jaccard+Judge語意去重 — open sub-module page">
       <title>dedup-engine — Jaccard+Judge語意去重</title>
-      <rect x="1292.50" y="851.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="1402.50" y="881.00" text-anchor="middle">dedup-engine</text>
-      <text class="m-node__kind" x="1402.50" y="897.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="1402.50" y="917.00" text-anchor="middle">Jaccard+Judge語意去重</text>
+      <rect x="1292.50" y="878.50" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1402.50" y="908.50" text-anchor="middle">dedup-engine</text>
+      <text class="m-node__kind" x="1402.50" y="924.50" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="1402.50" y="944.50" text-anchor="middle">Jaccard+Judge語意去重</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-optimizer/diff-generator.html" data-feature="eval-optimizer" data-submodule="diff-generator" tabindex="0" aria-label="diff-generator — FIND/REPLACE diff生成與備份/復原 — open sub-module page">
       <title>diff-generator — FIND/REPLACE diff生成與備份/復原</title>
-      <rect x="1291.00" y="631.00" width="223.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="1402.50" y="661.00" text-anchor="middle">diff-generator</text>
-      <text class="m-node__kind" x="1402.50" y="677.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="1402.50" y="697.00" text-anchor="middle">FIND/REPLACE diff生成與備份/復原</text>
+      <rect x="1291.00" y="658.50" width="223.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1402.50" y="688.50" text-anchor="middle">diff-generator</text>
+      <text class="m-node__kind" x="1402.50" y="704.50" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="1402.50" y="724.50" text-anchor="middle">FIND/REPLACE diff生成與備份/復原</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-cli/cli-handler.html" data-feature="eval-cli" data-submodule="cli-handler" tabindex="0" aria-label="cli-handler — ToolDefinition註冊、參數解析、流程編排 — open sub-module page">
       <title>cli-handler — ToolDefinition註冊、參數解析、流程編排</title>
@@ -112,19 +112,12 @@
       <text class="m-node__kind" x="191.00" y="1033.00" text-anchor="middle">Service</text>
       <text class="m-node__role" x="191.00" y="1053.00" text-anchor="middle">PR評論回報評測結果</text>
     </a>
-    <a class="m-node m-node--service" href="features/eval-isolation/tool-dispatcher.html" data-feature="eval-isolation" data-submodule="tool-dispatcher" tabindex="0" aria-label="tool-dispatcher — 工具調用攔截：read passthrough / write mock — open sub-module page">
-      <title>tool-dispatcher — 工具調用攔截：read passthrough / write mock</title>
-      <rect x="1291.00" y="1068.00" width="284.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="1433.00" y="1098.00" text-anchor="middle">tool-dispatcher</text>
-      <text class="m-node__kind" x="1433.00" y="1114.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="1433.00" y="1134.00" text-anchor="middle">工具調用攔截：read passthrough / write mock</text>
-    </a>
-    <a class="m-node m-node--service" href="features/eval-isolation/context-factory.html" data-feature="eval-isolation" data-submodule="context-factory" tabindex="0" aria-label="context-factory — 獨立評分上下文工廠 — open sub-module page">
-      <title>context-factory — 獨立評分上下文工廠</title>
-      <rect x="1323.00" y="1178.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="1433.00" y="1208.00" text-anchor="middle">context-factory</text>
-      <text class="m-node__kind" x="1433.00" y="1224.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="1433.00" y="1244.00" text-anchor="middle">獨立評分上下文工廠</text>
+    <a class="m-node m-node--service" href="features/eval-isolation/tool-dispatcher.html" data-feature="eval-isolation" data-submodule="tool-dispatcher" tabindex="0" aria-label="tool-dispatcher — 工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護 — open sub-module page">
+      <title>tool-dispatcher — 工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護</title>
+      <rect x="1291.00" y="1095.50" width="492.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1537.00" y="1125.50" text-anchor="middle">tool-dispatcher</text>
+      <text class="m-node__kind" x="1537.00" y="1141.50" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="1537.00" y="1161.50" text-anchor="middle">工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-question/question-loader.html" data-feature="eval-question" data-submodule="question-loader" tabindex="0" aria-label="question-loader — 題目載入與JSON Schema驗證 — open sub-module page">
       <title>question-loader — 題目載入與JSON Schema驗證</title>
@@ -140,33 +133,35 @@
       <text class="m-node__kind" x="146.00" y="220.00" text-anchor="middle">Service</text>
       <text class="m-node__role" x="146.00" y="240.00" text-anchor="middle">LLM變體生成，保留評分標準</text>
     </a>
-    <a class="m-node m-node--service" href="features/eval-executor/trace-recorder.html" data-feature="eval-executor" data-submodule="trace-recorder" tabindex="0" aria-label="trace-recorder — JSONL軌跡記錄與.done標記 — open sub-module page">
-      <title>trace-recorder — JSONL軌跡記錄與.done標記</title>
-      <rect x="696.00" y="1175.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="806.00" y="1205.00" text-anchor="middle">trace-recorder</text>
-      <text class="m-node__kind" x="806.00" y="1221.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="806.00" y="1241.00" text-anchor="middle">JSONL軌跡記錄與.done標記</text>
+    <a class="m-node m-node--service" href="features/eval-executor/trace-recorder.html" data-feature="eval-executor" data-submodule="trace-recorder" tabindex="0" aria-label="trace-recorder — 多輪tool-use loop軌跡記錄：tool_call/tool_result事件序列、JSONL行號標記、.done完成標記 — open sub-module page">
+      <title>trace-recorder — 多輪tool-use loop軌跡記錄：tool_call/tool_result事件序列、JSONL行號標記、.done完成標記</title>
+      <rect x="633.00" y="1175.00" width="290.00" height="126.00" rx="10" ry="10" />
+      <text class="m-node__title" x="778.00" y="1205.00" text-anchor="middle">trace-recorder</text>
+      <text class="m-node__kind" x="778.00" y="1221.00" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="778.00" y="1241.00" text-anchor="middle">多輪tool-use loop軌跡記錄：</text>
+      <text class="m-node__role" x="778.00" y="1257.00" text-anchor="middle">tool_call/tool_result事件序列、JSONL行號標</text>
+      <text class="m-node__role" x="778.00" y="1273.00" text-anchor="middle">記、.done完成標記</text>
     </a>
     <a class="m-node m-node--api" href="features/eval-executor/exec-api-client.html" data-feature="eval-executor" data-submodule="exec-api-client" tabindex="0" aria-label="exec-api-client — Exec Model HTTP client with retry — open sub-module page">
       <title>exec-api-client — Exec Model HTTP client with retry</title>
-      <rect x="696.00" y="1285.00" width="227.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="809.50" y="1315.00" text-anchor="middle">exec-api-client</text>
-      <text class="m-node__kind" x="809.50" y="1331.00" text-anchor="middle">API</text>
-      <text class="m-node__role" x="809.50" y="1351.00" text-anchor="middle">Exec Model HTTP client with retry</text>
+      <rect x="633.00" y="1317.00" width="227.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="746.50" y="1347.00" text-anchor="middle">exec-api-client</text>
+      <text class="m-node__kind" x="746.50" y="1363.00" text-anchor="middle">API</text>
+      <text class="m-node__role" x="746.50" y="1383.00" text-anchor="middle">Exec Model HTTP client with retry</text>
     </a>
-    <a class="m-node m-node--service" href="features/eval-scorer/judge-prompt-builder.html" data-feature="eval-scorer" data-submodule="judge-prompt-builder" tabindex="0" aria-label="judge-prompt-builder — 評分提示詞構建（trace+criteria→prompt） — open sub-module page">
-      <title>judge-prompt-builder — 評分提示詞構建（trace+criteria→prompt）</title>
-      <rect x="636.00" y="550.00" width="268.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="770.00" y="580.00" text-anchor="middle">judge-prompt-builder</text>
-      <text class="m-node__kind" x="770.00" y="596.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="770.00" y="616.00" text-anchor="middle">評分提示詞構建（trace+criteria→prompt）</text>
+    <a class="m-node m-node--service" href="features/eval-scorer/judge-prompt-builder.html" data-feature="eval-scorer" data-submodule="judge-prompt-builder" tabindex="0" aria-label="judge-prompt-builder — 評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示 — open sub-module page">
+      <title>judge-prompt-builder — 評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示</title>
+      <rect x="504.00" y="550.00" width="419.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="713.50" y="580.00" text-anchor="middle">judge-prompt-builder</text>
+      <text class="m-node__kind" x="713.50" y="596.00" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="713.50" y="616.00" text-anchor="middle">評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示</text>
     </a>
     <a class="m-node m-node--api" href="features/eval-scorer/judge-api-client.html" data-feature="eval-scorer" data-submodule="judge-api-client" tabindex="0" aria-label="judge-api-client — Judge Model HTTP client with parse fallback — open sub-module page">
       <title>judge-api-client — Judge Model HTTP client with parse fallback</title>
-      <rect x="636.00" y="660.00" width="287.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="779.50" y="690.00" text-anchor="middle">judge-api-client</text>
-      <text class="m-node__kind" x="779.50" y="706.00" text-anchor="middle">API</text>
-      <text class="m-node__role" x="779.50" y="726.00" text-anchor="middle">Judge Model HTTP client with parse fallback</text>
+      <rect x="504.00" y="660.00" width="287.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="647.50" y="690.00" text-anchor="middle">judge-api-client</text>
+      <text class="m-node__kind" x="647.50" y="706.00" text-anchor="middle">API</text>
+      <text class="m-node__role" x="647.50" y="726.00" text-anchor="middle">Judge Model HTTP client with parse fallback</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-reporter/report-composer.html" data-feature="eval-reporter" data-submodule="report-composer" tabindex="0" aria-label="report-composer — Markdown報告組合與渲染 — open sub-module page">
       <title>report-composer — Markdown報告組合與渲染</title>
@@ -176,14 +171,14 @@
       <text class="m-node__role" x="146.00" y="428.00" text-anchor="middle">Markdown報告組合與渲染</text>
     </a>
     <g class="m-edge m-edge--call m-edge--cross" data-edge="e-101">
-      <path d="M979.00,902.33 L989.00,902.33 L989.00,760.50 L1275.00,760.50" fill="none" marker-end="url(#arrow-call)" />
-      <text class="m-edge__label" x="1107.00" y="750.50" text-anchor="middle">
+      <path d="M979.00,902.33 L989.00,902.33 L989.00,788.00 L1275.00,788.00" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="1107.00" y="778.00" text-anchor="middle">
         <tspan x="1107.00">trigger optimization after scoring</tspan>
       </text>
     </g>
     <g class="m-edge m-edge--call m-edge--cross" data-edge="e-102">
-      <path d="M979.00,1000.67 L989.00,1000.67 L989.00,1142.50 L1275.00,1142.50" fill="none" marker-end="url(#arrow-call)" />
-      <text class="m-edge__label" x="1107.00" y="1160.50" text-anchor="middle">
+      <path d="M979.00,1000.67 L989.00,1000.67 L989.00,1115.00 L1275.00,1115.00" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="1107.00" y="1133.00" text-anchor="middle">
         <tspan x="1107.00">setup tool mock + context isolation</tspan>
       </text>
     </g>
@@ -268,15 +263,7 @@
             <span class="atlas-submodule-index__sub">tool-dispatcher</span>
             <span class="atlas-submodule-index__kind">Service</span>
           </a>
-          <p class="atlas-submodule-index__role">工具調用攔截：read passthrough / write mock</p>
-        </li>
-        <li class="atlas-submodule-index__item">
-          <a href="features/eval-isolation/context-factory.html">
-            <span class="atlas-submodule-index__feature">上下文隔離與工具模擬</span>
-            <span class="atlas-submodule-index__sub">context-factory</span>
-            <span class="atlas-submodule-index__kind">Service</span>
-          </a>
-          <p class="atlas-submodule-index__role">獨立評分上下文工廠</p>
+          <p class="atlas-submodule-index__role">工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護</p>
         </li>
         <li class="atlas-submodule-index__item">
           <a href="features/eval-question/question-loader.html">
@@ -300,7 +287,7 @@
             <span class="atlas-submodule-index__sub">trace-recorder</span>
             <span class="atlas-submodule-index__kind">Service</span>
           </a>
-          <p class="atlas-submodule-index__role">JSONL軌跡記錄與.done標記</p>
+          <p class="atlas-submodule-index__role">多輪tool-use loop軌跡記錄：tool_call/tool_result事件序列、JSONL行號標記、.done完成標記</p>
         </li>
         <li class="atlas-submodule-index__item">
           <a href="features/eval-executor/exec-api-client.html">
@@ -316,7 +303,7 @@
             <span class="atlas-submodule-index__sub">judge-prompt-builder</span>
             <span class="atlas-submodule-index__kind">Service</span>
           </a>
-          <p class="atlas-submodule-index__role">評分提示詞構建（trace+criteria→prompt）</p>
+          <p class="atlas-submodule-index__role">評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示</p>
         </li>
         <li class="atlas-submodule-index__item">
           <a href="features/eval-scorer/judge-api-client.html">

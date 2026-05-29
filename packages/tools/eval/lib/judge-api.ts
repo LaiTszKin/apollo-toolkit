@@ -7,11 +7,15 @@
  * This is the TypeScript version migrated from scripts/lib/judge-api.mjs.
  */
 
+import type { EnvConfig } from './env-utils.js';
+
 // --- Types ---
 
 export interface Message {
   role: string;
-  content: string;
+  content: string | null;
+  tool_calls?: Array<Record<string, unknown>>;
+  tool_call_id?: string;
 }
 
 export interface JudgeEnv {
