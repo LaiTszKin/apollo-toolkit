@@ -2,6 +2,13 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v4.0.8] - 2026-05-30
+
+### Changed
+
+- `discuss` skill: now produces high-level module design (PROPOSAL.md) through conversation only; explicitly does not read any repo files. Added step 3a for functional module breakdown with module responsibilities and collaboration relationships.
+- `spec` skill: must dispatch parallel subagents to research the repo before generating SPEC.md (can skip for brand new repos). Ensures every requirement's scope and boundary aligns with actual codebase state.
+
 ## [v4.0.7] - 2026-05-30
 
 ### Changed
