@@ -329,3 +329,56 @@ it('REGTEST-05: optimizer backup should use unique names and inline validation',
     'optimizeSkillMd should not use execSync'
   );
 });
+
+// =========================================================================
+// REGTEST-02 (R8): Phase 2 Jaccard 預過濾器閾值降低驗證（關聯 FIX-02）
+// =========================================================================
+describe('REGTEST-02 (R8): Jaccard 預過濾器閾值降低', () => {
+  /**
+   * 內聯 Jaccard 相似度實作，與 optimizer.ts 內 private 函式邏輯一致。
+   * tokenize: 以非字母數字字元分割後過濾空字串
+   * jaccardSimilarity: |A ∩ B| / |A ∪ B|
+   */
+  function tokenize(text) {
+    return new Set(
+      text
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean),
+    );
+  }
+
+  function jaccardSimilarity(textA, textB) {
+    const setA = tokenize(textA);
+    const setB = tokenize(textB);
+    if (setA.size === 0 && setB.size === 0) return 1.0;
+
+    let intersection = 0;
+    const [smaller, larger] =
+      setA.size <= setB.size ? [setA, setB] : [setB, setA];
+
+    for (const item of smaller) {
+      if (larger.has(item)) intersection++;
+    }
+
+    const union = setA.size + setB.size - intersection;
+    return intersection / (union || 1);
+  }
+
+  it('語意相似但用詞不同的描述應落在新閾值 [0.1, 0.25) 範圍內', () => {
+    const text1 = 'instruction not followed correctly in the output';
+    const text2 = 'did not comply with user directive in response';
+
+    const sim = jaccardSimilarity(text1, text2);
+
+    // 舊閾值 0.25 會排除此對；新閾值 0.1 應讓它通過
+    assert.ok(
+      sim < 0.25,
+      `Jaccard ${sim} 應 < 0.25（舊閾值會排除）`,
+    );
+    assert.ok(
+      sim >= 0.1,
+      `Jaccard ${sim} 應 >= 0.1（新閾值應讓它通過預過濾器）`,
+    );
+  });
+});

@@ -7,20 +7,13 @@
  * This module wraps lib/question-utils and provides higher-level operations:
  *   - loadQuestions:     Load questions with explicit file-not-found error
  *   - sampleQuestions:   Stratified sampling by difficulty (fast / standard modes)
- *
- * Re-exports Question type from lib/question-utils for external consumers.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { loadQuestionsFromFile, generateVariants } from './lib/question-utils.js';
+import { loadQuestionsFromFile } from './lib/question-utils.js';
 import type { Question } from './lib/question-utils.js';
-import type { EnvConfig } from './lib/env-utils.js';
-
-// --- Re-exports ---
-
-export type { Question } from './lib/question-utils.js';
 
 // --- Internal helpers ---
 
@@ -83,11 +76,10 @@ export function sampleQuestions(
     throw new Error('題目陣列為空，無法抽樣。需先建立題庫。');
   }
 
-  const byDifficulty = {
-    basic: questions.filter(q => q.difficulty === 'basic'),
-    advanced: questions.filter(q => q.difficulty === 'advanced'),
-    edge: questions.filter(q => q.difficulty === 'edge'),
-  };
+  const byDifficulty: Record<string, Question[]> = { basic: [], advanced: [], edge: [] };
+  for (const q of questions) {
+    byDifficulty[q.difficulty].push(q);
+  }
 
   if (mode === 'fast') {
     // Validate each difficulty level has at least 1 question
@@ -109,7 +101,10 @@ export function sampleQuestions(
 
     // Fill remaining slots from all leftover questions
     const usedIds = new Set(selected.map(q => q.id));
-    const remaining = questions.filter(q => !usedIds.has(q.id));
+    const remaining: Question[] = [];
+    for (const q of questions) {
+      if (!usedIds.has(q.id)) remaining.push(q);
+    }
     const extraNeeded = targetCount - selected.length;
     selected.push(
       ...shuffleArray(remaining).slice(0, Math.min(extraNeeded, remaining.length)),
@@ -140,30 +135,4 @@ export function sampleQuestions(
   return shuffleArray(selected);
 }
 
-/**
- * Ensure sufficient questions by generating variants if needed.
- * Uses LLM to generate variants when question bank is too small.
- *
- * @param questions   - Existing question pool
- * @param targetCount - Desired number of questions
- * @param env         - Environment config (used for model API calls)
- * @returns           Original questions plus generated variants to reach targetCount
- */
-async function supplyQuestions(
-  questions: Question[],
-  targetCount: number,
-  env: EnvConfig,
-): Promise<Question[]> {
-  if (questions.length >= targetCount) return questions;
-
-  const needed = targetCount - questions.length;
-  const variants: Question[] = [];
-  for (let i = 0; i < needed && i < questions.length; i++) {
-    const source = questions[i % questions.length];
-    const generated = await generateVariants(source, 1, env);
-    variants.push(...generated);
-  }
-
-  return [...questions, ...variants];
-}
 

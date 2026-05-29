@@ -10,6 +10,7 @@
  */
 
 import { access, stat, readFile, readdir } from 'node:fs/promises';
+import type { Dirent } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -29,7 +30,7 @@ interface MockToolResult {
   tool: string;
 }
 
-export interface ToolDispatcher {
+interface ToolDispatcher {
   /**
    * 分發工具調用請求。
    *
@@ -142,7 +143,7 @@ async function executeRead(
 
   // 路徑穿越防護：確保解析後的路徑仍在 workspaceDir 內
   const rel = relative(normalizedWorkspace, fullPath);
-  if (rel.startsWith('..') || rel === fullPath) {
+  if (rel.startsWith('..')) {
     return {
       success: false,
       data: `Error: Path "${filePath}" escapes workspace directory`,
@@ -181,6 +182,49 @@ async function executeRead(
 }
 
 /**
+ * 共享遞迴目錄遍歷器。
+ *
+ * 遍歷指定目錄，對每個檔案調用 onFile 回呼。
+ * 自動跳過 .git 與 node_modules 目錄。
+ *
+ * @param dir - 起始目錄
+ * @param workspaceDir - workspace 根目錄（用於計算相對路徑）
+ * @param onFile - 每個檔案的處理回呼
+ * @returns 因權限等原因跳過的目錄數
+ */
+async function walkDir(
+  dir: string,
+  workspaceDir: string,
+  onFile: (fullPath: string, relPath: string, entry: Dirent) => Promise<void>,
+): Promise<number> {
+  let skippedCount = 0;
+
+  let entries: Dirent[];
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return 1; // 無法讀取的目錄（權限問題等），計為 1 個跳過
+  }
+
+  for (const entry of entries) {
+    if (entry.name === '.git' || entry.name === 'node_modules') {
+      continue;
+    }
+
+    const fullPath = join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      skippedCount += await walkDir(fullPath, workspaceDir, onFile);
+    } else if (entry.isFile()) {
+      const relPath = relative(workspaceDir, fullPath);
+      await onFile(fullPath, relPath, entry);
+    }
+  }
+
+  return skippedCount;
+}
+
+/**
  * 在 workspace 內真實執行 Grep 工具。
  *
  * 遞迴掃描 workspaceDir 內所有文字檔案，匹配指定 pattern。
@@ -205,51 +249,30 @@ async function executeGrep(
   }
 
   const results: string[] = [];
-  let skippedCount = 0;
 
-  async function walkDir(dir: string): Promise<void> {
-    let entries;
-    try {
-      entries = await readdir(dir, { withFileTypes: true });
-    } catch {
-      skippedCount++;
-      return; // 無法讀取的目錄（權限問題等），跳過
-    }
-
-    for (const entry of entries) {
-      if (entry.name === '.git' || entry.name === 'node_modules') {
-        continue;
-      }
-
-      const fullPath = join(dir, entry.name);
-
-      if (entry.isDirectory()) {
-        await walkDir(fullPath);
-      } else if (entry.isFile()) {
-        try {
-          // 檔案大小檢查：超過 1MB 跳過 (避免將大型檔案載入記憶體)
-          const fileStat = await stat(fullPath);
-          if (fileStat.size > 1024 * 1024) {
-            const relPath = relative(workspaceDir, fullPath);
-            results.push(`[isolation] Skipped large file: ${relPath} (${(fileStat.size / 1024 / 1024).toFixed(1)}MB)`);
-            continue;
-          }
-          const content = await readFile(fullPath, 'utf-8');
-          const lines = content.split('\n');
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes(pattern)) {
-              const relPath = relative(workspaceDir, fullPath);
-              results.push(`${relPath}:${i + 1}:${lines[i]}`);
-            }
-          }
-        } catch {
-          // 二進位檔或無法以文字讀取的檔案，跳過
+  const skippedCount = await walkDir(
+    workspaceDir,
+    workspaceDir,
+    async (fullPath, relPath) => {
+      try {
+        // 檔案大小檢查：超過 1MB 跳過 (避免將大型檔案載入記憶體)
+        const fileStat = await stat(fullPath);
+        if (fileStat.size > 1024 * 1024) {
+          results.push(`[isolation] Skipped large file: ${relPath} (${(fileStat.size / 1024 / 1024).toFixed(1)}MB)`);
+          return;
         }
+        const content = await readFile(fullPath, 'utf-8');
+        const lines = content.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].includes(pattern)) {
+            results.push(`${relPath}:${i + 1}:${lines[i]}`);
+          }
+        }
+      } catch {
+        // 二進位檔或無法以文字讀取的檔案，跳過
       }
-    }
-  }
-
-  await walkDir(workspaceDir);
+    },
+  );
 
   if (skippedCount > 0) {
     results.push(`[isolation] Warning: ${skippedCount} path(s) could not be read`);
@@ -310,34 +333,16 @@ async function executeGlob(
   }
 
   const matches: string[] = [];
-  let skippedCount = 0;
 
-  async function walkDir(dir: string): Promise<void> {
-    let entries;
-    try {
-      entries = await readdir(dir, { withFileTypes: true });
-    } catch {
-      skippedCount++;
-      return;
-    }
-
-    for (const entry of entries) {
-      if (entry.name === '.git' || entry.name === 'node_modules') {
-        continue;
-      }
-
-      const fullPath = join(dir, entry.name);
-      const relPath = relative(workspaceDir, fullPath);
-
+  const skippedCount = await walkDir(
+    workspaceDir,
+    workspaceDir,
+    async (_fullPath, relPath, entry) => {
       if (entry.isFile() && regex.test(relPath)) {
         matches.push(relPath);
-      } else if (entry.isDirectory()) {
-        await walkDir(fullPath);
       }
-    }
-  }
-
-  await walkDir(workspaceDir);
+    },
+  );
 
   if (skippedCount > 0) {
     matches.push(`[isolation] Warning: ${skippedCount} path(s) could not be read`);
@@ -443,7 +448,7 @@ async function executeBash(
   for (const arg of args) {
     const fullPath = resolve(workspaceDir, arg);
     const rel = relative(normalizedWorkspace, fullPath);
-    if (rel.startsWith('..') || rel === fullPath) {
+    if (rel.startsWith('..')) {
       console.warn(`[isolation] Path escape attempt intercepted: ${command}`);
       return { success: true, data: `Error: Access denied — paths outside workspace are restricted.`, tool: 'Bash' };
     }

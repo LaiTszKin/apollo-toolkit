@@ -106,6 +106,37 @@ describe('REGTEST-04 (R7): TraceEvent type 包含 round event', () => {
   });
 });
 
+// =========================================================================
+// REGTEST-08 (R8): sigintCleanup 不含 process.exit（關聯 FIX-01）
+// =========================================================================
+describe('REGTEST-08 (R8): sigintCleanup 不含 process.exit', () => {
+  it('sigintCleanup handler 不應呼叫 process.exit', () => {
+    const source = fs.readFileSync(
+      new URL('../executor.ts', import.meta.url), 'utf-8',
+    );
+
+    // 找出 sigintCleanup 函式定義起始位置
+    const sigintStart = source.indexOf('const sigintCleanup = () => {');
+    assert.ok(sigintStart >= 0, 'sigintCleanup 必須存在於 executor.ts');
+
+    // 讀取 sigintCleanup 函式主體（從定義起約 200 字元足夠覆蓋整段函式）
+    const sigintSection = source.slice(sigintStart, sigintStart + 200);
+
+    // 確認找到結束的 };
+    const sigintEnd = sigintSection.indexOf('};');
+    assert.ok(sigintEnd >= 0, 'sigintCleanup 函式必須有閉合 };');
+
+    // 擷取精確的函式主體範圍
+    const sigintBody = sigintSection.slice(0, sigintEnd + 2);
+
+    // VERIFY: sigintCleanup 內不含 process.exit(
+    assert.ok(
+      !sigintBody.includes('process.exit('),
+      'sigintCleanup 不應呼叫 process.exit()',
+    );
+  });
+});
+
 describe('REGTEST-11: 並發鎖', () => {
   const testDate = `regtest-11-${Date.now()}`;
   const projectRoot = getProjectRoot();

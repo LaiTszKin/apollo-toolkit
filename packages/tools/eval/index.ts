@@ -322,7 +322,7 @@ async function evalHandler(
         const allScores = await loadAllScores(today);
         const rawIssues = extractIssues(allScores);
         stderr.write(`[7/7] Extracted ${rawIssues.length} raw issues\n`);
-        // Convert RawIssue[] to DedupedIssue[] format without API calls (no dedup, no suggested fix)
+        // Build DedupedIssue[] from raw scores (no API)
         const dedupedLike: DedupedIssue[] = rawIssues.map(r => ({
           category: r.category,
           severity: r.severity,
@@ -330,7 +330,7 @@ async function evalHandler(
           affectedTests: [r.testNo],
           description: r.description,
           evidence: [r.evidence],
-          suggestedFix: '',
+          suggestedFix: `[${r.severity}] ${r.category}: ${r.description} — ${r.evidence.slice(0,120)}`,
         }));
         const plan = generateOptimizationPlan(dedupedLike, today, allScores);
         stderr.write('[7/7] Generating dry-run optimization patch...\n');

@@ -132,7 +132,7 @@ export function generateReport(
   const issueToTestMap = new Map<string, Set<string>>();
   for (const s of scores) {
     for (const issue of s.issues) {
-      const key = `${issue.severity}:${issue.category}:${issue.description.substring(0, 80)}`;
+      const key = `${issue.severity}:${issue.category}:${issue.description}`;
       if (!issueToTestMap.has(key)) {
         issueToTestMap.set(key, new Set<string>());
       }
@@ -262,11 +262,11 @@ export function generateReport(
 
     for (const issue of sortedIssues) {
       // Look up affected tests from reverse index (O(1))
-      const key = `${issue.severity}:${issue.category}:${issue.description.substring(0, 80)}`;
+      const key = `${issue.severity}:${issue.category}:${issue.description}`;
       const affectedTests = [...(issueToTestMap.get(key) || [])].join(', ');
 
-      const ev = issue.evidence.length > 80 ? issue.evidence.substring(0, 80) + '...' : issue.evidence;
-      const desc = issue.description.length > 60 ? issue.description.substring(0, 60) + '...' : issue.description;
+      const ev = issue.evidence.length > 200 ? issue.evidence.substring(0, 200) + '...' : issue.evidence;
+      const desc = issue.description.length > 120 ? issue.description.substring(0, 120) + '...' : issue.description;
       sections.push(`| ${issue.severity} | ${issue.category} | ${affectedTests || '(多個)'} | ${desc} | ${ev} |`);
     }
     sections.push('');

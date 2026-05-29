@@ -13,7 +13,7 @@
  */
 
 import { appendFile, mkdir, writeFile, rm } from 'node:fs/promises';
-import { existsSync, statfsSync, statSync, rmSync } from 'node:fs';
+import { existsSync, statfsSync, rmSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
 import type { EnvConfig } from './lib/env-utils.js';
@@ -21,6 +21,7 @@ import type { Question, ProjectContext } from './lib/question-utils.js';
 import { callExecModel } from './lib/judge-api.js';
 import type { Message } from './lib/judge-api.js';
 import { promisePool } from './lib/promise-pool.js';
+import { acquireLock } from './lib/lock.js';
 import { stripScoringCriteria } from './lib/question-utils.js';
 import { getProjectRoot } from './lib/project-root.js';
 import { createToolDispatcher } from './isolation.js';
@@ -522,41 +523,12 @@ export async function runAllTests(
   }
 
   // 執行階段並發鎖 (FIX-11)
-  // 建立不帶 recursive 的鎖定目錄
-  const STALE_LOCK_MS = 5 * 60 * 1000;
   const lockPath = resolve(resultsBase, '.exec-lock');
-  try {
-    await mkdir(lockPath);
-  } catch (err: unknown) {
-    // FIX-16: 先檢查 err 是否有 code 屬性，而非直接斷言為 NodeJS.ErrnoException
-    if (err && typeof err === 'object' && 'code' in err) {
-      const nodeErr = err as NodeJS.ErrnoException;
-      if (nodeErr.code === 'EEXIST') {
-        // 檢查是否為陳舊鎖 (殘留自 SIGKILL/崩潰)
-        let mtime: number;
-        try {
-          mtime = statSync(lockPath).mtimeMs;
-        } catch {
-          throw new Error('Another eval is already in progress');
-        }
-        if (Date.now() - mtime > STALE_LOCK_MS) {
-          rmSync(lockPath, { recursive: true, force: true });
-          await mkdir(lockPath);
-        } else {
-          throw new Error('Another eval is already in progress');
-        }
-      } else {
-        throw new Error(`Cannot create exec lock at ${lockPath}: ${nodeErr.message}`);
-      }
-    } else {
-      throw new Error(`Failed to acquire exec lock: ${(err as Error).message}`);
-    }
-  }
+  await acquireLock(lockPath);
 
   // SIGINT handler: 同步清理 exec lock，防止 process.exit 跳過 finally
   const sigintCleanup = () => {
     try { rmSync(lockPath, { recursive: true, force: true }); } catch {}
-    process.exit(1);
   };
   process.once('SIGINT', sigintCleanup);
 

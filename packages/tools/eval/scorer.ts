@@ -17,14 +17,15 @@
  * Only uses Node.js built-in modules and lib/ modules. No external dependencies.
  */
 
-import { existsSync, statSync, rmSync } from 'node:fs';
-import { readFile, mkdir, writeFile, rm, rmdir, readdir, access } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { readFile, writeFile, rm, rmdir, readdir, access } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
 import type { TraceEvent } from './executor.js';
 import type { EnvConfig } from './lib/env-utils.js';
 import { callJudgeModel } from './lib/judge-api.js';
 import { promisePool } from './lib/promise-pool.js';
+import { acquireLock } from './lib/lock.js';
 import { loadQuestionsFromFile, getScoringCriteria } from './lib/question-utils.js';
 import type { Question, ScoringCriteria } from './lib/question-utils.js';
 import { getProjectRoot } from './lib/project-root.js';
@@ -110,6 +111,12 @@ export async function readTrace(tracePath: string): Promise<{ events: TraceEvent
 // --- Judge Prompt Building ---
 
 /**
+ * Judge evaluation dimensions (mapped from 4 scoring criteria dimensions):
+ * - outcome → 指令遵循 + 結果質量
+ * - process → 工具調用 + 指令遵循
+ * - style → 結果質量
+ * - efficiency → 工具調用
+ *
  * The three scoring dimensions used by the judge prompt.
  * These replace the original 4-dimension model from the question bank.
  */
@@ -158,10 +165,16 @@ export function buildJudgePrompt(
     return typeof val === 'string' ? val : fallback;
   }
 
-  const thinkingEvent = trace.find(e => e.type === 'thinking');
-  const responseEvent = trace.find(e => e.type === 'response');
-  const endEvent = trace.find(e => e.type === 'end');
-  const errorEvents = trace.filter(e => e.type === 'error');
+  let thinkingEvent: TraceEvent | undefined;
+  let responseEvent: TraceEvent | undefined;
+  let endEvent: TraceEvent | undefined;
+  const errorEvents: TraceEvent[] = [];
+  for (const e of trace) {
+    if (e.type === 'thinking' && !thinkingEvent) thinkingEvent = e;
+    else if (e.type === 'response' && !responseEvent) responseEvent = e;
+    else if (e.type === 'end' && !endEvent) endEvent = e;
+    else if (e.type === 'error') errorEvents.push(e);
+  }
 
   const systemPrompt = safeString(thinkingEvent?.data?.systemPrompt, '(未記錄)');
   const userPrompt = safeString(thinkingEvent?.data?.userPrompt, '(未記錄)');
@@ -364,32 +377,11 @@ export async function scoreSingleTest(
   const timeoutMs = env.JUDGE_TIMEOUT > 0 ? env.JUDGE_TIMEOUT * 1000 : 120_000;
 
   // Atomic write: use mkdir as mutex to prevent race between concurrent scorers
-  const STALE_LOCK_MS = 5 * 60 * 1000;
   const lockDir = join(resultsDir, '.scoring-lock');
-  try {
-    await mkdir(lockDir);
-  } catch (err: unknown) {
-    const nodeErr = err as NodeJS.ErrnoException;
-    if (nodeErr.code === 'EEXIST') {
-      // 檢查是否為陳舊鎖 (殘留自 SIGKILL/崩潰)
-      let mtime: number;
-      try {
-        mtime = statSync(lockDir).mtimeMs;
-      } catch {
-        console.warn(`${testNo}: scoring lock held by another process, skipping`);
-        return { testId: testNo, score: null, skipped: true };
-      }
-      if (Date.now() - mtime > STALE_LOCK_MS) {
-        rmSync(lockDir, { recursive: true, force: true });
-        await mkdir(lockDir);
-      } else {
-        console.warn(`${testNo}: scoring lock held by another process, skipping`);
-        return { testId: testNo, score: null, skipped: true };
-      }
-    } else {
-      console.warn(`${testNo}: scoring lock held by another process, skipping`);
-      return { testId: testNo, score: null, skipped: true };
-    }
+  const lockResult = await acquireLock(lockDir, { onConflict: 'skip' }); // await mkdir(lockDir)
+  if (lockResult.skipped) {
+    console.warn(`${testNo}: scoring lock held by another process, skipping`);
+    return { testId: testNo, score: null, skipped: true };
   }
 
   try {
@@ -621,7 +613,7 @@ function isAlreadyScored(resultsBase: string, testNo: string): boolean {
  * @param resultsBase - Absolute path to results/spec/{date}/
  * @returns Promise resolving to array of test IDs (e.g. ["Q001", "Q002", ...])
  */
-export async function scanForDoneAsync(resultsBase: string): Promise<string[]> {
+async function scanForDoneAsync(resultsBase: string): Promise<string[]> {
   try {
     const entries = await readdir(resultsBase, { withFileTypes: true });
     const doneTests: string[] = [];

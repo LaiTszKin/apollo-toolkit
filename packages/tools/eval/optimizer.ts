@@ -25,7 +25,7 @@ import { SEVERITY_RANK } from './lib/constants.js';
 
 // --- Public Types ---
 
-export interface RawIssue {
+interface RawIssue {
   severity: string;
   category: string;
   description: string;
@@ -43,7 +43,7 @@ export interface DedupedIssue {
   suggestedFix: string;
 }
 
-export interface OptimizationPlan {
+interface OptimizationPlan {
   date: string;
   generatedAt: string;
   summary: {
@@ -294,7 +294,7 @@ export function extractIssues(scores: ScoreResult[]): RawIssue[] {
  * @param text - Input text
  * @returns Set of keyword strings
  */
-export function extractKeywords(text: string): Set<string> {
+function extractKeywords(text: string): Set<string> {
   if (!text || typeof text !== 'string') return new Set();
 
   const tokens = text
@@ -326,7 +326,7 @@ export function extractKeywords(text: string): Set<string> {
  * @param setB - Second set
  * @returns Similarity coefficient in range [0, 1]
  */
-export function jaccardSimilarity(setA: Set<string>, setB: Set<string>): number {
+function jaccardSimilarity(setA: Set<string>, setB: Set<string>): number {
   if (setA.size === 0 && setB.size === 0) return 1.0;
 
   let intersection = 0;
@@ -469,7 +469,7 @@ async function refineDedupWithJudge(
       const aKeys = a._descKeywords;
       const bKeys = b._descKeywords;
       const descSim = jaccardSimilarity(aKeys, bKeys);
-      if (descSim < 0.25) return null;
+      if (descSim < 0.1) return null;
 
       const prompt = [
         'You are comparing two optimization issues to determine if they describe the same underlying problem.',
@@ -958,6 +958,13 @@ function buildSkillOptimizationPrompt(
 }
 
 /**
+ * Escape special regex characters in a string so it can be used as a literal pattern.
+ */
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Apply judge model suggestions to SKILL.md content.
  * Attempts to parse structured edit instructions from the judge output,
  * falling back to appending suggestions as comments if parsing fails.
@@ -986,7 +993,7 @@ function applySkillChanges(
     const replaceText = match[2].trim();
 
     if (findText && modifiedContent.includes(findText)) {
-      modifiedContent = modifiedContent.replace(findText, replaceText);
+      modifiedContent = modifiedContent.replace(new RegExp(escapeRegex(findText), 'g'), replaceText);
       appliedCount++;
     } else if (findText) {
       // Track unmatched FIND patterns as conflicts
@@ -1143,6 +1150,16 @@ export async function optimizeSkillMd(
     }
   }
 
+  // Shared helper: write patch content to results/spec/{date}/skill-optimization-patch.md
+  async function writePatchFile(lines: string[], date: string): Promise<string> {
+    const root = getProjectRoot();
+    const resultsDir = resolve(root, 'results', 'spec', date);
+    await mkdir(resultsDir, { recursive: true });
+    const patchPath = join(resultsDir, 'skill-optimization-patch.md');
+    await writeFile(patchPath, lines.join('\n'), 'utf-8');
+    return patchPath;
+  }
+
   // Build diff-style patch for dry-run output (FIX-05)
   async function buildDiffPatch(skillIssues: OptimizationPlan['issues']): Promise<string> {
     const relativeSkillPath = skillMdPath.includes('/skills/')
@@ -1186,13 +1203,7 @@ export async function optimizeSkillMd(
     patchLines.push('');
     patchLines.push(generateSkillTemplateChanges(skillIssues));
 
-    const root = getProjectRoot();
-    const resultsDir = resolve(root, 'results', 'spec', date);
-    await mkdir(resultsDir, { recursive: true });
-    const patchPath = join(resultsDir, 'skill-optimization-patch.md');
-    await writeFile(patchPath, patchLines.join('\n'), 'utf-8');
-
-    return patchPath;
+    return await writePatchFile(patchLines, date);
   }
 
   // Build shared template patch (used by judge-unavailable path)
@@ -1221,13 +1232,7 @@ export async function optimizeSkillMd(
     patchLines.push('---', '', '## Template-Based Suggestions', '');
     patchLines.push(generateSkillTemplateChanges(skillIssues));
 
-    const root = getProjectRoot();
-    const resultsDir = resolve(root, 'results', 'spec', date);
-    await mkdir(resultsDir, { recursive: true });
-    const patchPath = join(resultsDir, 'skill-optimization-patch.md');
-    await writeFile(patchPath, patchLines.join('\n'), 'utf-8');
-
-    return patchPath;
+    return await writePatchFile(patchLines, date);
   }
 
   if (dryRun) {
@@ -1303,6 +1308,22 @@ export async function optimizeSkillMd(
         success: false,
         message: 'Frontmatter validation failed: empty or malformed content. Backup restored.',
       };
+    }
+
+    // Validate each YAML line: must be key: value or a comment
+    const yamlLines = frontmatter.split('\n');
+    const yamlKeyPattern = /^[a-zA-Z_][\w-]*\s*:.*/;
+    for (const line of yamlLines) {
+      const trimmed = line.trim();
+      if (trimmed.length === 0 || trimmed.startsWith('#')) continue;
+      if (!yamlKeyPattern.test(trimmed)) {
+        console.error(`Frontmatter validation FAILED: invalid YAML line "${trimmed}". Restoring backup...`);
+        await copyFile(latestBakPath, skillMdPath);
+        return {
+          success: false,
+          message: `Frontmatter validation failed: invalid YAML line "${trimmed}". Backup restored.`,
+        };
+      }
     }
     console.log('Frontmatter validation: PASSED');
 

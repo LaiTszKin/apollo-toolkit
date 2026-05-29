@@ -9,6 +9,12 @@
 
 import type { EnvConfig } from './env-utils.js';
 
+// --- Helpers ---
+
+function truncateError(text: string): string {
+  return text.length > 200 ? text.substring(0, 200) + '... (truncated)' : text;
+}
+
 // --- Types ---
 
 export interface Message {
@@ -75,7 +81,7 @@ export async function callJudgeModelRaw(
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '(unable to read error body)');
-      throw new Error(`Judge API error ${response.status}: ${errorText}`);
+      throw new Error(`Judge API error ${response.status}: ${truncateError(errorText)}`);
     }
 
     const result: Record<string, unknown> = await response.json() as Record<string, unknown>;
@@ -208,7 +214,7 @@ export async function callExecModel(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '(unable to read error body)');
-    throw new Error(`API error ${response.status}: ${errorText}`);
+    throw new Error(`API error ${response.status}: ${truncateError(errorText)}`);
   }
 
   const result: Record<string, unknown> = await response.json() as Record<string, unknown>;

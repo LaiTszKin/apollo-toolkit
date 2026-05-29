@@ -1,7 +1,7 @@
 # Review Report
 
 - **Spec**: skill-eval-optimizer (eval-core + optimize-and-integrate)
-- **Date**: 2026-05-29
+- **Date**: 2026-05-30
 - **Reviewer**: Claude Code Review Agent (6 parallel agents)
 - **Verdict**: Needs Work
 
@@ -11,64 +11,59 @@
 
 **Verdict**: Needs Work
 
-Round 6 修復（commit `5d92280`）成功解決了上一輪全部 20 個問題 — dry-run diff 產出、Bash `find -exec` 攔截、workspace 路徑穿越防護、`[Simulated]` 移除、Grep/Glob async I/O、symlink 解析、SIGINT lock 清理、死碼移除等核心修復已確認到位。幻覺代碼審查零發現，Spec 實作遺漏審查確認全部 28 個需求與 14 個錯誤案例已實作（維持 100% 覆蓋率）。
+Round 7 修復（commit `c086626`）成功解決了上一輪全部 20 個問題 — SIGINT lock 洩漏、exec/scoring 陳舊鎖偵測、trace 'round' event、死碼移除、optimizer async I/O 遷移等核心修復已確認到位。幻覺代碼審查連續第四輪零發現，Spec 28 個需求 + 14 個錯誤案例維持 100% 覆蓋率。
 
-本輪發現 1 個 P0 問題 — **SIGINT handler 註冊順序衝突導致 exec-lock 永久洩漏**（index.ts 的 `process.exit(1)` 阻止 executor.ts 的 SIGINT handler 清理鎖定目錄）。此外有 3 個 P1、8 個 P2 和 8 個 P3 問題，涵蓋陳舊鎖偵測缺失、軌跡記錄不完整、死碼殘留、sync I/O、路徑安全等層面。
+本輪發現 2 個 P1 問題：**executor.ts SIGINT handler 殘留 `process.exit(1)`**（Round 7 修復的殘留 — executor 的 sigintCleanup 仍呼叫 process.exit(1)，阻止 index.ts 的 finally 區塊執行優雅關閉）；以及**去重架構本質上為關鍵字優先而非語意優先**（Phase 1 Jaccard 關鍵字相似度為主要機制、O(n²) 效能、Phase 2 LLM 語意精煉為條件性補充）。此外有 8 個 P2 和 10 個 P3 問題，涵蓋程式碼重複、dry-run 內容品質、安全、效能等層面。
 
 ---
 
 ## 發現的問題
 
-### P0 — 阻塞問題
-
-| # | 問題描述 | 影響 | 檔案 | 行數 | 審查維度 |
-|---|--------|------|------|------|---------|
-| 1 | **SIGINT handler 註冊順序衝突導致 exec-lock 永久洩漏**：`index.ts:245` 透過 `process.on('SIGINT', ...)` 先註冊 handler（呼叫 `process.exit(1)`），`executor.ts:526` 透過 `process.once('SIGINT', ...)` 後註冊 cleanup handler（清除 `.exec-lock` 目錄）。Node.js 按註冊順序呼叫 signal listener — 第一個 handler 的 `process.exit(1)` 立即終止程序，第二個 handler 永遠不會被呼叫。Ctrl+C 中斷後 `.exec-lock` 目錄殘留，所有後續 eval 執行立即失敗顯示 "Another eval is already in progress"。 | 每次 Ctrl+C 中斷後需手動刪除 `.exec-lock` 才能再次執行評測 | `index.ts`, `executor.ts` | index:236-245, exec:522-526 | 架構瑕疵 |
-
 ### P1 — 重要問題
 
 | # | 問題描述 | 影響 | 檔案 | 行數 | 審查維度 |
 |---|--------|------|------|------|---------|
-| 2 | **exec-lock 無陳舊鎖偵測與清理機制**：`mkdir` 作為互斥鎖，無 PID 驗證、無 timestamp 過期機制。若程序被 SIGKILL 終止、發生未捕獲例外崩潰、或 `process.exit(1)` 跳過 finally 區塊，鎖目錄永久存在。 | 一次崩潰永久阻塞 eval 工具，唯一恢復方法是手動刪除 `.exec-lock` | `executor.ts` | 509-519 | 架構瑕疵 |
-| 3 | **scoring-lock 有相同陳舊鎖問題**：`scorer.ts:347-355` 使用與 exec-lock 相同的 `mkdir`-based mutex。若評分程序在持有 `.scoring-lock` 時崩潰，該測試永久無法再次評分（鎖殘留 → 跳過 → 不建立 `.scored` marker → 永遠卡在「未評分但不可評分」狀態）。 | 單一測試評分鎖崩潰使該測試永久失去評分能力 | `scorer.ts` | 347-355 | 架構瑕疵 |
-| 4 | **中間 tool-use 回合的 LLM 回應未記錄到軌跡（違反 Spec R2.1）**：當 LLM 以 `finish_reason: 'tool_calls'` 回應時（即要求呼叫工具的中間回合），該次 API 呼叫的回應不會被記錄為 `response` 事件 — token 用量（`usage`）遺失、模型的中間思考內容（`assistantMessage.content`）遺失。只有最終 `finish_reason: 'stop'` 的回應被記錄。 | 軌跡遺漏多次 LLM API 呼叫的 token 用量與思考內容；評分模型無法看到完整執行過程 | `executor.ts` | 255-375 | 實作偏移 |
+| 1 | **executor.ts SIGINT handler 殘留 `process.exit(1)` 阻止優雅關閉**：Round 7 修復將 index.ts sigintHandler 中的 `process.exit(1)` 移至 finally 區塊，但 executor.ts:557-561 的 `sigintCleanup` 仍直接呼叫 `process.exit(1)`。當 SIGINT 在測試執行期間送達，executor 的 handler（透過 `process.once` 註冊）呼叫 `process.exit(1)` 同步終止程序，使 index.ts 的 finally 區塊（清理 handler、列印摘要、條件式 exit）永遠不會執行。雖然 executor 的 `rmSync(lockPath)` 確保了鎖定目錄被清理，但 index.ts 的優雅關閉邏輯被完全繞過。 | 每次 Ctrl+C 中斷後，已完成結果無法被妥善保留／摘要；優雅關閉語意被破壞 | `executor.ts` | 557-561 | 架構瑕疵 |
+| 2 | **去重架構本質上為關鍵字優先，非 Spec 要求的語意優先**：Spec R1.1 要求「語意相似度判斷（非僅關鍵字匹配）」。實作中 Phase 1 使用 Jaccard 關鍵字相似度作為主要去重機制（O(n²) 成對比較，MAX_PHASE1_PAIRS=10000 截斷），Phase 2 LLM 語意精煉是條件性的 — dry-run 模式或 judge 不可用時完全跳過、且 Phase 2 有 `jaccardSimilarity >= 0.25` 關鍵字預過濾器，語意相似但用詞不同的重複問題在 Phase 1 即被排除，永遠無法到達語意比較步驟。同時 O(n²) 成對比較在大量 issues 場景下長時間阻塞事件迴圈，Phase 2 LLM 洪水（每類別最多 100 對 × 30s timeout）可產生數分鐘延遲。 | 語意相似但詞彙不同的重複問題無法被合併；大量評分資料下效能瓶頸 | `optimizer.ts` | 420-782 | 實作偏移、性能隱患 |
 
 ### P2 — 一般問題
 
 | # | 問題描述 | 影響 | 檔案 | 行數 | 審查維度 |
 |---|--------|------|------|------|---------|
-| 5 | **Dry-run 產出模板建議而非結構化 diff（spec R1.3 語意偏移）**：dry-run 路徑跳過 LLM 呼叫（`deduplicateIssues` + `generateSuggestedFix`），使用模板產生純 markdown 建議文件（`skill-optimization-patch.md`），而非機器可套用的 unified diff 格式。雖然產出內容基於真實評分數據，但品質和形式與正式執行不同。 | Dry-run 預覽與正式執行產出在品質和格式上不一致 | `index.ts`, `optimizer.ts` | index:313-339, opt:1150-1192 | 實作偏移 |
-| 6 | **`supplyQuestions` 死函式 + `question-utils` 不必要依賴 judge API**：`question-loader.ts` 匯出 `supplyQuestions` 但 eval pipeline（`index.ts`）中無任何呼叫點。`question-utils.ts` 因 `generateVariants`（被 `supplyQuestions` 呼叫）而匯入 `callJudgeModelRaw`，造成工具模組對 API 層的不必要耦合。 | 死碼增加維護認知負擔；違反依賴倒置原則 | `question-loader.ts`, `question-utils.ts` | loader:152-168, utils:21,317-365 | 冗余代碼、架構瑕疵 |
-| 7 | **主要去重機制為詞彙相似度而非語意相似度（Spec R1.1 偏移）**：Phase 1 使用 Jaccard 相似度 + 詞幹提取（stemming）進行去重，屬於詞彙層面比對。Phase 2 雖使用 LLM 語意精煉，但僅處理通過 Phase 1 詞彙閾值（`descSim > 0.35`）的配對 — 詞彙不相似但語意相似的兩個問題將在 Phase 1 被錯誤判定為不同問題，永遠無法到達 Phase 2。 | 語意相似但用詞不同的重複問題無法被合併 | `optimizer.ts` | 653-785 | 實作偏移 |
-| 8 | **Bash 路徑穿越防護與 executeRead 不一致**：`executeRead`（L150-158）使用嚴謹的 `resolve` + `relative` + `startsWith('..')` 防護，但 `executeBash`（L441-447）使用脆弱的字串前綴比對（`startsWith('/')`, `startsWith('~/')`, `includes('..')`）。若未來 `SAFE_BASH_COMMANDS` 擴充（如新增 `ln`），symlink 可繞過字串比對。 | 實作不一致；維護者可能在不知情下引入安全漏洞 | `isolation.ts` | 441-447 | 架構瑕疵 |
-| 9 | **`executeInWorkspace` 中 `default` 分支為不可達死路徑**：`WORKSPACE_TOOLS` 僅含 `Read`/`Grep`/`Glob` 三個值，switch 語句對三者均有明確 case。`default` 分支永遠無法被控制流進入。 | 殘留防禦性程式碼，可能誤導維護者 | `isolation.ts` | 485-487 | 冗余代碼 |
-| 10 | **`getRecords()` 死方法**：`ToolDispatcher` 介面宣告 `getRecords()`（JSDoc 說明為「取得所有已記錄的工具調用記錄」），實作永遠回傳空陣列 `[]`。整個 eval pipeline 無任何呼叫者。 | 殘留的未實作介面方法 | `isolation.ts` | 51, 544-546 | 冗余代碼 |
-| 11 | **`scorer.ts` 重複的 score/scored 寫入邏輯**：`scoreSingleTest` 的軌跡損壞分支（L382-388）和正常評分分支（L425-432）包含完全相同的 7 行程式碼（寫入 `scorePath` → 序列化 `.scored` 資料 → 寫入 `scoredPath`），違反 DRY 原則。 | 重複程式碼增加維護成本 | `scorer.ts` | 382-388, 425-432 | 冗余代碼 |
-| 12 | **`optimizer.ts` 大量同步 I/O 在 async 函式中**：`generateOptimizationPlan`、`optimizeSkillMd`、`isAllowedFile` 等 async 函式大量使用 `readFileSync`、`writeFileSync`、`copyFileSync`、`mkdirSync` 等同步 I/O，阻塞事件迴圈。與其他模組使用 `fs/promises` 的模式不一致。 | 大型 SKILL.md 優化時阻塞事件迴圈；風格不一致 | `optimizer.ts` | 899, 1130, 1179, 1208-1275 | 性能隱患 |
+| 3 | **Dry-run diff 內容為模板佔位符而非實際變更預覽**：Spec R1.3 要求 dry-run「產出 diff 預覽」。Dry-run 模式跳過 judge API 呼叫，`suggestedFix` 為空字串，`buildDiffPatch()` 產出的 FIND 區塊為 `(Section related to: {description})`、REPLACE 區塊為 `(Review and adjust based on identified issues)`。開發者無法從預覽中判斷實際會發生的變更內容。 | Dry-run 輸出無法作為有效決策依據 | `index.ts`, `optimizer.ts` | index:319-345, opt:1147-1231 | 實作偏移 |
+| 4 | **LLM 題目變體生成（Spec R1.3）未接入主流程**：`supplyQuestions` 函式存在但從未被 `index.ts` 呼叫。`generateVariants` 機制已實作但評測 pipeline 永遠使用題庫原始題目，從不觸發變體生成。Spec R1.3 要求「對於需要變體的題目，由 LLM 生成語意等價但表述不同的變體」。 | 評測永遠使用相同題目表述，缺少題目多樣性 | `question-loader.ts`, `index.ts` | loader:152-168, index:262-267 | 實作遺漏、冗余代碼 |
+| 5 | **`executeGrep` 與 `executeGlob` 各自重複實作相同的遞迴目錄遍歷**：兩個函式（isolation.ts:210-249 與 315-337）各自獨立實作 `walkDir` 遞迴邏輯，包含完全相同的 `readdir` 呼叫、`skippedCount` 錯誤處理、`.git`/`node_modules` 跳過、遞迴邏輯。僅檔案層級的處理邏輯不同（grep 逐行比對 vs glob 檔名正則比對）。 | 重複程式碼增加維護成本與不一致風險 | `isolation.ts` | 210-249, 315-337 | 冗余代碼 |
+| 6 | **executor 與 scorer 重複實作相同的 mkdir 鎖定模式**：`executor.ts:526-554` 與 `scorer.ts:367-393` 各自實作完全相同的陳舊鎖偵測邏輯（5 分鐘過期閾值、`statSync` 取得 mtime、`rmSync` 清理後 `mkdir` 重建、EEXIST 錯誤處理）。僅鎖定目錄名稱和失敗處理方式（throw vs return）不同。 | 重複邏輯增加維護成本；未來修改需同步兩處 | `executor.ts`, `scorer.ts` | exec:526-554, scorer:367-393 | 冗余代碼、架構瑕疵 |
+| 7 | **`buildDiffPatch` 與 `buildTemplatePatch` 重複的檔案寫入邏輯**：兩個函式（optimizer.ts:1147-1196 與 1199-1231）包含完全相同的 4 行代碼：`getProjectRoot` + `resolve` + `mkdir` + `writeFile`，寫入同一個檔案路徑 `skill-optimization-patch.md`。 | 重複的檔案 I/O 邏輯 | `optimizer.ts` | 1147-1231 | 冗余代碼 |
+| 8 | **`reporter.ts` issueToTestMap 鍵值碰撞風險**：反向索引使用 `issue.description.substring(0, 80)` 作為 Map 鍵值（第 135 行）。兩個不同 issue 若前 80 個字元相同（但完整描述不同），會被錯誤合併到同一個鍵值下，導致受影響測試的統計不準確。 | 報告中 issue 與測試的關聯可能不正確 | `reporter.ts` | 135 | 架構瑕疵 |
+| 9 | **`optimizer.ts` applySkillChanges 使用 `replace` 而非 `replaceAll`**：FIND/REPLACE 模式比對使用 `string.replace()`（第 1007-1015 行），僅取代首次匹配。若 SKILL.md 中相同文字出現多次（如重複的 section header），後續匹配不會被替換。 | FIND/REPLACE 在重複文字場景下不完整 | `optimizer.ts` | 971-1023 | 架構瑕疵 |
+| 10 | **API 錯誤回應內容可能包含敏感資訊**：`judge-api.ts:78` 和 `judge-api.ts:211` 將完整的 API 回應 body 內容直接拼接進 Error 訊息（`${errorText}`）。某些 API 在錯誤回應中可能回顯請求的一部分，若回應包含敏感標頭資訊則有洩漏風險。 | API 錯誤訊息可能意外洩漏敏感資訊到日誌 | `judge-api.ts` | 78, 211 | 架構瑕疵 |
 
 ### P3 — 建議改善
 
 | # | 問題描述 | 影響 | 檔案 | 行數 | 審查維度 |
 |---|--------|------|------|------|---------|
-| 13 | **`env-utils.ts` 未使用的 import `getProjectRoot`**：匯入但檔案內無任何呼叫點。 | 輕微 import 雜訊 | `lib/env-utils.ts` | 20 | 冗余代碼 |
-| 14 | **`DedupedIssueInternal._suggestedFix` 從未被賦值**：型別宣告為 `string?` 且有一處讀取（`item._suggestedFix ?? ''`），但整個代碼庫中無任何寫入點，`?? ''` 永遠生效。 | 從 `scripts/optimize.mjs` 遷移時殘留的屬性 | `optimizer.ts` | 78, 767 | 冗余代碼 |
-| 15 | **`DedupedIssueInternal._cluster` 只寫不讀**：去重合併時被賦值（L738），但從未被任何代碼讀取。原始 `scripts/optimize.mjs` 用於除錯，遷移後不再需要。 | 殘留屬性與賦值操作 | `optimizer.ts` | 738 | 冗余代碼 |
-| 16 | **不安全的 `err as NodeJS.ErrnoException` 斷言**：`executor.ts:514` 和 `env-utils.ts:97` 中捕獲的 `err: unknown` 直接斷言為 `NodeJS.ErrnoException`。若拋出值無 `.code` 屬性（如自訂 Error），`nodeErr.code` 回傳 `undefined`，錯誤訊息變為 `undefined`，誤導除錯。 | 非標準錯誤條件下診斷資訊不可用 | `executor.ts`, `lib/env-utils.ts` | exec:514, env:97 | 架構瑕疵 |
-| 17 | **`--output-dir` 允許任意路徑寫入**：使用者可傳入 `--output-dir /etc/some-dir` 或 `--output-dir ../..` 將報告寫入任意可寫入位置，無路徑限制檢查。 | 報告可寫入專案目錄外的任意位置（雖然內容為 Markdown） | `index.ts` | 300-308 | 架構瑕疵 |
-| 18 | **分數門檻檢查在 `scores` 為空時被靜默略過**：`scores.length === 0` 時 `avgScore` 為 0，但 `scores.length > 0` 條件阻止門檻檢查，CI 閘門（`EVAL_MIN_SCORE`、`EVAL_MAX_P0`）被跳過。若所有測試已在前次評分完成，重新執行 eval 時評分門檻無法正常運作。 | 部分情境下 CI 門檻防護失效 | `index.ts` | 379-382 | 架構瑕疵 |
-| 19 | **`executeGrep` 將整個檔案讀入記憶體**：對每個匹配檔案使用 `readFile(fullPath, 'utf-8')` 完整讀入，再 `split('\n')` 分割後逐行比對。對大型檔案（數 MB）造成不必要的記憶體峰值，且無檔案大小限制。 | 若 workspace 有大型檔案時記憶體使用過高 | `isolation.ts` | 237-243 | 性能隱患 |
-| 20 | **API 回應處理中大量 `as` 斷言缺少執行期驗證**：`scorer.ts:396-418` 對 judge model 回應做大量型別斷言（如 `issue.severity as Issue['severity']`），但 `??` 僅處理 `null/undefined`，無法處理型別不符（如 `severity: "CRITICAL"` 而非 `"P0"/"P1"/"P2"`）。 | LLM 回傳偏離預期 schema 時不會有明確錯誤 | `scorer.ts`, `judge-api.ts`, `executor.ts` | scorer:396-418, judge:81-84, exec:273-320 | 架構瑕疵 |
+| 11 | **`buildJudgePrompt` 對同一 trace 陣列連續三次 `.find()`**：分別搜尋 thinking、response、end 事件（scorer.ts:162-164），每次 O(n) 完整遍歷。可改用單次 `reduce` 一次收集所有需要的事件類型。 | 不必要的重複陣列遍歷 | `scorer.ts` | 162-164 | 性能隱患 |
+| 12 | **`sampleQuestions` 四次 `.filter()` 完整陣列遍歷**：依難度分類三次（basic/advanced/edge）加上排除已選題目一次（question-loader.ts:87-89, 112），每次建立新陣列。可合併為單次 `reduce` 一次性分類。 | 大型題庫下不必要的記憶體分配 | `question-loader.ts` | 87-89, 112 | 性能隱患 |
+| 13 | **多個符號不必要地 export**：`scanForDoneAsync`（scorer.ts:624）、`ToolDispatcher` 介面（isolation.ts:32）、`RawIssue`（optimizer.ts:28）、`OptimizationPlan`（optimizer.ts:46）、`extractKeywords`（optimizer.ts:297）、`jaccardSimilarity`（optimizer.ts:329）、`Question` re-export（question-loader.ts:23）均僅在定義模組內部使用或無外部消費者。 | 不必要的 export 增加公開 API 表面積 | `scorer.ts`, `isolation.ts`, `optimizer.ts`, `question-loader.ts` | 如上 | 冗余代碼 |
+| 14 | **`question-loader.ts` 中存在僅被死碼使用的 import**：`generateVariants`（第 17 行）和 `EnvConfig` type（第 19 行）僅被 `supplyQuestions` 死函式使用。 | 死碼相關的 import 雜訊 | `question-loader.ts` | 17, 19 | 冗余代碼 |
+| 15 | **Frontmatter 驗證僅用正則表達式，非 YAML 語法解析**：Spec R1.4 要求優化後的 YAML frontmatter 有效。實作僅檢查 `---` 分隔符存在（optimizer.ts:1289-1306），不驗證 YAML 語法（縮排錯誤、未跳脫字元、無效資料類型等）。雖有備份還原安全網，但不符合 Spec 對 YAML 有效性的要求。 | YAML 語法錯誤可能通過驗證 | `optimizer.ts` | 1289-1306 | 實作遺漏 |
+| 16 | **報告中 evidence 截斷至 80 字元、description 截斷至 60 字元**：Spec R3.3 要求軌跡引用精確到 JSONL 行號。截斷可能導致部分證據上下文遺失，影響可追溯性。 | 長證據／描述的上下文遺失 | `reporter.ts` | 268-269 | 實作偏移 |
+| 17 | **`env-utils.ts` 首行包含 `#!/usr/bin/env node` shebang**：該檔案為庫模組（被其他模組 import），非 CLI 入口點。shebang 對庫檔案無作用，可能造成混淆。 | 輕微檔案格式問題 | `lib/env-utils.ts` | 1 | 架構瑕疵 |
+| 18 | **`promise-pool.ts` 共享可變 index 變數的脆弱性**：多個 worker 協程共享 `index` 變數，依賴 JavaScript 單執行緒特性保證安全。程式碼註解也明確警告「do NOT add await between index++ and the fn() call」。任何未來重構都可能引入難以除錯的競態條件。 | 未來重構時可能引入並發錯誤 | `lib/promise-pool.ts` | 22-31 | 架構瑕疵 |
+| 19 | **`isolation.ts` 路徑防護中的 `rel === fullPath` 為死條件**：在 macOS/Linux 上，`path.relative` 對同一檔案系統的路徑永遠回傳相對路徑，不會等於 `fullPath`（絕對路徑）。此條件可能僅對 Windows 不同磁碟機代號有意義。 | 死程式碼 | `isolation.ts` | 145 | 架構瑕疵 |
+| 20 | **`scorer.ts` JUDGE_DIMENSIONS 使用 3 維度權重，但題目評分標準為 4 維度**：`JUDGE_DIMENSIONS` 硬編碼 3 個維度（指令遵循 0.33 / 工具調用 0.33 / 結果質量 0.34），但 `question-utils.ts` 的 `ScoringCriteria` 定義了 4 個維度（outcome/process/style/efficiency）。評分提示詞將原始評分標準作為參考傳入（scorer.ts:264），但最終評分只按 3 個維度進行，缺少從 4 維度到 3 維度的顯式映射邏輯。 | 評分維度與題目評分標準不完全對應 | `scorer.ts` | 117-118 | 架構瑕疵 |
 
 ---
 
 ## 審查維度摘要
 
-- **幻覺代碼**: 無發現 — 13 個檔案共 25+ imports、30+ 函式呼叫、14 個 env var 引用全部交叉驗證通過；零 `any` 型別使用
-- **冗余代碼**: 7 個 finding（P1: supplyQuestions 死函式；P2: default 死路徑 + getRecords 死方法 + scorer 重複邏輯；P3: env-utils 未使用 import + _suggestedFix 未賦值 + _cluster 只寫不讀）
-- **實作偏移**: 3 個 finding（P1: 中間 tool-use 回應未記錄；P2: dry-run 非結構化 diff + Phase 1 詞彙去重）
-- **實作遺漏**: 無發現 — 全部 28 個需求 + 14 個錯誤案例已實作（100% 覆蓋率）
-- **架構瑕疵**: 9 個 finding（P0: SIGINT handler lock 洩漏；P1: exec-lock + scoring-lock 陳舊鎖缺失；P2: Bash 防護不一致 + supplyQuestions 耦合 + err 斷言 + output-dir 穿越 + scores 空陣列跳過；P3: API 回應 as 斷言）
-- **性能隱患**: 2 個 finding（P2: optimizer sync I/O；P3: executeGrep 全檔案讀入）
+- **幻覺代碼**: 無發現 — 12 個檔案共 30+ imports、35+ 函式呼叫、14 個 env var 引用全部交叉驗證通過；零 `any` 型別使用（連續第四輪零發現）
+- **冗余代碼**: 6 個 finding（P2: supplyQuestions 死碼 + walkDir 重複 + lock 模式重複 + patch 寫入重複；P3: 不必要 exports + 死碼 import）
+- **實作偏移**: 3 個 finding（P1: 關鍵字優先去重 + P2: dry-run 模板佔位 + P3: reporter 截斷）
+- **實作遺漏**: 2 個 finding（P2: 變體生成未接入主流程 + P3: YAML 驗證非解析）
+- **架構瑕疵**: 10 個 finding（P1: executor SIGINT 殘留 + P2: issueToTestMap 碰撞 + replace 非 replaceAll + API 敏感資訊 + P3: shebang + promise-pool 脆弱 + dead code + 維度不匹配 + 不必要 exports）
+- **性能隱患**: 3 個 finding（P1: O(n²) 去重 + LLM 洪水 合併至上列 P1#2 + P3: triple .find() + 四次 .filter()）
 
 ---
 
@@ -86,4 +81,6 @@ Round 6 修復（commit `5d92280`）成功解決了上一輪全部 20 個問題 
 >
 > **2026-05-29 (Round 6)**: 修復後再審查（commit `372484f`）。確認 Round 5 全部 32 個問題已正確修復。幻覺代碼零發現，實作遺漏零發現（100% 覆蓋率）。新發現 20 個問題（0 P0 + 3 P1 + 5 P2 + 12 P3），最關鍵者為 dry-run 不產出 diff、Bash `find -exec` 繞過白名單、Bash 安全命令缺少 workspace 路徑防護。Verdict: Needs Work。
 >
-> **2026-05-29 (Round 7 — 本次)**: 修復後再審查（commit `5d92280`）。確認 Round 6 全部 20 個問題已正確修復。幻覺代碼零發現，實作遺漏零發現（100% 覆蓋率）。新發現 **20 個問題（1 P0 + 3 P1 + 8 P2 + 8 P3）**，最關鍵者為 **SIGINT handler 註冊順序衝突導致 exec-lock 永久洩漏**（P0 — 每次 Ctrl+C 後需手動刪除 `.exec-lock`）。Verdict: Needs Work。
+> **2026-05-29 (Round 7)**: 修復後再審查（commit `5d92280`）。確認 Round 6 全部 20 個問題已正確修復。幻覺代碼零發現，實作遺漏零發現（100% 覆蓋率）。新發現 20 個問題（1 P0 + 3 P1 + 8 P2 + 8 P3），最關鍵者為 SIGINT handler 註冊順序衝突導致 exec-lock 永久洩漏（P0 — 每次 Ctrl+C 後需手動刪除 `.exec-lock`）。Verdict: Needs Work。
+>
+> **2026-05-30 (Round 8 — 本次)**: 修復後再審查（commit `c086626`）。確認 Round 7 全部 20 個問題已正確修復。幻覺代碼連續第四輪零發現，Spec 28 需求 + 14 錯誤案例維持 100% 覆蓋率。新發現 **20 個問題（2 P1 + 8 P2 + 10 P3）**，最關鍵者為 **executor.ts SIGINT handler 殘留 `process.exit(1)`**（Round 7 修復的殘留 — executor 的 sigintCleanup 仍呼叫 process.exit(1)，阻止 index.ts 的 finally 區塊執行優雅關閉），以及 **去重架構本質上為關鍵字優先而非 Spec 要求的語意優先**（Phase 1 Jaccard 關鍵字相似度為主要機制、O(n²) 效能、Phase 2 LLM 語意精煉為條件性補充且有關鍵字預過濾器）。Verdict: Needs Work。
