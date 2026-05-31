@@ -15,7 +15,7 @@ This skill is responsible for "planning the coordination strategy" — extractin
 
 ## Acceptance Criteria
 
-- PROMPT.md is produced and placed at the root of the spec or batch spec directory
+- `docs/plans/<YYYY-MM-DD>/<spec_name>/PROMPT.md` is produced and placed at the root of the spec or batch spec directory
 - PROMPT.md is a **self-contained coordinator prompt**, containing:
   - Coordinator role definition (what to do, what not to do)
   - Task decomposition with dependency graph

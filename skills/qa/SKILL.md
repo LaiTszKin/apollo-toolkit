@@ -15,7 +15,7 @@ This skill is responsible for "planning the fix strategy" — extracting informa
 
 ## Acceptance Criteria
 
-- FIX.md is produced and placed in the spec directory (same level as REPORT.md)
+- `docs/plans/<YYYY-MM-DD>/<spec_name>/FIX.md` is produced and placed in the spec directory (same level as REPORT.md)
 - FIX.md is a **self-contained fix coordinator prompt**, containing:
   - Coordinator role definition
   - Issue inventory with dependency analysis

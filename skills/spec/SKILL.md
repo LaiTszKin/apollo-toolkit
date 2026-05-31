@@ -19,6 +19,7 @@ Execution methodology (task breakdown, coordination routing) belongs to the `pla
 - SPEC.md includes: clear business goal, scope (In/Out), BDD behaviors, error and edge cases, clarification questions
 - High-uncertainty requirements are marked with Uncertainty Level and reflected in Clarification Questions
 - For non-greenfield repos: subagent repo research is complete, and every requirement's boundary is calibrated against the actual code
+- Single spec generated at `docs/plans/<YYYY-MM-DD>/<spec_name>/SPEC.md` or batch spec generated at `docs/plans/<YYYY-MM-DD>/<batch-name>/<spec_name>/SPEC.md`.
 
 ## Workflow
 

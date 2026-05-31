@@ -11,8 +11,8 @@ Research first, design second — avoid reinventing wheels and ground every deci
 ## Acceptance Criteria
 
 - Three web research passes completed and recorded
-- DESIGN.md produced, covering: architecture design, external dependencies (with API facts and limits), data persistence, invariants, technical trade-offs
-- CHECKLIST.md produced, covering: behavior-to-test mapping, hardening requirements, test level choices
+- `docs/plans/<YYYY-MM-DD>/<spec_name>/DESIGN.md` produced, covering: architecture design, external dependencies (with API facts and limits), data persistence, invariants, technical trade-offs
+- `docs/plans/<YYYY-MM-DD>/<spec_name>/CHECKLIST.md` produced, covering: behavior-to-test mapping, hardening requirements, test level choices
 - Architecture Diff produced using the C4 model hierarchy
 
 ## Workflow
