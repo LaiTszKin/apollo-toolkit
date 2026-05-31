@@ -4,7 +4,7 @@
 
 - **Given** 現有技能的描述或結構不夠精確
 - **When** 使用 `optimise-skill` 技能
-- **Then** 推導目標交付物、收緊驗收標準，並將 SKILL.md 重寫為精簡的目標/驗收條件/工作流程/範例/參考資料結構
+- **Then** 推導目標交付物、收緊驗收標準，並將 SKILL.md 重寫為精簡的 Goal/Acceptance Criteria/Workflow/Examples/References 結構
 
 ## 從對話中學習技能
 

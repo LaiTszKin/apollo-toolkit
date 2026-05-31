@@ -1,30 +1,30 @@
-# apltk create-specs — SPEC.md 模板產生器
+# apltk create-specs — SPEC.md Template Generator
 
-## 用途
-根據 template 在 `docs/plans/` 下建立 SPEC.md。
+## Purpose
+Creates SPEC.md files from the template under `docs/plans/`.
 
-## 用法
+## Usage
 ```
 apltk create-specs <feature_name> [options]
 ```
 
-## 旗標
-| 旗標 | 效果 |
-|------|------|
-| `--change-name, --slug <name>` | 資料夾名稱（預設為 feature_name 的 slug 化結果） |
-| `--batch-name <name>` | 批次資料夾名稱（不要包含日期前綴） |
-| `--output-dir <dir>` | 輸出基底目錄（預設 `docs/plans`） |
-| `--template-dir <dir>` | 模板目錄 |
-| `--force` | 覆蓋既有檔案 |
+## Flags
+| Flag | Effect |
+|------|--------|
+| `--change-name, --slug <name>` | Directory name (defaults to slugified feature_name) |
+| `--batch-name <name>` | Batch directory name (do not include date prefix) |
+| `--output-dir <dir>` | Output base directory (default `docs/plans`) |
+| `--template-dir <dir>` | Template directory |
+| `--force` | Overwrite existing files |
 
-## 輸出結構
+## Output Structure
 ```
 Single spec:  docs/plans/<today>/<change-name>/SPEC.md
 Batch:        docs/plans/<today>/<batch-name>/<change-name>/SPEC.md
 ```
 
-## 注意事項
-- 工具會自動建立 `<today>` 日期資料夾
-- Batch name 不應包含日期前綴
-- DESIGN.md 和 CHECKLIST.md 由 `design` 技能產出
-- PROMPT.md 由 `plan` 技能產出
+## Notes
+- The tool automatically creates the `<today>` date directory
+- Batch name should not include a date prefix
+- DESIGN.md and CHECKLIST.md are produced by the `design` skill
+- PROMPT.md is produced by the `plan` skill

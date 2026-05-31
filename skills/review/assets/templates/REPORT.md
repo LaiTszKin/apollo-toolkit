@@ -7,63 +7,52 @@
 
 ---
 
-## 判決說明
+## Verdict
 
-**Verdict**: [Ready to Merge | Needs Attention | Needs Work]
-
-- **Ready to Merge** — 所有測試通過，無 P0/P1 問題，建議項目可選
-- **Needs Attention** — 有 P2 問題或重要建議值得處理
-- **Needs Work** — 有 P0/P1 問題或未滿足的需求，必須先修復
+[Ready to Merge | Needs Attention | Needs Work]
 
 ---
 
-## 發現的問題
+## Requirement Status Summary
 
-### P0 — 嚴重缺陷
-
-| # | 問題描述 | 影響 | 檔案 | 行數 | 審查維度 |
-|---|--------|------|------|------|---------|
-| 1 | [問題簡述] | [對功能正確性、安全性或資料完整性的影響] | `[file/path]` | L[N]-[N] | [幻覺代碼/冗余/偏移/遺漏/架構/性能] |
-| 2 | [問題簡述] | [對功能正確性、安全性或資料完整性的影響] | `[file/path]` | L[N]-[N] | [維度] |
-
-### P1 — 重要問題
-
-| # | 問題描述 | 影響 | 檔案 | 行數 | 審查維度 |
-|---|--------|------|------|------|---------|
-| 1 | [問題簡述] | [對功能完整性或邊界情況的影響] | `[file/path]` | L[N]-[N] | [維度] |
-
-### P2 — 一般問題
-
-| # | 問題描述 | 影響 | 檔案 | 行數 | 審查維度 |
-|---|--------|------|------|------|---------|
-| 1 | [問題簡述] | [對可維護性或程式碼品質的影響] | `[file/path]` | L[N]-[N] | [維度] |
-
-### P3 — 建議改善
-
-| # | 問題描述 | 影響 | 檔案 | 行數 | 審查維度 |
-|---|--------|------|------|------|---------|
-| 1 | [問題簡述] | [對程式碼風格或可讀性的影響] | `[file/path]` | L[N]-[N] | [維度] |
+| Requirement | Status | Evidence Location | Open Findings |
+|---|---|---|---|
+| Req 1 | [✅ Complete / ⚠️ Partial / ❌ Missing] | [file path / line range] | [count / P#-###] |
+| Req 2 | [✅ Complete / ⚠️ Partial / ❌ Missing] | [file path / line range] | [count / P#-###] |
 
 ---
 
-## 審查維度摘要
+## Findings
 
-- **幻覺代碼**: [X 個 finding / 無發現]
-- **冗余代碼**: [X 個 finding / 無發現]
-- **實作偏移**: [X 個 finding / 無發現]
-- **實作遺漏**: [X 個 finding / 無發現]
-- **架構瑕疵**: [X 個 finding / 無發現]
-- **性能隱患**: [X 個 finding / 無發現]
+### P0 — Requirement Blocked
+
+| # | Description | Impact | File | Line | Dimension | Requirement |
+|---|---|---|---|---|---|---|
+| 1 | [Brief description] | [Impact on requirement satisfaction] | `[file/path]` | L[N]-[N] | [dimension] | Req N |
+
+### P1 — Requirement Defect
+
+| # | Description | Impact | File | Line | Dimension | Requirement |
+|---|---|---|---|---|---|---|
+| 1 | [Brief description] | [Under what condition the behavior is incorrect] | `[file/path]` | L[N]-[N] | [dimension] | Req N |
+
+### P2 — Requirement Risk
+
+| # | Description | Impact | File | Line | Dimension | Requirement |
+|---|---|---|---|---|---|---|
+| 1 | [Brief description] | [Potential risk if unaddressed] | `[file/path]` | L[N]-[N] | [dimension] | Req N |
+
+### P3 — Suggestion
+
+| # | Description | Impact | File | Line | Dimension | Requirement |
+|---|---|---|---|---|---|---|
+| 1 | [Brief description] | [Improvement value] | `[file/path]` | L[N]-[N] | [dimension] | Req N |
 
 ---
 
 ## Review History
 
-> 每次重新執行 review 時，先將舊 REPORT.md 的判決與發現問題摘要濃縮為一筆歷史記錄，附加到此區段下方（保留過去所有輪次的記錄），再以新一輪審查結果覆蓋報告其餘部分。
-
-<!--
 ### Round N — [YYYY-MM-DD]
 - **Verdict**: [Ready to Merge / Needs Attention / Needs Work]
 - **Issues**: P0:X, P1:X, P2:X, P3:X
-- **Key findings**: [1-2 句概述本輪最重要的發現]
--->
+- **Key findings**: [1-2 sentence summary of the most important findings in this round]

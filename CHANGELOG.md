@@ -2,6 +2,29 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v4.0.9] - 2026-05-31
+
+### Changed
+
+- All skills: SKILL.md headers standardized from Chinese to English (Goal, Acceptance Criteria, Workflow, Examples, References) for cross-platform agent compatibility.
+- All skills: `description` frontmatter field changed from Chinese to English for better discoverability.
+- All templates (CHECKLIST.md, DESIGN.md, PROPOSAL.md, SPEC.md, REPORT.md, FIX.md, PROMPT.md): content translated to English.
+- All reference files (architecture.md, definition.md, create-specs.md, etc.): content translated to English.
+- `design` skill: added decision gate table for research phase — blocking issues now trigger STOP before architecture design begins (✅/⚠️/🛑 assessment matrix with explicit escalation rules).
+- `design` skill: research outputs now use structured tables (feasibility assessment, reference implementations, dependency compatibility) instead of prose lists.
+- `optimise-skill` skill: significantly expanded with new methodology — category classification (Behavioral vs Format vs Tool), consumption chain tracing, contradiction detection, restructuring workflow, and self-review checklist.
+- `test-case-strategy` skill: restructured with clearer decision framework — risk assessment matrix (Likelihood × Impact), test boundary heuristics, and streamlined workflow steps.
+- `systematic-debug` skill: improved error type classification table with clearer characteristics and approaches.
+- `discuss` skill: refined structured clarification workflow with plain-language dimension descriptions.
+- `qa` skill: added fix history condensation step for iterative FIX.md regeneration.
+- Skills no longer reference `agents/openai.yaml` in SKILL.md workflow steps (OpenAI configs are maintained separately via `apltk validate-openai-agent-config`).
+
+### Documentation
+
+- `docs/principles/skill-development.md`: updated standard section sequence to English headers; replaced "中文優先" directive with "英文為主".
+- `docs/architecture/skill-structure.md`: updated standardized block sequence to English headers.
+- `docs/features/catalog-maintenance.md`: updated `optimise-skill` description to reference new English section names.
+
 ## [v4.0.8] - 2026-05-30
 
 ### Changed

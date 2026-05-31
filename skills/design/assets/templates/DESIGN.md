@@ -2,140 +2,140 @@
 
 - **Date**: [YYYY-MM-DD]
 - **Feature**: [Feature Name]
-- **Source SPEC**: [SPEC.md 路徑]
+- **Source SPEC**: [SPEC.md path]
 
-> **Purpose:** 技術方案文檔——定義架構、外部依賴、資料流、不變量與取捨。為 `plan` 階段的 PROMPT.md 提供技術決策依據。
+> **Purpose:** Technical design document — defines architecture, external dependencies, data flow, invariants, and trade-offs. Provides technical decision basis for the `plan` phase's PROMPT.md.
 
 ---
 
-## 1. 調研摘要
+## 1. Research Summary
 
-### 1.1 技術可行性
+### 1.1 Technical Feasibility
 
-| 需求編號 | 可行性 | 風險點 |
+| Requirement | Feasibility | Risk |
 |---|---|---|
-| R1 | 可行 | [風險或 None] |
-| R2 | 可行 | [風險或 None] |
+| Req 1 | Feasible | [Risk or None] |
+| Req 2 | Feasible | [Risk or None] |
 
-**總體判斷**: [全部可行 / 部分需驗證 / 有阻斷性問題]
+**Overall assessment**: [All feasible / Partial validation needed / Blocking issues found]
 
-### 1.2 現有實現參考
+### 1.2 Existing Reference Implementations
 
-| 參考來源 | 可借鑑的設計模式 |
+| Source | Reusable Design Patterns |
 |---|---|
-| [URL / 項目名] | [描述可借鑑的具體設計決策] |
+| [URL / Project name] | [Specific design decisions worth referencing] |
 
-### 1.3 技術棧兼容性
+### 1.3 Tech Stack Compatibility
 
-| 候選技術 | 與 repo 依賴兼容性 | 授權 | 選擇 |
+| Candidate | Repo Dependency Compatibility | License | Decision |
 |---|---|---|---|
-| [Library A] | 兼容 / 版本衝突 (vX vs vY) | MIT | ✅ 推薦 |
-| [Library B] | 兼容 | GPL | ❌ 授權不相容 |
+| [Library A] | Compatible / Version conflict (vX vs vY) | MIT | ✅ Recommended |
+| [Library B] | Compatible | GPL | ❌ License incompatible |
 
 ---
 
-## 2. 架構總覽
+## 2. Architecture Overview
 
-### 2.1 模組清單
+### 2.1 Module List
 
-| 模組 key | 職責（一句話） | 擁有的產物（型別、表、佇列） |
+| Module Key | Responsibility (one sentence) | Owned Artifacts (types, tables, queues) |
 |---|---|---|
-| `[key]` | […] | [none / list] |
+| `[key]` | [...] | [none / list] |
 
-### 2.2 邊界
+### 2.2 Boundaries
 
-- **進入點**: [HTTP · CLI · job · subscriber · FFI]
-- **信任邊界**: [`None` / 簡述]
-- **外部 → 內部**: `[Actor]` → `[entry]` → `[…]`
+- **Entry points**: [HTTP · CLI · job · subscriber · FFI]
+- **Trust boundary**: [`None` / brief description]
+- **External → Internal**: `[Actor]` → `[entry]` → `[…]`
 
 ### 2.3 Target vs Baseline
 
-| | Baseline（現在） | Target（變更後） |
+| | Baseline (current) | Target (after change) |
 |---|---|---|
-| 結構 / 所有權 | […] | […] |
+| Structure / Ownership | […] | […] |
 
 ---
 
-## 3. 互動設計
+## 3. Interaction Design
 
-### 3.1 互動錨點 (`INT-###`)
+### 3.1 Interaction Anchors (`INT-###`)
 
-| ID | 意圖（何時此耦合重要） | Caller → Callee | 耦合類型（路由 / RPC / event / sync call） | 跨越的資訊 / 狀態 | 失敗傳播期望 |
+| ID | Intent (when this coupling matters) | Caller → Callee | Coupling Type (route / RPC / event / sync call) | Information / State Crossing | Failure Propagation Expectation |
 |---|---|---|---|---|---|
 | `INT-001` | […] | `A` → `B` | […] | […] | […] |
 
-### 3.2 排序 / 並行約束（設計層級）
+### 3.2 Ordering / Concurrency Constraints (Design Level)
 
-[平行規則、關鍵區段、或 `None`]
+[Parallelism rules, critical sections, or `None`]
 
-### 3.3 需求連結（粗粒度排序）
+### 3.3 Requirement Links (Coarse-Grained Ordering)
 
-對應 SPEC.md 中的需求編號，定義錨點順序：
-- **R1.x 集群**: `INT-001` → `INT-002` → …
-- **R2.x 集群**: …
+Map to SPEC.md requirement numbers:
+- **Req 1 cluster**: `INT-001` → `INT-002` → …
+- **Req 2 cluster**: …
 
 ---
 
-## 4. 外部依賴
+## 4. External Dependencies
 
-### 4.1 依賴總覽
+### 4.1 Dependency Overview
 
-| 外部依賴 | 用途 | 官方文檔 |
+| Dependency | Purpose | Official Documentation |
 |---|---|---|
-| [名稱] | [用途] | [URL] |
+| [Name] | [Purpose] | [URL] |
 
-若無外部依賴，寫 **None.** 並說明範圍（如：僅使用 stdlib / 進程內呼叫）。
+If none, write **None** and note the scope (e.g., stdlib only / in-process calls).
 
-### 4.2 [依賴名稱]
+### 4.2 [Dependency Name]
 
-#### 事實依據
+#### Factual Basis
 
-| 需要的功能 / 能力 | 文檔位置 |
+| Required Capability | Documentation Location |
 |---|---|
 | […] | […] |
 
-**版本假設**: [固定版本 / 浮動 / 未固定]
+**Version assumption**: [Pinned / Floating / Unpinned]
 
-#### 限制與失敗模式
+#### Limits and Failure Modes
 
-| 類別 | 文檔事實 | 編碼義務 |
+| Category | Documented Fact | Coding Obligation |
 |---|---|---|
-| 配額 · 大小 · 超時 · 分頁 | […] | [退避 / 批次處理策略] |
-| 錯誤 / 降級模式 | […] | [映射到應用層的策略] |
+| Quota · Size · Timeout · Pagination | […] | [Backoff / batching strategy] |
+| Error / Degradation Modes | […] | [Application-level mapping] |
 
-#### 安全與密鑰
+#### Security and Keys
 
-| 關注點 | 約束 |
+| Concern | Constraint |
 |---|---|
-| 認證 / 範圍 | […] |
-| 密鑰名稱 | […] |
+| Authentication / Scope | […] |
+| Key Name | […] |
 
-#### 整合錨點 (`EXT-###`)
+#### Integration Anchors (`EXT-###`)
 
-| ID | 在此邊界整合的對象（文檔命名的表面） | 不可協商的處理要求（重試、冪等性） | 禁止的假設 |
+| ID | Integration Surface (as named in docs) | Non-Negotiable Handling (retry, idempotency) | Prohibited Assumptions |
 |---|---|---|---|
-| `EXT-001` | [endpoint · SDK 符號 · topic] | […] | […] |
+| `EXT-001` | [endpoint · SDK symbol · topic] | […] | […] |
 
 ---
 
-## 5. 資料持久化
+## 5. Data Persistence
 
-| 資源 | 典型讀寫者（模組 key） | 一致性期望（排序、冪等性） |
+| Resource | Typical Readers / Writers (module key) | Consistency Expectation (ordering, idempotency) |
 |---|---|---|
 | [store · schema · queue …] | […] | […] |
 
 ---
 
-## 6. 系統不變量
+## 6. System Invariants
 
-| 不變量 | 架構上破壞它的方式 | 違反的症狀 |
+| Invariant | How Architecture Could Violate It | Symptoms of Violation |
 |---|---|---|
-| […] | [耦合錯誤 / 錯誤的 owner / …] | […] |
+| […] | [Wrong coupling / wrong owner / …] | […] |
 
 ---
 
-## 7. 技術取捨
+## 7. Technical Trade-offs
 
-| 決策 | 拒絕的替代方案 | 對實作的鎖定影響 |
+| Decision | Rejected Alternatives | Lock-in Effect on Implementation |
 |---|---|---|
 | […] | […] | […] |

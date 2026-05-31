@@ -1,71 +1,63 @@
 # Proposal: [Feature Name]
 
 - **Date**: [YYYY-MM-DD]
-- **Source**: 由 `discuss` 技能通過結構化對話釐清需求後產出
+- **Source**: Produced by the `discuss` skill through structured conversation
 
 ---
 
-## 1. 功能範圍
+## 1. Scope
 
-### 要做的事
+### In Scope
 
-- [功能點 1：一句話描述]
-- [功能點 2：一句話描述]
+- [Feature point 1: one-line description]
+- [Feature point 2: one-line description]
 
-### 明確不做的事
+### Out of Scope (Explicitly Excluded)
 
-- [排除的範圍 1]
-- [排除的範圍 2]
-
----
-
-## 2. 使用者場景
-
-### 目標使用者
-
-[誰會使用這個功能？描述目標使用者群體]
-
-### 典型流程
-
-[一步一步描述使用者的完整操作流程，用白話而非技術術語]
-
-### 成功標準
-
-[使用者完成什麼操作、得到什麼結果，才算「成功」]
-
-### 失敗處理
-
-[出錯時使用者會看到什麼、發生什麼]
+- [Excluded item 1]
+- [Excluded item 2]
 
 ---
 
-## 3. 約束條件
+## 2. User Scenarios
 
-- [時間約束：有沒有上線期限？]
-- [預算約束：有沒有成本限制？]
-- [地域 / 語言約束：只在特定地區使用？需要多語言嗎？]
-- [安全 / 隱私約束：是否處理金錢或個人資料？]
-- [其他約束：法規、合規、平台限制等]
+### Target Users
 
----
+[Who will use this feature? Describe the target user group.]
 
-## 4. 業務價值
+### Typical Flow
 
-### 解決的問題
+[Step-by-step user flow in plain language, no technical jargon.]
 
-[一句話描述這個功能解決了什麼問題]
+### Success Criteria
 
-### 為什麼現有方案不夠
+[What must happen, from the user's perspective, for this to be considered "successful".]
 
-[一句話說明現狀的不足，或為什麼現在需要做這個]
+### Error Handling
 
-### 成功指標
-
-[上線後用什麼指標判斷這個功能是否成功？盡量量化]
+[What the user sees or experiences when something goes wrong.]
 
 ---
 
-## 5. 剩餘未解決的問題
+## 3. Constraints
 
-- [如有任何在 discuss 階段未能完全釐清的點，列在這裡]
-- [若無，寫「無」]
+- [Timeline: deadlines or time windows?]
+- [Budget: any cost or resource constraints?]
+- [Region / Language: specific geographic scope? Multi-language needed?]
+- [Security / Privacy: handling money, PII, or other sensitive data?]
+- [Other: regulations, compliance, platform limitations, etc.]
+
+---
+
+## 4. Business Value
+
+### Problem Statement
+
+[One sentence describing what problem this feature solves and why it matters.]
+
+---
+
+## 5. Open Questions
+
+- [Any unresolved questions from the discussion phase]
+- [If none, write "None"]

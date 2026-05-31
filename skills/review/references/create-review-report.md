@@ -1,23 +1,23 @@
-# apltk create-review-report — review report 模板產生器
+# apltk create-review-report — Review Report Template Generator
 
-## 用途
-將 review report 模板（REPORT.md）複製到對應的 spec 目錄。
+## Purpose
+Copies the review report template (REPORT.md) to the corresponding spec directory.
 
-## 用法
+## Usage
 ```
 apltk create-review-report [options] [<spec-path>]
 ```
 
-## 位置參數
-| 參數 | 效果 |
-|------|------|
-| `<spec-path>` | spec 目錄、spec.md 或 batch 根目錄。省略時自動偵測 |
+## Positional Arguments
+| Argument | Effect |
+|----------|--------|
+| `<spec-path>` | Spec directory, SPEC.md, or batch root. Auto-detected when omitted. |
 
-## 旗標
-| 旗標 | 效果 |
-|------|------|
-| `--force, -f` | 覆蓋已存在的 `REPORT.md` |
+## Flags
+| Flag | Effect |
+|------|--------|
+| `--force, -f` | Overwrite existing `REPORT.md` |
 
-## 放置邏輯
-- 單一 spec：放在 spec.md 旁
-- Batch spec：放在 batch 根目錄
+## Placement Logic
+- Single spec: placed next to SPEC.md
+- Batch spec: placed at the batch root directory

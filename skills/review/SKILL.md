@@ -1,77 +1,100 @@
 ---
 name: review
-description: 審查規格文檔相關的程式碼變更。從六個維度產出 code review report（REPORT.md）：僅包含發現的問題清單，不含修復建議。不用於非 spec 相關的變更審查，不用於直接修改代碼，不用於沒有 spec 的情境。
+description: Reviews spec-related code changes across six dimensions and produces a structured review report (REPORT.md) with findings only — no fix suggestions. Not for non-spec changes, direct code modification, or contexts without a spec.
 ---
 
-## 技能目標
+## Goal
 
-輸出一份 spec 相關變更審查報告（REPORT.md）。
-先回答「這次變更是否滿足規劃中的業務要求」。
-再補充邊界、安全與代碼審查發現。
-每條關鍵需求需給出可追溯的狀態判定、證據來源、缺口說明與剩餘不確定性。
+Produce a spec-change review report (REPORT.md).
+First answer: "Does this change satisfy the planned business requirements?"
+Then supplement with boundary, security, and code quality findings.
+Every critical requirement must have a traceable status judgment, evidence location, gap description, and remaining uncertainty.
 
-**本技能只輸出發現的問題清單，不包含修復方案。** 修復方案的規劃由 `qa` 技能負責。
+**This skill outputs findings only — no fix plans.** Fix planning is handled by the `qa` skill.
 
-## 驗收條件
+## Acceptance Criteria
 
-- 生成 REPORT.md，內容涵蓋 6 個維度的代碼審查結果
-- REPORT.md 僅包含判決、發現的問題清單、審查維度摘要
-- 不包含修復建議、根因分析、驗證方式
+- REPORT.md is generated, covering 6 review dimensions
+- REPORT.md contains only: verdict, findings list (P0-P3), requirement status summary
+- No fix suggestions, root cause analysis, or verification methods
+- Every finding is traceable to a SPEC.md requirement
+- When the verdict is "Ready to Merge", every requirement is confirmed satisfied
+- When the verdict is "Needs Work", at least one requirement is confirmed NOT satisfied
 
-## 工作流程
+## Workflow
 
-### 1. 解析需求與建立審查範圍
+### 1. Parse Requirements and Establish Review Scope
 
-閱讀用戶指定的 SPEC.md，解析其中的所有需求：
-- 每個 `### Requirement N` 視為一個獨立的審查單位
-- 該需求下的子項（RN.M checkboxes）視為同一需求的一部分，不獨立建立 subagent
+Read the specified SPEC.md and parse all requirements:
+- Each `### Requirement N` is an independent review unit
+- Sub-items under a requirement are part of the same unit — do not create separate subagents
 
-按照每個需求的實作範圍，結合 File Ownership 與涉及檔案，檢索並閱讀相關代碼。
+Using each requirement's implementation scope and affected files (from DESIGN.md), locate and read the relevant code changes.
 
-### 2. 派發 per-requirement subagent
+### 2. Dispatch Per-requirement Subagents
 
-為 SPEC.md 中的每個需求（Requirement N）建立一個 subagent。所有需求的 subagent 可並行派發。
+Create one subagent per requirement (Requirement N). All subagents can run in parallel.
 
-若有舊有的 REPORT.md，先將其判決與發現問題摘要濃縮為一筆歷史記錄，附加到 REPORT.md 的「Review History」區段，保留過去所有輪次的記錄。然後以全新審查覆蓋報告其餘部分（判決說明、發現的問題、審查維度摘要），避免被舊有結果誤導。
+**If a previous REPORT.md exists**: Condense its verdict and key findings into one history entry. Prepend it to the Review History section, keeping all past rounds. Then perform a fresh review — do not let prior results bias the new assessment.
 
-每個需求 subagent 的任務：
-1. 根據該需求的實作範圍定位相關代碼
-2. 對相關代碼進行以下 6 個維度的審查：
-   - **幻覺代碼**：是否存在未定義於 spec 的功能或邏輯
-   - **冗余代碼**：是否存在未被使用的變數、函式、或重複實作
-   - **spec 實作偏移**：代碼行為是否與 spec 定義不一致
-   - **spec 實作遺漏**：spec 中的需求是否未被實作
-   - **架構瑕疵**：是否符合 DESIGN.md 定義的架構設計
-   - **性能隱患**：是否存在明顯的性能問題
-3. 回報該需求範圍內的 findings
+Each subagent's task:
 
-若同一段代碼對應多個需求，跨 subagent 的 findings 留待合成階段處理。
+1. Locate the relevant code for the requirement's implementation scope
+2. Review the code across the following 6 dimensions:
+   - **Hallucinated code**: Features or logic not defined in the spec
+   - **Redundant code**: Unused variables, functions, or duplicated implementations
+   - **Spec implementation deviation**: Code behavior inconsistent with the spec
+   - **Spec implementation omission**: Spec requirements not implemented
+   - **Architecture defect**: Violations of DESIGN.md's architecture
+   - **Performance concern**: Obvious performance issues
+3. Classify each finding using the severity scale below
+4. Report findings scoped to the requirement
 
-### 3. 合成審查結果
+**Severity scale** — defined by impact on **requirement satisfaction**:
 
-收集所有 subagents 的 findings 後，按以下程序合成：
+| Level | Definition | Verdict Implication |
+|---|---|---|
+| **P0 — Requirement Blocked** | Requirement not implemented, behavior fundamentally deviates from spec, or hallucinated code exists. This finding directly means at least one requirement is **NOT** satisfied. | → Needs Work |
+| **P1 — Requirement Defect** | Functionality exists but behaves incorrectly under specific conditions, or edge cases are unhandled. This finding means at least one requirement is only **PARTIALLY** satisfied. | → Needs Work |
+| **P2 — Requirement Risk** | Functionality is correct but there are potential risks (architecture deviation, security weakness, performance bottleneck). This finding does **NOT** affect current requirement satisfaction. | → Needs Attention |
+| **P3 — Suggestion** | Functionality is fully correct. Code can be improved but nothing is blocking. This finding does **NOT** affect any requirement's satisfaction. | → Ready to Merge |
 
-1. **Dedup 重疊發現**：跨 agent 的相同問題合併為單一 finding，保留各維度的影響說明。
-2. **跨 agent 統一排序**：將所有 findings 按 P0-P3 重新排序（不以各 agent 自排為準）。
-3. **折疊乾淨結果**：無 findings 的審查維度僅保留一行摘要，不佔報告篇幅。
+If the same code corresponds to multiple requirements, cross-agent findings are handled in the synthesis phase.
 
-### 4. 生成 REPORT.md
+### 3. Synthesize Review Results
 
-使用 `assets/templates/REPORT.md` 模板，填入審查結果。
-報告僅包含以下區段：
-- **判決**：Ready to Merge / Needs Attention / Needs Work
-- **發現的問題**：按 P0-P3 排序的完整問題列表（僅問題描述、影響、檔案、行數、審查維度）
-- **審查維度摘要**：各維度的 finding 數量
+Collect all subagent findings and synthesize:
 
-**報告中不包含修復方案、根因分析、驗證方式等內容。** 這些由後續的 `qa` 技能負責。
+1. **Dedup overlapping findings**: Merge identical issues found by multiple agents into a single finding. Preserve dimension-specific notes from each agent.
+2. **Resort by severity**: Reorder all findings by P0 → P3 across the entire list (not per-agent order).
+3. **Collapse empty severity levels**: If a severity level has zero findings, do NOT generate its table header or column labels.
+4. **Cross-requirement interaction check**: Identify code introduced for one requirement that modifies shared modules or data structures used by another requirement. Flag these as potential interaction risks (P2).
+5. **Conditional dimension summary**: If total findings exceed 5, include a one-line summary of finding counts per dimension. Otherwise omit — the findings table itself is sufficient.
 
-代碼審查只有在完全滿足以下條件時，才可以被視為通過：
-- 所有需求已經被正確滿足
-- 架構、性能無重大缺陷
-- 不存在幻覺代碼
+### 4. Generate REPORT.md
 
-## 參考資料
+Use `assets/templates/REPORT.md` and populate accordingly.
 
-- `references/create-review-report.md` — apltk create-review-report 工具的完整參數說明
-- `assets/templates/REPORT.md` — review report 模板
-- `references/halluciation-review-instruction.md` — 幻覺代碼審查建議流程
+Include the following sections:
+- **Verdict**: Ready to Merge / Needs Attention / Needs Work
+- **Requirement Status Summary**: Per-requirement: completion status, evidence location, open findings
+- **Findings**: Issue list sorted by P0 → P3 (only levels with findings)
+- **Review History**: Previous rounds (if any)
+
+**Verdict criteria** (P-level directly determines verdict — no separate requirement check needed):
+
+| Condition | Verdict |
+|---|---|
+| Has P0 or P1 findings | Needs Work |
+| No P0/P1, has P2 findings | Needs Attention |
+| Only P3 or no findings | Ready to Merge |
+
+The verdict is derived directly from the severity of findings. P0 and P1 are defined as "requirement not satisfied" — if they exist, the review must fail. If only P3 exists, requirements are satisfied and no P3 finding can block a merge.
+
+**The report must NOT contain** fix suggestions, root cause analysis, or verification methods. These are handled by the `qa` skill.
+
+## References
+
+- `references/create-review-report.md` — `apltk create-review-report` CLI tool parameters
+- `assets/templates/REPORT.md` — review report template
+- `references/halluciation-review-instruction.md` — hallucinated code review guidelines

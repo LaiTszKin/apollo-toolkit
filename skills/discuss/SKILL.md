@@ -1,100 +1,104 @@
 ---
 name: discuss
-description: 通過結構化對話協助用戶釐清模糊需求，產出包含高層次功能模組劃分的概要設計（PROPOSAL.md）。不閱讀 repo 內任何檔案，完全依賴對話內容。適用於需求討論、功能發想、或從零開始的專案規劃。
+description: Helps users clarify vague requirements through structured conversation, producing a high-level design (PROPOSAL.md) with functional module decomposition. Does not read any repo files — relies entirely on conversation. Suitable for requirement discussions, feature ideation, or greenfield project planning.
 ---
 
-## 目標
+## Goal
 
-協助用戶將模糊的想法或需求，轉化為高層次的概要設計。
-以「用戶完全不懂技術」為前提，用白話反問來釐清模糊點、矛盾點、或遺漏的細節。
-**不閱讀 repo 內任何檔案**——完全依賴與用戶的對話來產出概要設計。
+Help users transform vague ideas or requirements into a structured high-level design.
+Assume the user has no technical background — use plain language to surface ambiguities, contradictions, and missing details.
+**Do not read any repo files** — base everything solely on the conversation.
 
-**核心產出：PROPOSAL.md**，包含功能範圍、使用者場景、約束條件、業務價值四個維度，
-以及**高層次的功能模組劃分與模組間協作關係概要**。
-只定義「做什麼」和「為什麼做」，不涉及技術實作方案。
+**Core deliverable: PROPOSAL.md**, covering:
+- Scope (in/out)
+- User scenarios
+- Constraints
+- Business value
+- High-level functional module decomposition with inter-module relationships
 
-## 驗收條件
+Define only "what" and "why" — no technical implementation.
 
-- 所有需求模糊點已被識別並通過對話釐清
-- 用戶需求中不存在未經確認的推測或假設
-- 產出的 PROPOSAL.md 包含：功能範圍、使用者場景、約束條件、業務價值四個維度，以及高層次的功能模組劃分與協作關係
-- PROPOSAL.md 無內部矛盾，且用戶確認無剩餘疑問
-- 過程中未閱讀任何 repo 檔案——所有內容完全來自對話
+## Acceptance Criteria
 
-## 工作流程
+- All ambiguous points have been identified and clarified through conversation
+- No unverified assumptions or guesses remain in the stated requirements
+- PROPOSAL.md covers all required dimensions and contains no internal contradictions
+- The user explicitly confirms they have no remaining questions
 
-### 1. 接收並複述需求
+## Workflow
 
-接收用戶的自然語言描述，用白話簡短複述你的理解。
-這段複述的目的是確認你沒有根本性誤解用戶的意思。
-若用戶的描述中包含多個獨立的需求方向，先請用戶確認哪個方向優先討論。
+### 1. Receive and Paraphrase
 
-### 2. 分輪釐清需求
+Listen to the user's description, then briefly paraphrase your understanding in plain language. This confirms you haven't fundamentally misunderstood them. If the description contains multiple independent directions, ask the user to prioritize one.
 
-按以下四個維度，逐輪向用戶提問。每輪 **1-3 個問題**，不得超過。
+### 2. Structured Clarification (Round-based)
 
-**四個掃描維度**（按優先級排列）：
+Ask questions across the following four dimensions, in priority order. **Limit: 1-3 questions per round.**
 
-1. **功能範圍** — 要做什麼、不做什麼、邊界在哪。用戶說「做一個電商網站」，你需要問清楚：賣什麼？誰來賣？買家能做什麼？賣家能做什麼？管理員能做什麼？哪些功能明確不做？
-2. **使用者場景** — 誰在用、怎麼用、成功與失敗的情境長怎樣。用戶的目標使用者是誰？他們怎麼接觸這個產品？一個典型的使用流程是怎樣的？什麼情況算「不好用」？
-3. **約束條件** — 時間、預算、地域、法律或安全考量。有沒有上線期限？有沒有預算限制？是否需要處理金錢或個人資料？只在特定國家/地區使用嗎？
-4. **業務價值** — 解決什麼問題、誰是目標用戶、怎麼衡量成功。為什麼現有方案不夠好？上線後用什麼指標判斷這個東西是否成功？
+**Dimension 1: Scope** (highest priority)
+What to build, what not to build, boundaries. E.g., user says "build an e-commerce site" — clarify: what's being sold? Who sells? What can buyers/sellers/admins do? What is explicitly excluded?
 
-**每輪提問規則：**
+**Dimension 2: User Scenarios**
+Who uses it, how, and what success/failure looks like. Who are the target users? How do they discover the product? What is a typical flow? What counts as "bad UX"?
 
-- 每個問題必須附上 **2-4 個具體選項 + 推薦選項 + 推薦理由**。讓用戶只需選擇或確認，不需從零回答。
-- 只問與當前需求直接相關的問題。若某維度不需要釐清（用戶已說得夠清楚），跳過該維度。
-- 先完成一個維度的掃描，再進入下一個維度。不要跨維度跳躍提問。
+**Dimension 3: Constraints**
+Timeline, budget, region, legal/security considerations. Are there deadlines? Budget limits? Does it handle money or personal data? Restricted to specific countries?
 
-### 3. 關鍵行為規則
+**Dimension 4: Business Value**
+What problem does it solve? Who benefits? Why aren't existing solutions good enough? How will success be measured?
 
-以下規則在整個對話過程中必須始終遵守：
+**Per-round rules:**
+- Each question must include **2-4 concrete options + a recommendation + rationale**. Let the user choose or confirm, not answer from scratch.
+- Only ask what is directly relevant to the current dimension. Skip a dimension if already sufficiently clear.
+- Complete one dimension before moving to the next. Do not jump between dimensions.
 
-1. **不猜測用戶需求** — 任何你無法從用戶話語中 100% 確定的資訊，都必須通過提問來確認。即使你認為某件事「很明顯」或「通常都是這樣做」，也不能替用戶假設。
-2. **永附預設建議** — 每個問題必須提供推薦選項和理由。這不是替用戶做決定，而是給用戶一個出發點去思考。
-3. **區分「該問的」vs「自己決定的」** — 業務範圍、使用者場景、約束條件、成功標準 → 必須問用戶。技術實現細節、程式碼結構、library 選擇 → 這是後續 spec/design 階段的事，不在 discuss 階段討論。
-4. **白話追問必要性** — 當用戶描述一個功能時，追問：「這個功能真的必要嗎？有沒有更簡單的做法可以達到同樣目的？」（YAGNI + KISS 原則，但用白話表達）
-5. **偵測矛盾** — 若用戶的新回答與之前的回答矛盾，立即指出並請用戶釐清。不讓矛盾累積到後續階段。
+### 3. Behavioral Rules (Always Active)
 
-### 3a. 概要功能模組設計
+1. **No guessing** — Any information you cannot 100% confirm from the user must be asked. Even if something seems "obvious," do not assume.
+2. **Always provide defaults** — Every question must include a recommended option with rationale. This primes the user's thinking, not decides for them.
+3. **No repo reading** — All content must come exclusively from the conversation. No searching, reading, or referencing the repository.
+4. **Distinguish "must ask" from "decide later"** — Business scope, scenarios, constraints, success criteria → ask the user. Technical implementation, code structure, library choices → belong to later phases (spec/design), not here.
+5. **Challenge necessity** — When the user describes a feature, ask: "Is this really necessary? Is there a simpler way to achieve the same goal?" (YAGNI + KISS, in plain language).
+6. **Detect contradictions** — If a new answer contradicts a previous one, flag it immediately. Do not let contradictions accumulate.
 
-四個維度掃描完成後，在產出 PROPOSAL.md 前，根據已釐清的需求繪製**高層次的功能模組劃分**：
+### 4. High-Level Module Design
 
-- 將需求拆分為 3-7 個主要功能模組，每個模組以一句話描述其職責
-- 標明模組之間的協作關係（A 調用 B、A 依賴 B 的資料等）
-- 此概要設計**僅依賴對話內容**，不閱讀 repo、不涉及技術方案
+After completing all four dimensions but before writing PROPOSAL.md, design the high-level functional module decomposition:
 
-此設計將作為 PROPOSAL.md 的**功能模組設計**區段，供後續 `spec` 技能參考。
+- Split requirements into **3-7 major modules**, each described in one sentence
+- Indicate inter-module relationships (A calls B, A depends on B's data, etc.)
+- This decomposition relies **only on conversation content** — no repo reading, no technical solutions
 
-### 4. 終止判斷與產出 PROPOSAL.md
+This design becomes the **Functional Module Design** section of PROPOSAL.md, consumed by the `spec` skill.
 
-持續分輪提問，直到滿足以下所有條件：
+### 5. Termination and PROPOSAL.md Generation
 
-- 四個維度中，與該需求相關的維度都已被覆蓋
-- 用戶的回答中不存在互相矛盾的部分
-- 用戶明確表示「差不多了」或「沒有更多要補充的」
+Continue rounds until **all** of the following are true:
 
-滿足條件後，使用 `assets/templates/PROPOSAL.md` 模板產出 PROPOSAL.md。
+- All relevant dimensions have been covered
+- No contradictions remain in the user's answers
+- The user explicitly confirms "that's enough" or has nothing to add
 
-**輸出位置**：`docs/plans/{today}/{feature_name}/PROPOSAL.md`
+Then generate PROPOSAL.md using `assets/templates/PROPOSAL.md`.
 
-- `{today}` 為當前日期（YYYY-MM-DD 格式）
-- `{feature_name}` 為功能的 kebab-case 識別名稱
+**Output path**: `docs/plans/{YYYY-MM-DD}/{feature_name}/PROPOSAL.md`
+- `{YYYY-MM-DD}` is today's date
+- `{feature_name}` is a kebab-case identifier for the feature
 
-建立目錄和文件後，將 PROPOSAL.md 的路徑告知用戶。
+Create the directory and file, then inform the user of the path.
 
-### 5. 可選銜接
+### 6. Optional Handoff
 
-產出 PROPOSAL.md 後，詢問用戶：「是否需要我將這份提案交給 `spec` 技能，進一步轉化為正式的業務規格文檔（SPEC.md）？」
+After generating PROPOSAL.md, ask the user: "Would you like me to pass this to the `spec` skill to transform it into formal business requirement documents (SPEC.md)?"
 
-若用戶同意，調用 `spec` 技能並傳遞 PROPOSAL.md 的路徑。
+If they agree, invoke the `spec` skill with the PROPOSAL.md path.
 
-## 範例
+## Examples
 
-- "我想做一個記帳 App" → 複述理解 → 掃描功能範圍（個人記帳還是多人？需要同步嗎？）→ 掃描使用者場景（誰在用？手機還是電腦？）→ 掃描約束條件（需要連網嗎？資料存哪裡？）→ 產出 `docs/plans/2026-01-15/personal-finance-app/PROPOSAL.md`
-- "幫我改善公司網站的效能" → 複述理解 → 掃描功能範圍（哪個頁面慢？多少用戶同時用？）→ 追問必要性（有量過瓶頸在哪嗎？還是感覺慢？）→ 掃描約束條件（有多少預算和時間？）→ 產出 PROPOSAL.md
-- "我想做一個類似 Uber 的 App" → 複述理解 → 先釐清範圍（完整的 App 還是只要某些功能？）→ 追問 KISS（有沒有更簡單的做法？）→ 逐維度掃描 → 需求 > 5 個，在 PROPOSAL.md 的「建議 spec 拆分」欄位建議拆分為 batch spec
+- "I want to build a budgeting app" → Paraphrase → Scope (personal or multi-user? Sync needed?) → Scenarios (who uses it? Mobile or desktop?) → Constraints (online required? Data storage?) → Output `docs/plans/2026-01-15/personal-finance-app/PROPOSAL.md`
+- "Help me improve my company website's performance" → Paraphrase → Scope (which pages? Concurrent users?) → Challenge necessity (measured the bottleneck, or just a feeling?) → Constraints (budget and timeline?) → Output PROPOSAL.md
+- "I want to build something like Uber" → Paraphrase → Scope first (full app or specific features?) → Challenge KISS (simpler approach possible?) → Full dimension scan → If >5 needs identified, suggest batch-spec splitting → Output PROPOSAL.md
 
-## 參考資料
+## References
 
-- `assets/templates/PROPOSAL.md` — PROPOSAL.md 模板，在步驟 4 產出時使用
+- `assets/templates/PROPOSAL.md` — Template used in step 5

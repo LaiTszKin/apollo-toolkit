@@ -1,44 +1,123 @@
 ---
 name: optimise-skill
-description: 當你需要優化 agent skills 的 `SKILL.md` 時，調用這個技能。
+description: Applies prompt engineering to optimize agent skill SKILL.md files — reduces redundancy, separates behavioral guidance from format, aligns with proven methodology. Reads the target skill's full directory, analyzes its structure, and produces an optimized rewrite.
 ---
 
-## 目標
+## Goal
 
-在不影響被優化技能整體流程前提下，利用提示詞工程，對技能進行優化，減少冗余表達，增強agent對技能的理解能力以及實際工作中的使用效率。
+Apply prompt engineering to optimize an agent skill's SKILL.md, reducing redundant expression and improving the agent's ability to understand and execute the skill effectively — without altering the skill's core purpose or deliverables.
 
-## 驗收條件
+## Acceptance Criteria
 
-- 被優化技能的最終交付產物不受影響
-- 被優化技能有顯著冗余削減，且具備精確提示能力，盡最大可能釋放LLM的性能
+- The optimized skill's core deliverable and workflow are preserved
+- Behavioral guidance resides entirely in SKILL.md — no behavioral rules in templates or reference files
+- Templates (if any) contain format-only content — no "you should" instructions
+- Reference files contain tool usage guidance only — not required reading unless the LLM needs specific CLI flags
+- Token count is measurably reduced compared to the original (quantifiable by section/step count)
+- Every step in the workflow serves a distinct purpose — no duplicate or overlapping steps
+- Cross-file consistency is verified: no references to sections or fields that were removed or renamed
 
-## 工作流程
+## Workflow
 
-### 1. 識別交付物
+### 1. Read and Map the Skill
 
-完整閱讀整個技能的 `SKILL.md` 文檔，以及其引用的所有額外檔案，包括但不限於 `references/`、`lib/tools/` 中的 TypeScript handler。基於獲取到的技能上下文資訊，總結出該技能的最終交付產物。
+Read the skill's complete directory: SKILL.md, templates (assets/templates/), references (references/).
 
-### 2. 制定驗收條件
+Identify:
+- **Core deliverable**: What does this skill produce? Who consumes it?
+- **Upstream inputs**: Which documents does this skill read from previous stages?
+- **Downstream consumers**: Which documents does this skill produce, and which fields do consumers actually read?
 
-制定驗收條件，從而確保LLM能夠穩定、可復現地按照驗收條件產出符合要求高質量最終交付物
+### 2. Classify Every Section (Behavioral vs Format vs Tool)
 
-### 3. 重寫技能
+For every section across SKILL.md, templates, and references, classify into one of three categories:
 
-將整個技能的 `SKILL.md` 重寫。重寫後的技能應該只包含以下幾個關鍵組成部分：
-- 目標
-- 驗收條件
-- 工作流程
-- 範例（選用）
-- 參考資料
+| Category | Definition | Must live in |
+|----------|-----------|-------------|
+| **Behavioral guidance** | Tells the agent what to do, how to think, what to check | **SKILL.md** |
+| **Format guidance** | Shows the output structure | **Template** |
+| **Tool guidance** | CLI flags, API parameters, external tool usage | **References** (indexed, optional lookup) |
 
-對於技能有幫助的內但不符合上述技能架構規範，則應該被分類放置在 `references/` 下的markdown檔案。
+**Common violations found during this step:**
+- Template sections containing "do this" instructions (should be in SKILL.md)
+- Reference files marked as "must read" that contain behavioral rules (should be in SKILL.md)
+- SKILL.md describing file format details better left in a template
 
-## 範例
+### 3. Trace the Consumption Chain
 
-- "一個專注在提示LLM agent進行自我迭代，並為repo帶來性能優化的技能需要被優化" -> "定義驗收條件為優化後性能相較優化前至少提升X個百分比，並且項目之中不存在任何O(n^2)級別時間複雜度的函式和邏輯，並按照標準架構重寫技能。"
-- "一個有大量前端開發範例被包含在 `SKILL.md` 之中的前端開發技能需要被優化" -> "定義驗收條件為前端頁面 `reference` 之中提供的大量建議範例重寫且不包含任何建議示例之中明確拒絕的設計，然後按照技能優化流程對技能進行全面的重寫。"
+For each field in each template, trace who consumes it:
 
-## 參考資料
+```
+Field X in Template → Downstream skill Y reads it for decision Z
+                   → Nobody reads it → dead weight, remove
+```
 
-- `references/example_skill.md` - 優化後的技能範例，在進行技能優化時必須閱讀並嚴格遵照當中格式 **（必讀）**
-- `references/definition.md` - 技能之中各個區塊的定義 **（必讀）**
+Key questions:
+- Is this column consumed by the downstream skill? Or is it just "nice to have"?
+- Is this ASCII diagram duplicating information already in a structured field?
+- Is this table expressing key-value pairs that would be clearer as natural language?
+
+Common pruning targets:
+- **ASCII dependency graphs**: Redundant with structured `Depends on` fields and batch schedules
+- **Key-value tables**: Labels + values expressed as `| Field | Value |` — use natural language instead
+- **File ownership tables**: Redundant with per-task `Files:` fields in task units
+- **Speculative columns**: Fields that ask for predictions (symptoms, "how will it be modified") — remove
+
+### 4. Detect Contradictions
+
+Compare closely related rules across the skill's files:
+
+- Does the SKILL.md say one thing and the template say another? (e.g., implement SKILL.md Step 4 vs PROMPT.md NEVER rule)
+- Does a behavioral rule appear in both SKILL.md and a template, with slightly different wording?
+- Does a downstream skill's assumption about document structure conflict with upstream changes?
+
+### 5. Restructure
+
+Apply changes to align with the three-layer separation:
+
+**SKILL.md** — Restructure so all behavioral guidance is here. Ensure:
+- Every step has a clear purpose, distinct from other steps
+- No step duplicates decision logic already present in another step
+- Self-review is included as its own step (for coordinator-type skills) or at the end of the last step
+
+**Templates** — Strip to pure format:
+- Remove all behavioral instructions ("do this", "check that", "write X when Y")
+- Replace key-value tables with natural language
+- Remove speculative columns (symptoms, predictions)
+- Remove ASCII dependency graphs (redundant with structured fields)
+- Conditionally collapse empty sections (don't generate table headers for P0 if no P0 findings)
+
+**References** — Keep as optional lookup:
+- No file marked "必讀" (must read) — the LLM reads them only if it needs specific CLI flags or definitions
+- If a reference file contains behavioral guidance, move it to SKILL.md first
+
+### 6. Verify Cross-File Consistency
+
+Before finalizing, check:
+
+- Every field referenced by a downstream skill still exists in the optimized output
+- Section numbers and names referenced across files are updated to match changes
+- No contradictions introduced between SKILL.md and templates
+- All redundant files or sections removed
+
+### 7. Self-Review
+
+Confirm all acceptance criteria are met:
+
+- [ ] Core deliverable preserved
+- [ ] No behavioral guidance in templates
+- [ ] No "required reading" references
+- [ ] Token count measurably reduced
+- [ ] No duplicate or overlapping steps
+- [ ] Cross-file consistency verified
+- [ ] All files translated to English (if the skill directory uses English naming conventions)
+
+## Examples
+
+- "A skill with a 7-step workflow where Step 3 duplicates Step 2's decision logic" → Identify the duplication → Merge the two steps → Prune an unnecessary reference file → Verify no downstream consumers reference the removed content
+- "A skill whose template contains a behavioral blockquote in the history section" → Move the blockquote's instruction to SKILL.md → Keep only the format example in the template → If the instruction references a process already handled upstream, remove it entirely
+- "A coordinator skill with a 12-step SKILL.md that reimplements the prompt's execution loop" → Strip all execution steps from SKILL.md → Keep only environment setup, commit, and reporting → Ensure the prompt template fully defines the missing behavior
+
+## References
+
+- `references/example_skill.md` — Example of an optimized skill structure (reference only, not required)

@@ -1,105 +1,69 @@
 ---
 name: fix
-description: 載入 qa 產出的 FIX.md，扮演修復協調器角色（fix coordinator），按照其中的修復任務和批次排程，派發 worker 完成修復。協調器不寫程式碼，只負責協調與監工。
+description: Loads the FIX.md produced by the qa skill and executes it as the fix coordinator. The coordinator does not write code — it dispatches fix workers and regression test workers, verifies results, resolves merge conflicts, and manages the execution flow. All execution logic is defined in FIX.md.
 ---
 
-## 技能目標
+## Goal
 
-載入 FIX.md，**成為修復協調器**。
+Load the FIX.md and become the **fix coordinator**.
 
-協調器的工作不是寫程式碼，而是：
-1. 理解問題清單與依賴關係
-2. 按批次排程，從 FIX.md Section 6 擷取預先寫好的 worker prompt 派發給 worker
-3. 等待 worker 完成修復，消化結果
-4. 執行驗證檢查點與回歸測試
-5. 處理合併、提交等流程性操作
-6. 遇到阻礙時按錯誤恢復策略處理
+The coordinator's job is not to write code, but to:
+1. Understand the issue inventory and dependencies from FIX.md
+2. Follow the batch schedule — dispatch fix workers, then regression test workers, verify gates, handle errors
+3. Resolve merge conflicts when combining worker results
+4. Verify, commit, and report
 
-## 驗收條件
+## Acceptance Criteria
 
-- FIX.md 中定義的所有問題已被修復，所有 Gate 驗證通過
-- 完整測試套件和 lint 通過，無回歸
+- All issues defined in FIX.md are fixed and all gate verifications pass
+- All worker results have been digested and integrated
+- Full test suite and lint pass, no regressions
+- All changes are committed in a single commit after final verification
 
-## 工作流程
+## Workflow
 
-### 1. 載入修復協調器提示詞
+### 1. Load the Fix Coordinator Prompt
 
-完整閱讀 FIX.md，理解：
-- **Section 1**: 你的角色（你不能做什麼）
-- **Section 3**: 問題清單（每個問題的等級、涉及檔案、複雜度）
-- **Section 4**: 依賴圖與檔案重疊
-- **Section 6**: 每個修復的預先寫好 worker prompt
-- **Section 7**: 批次排程與 Gate 條件
-- **Section 8**: 回歸測試策略
-- **Section 9-12**: 驗證檢查點、錯誤恢復、歷史記錄、邊界規則
+Read the FIX.md in full. This is your complete operating manual — every execution rule, batch schedule, worker prompt, and boundary is defined there.
 
-同時閱讀 SPEC.md、DESIGN.md、REPORT.md 以理解完整上下文。
+Also read SPEC.md, DESIGN.md, and REPORT.md to understand the full business and technical context.
 
-若有舊有的 FIX.md（例如前一輪修復殘留），先將其修復摘要濃縮為一筆歷史記錄，附加到 FIX.md 的「Fix History」區段，保留過去所有輪次的記錄。然後以新一輪修復計劃覆蓋文件其餘部分。
+### 2. Prepare the Execution Environment
 
-### 2. 準備執行環境
+Before starting any task:
 
-- 確認當前分支狀態乾淨
+- Confirm the current branch state is clean (no uncommitted changes)
+- **Establish a regression baseline**: Run the existing test suite and confirm all tests pass. Any failure after fixes that was not present in this baseline is a regression.
+- Confirm dependencies are installed and the project builds
 
-### 3. 按批次執行修復
+### 3. Execute
 
-嚴格按照 FIX.md Section 7 的 Fix Batch Schedule 執行。
+Follow the FIX.md strictly. All execution logic — the per-batch dispatch loop, worker management, fix application, regression test implementation, gate verification, error recovery, merge conflict resolution — is defined there.
 
-#### 每個批次的執行循環：
+Do not override or second-guess the FIX.md. Your role is to execute it faithfully.
 
-1. **派發階段** — 從 Section 6 擷取對應修復的 worker prompt，原樣派發給 worker。同一批次內無依賴的修復可並行派發。
-2. **等待階段** — 等待該批次所有 worker 完成並回報結果。
-3. **消化階段** — 閱讀每個 worker 的回報，確認修復內容符合預期、未引入新問題。
-4. **驗證階段** — 執行該批次的 Gate 驗證命令與回歸測試。
-5. **決策階段** —
-   - 全部通過 → 進入下一批次
-   - 個別 worker 失敗 → 按 Section 10 錯誤恢復策略處理
-   - 修復導致回歸 → 暫停並報告
+### 4. Commit Changes
 
-#### Worker 管理規則：
+After all batches pass final verification, commit all changes in a single commit.
+Do not commit after individual batches — only at the very end.
 
-- **新建 worker**：修復之間無上下文重疊 → 從 Section 6 擷取對應 prompt 新建 worker
-- **繼續 worker**：同一 worker 失敗後重試 → 繼續該 worker（它保有失敗的上下文），給予更具體的指令
-- **複雜修復**：若 FIX.md 標記為複雜，worker 需先進行系統性除錯再修復
-- **Worker 是葉節點**：不允許 worker 自己生成子 worker
+### 5. Report to User
 
-### 4. 處理衝突
+Use `assets/templates/fix-summary.md` to produce a fix summary report.
 
-若多個 worker 的修復變更發生衝突，協調器自己解決衝突。
-解決後重新執行該批次的 Gate 驗證。
+Report to the user:
+- Which issues were fixed (by severity level)
+- Each fix's files changed and verification status
+- Verification results (test suite, compilation, lint)
+- Any notable risks, deviations, or residual issues
 
-### 5. 回歸測試
+## Examples
 
-按照 FIX.md Section 8 的回歸測試策略：
-- 執行必須通過的現有測試
-- 實現並執行新增的回歸測試
-- 若要求 property-based 測試，一併實現
+- FIX.md defines Batch 1 with 2 parallel fixes → Coordinator extracts FIX-01 and FIX-03 worker prompts from Section 6 → Dispatches 2 workers → Waits → Digests results → Runs gate verification → Proceeds to Batch 2
+- Worker FIX-02 reports failure → Coordinator retries the worker with more specific guidance → Second attempt still fails → Pauses, preserves FIX-01's success, notifies the user
+- All batches complete → Regression tests pass → Commit → Cross-check REPORT.md → Report
 
-### 6. 最終驗證
+## References
 
-所有批次完成後：
-- 執行完整測試套件，確認無回歸
-- 確認 lint 通過
-- 對照 REPORT.md，確認所有問題已被處理
-
-### 7. 提交變更
-
-將所有修復變更提交。不要在每批次後提交——只在全部完成並通過最終驗證後提交一次。
-
-### 8. 回報用戶
-
-向用戶報告：
-- 已修復的問題列表（含等級）
-- 每個修復的涉及檔案
-- 驗證結果（測試通過 / 編譯成功）
-- 任何值得注意的風險或殘餘問題
-
-## 範例
-
-- FIX.md 定義 Batch 1 有 2 個並行修復 → 協調器從 Section 6 擷取 FIX-01 和 FIX-03 的 worker prompt → 派發 2 個 worker → 等待完成 → 消化結果 → 執行 Gate 驗證 → 進入 Batch 2
-- Worker FIX-02 回報失敗 → 協調器繼續該 worker，給予更具體指令 → 第二次仍失敗 → 暫停，保留 FIX-01 成功結果，通知用戶
-- 所有批次完成 → 執行回歸測試 → 提交 → 對照 REPORT.md 確認全部處理 → 回報用戶
-
-## 參考資料
-
-- FIX.md — 修復協調器提示詞，本技能的唯一執行依據
+- `FIX.md` — The fix coordinator prompt. This is the skill's sole execution authority.
+- `assets/templates/fix-summary.md` — Fix summary report template

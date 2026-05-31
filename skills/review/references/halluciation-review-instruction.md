@@ -1,38 +1,37 @@
-# 幻覺代碼審查建議流程
+# Hallucinated Code Review Guidelines
 
-## 1. 獲取最新資料
+## 1. Obtain the Latest Reference Data
 
-如果 repo 使用了外部依賴，識別當前使用的依賴版本。
-進行網絡搜索，查找相關版本外部依賴的相關資訊。
+If the repo uses external dependencies, identify the currently installed versions. Search the web for the corresponding documentation to verify API accuracy.
 
-## 2. repo 內部幻覺審查
+## 2. Internal Hallucination Check
 
-審查 repo 代碼是否引用了不存在的內部方法、類別或模組。
+Review whether the repo code references non-existent internal methods, classes, or modules.
 
-檢查以下模式：
-- 引用已被刪除或重新命名的函數/變數
-- 呼叫簽名不匹配的方法（參數數量或類型不符）
-- 引用不存在或已移動的檔案路徑
-- 使用了從未被定義的匯出（export）
+Check for the following patterns:
+- References to deleted or renamed functions/variables
+- Method call signature mismatches (wrong parameter count or types)
+- References to non-existent or moved file paths
+- Imports of symbols that were never exported
 
-## 3. repo 外部幻覺審查
+## 3. External Hallucination Check
 
-審查 repo 代碼是否引用了不存在或已過時的外部代碼。
+Review whether the repo code references non-existent or outdated external APIs.
 
-檢查以下模式：
-- 使用了外部函式庫不存在的 API 方法
-- 使用了已棄用或已在目前版本中移除的 API
-- 呼叫簽名與外部文件描述不符
-- 假設外部服務的回應格式與實際不符（如 field naming、巢狀結構）
-- 配置項名稱或格式與外部工具/平台的文件不一致
+Check for the following patterns:
+- Calls to API methods that do not exist in the external library
+- Usage of deprecated or removed APIs in the current version
+- Call signatures that do not match the official documentation
+- Assumptions about external service response formats that differ from reality (field naming, nesting structure)
+- Configuration key names or formats inconsistent with external tool/platform documentation
 
-## 4. 常見幻覺模式清單
+## 4. Common Hallucination Patterns
 
-| 模式 | 說明 | 檢查方式 |
-|------|------|---------|
-| 錯誤的方法名稱 | 使用了類似但不存在的方法名 | 對照源碼或類型定義 |
-| 錯置的參數 | 參數順序與函數簽名不符 | 檢查函數定義的參數列表 |
-| 假設的回應結構 | 假設 API 回傳特定欄位 | 對照實際 API 文件或類型 |
-| 過時的匯入路徑 | 重構後未更新的 import | 確認目標路徑是否存在 |
-| 幻覺的測試 mock | mock 了不存在的依賴 | 確認被 mock 的物件/方法真實存在 |
-| 編譯期常數假設 | 假設特定 enum 值或常數存在 | 檢查 enum 定義或常數表 |
+| Pattern | Description | How to Check |
+|---------|-------------|--------------|
+| Wrong method name | Similar but non-existent method used | Compare against source or type definitions |
+| Misordered parameters | Parameter order mismatches function signature | Check function definition's parameter list |
+| Assumed response structure | Assumes specific fields in API response | Compare against actual API docs or types |
+| Stale import path | Import not updated after refactoring | Verify the target path exists |
+| Hallucinated mock | Mock references a non-existent dependency | Verify the mocked object/method actually exists |
+| Compile-time constant assumption | Assumes specific enum values or constants exist | Check the enum definition or constants table |

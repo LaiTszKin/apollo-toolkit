@@ -10,7 +10,7 @@
 
 ## 標準化主體結構
 
-技能採用標準化區塊序列：目標（技能存在的理由）→ 驗收條件（可量化的完成狀態）→ 工作流程（編號步驟）→ 使用範例（轉換前後配對）→ 參考資料（指向 `references/` 的連結）。較成熟的技能另包含 `## Dependencies` 與 `## Standards` 區塊，分別管理技能依賴與執行品質約束。
+技能採用標準化區塊序列：Goal → Acceptance Criteria → Workflow → Examples → References。較成熟的技能另包含 `## Dependencies` 與 `## Standards` 區塊，分別管理技能依賴與執行品質約束。
 
 ## 選擇性擴充目錄
 

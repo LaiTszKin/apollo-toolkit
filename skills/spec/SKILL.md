@@ -1,110 +1,133 @@
 ---
 name: spec
-description: 將用戶需求產出為有嚴格實作範圍的業務規格文檔（SPEC.md）。開始前必須調度多個 subagents 對倉庫進行調研（全新倉庫可省略），基於 repo 實際狀況產出準確的需求清單。整理後需求超過 5 個時生成 batch spec，每份 spec 專注 3-5 個 BDD 需求。不用於沒有 PROPOSAL.md 的需求討論，不用於不需 spec 的單檔案變更。
+description: Transforms user requirements into strictly-scoped business specification documents (SPEC.md). Must dispatch subagents to research the repository before writing (skippable for greenfield repos). Produces batch specs when requirements exceed 5 BDD items. Not for discussion without PROPOSAL.md, nor for single-file changes that don't need a spec.
 ---
 
-## 目標
+## Goal
 
-將用戶需求轉化為純業務規格的 SPEC.md。
-只回答「要達成什麼業務目標」和「什麼範圍內/外」，不碰技術如何實現。
+Transform user requirements into pure business specifications (SPEC.md).
+Answer only "what business goal to achieve" and "what is in/out of scope" — no technical implementation.
 
-技術方案（架構設計、外部依賴、驗證策略）由 `design` 技能負責。
-執行方法論（任務分解、協同路由）由 `plan` 技能負責。
+Technical architecture (design, dependencies, validation strategy) belongs to the `design` skill.
+Execution methodology (task breakdown, coordination routing) belongs to the `plan` skill.
 
-**核心差異**：產出的 SPEC.md 必須基於 repo 的實際狀況，確保每個需求的範圍和邊界與現有程式碼一致。
+**Core differentiator**: SPEC.md must be grounded in the actual repository state. Every requirement's scope and boundary must align with existing code.
 
-## 驗收條件
+## Acceptance Criteria
 
-- 產出嚴格遵循模板格式的 SPEC.md
-- SPEC.md 包含明確的業務目標、範圍（In/Out of Scope）、BDD 行為需求、錯誤案例
-- 高不確定性的需求已標記並在 Clarification Questions 中反映
-- 若非全新倉庫，已透過 subagents 調研 repo 實際狀況，每個需求的範圍與邊界與現有程式碼一致
+- SPEC.md follows the template format strictly
+- SPEC.md includes: clear business goal, scope (In/Out), BDD behaviors, error and edge cases, clarification questions
+- High-uncertainty requirements are marked with Uncertainty Level and reflected in Clarification Questions
+- For non-greenfield repos: subagent repo research is complete, and every requirement's boundary is calibrated against the actual code
 
-## 工作流程
+## Workflow
 
-### 1. 理解用戶需求並調研 repo
+### 1. Understand Requirements and Research the Repo
 
-分析用戶需求。
+Analyze the user's requirements from the PROPOSAL.md.
 
-**若為全新倉庫（無現有程式碼）**：跳過 repo 調研步驟，直接進入第二步。
+**Greenfield repo (no existing code)**: Skip repo research. Proceed to Step 2.
 
-**若非全新倉庫**：必須對 repo 進行調研，確保 SPEC.md 的需求範圍與現有程式碼的實際狀況一致。
+**Non-greenfield repo**: Research the repo to ensure SPEC.md aligns with actual code.
 
-調研方式：
-- 在 repo 中搜索與用戶需求可能相關的內容
-- 如果外部環境允許使用 subagents，**必須**並行調度多個 subagents 對以下方向進行深度調研：
-  - 受影響的模組與其職責邊界
-  - 現有的資料結構與持久化方式
-  - 現有的 API 合約與呼叫關係
-  - 與用戶需求重疊或衝突的現有功能
-- 完成搜索後，深入閱讀相關代碼，識別變更範圍與限制條件
-- 記錄調研發現，用於後續步驟中校準需求的準確性
+Research method:
+- Search the repo for anything related to the requirements
+- When subagents are available, **must** dispatch multiple subagents in parallel to deeply investigate:
+  - Affected modules and their responsibility boundaries
+  - Existing data structures and persistence patterns
+  - Existing API contracts and call relationships
+  - Existing features that overlap or conflict with the requirements
+- After the broad search, read the relevant code in depth to identify change scope and constraints
+- Document findings for the next step
 
-### 2. 整理、組合、拆分用戶需求
+**Bridge to Step 2**: Compare research findings against PROPOSAL.md. If the actual code contradicts or constrains what PROPOSAL.md describes, adjust the requirement boundaries accordingly. Note these calibrations explicitly — they represent the core value the spec skill adds over simple template filling.
 
-將用戶需求整理為有明確邊界的 BDD 業務需求（GIVEN/WHEN/THEN）。
-在此過程中：
+### 2. Refine, Combine, Split Requirements into BDD
 
-- **整理**：將模糊需求轉化為清晰的 BDD 行為描述
-- **組合**：將相關的需求合併為一個連貫的 BDD 需求（避免碎片化）
-- **拆分**：將過大的需求分離為獨立可驗證的 BDD 需求
+Transform requirements into clearly-bounded BDD business requirements (GIVEN/WHEN/THEN). Use your research findings from Step 1 to correctly scope each requirement.
 
-**需求數量規則：**
-- 整理後的 BDD 需求總數 **≤ 5 個**：產出單一 SPEC.md
-- 整理後的 BDD 需求總數 **> 5 個**：必須建立 batch spec，每份 SPEC.md 專注 **3-5 個** BDD 需求
+Process:
+- **Refine**: Convert vague descriptions into precise BDD behavior statements
+- **Combine**: Merge related requirements into coherent BDD items (avoid fragmentation)
+- **Split**: Separate oversized requirements into independently verifiable BDD items
 
-對每個需求標記**不確定性等級**：
-- **已知領域**：團隊已有經驗的技術或業務，風險低
-- **探索性領域**：團隊不熟悉或依賴外部系統的部分，需標記為高不確定性
-- 高不確定性的需求應在 Clarification Questions 中反映，必要時建議先做 spike/prototype
+**Output structure decision**:
+- Total BDD items **≤ 5**: Produce a single SPEC.md
+- Total BDD items **> 5**: Must create a batch spec
 
-同時定義：
-- **In Scope**：本次變更包含的範圍
-- **Out of Scope**：明確排除的範圍（防止實作者過度實作）
-- **錯誤與邊界案例**：授權邊界、資料邊界、外部依賴異常、惡意場景
+Batch spec structure:
+- Under `docs/plans/{YYYY-MM-DD}/{batch_name}/`, create one subdirectory per group of 3-5 related requirements
+- Each subdirectory has its own SPEC.md, independently understandable and executable
+- Group related requirements together (same business flow, same user role); unrelated requirements go to separate SPEC.md files
+- No coordination.md needed — coordination strategy is defined in the `plan` phase's PROMPT.md
 
-若用戶有不清晰的需求且該需求會影響業務範圍定義，記錄並等待用戶回答。
+For each requirement, mark **Uncertainty Level**:
+- **Known Domain**: Team has experience with the technology or business domain; low risk
+- **Exploratory Domain**: Team is unfamiliar or depends on external systems; mark high uncertainty
+- High-uncertainty requirements must be reflected in Clarification Questions; suggest a spike/prototype if warranted
 
-### 3. 決定產出格式：單一 Spec 或 Batch Spec
+Define:
+- **In Scope**: What this change includes
+- **Out of Scope**: What is explicitly excluded (prevents over-implementation)
+- **Error and Edge Cases**: Cover the following five categories:
+  1. Authorization boundaries (who can or cannot act)
+  2. Data boundaries (input length, type, uniqueness, format)
+  3. External dependency anomalies (API failure, timeout, degraded response)
+  4. Abuse scenarios or invalid state transitions
+  5. Failure handling (exceptions, recovery strategy)
+- **Clarification Questions**: Required when any requirement is marked Exploratory. List specific items that need user confirmation. Omit only if all requirements are Known AND completely unambiguous.
 
-根據步驟 2 整理後的 BDD 需求數量決定：
+If a requirement remains unclear after research and it affects scope definition, record it and wait for the user's answer before proceeding.
 
-- **≤ 5 個需求**：產出單一 SPEC.md
-- **> 5 個需求**：必須建立 batch spec
+### 3. Generate SPEC.md
 
-Batch spec 結構：
-- 在 `docs/plans/{YYYY-MM-DD}/{batch_name}/` 下為每組 3-5 個相關需求建立獨立子目錄
-- 每個子目錄包含各自的 SPEC.md
-- 每份 SPEC.md 專注於相關的需求組，可被獨立理解和執行
-- 不需建立 coordination.md —— 協同策略在 `plan` 階段的 PROMPT.md 中定義
+Generate SPEC.md using the template at `assets/templates/SPEC.md`.
 
-**分組原則**：將相關的需求（如屬於同一業務流程、同一使用者角色）分到同一份 SPEC.md，不相關的需求分到不同 SPEC.md。
+1. Create the output structure:
+   ```
+   apltk create-specs <feature_name> [--batch-name <name>]
+   ```
+   - Single spec: `docs/plans/{YYYY-MM-DD}/{feature_name}/SPEC.md`
+   - Batch: `docs/plans/{YYYY-MM-DD}/{batch_name}/{feature_name}/SPEC.md`
 
-### 4. 產生 SPEC.md
+2. Fill in each section of the generated template:
+   - **Goal** → One sentence from the PROPOSAL.md's Problem Statement and your research context. State the business goal, not the implementation.
+   - **Scope (In/Out)** → Directly from Step 2. Be precise: ambiguous boundaries cause scope creep.
+   - **Functional Behaviors** → One BDD block per requirement from Step 2.
+   - **Uncertainty Level** → Per requirement, mark Known or Exploratory.
+   - **Error and Edge Cases** → List specific cases. Free-form list; no fixed categories needed in the template (the five categories from Step 2 guide your thinking, not the output format).
+   - **Clarification Questions** → List questions for the user. Must be populated when any requirement is Exploratory. Omit only if all requirements are fully clear.
+   - **References** → Link to official docs and related code files for traceability.
 
-使用 `apltk create-specs` CLI 工具產生 SPEC.md 模板。
-在執行前先閱讀 `references/create-specs.md` 了解所有參數。
-將完整計劃填入模板。
+   **BDD writing guidelines**:
+   - **GIVEN** states the precondition and actor role
+   - **WHEN** describes the trigger action (user action or system event)
+   - **THEN** describes an observable, verifiable outcome
+   - Add AND lines as needed — there is no fixed count
+   - Each requirement must be independently testable
+   - Do not include technical implementation details in any BDD step
 
-### 5. 交付前自我審查
+3. If creating a batch spec, repeat the template-filling process for each group of requirements, producing one SPEC.md per group.
 
-在交付 spec 前，使用 `references/spec-quality-checklist.md` 進行自我審查。
-確認以下項目：
-- 所有需求是否都有明確的 BDD 驗證條件
-- In Scope / Out of Scope 是否清晰無歧義
-- 錯誤與邊界案例是否完整
-- 高不確定性的需求是否已標記並在 Clarification Questions 中反映
-- 各需求之間是否一致（無矛盾）
+### 4. Pre-delivery Self-Review
 
-自我審查通過後才可將 SPEC.md 交付給用戶審核。
+Before delivering, verify all of the following. Fix any issues found before proceeding.
 
-## 範例
+- **BDD verifiability**: Every requirement has a clear verification condition — THEN is observable and specific, not vague or qualitative
+- **Scope clarity**: In Scope and Out of Scope are unambiguous and do not overlap
+- **Error case completeness**: All five categories from Step 2 are substantively covered (individual cases, not category names)
+- **Uncertainty reflected**: High-uncertainty requirements are marked Exploratory AND mentioned in Clarification Questions
+- **Internal consistency**: No contradictions or overlaps between requirements
 
-- "製作一個網頁德州撲克小遊戲" → 整理出 4 個 BDD 需求（發牌、下注、勝負判定、籌碼管理）。≤ 5，產出單一 SPEC.md。
-- "重構整個用戶系統：註冊、登入、權限管理、密碼重置、雙因素認證、會話管理" → 整理出 6 個 BDD 需求。> 5，建立 batch spec，拆分為兩份 SPEC.md：認證篇（註冊、登入、密碼重置，3 個需求）和安全篇（權限、雙因素、會話，3 個需求）。
+Only deliver SPEC.md to the user after passing self-review.
 
-## 參考資料
+## Examples
 
-- `references/create-specs.md` — apltk create-specs 工具的完整參數說明
-- `assets/templates/SPEC.md` — SPEC.md 模板
-- `references/spec-quality-checklist.md` — spec 交付前自我審查清單
+- "Build a web-based Texas Hold'em game" → Research existing code → 4 BDD items (deal, bet, judge, chips). ≤5, single SPEC.md.
+- "Rewrite the user system: register, login, permissions, password reset, 2FA, session management" → Research existing auth code → 6 BDD items. >5, batch spec: Auth spec (register, login, password reset — 3 items) and Security spec (permissions, 2FA, sessions — 3 items).
+
+## References
+
+- `assets/templates/SPEC.md` — SPEC.md template, used in Step 3
+- `references/create-specs.md` — CLI tool parameters for `apltk create-specs`
+- `references/spec-quality-checklist.md` — external quality checklist (for human reference)

@@ -1,139 +1,140 @@
 ---
 name: systematic-debug
-description: 系統性排查非預期行為。透過撰寫測試重現問題，修復後建立回歸測試防止再次出現。不用於已明確知道根因的簡單修復，不用於不需測試驗證的直覺式修正。
+description: Systematically investigates unexpected behavior — reproduces the issue by writing a test, fixes the root cause, and establishes a regression test. Not for simple fixes where the root cause is already known, nor for intuitive fixes without test verification.
 ---
 
-## 技能目標
+## Goal
 
-以流程化方式重現非預期行為。
-修復後建立回歸測試，避免再次出現。
+Reproduce unexpected behavior through a structured process.
+Fix the root cause, then establish a regression test to prevent recurrence.
 
-## 驗收條件
+## Acceptance Criteria
 
-- 非預期行為被修復。
-- 相關回歸測試被建立。
-- 根因已確認，不只修了症狀。
+- The unexpected behavior is fixed
+- A regression test is established (must fail on unfixed code, pass after fix)
+- The root cause is confirmed — not just the symptom patched
 
-## 工作流程
+## Workflow
 
-### 0. 錯誤分類
+### 1. Analyze the Problem
 
-開始除錯前，先分類錯誤類型，選擇對應策略：
+**Classify the error type** to select the right approach:
 
-| 類型 | 特徵 | 適用方法 |
-|------|------|----------|
-| 語法/型別錯誤 | 編譯器或 linter 直接指出 | 直接修復錯誤訊息指出的位置 |
-| 邏輯錯誤 | 輸出結果錯誤、測試失敗 | 假設驅動除錯 + 二元搜尋 |
-| 狀態錯誤 | 間歇性、順序相依 | 追蹤狀態轉移、找出變異點 |
-| 整合錯誤 | 獨立運作正常、連接後失敗 | 檢查邊界、合約、格式 |
-| 環境錯誤 | 部分環境正常、部分異常 | 比對環境差異、檢查設定檔 |
-| 效能錯誤 | 結果正確但緩慢/耗資源 | 效能分析工具、找熱點、檢查複雜度 |
+| Type | Characteristics | Approach |
+|------|----------------|----------|
+| Syntax / type | Compiler or linter points directly at it | Fix the indicated location directly |
+| Logic | Wrong output, test failure | Hypothesis-driven debugging + binary search |
+| State | Intermittent, order-dependent | Track state transitions, identify mutation points |
+| Integration | Works in isolation, fails when connected | Check boundaries, contracts, formats |
+| Environment | Works in some environments, fails in others | Compare environment differences, check config |
+| Performance | Correct result but slow or resource-heavy | Profile, find hotspots, check complexity |
 
-### 1. 分析問題
+Read the relevant code based on the user's report. Collect evidence from error messages, recent changes, and logs.
 
-按照用戶給出的資訊閱讀相關代碼。
-排查可能導致問題的原因。從錯誤訊息、最近變更、日誌中收集證據。
+Form a falsifiable hypothesis using the chosen method.
 
-選擇適合當前問題的除錯方法（參考下方方法指引），形成可證偽的假設。
+### 2. Reproduce the Issue
 
-### 2. 重現問題
+Write a test case to reproduce the issue based on your hypothesis.
 
-整理所有可能導致問題的原因，撰寫測試案例嘗試重現該問題。
-若所有構思的可能性均無法重現非預期行為，需重新假設直至測試有效重現。
+**Change one variable at a time.** Changing multiple conditions simultaneously makes it impossible to attribute causality.
 
-**一次只改變一個變數**。若同時改變多個條件，無法歸因因果關係。
+If none of the hypothesized causes reproduce the behavior, formulate a new hypothesis and repeat.
 
-### 3. 修復代碼
+### 3. Fix the Code
 
-對代碼進行修復，直至重現測試全數通過。
+Apply the fix until the reproduction test passes.
 
-修復根因而非症狀。修復完成後，保留重現測試作為回歸測試。
+Fix the root cause, not the symptom. After fixing, keep the reproduction test as the regression test.
 
-## 除錯方法選擇指引
+### 4. Self-Review
 
-根據問題類型選擇最適合的方法：
+Before delivering, verify:
 
-### 假設驅動除錯（Hypothesis-Driven Debugging）
-適用於**線上事故**、**邏輯錯誤**。按 cheapest-first 順序測試假設。
-1. 形成可證偽的假設：「我認為 X 是根因，因為 Y」
-2. 預測：「若假設正確，我會觀察到 Z」
-3. 測試：以最小變更驗證預測
-4. 收斂：預測吻合 → 找到原因；不吻合 → 新假設
-參考：Google SRE、Zeller's "Why Programs Fail"
+- The reproduction test fails on the unfixed code and passes after the fix (oracle confirmed)
+- The fix addresses the root cause, not just the symptom
+- The regression test covers the actual failure mode — not a trivial or unrelated scenario
+- All investigative hypotheses are either confirmed (led to the fix) or documented as ruled out
+
+## Debugging Method Guide
+
+Choose the method that best fits the error type and context:
+
+### Hypothesis-Driven Debugging
+Best for **production incidents**, **logic errors**. Test hypotheses in cheapest-first order.
+1. Form a falsifiable hypothesis: "I believe X is the root cause because Y"
+2. Predict: "If correct, I will observe Z"
+3. Test: Verify with the smallest possible change
+4. Converge: Prediction matches → found it; doesn't match → new hypothesis
+Reference: Google SRE, Zeller's "Why Programs Fail"
 
 ### Five Whys
-適用於**簡單、線性的失敗**。反覆追問「為什麼」，沿著單一因果鏈追溯。
-注意：當多個原因互動時，Five Whys 會遺漏分支原因。
+Best for **simple, linear failures**. Repeatedly ask "why" along a single causal chain.
+Caution: When multiple causes interact, Five Whys may miss branching causes.
 
-### Fault Tree Analysis（FTA）
-適用於**多因互動**、**架構層級的預防**。從頂層失敗出發，自上而下分解所有可能的貢獻原因，
-直到可觀測、可測試的葉節點。找出最小 cut sets（單點故障優先處理）。
-參考：NASA SW 手冊、Chaos Engineering
+### Fault Tree Analysis (FTA)
+Best for **multi-cause interaction**, **architecture-level prevention**. Start from the top-level failure, decompose all contributing causes downward to observable, testable leaf nodes. Identify minimal cut sets — address single-point failures first.
+Reference: NASA SW Handbook, Chaos Engineering
 
 ### Kepner-Tregoe IS / IS NOT
-適用於**多團隊、跨服務的複雜問題**。透過四維度矩陣強制結構化：
+Best for **cross-team, cross-service complex problems**. Force structured analysis through four dimensions:
 
-| 維度 | IS（問題在哪） | IS NOT（問題不在哪） | 差異（原因所在） |
-|------|---------------|-------------------|----------------|
+| Dimension | IS (problem is here) | IS NOT (problem is not here) | Difference (cause lies here) |
+|-----------|---------------------|-----------------------------|------------------------------|
 | What | | | |
 | Where | | | |
 | When | | | |
 | Extent | | | |
 
-有效的根因必須解釋所有 IS 和所有 IS NOT。KT 最適合環境穩定、邊界清晰的問題，不適合串聯式災難。
-參考：Kepner-Tregoe Problem Solving
+A valid root cause must explain all IS and all IS NOT. Best for stable environments with clear boundaries; not for cascading disasters.
+Reference: Kepner-Tregoe Problem Solving
 
-**方法選擇原則**：當有多個可能根因時，先從 cheapest-first 開始測試（最簡單驗證的假設優先）。
+**Method selection principle**: When multiple possible root causes exist, start with the cheapest to verify.
 
-## 防禦機制
+## Defensive Mechanisms
 
-### Red Flags — 立即停止並回到分析階段
+### Red Flags — Stop and return to analysis
 
-若發現自己有以下想法，表示正在跳過調查步驟，需立即停止：
+If you notice any of the following patterns, you are skipping investigation. Stop immediately and go back to Step 1:
 
-- 「先快速修一下，有空再調查」
-- 「試試改 X 看會不會好」
-- 「一次改多處，跑測試看看」
-- 「跳過測試，我手動驗證就好」
-- 「大概是 X 的問題，直接修吧」
-- 「我不完全理解但這樣應該可以」
-- 「主要的問題是：[列出修復方案，沒有調查過程]」
-- 「再試一次就好」（已經試過 2+ 次）
+1. **Skipping investigation, jumping to fix**: "Let me just quickly try X," "Let me try changing Y and see if it works," "It's probably Z, let me just fix it"
+2. **Skipping verification**: "I'll skip the test and verify manually"
+3. **Repeated blind attempts**: Retrying the same approach 2+ times without new evidence
 
-以上任何一個出現 → 停止修復，返回步驟 1。
+### Rule of Three — Architecture challenge mechanism
 
-### Rule of Three — 架構質疑機制
+If the same error survives 3 fix attempts:
 
-若同一錯誤經過 3 次修復仍失敗：
-1. **停止** — 不要嘗試第 4 次修復
-2. 回顧：已嘗試了哪些修復？失敗模式是什麼？
-3. 質疑：是否當前的架構假設有問題？是否在錯誤的抽象層進行修復？
-4. 升級：向用戶提交調查報告，包含已排除的假設與建議的架構調整
-5. 在獲得用戶決策前，不繼續迭代
+1. **Stop** — do not attempt a 4th fix
+2. Review: What fixes have been tried? What is the failure pattern?
+3. Challenge: Is the current architectural assumption wrong? Are you fixing at the wrong abstraction level?
+4. Escalate: Submit an investigation report to the user — include ruled-out hypotheses and suggested architectural adjustments
+5. Do not continue iterating until the user decides
 
-### 假設分類帳
+### Assumption Log
 
-在除錯過程中記錄每個假設的狀態：
+Record each hypothesis during debugging:
 
 ```
-假設：[對根因的推測]
-狀態：[未驗證 / 已確認 / 已推翻]
-驗證方式：[做了什麼檢查]
-證據：[觀察到的結果]
+Hypothesis: [Root cause guess]
+Status: [Unverified / Confirmed / Ruled out]
+Verification: [What check was performed]
+Evidence: [Observed result]
 ```
 
-每次形成新假設時，先確認它是否能解釋所有已觀測到的症狀。
+Every new hypothesis must explain all observed symptoms before being tested.
 
-### 找不到根因的處理
+### When Root Cause Cannot Be Found
 
-若系統性調查後仍無法找到根因（環境性、時序性、外部依賴問題）：
-1. 承認已完整執行了調查流程
-2. 記錄已調查了哪些方向
-3. 實施適當的防護措施（retry、timeout、錯誤訊息改善）
-4. 加入監控或日誌，以便未來有更多證據時再次調查
+If systematic investigation still cannot identify the root cause (environmental, timing, external dependency):
 
-95% 的「找不到根因」其實是調查不夠深。在放棄前確認已用盡當前可用的證據。
+1. Acknowledge that a complete investigation was performed
+2. Record which directions were investigated
+3. Implement appropriate safeguards (retry, timeout, improved error messages)
+4. Add monitoring or logging so the issue can be reinvestigated with more evidence later
 
-## 範例
+95% of "cannot find root cause" cases are insufficient depth. Confirm all available evidence has been exhausted before concluding.
 
-- "結帳頁面有時會出現 500 錯誤" → "排查 coupon 驗證、定價計算、外部折扣服務。撰寫重現測試，確認根因後修復，保留回歸測試。"
+## Examples
+
+- "The checkout page sometimes returns a 500 error" → Classify (state/integration error) → Investigate coupon validation, pricing calculation, and external discount service → Write a reproduction test → Confirm root cause → Fix → Retain the test as a regression test
