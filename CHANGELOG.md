@@ -2,6 +2,21 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v4.0.11] - 2026-06-02
+
+### Changed
+
+- All skills: made parallel subagent usage the default by removing conditional "if subagents are available" language across 11 SKILL.md files and review/README.md.
+
+### Fixed
+
+- `architecture` tool: use `pathToFileURL()` for ESM `import()` to ensure Windows compatibility (backslash paths break dynamic imports on Windows).
+- `rewrite-imports` script: normalize relative paths to forward slashes for ESM import compatibility on Windows.
+
+### Added
+
+- `test/rewrite-imports.test.js`: regression test verifying forward-slash normalization in `rewrite-imports.mjs`.
+
 ## [v4.0.10] - 2026-06-01
 
 ### Documentation
