@@ -41,9 +41,8 @@ Understand the original design intent of the spec and the nature of each issue i
 
 ### 2. Read Affected Code
 
-Based on the file paths marked in REPORT.md, read the affected code.
-Understand the actual code context of each issue so you can design precise fixes and tests.
-If subagents are available, dispatch them in parallel to read the code.
+Based on the file paths marked in REPORT.md, dispatch subagents in parallel to read the affected code.
+Each subagent understands the actual code context of their assigned issue to enable precise fix and test design.
 
 ### 3. Analyze Each Issue and Design the Fix
 

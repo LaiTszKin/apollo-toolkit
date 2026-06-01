@@ -64,7 +64,7 @@ At load time, check the project state to select the correct mode:
 將其拆分為單個或多個功能模塊（對應 C4 Container 層級）。
 接著，識別功能模塊下的子模塊（對應 C4 Component 層級），並進行深度閱讀。
 
-如果外部環境允許使用 subagents，建議並行調度 subagents，並為每一個功能模塊分配一個 subagent 進行深度閱讀，要求 subagents 完整列出：
+並行調度 subagents，並為每一個功能模塊分配一個 subagent 進行深度閱讀，要求 subagents 完整列出：
 - 該功能模塊與其他功能模塊之間是否存在交互；如有，如何交互。
 - 該功能模塊內部存在哪些子模塊，這些子模塊之間如何交互並實現功能模塊的功能。
 - 該功能模塊及下屬子模塊的資料流、錯誤處理。

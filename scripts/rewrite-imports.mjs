@@ -99,7 +99,8 @@ function relativePath(fromFile, pkgPath) {
   const fromDir = dirname(fromFile);
   let rel = relative(fromDir, resolve(root, pkgPath));
   if (!rel.startsWith('.')) rel = './' + rel;
-  return rel;
+  // Normalize backslashes to forward slashes — ESM import() on Windows requires forward slashes.
+  return rel.replace(/\\/g, '/');
 }
 
 // Find all compiled JS files

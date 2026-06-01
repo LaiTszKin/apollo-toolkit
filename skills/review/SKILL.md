@@ -27,13 +27,12 @@ Every critical requirement must have a traceable status judgment, evidence locat
 
 Read the specified SPEC.md and parse all requirements:
 - Each `### Requirement N` is an independent review unit
-- Sub-items under a requirement are part of the same unit — do not create separate subagents
 
-Using each requirement's implementation scope and affected files (from DESIGN.md), locate and read the relevant code changes.
+Using each requirement's implementation scope and affected files (from DESIGN.md), the subagents dispatched in the next step will locate and read the relevant code changes.
 
 ### 2. Dispatch Per-requirement Subagents
 
-Create one subagent per requirement (Requirement N). All subagents can run in parallel.
+Create one subagent per requirement (Requirement N). All subagents can review source code in parallel.
 
 **If a previous REPORT.md exists**: Condense its verdict and key findings into one history entry. Prepend it to the Review History section, keeping all past rounds. Then perform a fresh review — do not let prior results bias the new assessment.
 

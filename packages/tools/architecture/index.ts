@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 
 export async function architectureHandler(args: string[], context: ToolContext): Promise<number> {
@@ -10,7 +10,8 @@ export async function architectureHandler(args: string[], context: ToolContext):
   const cliPath = path.join(sourceRoot, 'skills', 'init-project-html', 'lib', 'atlas', 'cli.js');
 
   try {
-    const cliModule = await import(cliPath);
+    // Use file URL for ESM import compatibility on Windows — import() requires forward slashes.
+    const cliModule = await import(pathToFileURL(cliPath).href);
     const cli = cliModule.default;
     return cli.dispatch(args, {
       stdout: context.stdout || process.stdout,

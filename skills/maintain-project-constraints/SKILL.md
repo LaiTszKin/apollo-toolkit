@@ -18,9 +18,7 @@ description: 基於 repo 最新程式碼與文檔，更新 CLAUDE.md 和 AGENTS.
 
 ### 1. 閱讀 repo
 
-深入閱讀當前項目文檔與實作程式碼。
-建立對項目的全面認知。
-如果外部環境允許使用 subagents，建議通過並行調度 subagents 完成對 repo 代碼的深入閱讀。
+通過並行調度 subagents 完成對 repo 代碼的深入閱讀，建立對項目的全面認知。
 
 ### 2. 萃取已知禁令
 

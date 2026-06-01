@@ -32,13 +32,11 @@ Analyze the user's requirements from the PROPOSAL.md.
 **Non-greenfield repo**: Research the repo to ensure SPEC.md aligns with actual code.
 
 Research method:
-- Search the repo for anything related to the requirements
-- When subagents are available, **must** dispatch multiple subagents in parallel to deeply investigate:
+- Dispatch multiple subagents in parallel to deeply investigate:
   - Affected modules and their responsibility boundaries
   - Existing data structures and persistence patterns
   - Existing API contracts and call relationships
   - Existing features that overlap or conflict with the requirements
-- After the broad search, read the relevant code in depth to identify change scope and constraints
 - Document findings for the next step
 
 **Bridge to Step 2**: Compare research findings against PROPOSAL.md. If the actual code contradicts or constrains what PROPOSAL.md describes, adjust the requirement boundaries accordingly. Note these calibrations explicitly — they represent the core value the spec skill adds over simple template filling.
