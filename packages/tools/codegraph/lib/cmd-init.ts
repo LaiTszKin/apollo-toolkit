@@ -8,6 +8,7 @@ export interface InitOptions {
 
 export async function handleInit(projectRoot: string, options: InitOptions = {}): Promise<number> {
   const progressEvents: Array<{ phase: string; current: number; total: number }> = [];
+  const start = Date.now();
   const cg = await createOrOpenIndex(projectRoot, {
     index: options.index,
     onProgress: (p) => {
@@ -24,11 +25,13 @@ export async function handleInit(projectRoot: string, options: InitOptions = {})
 
   const stats = cg.getStats();
   closeIndex(cg);
+  const durationMs = Date.now() - start;
 
   const result = {
     projectRoot,
     initialized: true,
     indexed: !!options.index,
+    durationMs,
     stats: {
       fileCount: stats.fileCount,
       nodeCount: stats.nodeCount,
@@ -48,6 +51,7 @@ export async function handleInit(projectRoot: string, options: InitOptions = {})
       summary.push(['Files:', stats.fileCount]);
       summary.push(['Nodes:', stats.nodeCount]);
       summary.push(['Edges:', stats.edgeCount]);
+      summary.push(['Duration:', `${durationMs}ms`]);
     }
     process.stdout.write(formatSummary(summary) + '\n');
   }

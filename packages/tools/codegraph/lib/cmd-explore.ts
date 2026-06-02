@@ -6,6 +6,7 @@ import { formatOutput } from './formatter.js';
 
 export interface ExploreOptions {
   json?: boolean;
+  feature?: string;
 }
 
 export async function handleExplore(
@@ -74,39 +75,52 @@ export async function handleExplore(
     return 0;
   }
 
-  // Human-readable output
+  // Human-readable output — group by filePath
+  const grouped = new Map<string, SymbolDetail[]>();
   for (const d of details) {
-    process.stdout.write(`\n=== ${d.name} [${d.kind}] ===\n`);
-    process.stdout.write(`  File: ${d.filePath}:${d.startLine}-${d.endLine}\n`);
-    process.stdout.write(`  QName: ${d.qualifiedName}\n`);
-    if (d.signature) process.stdout.write(`  Signature: ${d.signature}\n`);
+    const group = grouped.get(d.filePath) ?? [];
+    group.push(d);
+    grouped.set(d.filePath, group);
+  }
 
-    process.stdout.write(`\n  Callers (${d.callers.length}):\n`);
-    if (d.callers.length === 0) {
-      process.stdout.write('    (none)\n');
-    } else {
-      for (const c of d.callers.slice(0, 20)) {
-        process.stdout.write(`    ${c.name}  ${c.filePath}:${c.startLine}\n`);
-      }
-    }
+  if (options.feature) {
+    process.stdout.write(`Feature: ${options.feature}\n`);
+  }
 
-    process.stdout.write(`\n  Callees (${d.callees.length}):\n`);
-    if (d.callees.length === 0) {
-      process.stdout.write('    (none)\n');
-    } else {
-      for (const c of d.callees.slice(0, 20)) {
-        process.stdout.write(`    ${c.name}  ${c.filePath}:${c.startLine}\n`);
-      }
-    }
+  for (const [filePath, symbols] of grouped) {
+    process.stdout.write(`\n=== ${filePath} ===\n\n`);
+    for (const d of symbols) {
+      process.stdout.write(`  ${d.name} [${d.kind}] line ${d.startLine}-${d.endLine}\n`);
+      process.stdout.write(`    QName: ${d.qualifiedName}\n`);
+      if (d.signature) process.stdout.write(`    Signature: ${d.signature}\n`);
 
-    if (d.code) {
-      process.stdout.write(`\n  Source (${d.filePath}):\n`);
-      const lines = d.code.split('\n');
-      for (let i = 0; i < Math.min(lines.length, 30); i++) {
-        process.stdout.write(`    ${lines[i]}\n`);
+      process.stdout.write(`    Callers (${d.callers.length}):\n`);
+      if (d.callers.length === 0) {
+        process.stdout.write('      (none)\n');
+      } else {
+        for (const c of d.callers.slice(0, 20)) {
+          process.stdout.write(`      ${c.name}  ${c.filePath}:${c.startLine}\n`);
+        }
       }
-      if (lines.length > 30) {
-        process.stdout.write(`    ... (${lines.length - 30} more lines)\n`);
+
+      process.stdout.write(`    Callees (${d.callees.length}):\n`);
+      if (d.callees.length === 0) {
+        process.stdout.write('      (none)\n');
+      } else {
+        for (const c of d.callees.slice(0, 20)) {
+          process.stdout.write(`      ${c.name}  ${c.filePath}:${c.startLine}\n`);
+        }
+      }
+
+      if (d.code) {
+        process.stdout.write(`    Source (${d.filePath}):\n`);
+        const lines = d.code.split('\n');
+        for (let i = 0; i < Math.min(lines.length, 30); i++) {
+          process.stdout.write(`      ${lines[i]}\n`);
+        }
+        if (lines.length > 30) {
+          process.stdout.write(`      ... (${lines.length - 30} more lines)\n`);
+        }
       }
     }
   }

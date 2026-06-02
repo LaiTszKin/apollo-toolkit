@@ -101,37 +101,64 @@ export async function verifyOverlay(
       }
     }
 
-    // Check edges
+    // Check edges — verify both endpoints exist AND the caller/callee relationship
     const edges = feature.edges || [];
     for (const edge of edges) {
       const { from, to } = edge;
       const fromName = typeof from === 'string' ? from : from?.submodule;
       const toName = typeof to === 'string' ? to : to?.submodule;
 
-      if (fromName) {
-        const fromSearch = cg.searchNodes(fromName, { limit: 3 });
-        if (fromSearch.length === 0) {
-          failed.push({
-            type: 'edge',
-            location: `${slug}: ${fromName} -> ${toName || '?'}`,
-            suggestion: `Edge source "${fromName}" not found in codeGraph index.`,
-          });
-        } else {
-          passed.push({ type: 'edge', location: `${slug}: ${fromName}` });
+      if (!fromName || !toName) {
+        failed.push({
+          type: 'edge',
+          location: `${slug}: ${fromName || '?'} -> ${toName || '?'}`,
+          suggestion: `Edge missing from or to field.`,
+        });
+        continue;
+      }
+
+      const fromSearch = cg.searchNodes(fromName, { limit: 3 });
+      if (fromSearch.length === 0) {
+        failed.push({
+          type: 'edge',
+          location: `${slug}: ${fromName} -> ${toName}`,
+          suggestion: `Edge source "${fromName}" not found in codeGraph index.`,
+        });
+        continue;
+      }
+
+      const toSearch = cg.searchNodes(toName, { limit: 3 });
+      if (toSearch.length === 0) {
+        failed.push({
+          type: 'edge',
+          location: `${slug}: ${fromName} -> ${toName}`,
+          suggestion: `Edge target "${toName}" not found in codeGraph index.`,
+        });
+        continue;
+      }
+
+      // Both endpoints exist — verify the actual caller/callee relationship
+      let relationshipFound = false;
+      for (const fromResult of fromSearch) {
+        try {
+          const callees = cg.getCallees(fromResult.node.id, 1);
+          if (callees.some((c) => c.node.name === toName || toSearch.some((tr) => tr.node.id === c.node.id))) {
+            relationshipFound = true;
+            break;
+          }
+        } catch {
+          // If getCallees fails for this node, try the next match
         }
       }
 
-      if (toName) {
-        const toSearch = cg.searchNodes(toName, { limit: 3 });
-        if (toSearch.length === 0) {
-          failed.push({
-            type: 'edge',
-            location: `${slug}: ${fromName || '?'} -> ${toName}`,
-            suggestion: `Edge target "${toName}" not found in codeGraph index.`,
-          });
-        } else {
-          passed.push({ type: 'edge', location: `${slug}: -> ${toName}` });
-        }
+      if (relationshipFound) {
+        passed.push({ type: 'edge', location: `${slug}: ${fromName} -> ${toName}` });
+      } else {
+        failed.push({
+          type: 'edge',
+          location: `${slug}: ${fromName} -> ${toName}`,
+          suggestion: `No actual call relationship found from "${fromName}" to "${toName}". Verify the edge definition or add the call in source code.`,
+        });
       }
     }
   }

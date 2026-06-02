@@ -1,6 +1,8 @@
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { CodeGraph } = require('@colbymchenry/codegraph');
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { closeIndex } from './cg-instance.js';
 import { formatOutput } from './formatter.js';
 import { scanDirectory } from './survey/scanner.js';
@@ -13,6 +15,7 @@ export interface SurveyOptions {
 
 export interface SurveyReport {
   directory: string;
+  feature?: string;
   totalFiles: number;
   totalSymbols: number;
   files: Array<{
@@ -47,21 +50,47 @@ export async function handleSurvey(
   dirPath: string,
   options: SurveyOptions = {},
 ): Promise<number> {
+  // Check that the target directory exists
+  const targetPath = path.resolve(projectRoot, dirPath);
+  if (!existsSync(targetPath)) {
+    process.stderr.write(`Error: Directory not found: ${dirPath}\n`);
+    return 1;
+  }
+
   const cg = await CodeGraph.open(projectRoot, { sync: false, readOnly: true });
 
   // Scan the directory
   const scan = await scanDirectory(cg, dirPath);
 
+  const fileSet = new Set(scan.files.map((f) => f.filePath));
+
   // Group into submodule suggestions
-  const suggestions = groupIntoSubmodules(scan);
+  const suggestions = groupIntoSubmodules(scan, cg);
 
   // Build edge suggestions from cross-file call relationships
-  const edgeSuggestions = buildEdgeSuggestions(scan, cg);
+  const edgeSuggestions = buildEdgeSuggestions(scan, cg, fileSet);
+
+  // Determine entry points: exported symbols called from outside the scanned directory
+  const entryPoints = scan.allSymbols.filter(s => {
+    if (!s.isExported) return false;
+    const nodes = cg.getNodesByName(s.name);
+    for (const node of nodes) {
+      if (node.filePath !== s.filePath) continue;
+      const callers = cg.getCallers(node.id);
+      for (const caller of callers) {
+        if (!fileSet.has(caller.node.filePath)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  });
 
   closeIndex(cg);
 
   const report: SurveyReport = {
     directory: dirPath,
+    feature: options.feature,
     totalFiles: scan.totalFiles,
     totalSymbols: scan.totalSymbols,
     files: scan.files.map((f) => ({
@@ -69,7 +98,7 @@ export async function handleSurvey(
       language: f.language,
       symbolCount: f.symbols.length,
     })),
-    entryPoints: scan.allSymbols.filter((s) => s.isExported),
+    entryPoints,
     suggestedSubmodules: suggestions.map((s) => ({
       slug: s.slug,
       kind: s.kind,
@@ -84,7 +113,11 @@ export async function handleSurvey(
     process.stdout.write(formatOutput(report, { json: true }) + '\n');
   } else {
     // Human-readable output
-    process.stdout.write(`\n=== Survey: ${dirPath} ===\n\n`);
+    process.stdout.write(`\n=== Survey: ${dirPath} ===\n`);
+    if (report.feature) {
+      process.stdout.write(`Feature: ${report.feature}\n`);
+    }
+    process.stdout.write('\n');
 
     process.stdout.write(`Files: ${report.totalFiles}  Symbols: ${report.totalSymbols}\n\n`);
 
@@ -134,19 +167,23 @@ export async function handleSurvey(
 function buildEdgeSuggestions(
   scan: Awaited<ReturnType<typeof scanDirectory>>,
   cg: any,
+  fileSet: Set<string>,
 ): SurveyReport['suggestedEdges'] {
   const edges: SurveyReport['suggestedEdges'] = [];
-  const fileSet = new Set(scan.files.map((f) => f.filePath));
+  const dedup = new Set<string>();
 
-  // For each symbol in the scan, check if it calls symbols in other files
+  // For each symbol in the scan, check if it calls symbols outside the scanned directory
   for (const sym of scan.allSymbols) {
     const nodes = cg.getNodesByName(sym.name);
     for (const node of nodes) {
       if (node.filePath !== sym.filePath) continue;
       const callees = cg.getCallees(node.id);
       for (const callee of callees) {
-        // Only consider callees within the scanned directory
-        if (fileSet.has(callee.node.filePath)) {
+        // Only consider callees OUTSIDE the scanned directory (cross-boundary edges)
+        if (!fileSet.has(callee.node.filePath)) {
+          const edgeKey = `${sym.name}::${callee.node.name}`;
+          if (dedup.has(edgeKey)) continue;
+          dedup.add(edgeKey);
           edges.push({
             source: sym.name,
             target: callee.node.name,

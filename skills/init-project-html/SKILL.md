@@ -61,22 +61,6 @@ At load time, check the project state to select the correct mode:
 然後閱讀 `sample-demo/` 了解預期的輸出格式與抽象層級。
 
 按照功能模塊定義，全面檢索代碼庫。
-
-### CodeGraph 加速（如已安裝 CodeGraph）
-
-如果專案已安裝 `@colbymchenry/codegraph`，可以使用：
-
-```bash
-apltk codegraph survey
-```
-
-取得整個專案的結構調查報告——包含所有檔案、公開函式、呼叫關係，以及建議的 submodule 分組。Subagent 不需逐個 grep/Read 檔案，直接分析這份報告即可。
-
-針對特定功能模組：
-```bash
-apltk codegraph survey src/features/<slug>/
-```
-
 將其拆分為單個或多個功能模塊（對應 C4 Container 層級）。
 接著，識別功能模塊下的子模塊（對應 C4 Component 層級），並進行深度閱讀。
 
@@ -87,7 +71,7 @@ apltk codegraph survey src/features/<slug>/
 
 > 每個 subagent 回報的每個宣告都應附上對應的程式碼檔案路徑與行號，作為證據追溯的基礎。
 
-### 2. 使用 `apltk` cli 工具協助生成架構圖
+### 2. 使用 `apltk architecture apply` 批次寫入 atlas
 
 依照 C4 層級逐步產生：
 在操作 CLI 前先閱讀 `references/architecture.md` 了解所有參數與 mutation 系列的使用方式。
@@ -97,6 +81,7 @@ apltk codegraph survey src/features/<slug>/
 3. **Component 層級**：定義子模塊（submodule）及其內部元素（function、variable、dataflow、error）
 4. **Code 層級**（選擇性）：對關鍵路徑補充函式層級細節
 
+使用 `apltk architecture apply <proposal.yaml>` 進行批次 atlas 寫入（取代逐一手動 mutation）。
 將前一步獲取的代碼庫知識透過 CLI 工具轉化為清晰的架構圖。
 完成後驗證架構圖格式正確且可渲染。
 
@@ -119,4 +104,3 @@ apltk codegraph survey src/features/<slug>/
 - `assets/architecture-page.template.html`: 模板 html。
 - `references/architecture.css`: 風格模板。
 - `sample-demo/`：完整示例輸出，用於理解基礎 atlas 的最終形態與 C4 層級對應。
-- `apltk codegraph` 命令：`init`, `sync`, `status`, `search`, `explore`, `survey`, `list-apis`, `verify`

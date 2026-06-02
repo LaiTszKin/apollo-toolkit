@@ -69,12 +69,62 @@ export function formatApiList(
     startLine: number;
     signature?: string;
     callerCount: number;
+    callers?: Array<{ name: string; filePath: string; startLine: number }>;
   }>,
 ): string {
   if (apis.length === 0) return 'No public APIs found.';
-  const lines = apis.map((a) => {
+  const lines: string[] = [];
+  for (const a of apis) {
     const sig = a.signature ? `  ${a.signature}` : '';
-    return `  ${a.name}  [${a.kind}]  ${a.filePath}:${a.startLine}  (${a.callerCount} callers)${sig}`;
-  });
+    lines.push(`  ${a.name}  [${a.kind}]  ${a.filePath}:${a.startLine}  (${a.callerCount} callers)${sig}`);
+    if (a.callerCount > 0 && a.callers) {
+      const callerLines = a.callers.slice(0, 5).map(c => `      Called by: ${c.name}  ${c.filePath}:${c.startLine}`);
+      lines.push(...callerLines);
+      if (a.callerCount > 5) lines.push(`      ... and ${a.callerCount - 5} more`);
+    }
+  }
   return `APIs (${apis.length}):\n${lines.join('\n')}`;
+}
+
+/**
+ * Format an API listing grouped by directory.
+ */
+export function formatApiListGrouped(
+  apis: Array<{
+    name: string;
+    kind: string;
+    filePath: string;
+    startLine: number;
+    signature?: string;
+    callerCount: number;
+    callers?: Array<{ name: string; filePath: string; startLine: number }>;
+  }>,
+): string {
+  if (apis.length === 0) return 'No public APIs found.';
+  // Group by directory
+  const groups = new Map<string, typeof apis>();
+  for (const a of apis) {
+    const dir = a.filePath.substring(0, a.filePath.lastIndexOf('/'));
+    if (!groups.has(dir)) groups.set(dir, []);
+    groups.get(dir)!.push(a);
+  }
+  // Render with directory headers
+  const lines: string[] = [];
+  const sortedDirs = [...groups.keys()].sort();
+  for (const dir of sortedDirs) {
+    const entries = groups.get(dir)!;
+    lines.push('');
+    lines.push(`=== ${dir}/ ===`);
+    for (const a of entries) {
+      const sig = a.signature ? `  ${a.signature}` : '';
+      lines.push(`  ${a.name}  [${a.kind}]  ${a.filePath}:${a.startLine}  (${a.callerCount} callers)${sig}`);
+      if (a.callerCount > 0 && a.callers) {
+        const callerLines = a.callers.slice(0, 5).map(c => `      Called by: ${c.name}  ${c.filePath}:${c.startLine}`);
+        lines.push(...callerLines);
+        if (a.callerCount > 5) lines.push(`      ... and ${a.callerCount - 5} more`);
+      }
+    }
+  }
+  lines.push('');
+  return lines.join('\n').trimStart();
 }

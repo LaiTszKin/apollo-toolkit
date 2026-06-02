@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { CodeGraph } = require('@colbymchenry/codegraph');
 import { closeIndex } from './cg-instance.js';
-import { formatApiList, formatOutput } from './formatter.js';
+import { formatApiList, formatApiListGrouped, formatOutput } from './formatter.js';
 
 export interface ListApisOptions {
   json?: boolean;
@@ -66,9 +66,24 @@ export async function handleListApis(
   closeIndex(cg);
 
   if (options.json) {
-    process.stdout.write(formatOutput(apis, { json: true }) + '\n');
+    // For JSON with --all, group by directory
+    if (options.all) {
+      const grouped: Record<string, ApiEntry[]> = {};
+      for (const api of apis) {
+        const dir = api.filePath.substring(0, api.filePath.lastIndexOf('/'));
+        if (!grouped[dir]) grouped[dir] = [];
+        grouped[dir].push(api);
+      }
+      process.stdout.write(formatOutput(grouped, { json: true }) + '\n');
+    } else {
+      process.stdout.write(formatOutput(apis, { json: true }) + '\n');
+    }
   } else {
-    process.stdout.write(formatApiList(apis) + '\n');
+    if (options.all) {
+      process.stdout.write(formatApiListGrouped(apis) + '\n');
+    } else {
+      process.stdout.write(formatApiList(apis) + '\n');
+    }
   }
 
   return 0;

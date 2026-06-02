@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 import yaml from 'js-yaml';
@@ -53,7 +54,7 @@ function ensureSubmodule(feature: any, slug: string, init?: Record<string, unkno
   return sub;
 }
 
-function removeSubmodule(feature: any, slug: string): boolean {
+function removeSubmodule(feature: any, slug: string, merged?: any): boolean {
   if (!feature.submodules) return false;
   const before = feature.submodules.length;
   feature.submodules = feature.submodules.filter((s: any) => s.slug !== slug);
@@ -62,6 +63,15 @@ function removeSubmodule(feature: any, slug: string): boolean {
     const t = typeof e.to === 'string' ? e.to : e.to?.submodule;
     return f !== slug && t !== slug;
   });
+  if (merged) {
+    merged.edges = (merged.edges || []).filter((e: any) => {
+      const fromEp = typeof e.from === 'object' && e.from;
+      const toEp = typeof e.to === 'object' && e.to;
+      const fromMatch = fromEp && fromEp.feature === feature.slug && fromEp.submodule === slug;
+      const toMatch = toEp && toEp.feature === feature.slug && toEp.submodule === slug;
+      return !fromMatch && !toMatch;
+    });
+  }
   return feature.submodules.length < before;
 }
 
@@ -278,7 +288,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
             break;
           }
           case 'remove':
-            removeSubmodule(parent, sub.slug);
+            removeSubmodule(parent, sub.slug, merged);
             break;
           default:
             throw new Error(
@@ -339,12 +349,42 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
 
       switch (edge.action) {
         case 'add': {
+          // Referential integrity validation
+          const fromFeature = findFeature(merged, from.feature);
+          if (!fromFeature) {
+            throw new Error(
+              `edge "${edge.from} → ${edge.to}": source feature "${from.feature}" not found`,
+            );
+          }
+          if (from.submodule) {
+            const fromSub = findSubmodule(fromFeature, from.submodule);
+            if (!fromSub) {
+              throw new Error(
+                `edge "${edge.from} → ${edge.to}": source submodule "${from.submodule}" not found in feature "${from.feature}"`,
+              );
+            }
+          }
+          const toFeature = findFeature(merged, to.feature);
+          if (!toFeature) {
+            throw new Error(
+              `edge "${edge.from} → ${edge.to}": target feature "${to.feature}" not found`,
+            );
+          }
+          if (to.submodule) {
+            const toSub = findSubmodule(toFeature, to.submodule);
+            if (!toSub) {
+              throw new Error(
+                `edge "${edge.from} → ${edge.to}": target submodule "${to.submodule}" not found in feature "${to.feature}"`,
+              );
+            }
+          }
+
           const eid = edge.id || `e-${Math.random().toString(36).slice(2, 8)}`;
           const kind = edge.kind || 'call';
           const label = edge.label !== undefined ? String(edge.label) : '';
 
           if (isIntraFeatureEdge(from, to)) {
-            const feature = ensureFeature(merged, from.feature);
+            const feature = findFeature(merged, from.feature);
             feature.edges = (feature.edges || []).filter((ex: any) => ex.id !== eid);
             feature.edges.push({
               id: eid,
@@ -470,6 +510,19 @@ async function handleTemplate(templateArgs: string[], context: ToolContext): Pro
     if (meta.goal) {
       goal = meta.goal;
     }
+  } else {
+    const resolvedSpecDir = path.resolve(specDir);
+    if (!fs.existsSync(resolvedSpecDir)) {
+      stderr.write(`Spec directory not found: ${resolvedSpecDir}\n`);
+    } else {
+      const mdFiles = fs.readdirSync(resolvedSpecDir).filter((f: string) => f.endsWith('.md'));
+      if (mdFiles.length > 0) {
+        stderr.write(`Spec directory found but no SPEC.md. Found: ${mdFiles.join(', ')}\n`);
+      } else {
+        stderr.write(`Spec directory found but no SPEC.md. No .md files found.\n`);
+      }
+    }
+    return 1;
   }
 
   // Build proposal.yaml content
@@ -500,6 +553,33 @@ async function handleTemplate(templateArgs: string[], context: ToolContext): Pro
   } catch (e: any) {
     stderr.write(`Error writing proposal.yaml: ${e.message}\n`);
     return 1;
+  }
+
+  // Try to enrich with CodeGraph API listing
+  try {
+    const cgRequire = createRequire(import.meta.url);
+    const { CodeGraph } = cgRequire('@colbymchenry/codegraph');
+    const projectRoot = process.cwd();
+    if (CodeGraph.isInitialized(projectRoot)) {
+      const cg = await CodeGraph.open(projectRoot, { sync: false, readOnly: true });
+      const nodes = cg.getNodesByKind('function');
+      const apiLines: string[] = [
+        '',
+        '# CodeGraph API index found — detected APIs (up to 50):',
+      ];
+      for (let i = 0; i < Math.min(nodes.length, 50); i++) {
+        const n = nodes[i];
+        apiLines.push(
+          `#   ${n.name}  (${n.isExported ? 'exported' : 'internal'})  ${n.filePath}:${n.startLine}`,
+        );
+      }
+      apiLines.push('#');
+      const existing = fs.readFileSync(outputPath, 'utf8');
+      fs.writeFileSync(outputPath, apiLines.join('\n') + '\n' + existing);
+      cg.close();
+    }
+  } catch {
+    // CodeGraph not installed or errored — skip silently
   }
 
   return 0;

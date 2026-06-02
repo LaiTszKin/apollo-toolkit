@@ -60,7 +60,7 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
   try {
     switch (subcommand) {
       case 'init':
-        return await handleInit(projectRoot, { index: shouldIndex || rest.includes('--index'), json: isJson });
+        return await handleInit(projectRoot, { index: shouldIndex, json: isJson });
 
       case 'sync':
         return await handleSync(projectRoot, { json: isJson });
@@ -83,7 +83,7 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
           stderr.write('Usage: apltk codegraph explore <query> [--json]\n');
           return 1;
         }
-        return await handleExplore(projectRoot, query, { json: isJson });
+        return await handleExplore(projectRoot, query, { json: isJson, feature: featureName });
       }
 
       case 'survey': {
@@ -92,8 +92,11 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
       }
 
       case 'list-apis': {
-        const featurePath = rest[0];
-        return await handleListApis(projectRoot, featurePath, { all: isAll, json: isJson });
+        const pathArg = rest[0];
+        const combinedPath = featureName
+          ? (pathArg ? `${featureName}/${pathArg.replace(/^\//, '')}` : featureName)
+          : pathArg;
+        return await handleListApis(projectRoot, combinedPath, { all: isAll, json: isJson });
       }
 
       case 'verify': {
@@ -110,7 +113,11 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
         return 1;
     }
   } catch (error: any) {
-    stderr.write(`Error running codegraph ${subcommand}: ${error.message}\n`);
+    if (error.code === 'MODULE_NOT_FOUND' || error.message?.includes('Cannot find module')) {
+      stderr.write('`@colbymchenry/codegraph` is not installed. Run `npm install @colbymchenry/codegraph` in your project directory.\n');
+    } else {
+      stderr.write(`Error running codegraph ${subcommand}: ${error.message}\n`);
+    }
     return 1;
   }
 }

@@ -6,6 +6,7 @@ const { CodeGraph } = require('@colbymchenry/codegraph');
 import { closeIndex } from './cg-instance.js';
 import { formatOutput } from './formatter.js';
 import { verifyOverlay } from './verify/checker.js';
+import yaml from 'js-yaml';
 
 export interface VerifyOptions {
   json?: boolean;
@@ -31,38 +32,26 @@ function loadOverlay(specDir: string): any {
     removed: { features: [], submodules: [] },
   };
 
+  // Parse atlas.index.yaml via js-yaml
   const indexFile = path.join(overlayDir, 'atlas.index.yaml');
   if (fs.existsSync(indexFile)) {
-    // Use dynamic import for js-yaml
-    // We read the YAML file manually for simplicity
     const raw = fs.readFileSync(indexFile, 'utf8');
     if (raw.trim()) {
-      // Simple YAML-like parsing for meta and edges
-      const lines = raw.split('\n');
-      let currentSection = '';
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith('features:')) {
-          overlay.featureOrder = [];
-          currentSection = 'features';
-        } else if (trimmed.startsWith('edges:')) {
-          currentSection = 'edges';
-        } else if (trimmed.startsWith('meta:')) {
-          currentSection = 'meta';
-          overlay.meta = {};
-        } else if (trimmed.startsWith('actors:')) {
-          currentSection = 'actors';
-        } else if (trimmed.startsWith('- ')) {
-          if (currentSection === 'features') {
-            const featureSlug = trimmed.replace(/^- /, '').trim();
-            if (featureSlug) overlay.featureOrder.push(featureSlug);
-          }
+      const index = yaml.load(raw) as any;
+      if (index && typeof index === 'object' && !Array.isArray(index)) {
+        if (index.meta !== undefined) overlay.meta = index.meta;
+        if (index.actors !== undefined) overlay.actors = index.actors;
+        if (index.edges !== undefined) overlay.edges = index.edges;
+        if (Array.isArray(index.features)) {
+          overlay.featureOrder = index.features
+            .map((entry: any) => (typeof entry === 'string' ? entry : entry?.slug))
+            .filter(Boolean);
         }
       }
     }
   }
 
-  // Load feature files from the overlay
+  // Load feature files via js-yaml
   const featuresDir = path.join(overlayDir, 'features');
   if (fs.existsSync(featuresDir)) {
     for (const entry of fs.readdirSync(featuresDir)) {
@@ -70,24 +59,31 @@ function loadOverlay(specDir: string): any {
       const featureFile = path.join(featuresDir, entry);
       const raw = fs.readFileSync(featureFile, 'utf8');
       if (raw.trim()) {
-        const feature = parseSimpleYamlFeature(raw, entry.replace('.yaml', ''));
-        if (feature) {
-          overlay.features[feature.slug] = feature;
+        const data = yaml.load(raw) as any;
+        if (data && typeof data === 'object' && data.slug) {
+          const feature: any = {
+            slug: data.slug,
+            submodules: Array.isArray(data.submodules)
+              ? data.submodules.map(normalizeSubmodule)
+              : [],
+            edges: Array.isArray(data.edges) ? data.edges : [],
+          };
+          if (data.action !== undefined) feature.action = data.action;
+          overlay.features[data.slug] = feature;
         }
       }
     }
   }
 
-  // Load removed file
+  // Load _removed.yaml via js-yaml
   const removedFile = path.join(overlayDir, '_removed.yaml');
   if (fs.existsSync(removedFile)) {
     const raw = fs.readFileSync(removedFile, 'utf8');
     if (raw.trim()) {
-      if (raw.includes('features:')) {
-        overlay.removed.features = extractYamlListItems(raw, 'features:');
-      }
-      if (raw.includes('submodules:')) {
-        overlay.removed.submodules = extractYamlListItems(raw, 'submodules:');
+      const removed = yaml.load(raw) as any;
+      if (removed && typeof removed === 'object' && !Array.isArray(removed)) {
+        if (Array.isArray(removed.features)) overlay.removed.features = removed.features;
+        if (Array.isArray(removed.submodules)) overlay.removed.submodules = removed.submodules;
       }
     }
   }
@@ -95,90 +91,16 @@ function loadOverlay(specDir: string): any {
   return overlay;
 }
 
-/**
- * Simple YAML feature parser — extracts slug, submodules, edges, and actions
- * from a feature YAML file.
- */
-function parseSimpleYamlFeature(raw: string, fallbackSlug: string): any {
-  const feature: any = { slug: fallbackSlug, submodules: [], edges: [], action: undefined };
-  const lines = raw.split('\n');
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith('slug:')) {
-      const val = trimmed.replace('slug:', '').trim();
-      if (val) feature.slug = val;
-    } else if (trimmed.startsWith('action:')) {
-      feature.action = trimmed.replace('action:', '').trim();
-    } else if (trimmed.startsWith('- slug:')) {
-      // Parse submodule entry
-      const sub: any = { slug: extractValue(trimmed, 'slug:'), functions: [], variables: [] };
-      sub.kind = extractValueFromLines(lines, i, 'kind:');
-      sub.role = extractValueFromLines(lines, i, 'role:');
-      if (sub.action) sub.action = extractValueFromLines(lines, i, 'action:');
-
-      // Parse functions list
-      const fnStart = findLineIndex(lines, i, 'functions:');
-      if (fnStart >= 0) {
-        for (let j = fnStart + 1; j < Math.min(fnStart + 50, lines.length); j++) {
-          const subTrimmed = lines[j].trim();
-          if (subTrimmed.startsWith('- ')) {
-            const fnName = subTrimmed.replace(/^- /, '').trim();
-            if (fnName && !fnName.endsWith(':')) sub.functions.push(fnName);
-          } else if (subTrimmed && !subTrimmed.startsWith('- ') && subTrimmed.includes(':')) {
-            break; // new key
-          }
-        }
-      }
-      feature.submodules.push(sub);
-    }
-  }
-
-  return feature;
-}
-
-function extractValue(line: string, prefix: string): string {
-  const idx = line.indexOf(prefix);
-  if (idx < 0) return '';
-  return line.slice(idx + prefix.length).trim();
-}
-
-function extractValueFromLines(lines: string[], startIdx: number, key: string): string | undefined {
-  for (let i = startIdx + 1; i < Math.min(startIdx + 20, lines.length); i++) {
-    const line = lines[i].trim();
-    if (line.startsWith(key)) return line.replace(key, '').trim();
-    if (line.startsWith('- ') || line.includes(':')) continue;
-    break;
-  }
-  return undefined;
-}
-
-function findLineIndex(lines: string[], startIdx: number, target: string): number {
-  for (let i = startIdx; i < lines.length; i++) {
-    if (lines[i].trim().startsWith(target)) return i;
-  }
-  return -1;
-}
-
-function extractYamlListItems(raw: string, sectionStart: string): string[] {
-  const items: string[] = [];
-  const startIdx = raw.indexOf(sectionStart);
-  if (startIdx < 0) return items;
-
-  const afterSection = raw.slice(startIdx + sectionStart.length);
-  const lines = afterSection.split('\n');
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('- ')) {
-      const val = trimmed.replace(/^- /, '').trim();
-      if (val) items.push(val);
-    } else if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith('-')) {
-      break; // new section
-    }
-  }
-  return items;
+function normalizeSubmodule(sub: any): any {
+  if (!sub || typeof sub !== 'object') return sub;
+  return {
+    slug: sub.slug,
+    kind: sub.kind || 'service',
+    role: sub.role || '',
+    functions: Array.isArray(sub.functions) ? sub.functions : [],
+    variables: Array.isArray(sub.variables) ? sub.variables : [],
+    ...(sub.action !== undefined ? { action: sub.action } : {}),
+  };
 }
 
 export async function handleVerify(

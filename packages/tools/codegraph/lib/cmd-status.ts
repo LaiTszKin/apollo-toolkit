@@ -23,6 +23,11 @@ export async function handleStatus(projectRoot: string, options: StatusOptions =
     const edgeKindEntries = Object.entries(stats.edgesByKind).filter(([, v]) => (v as number) > 0);
     const edgeKindSummary = edgeKindEntries.map(([kind, count]) => `    ${kind.padEnd(14)} ${count}`).join('\n');
 
+    const langEntries = Object.entries(stats.filesByLanguage || {}).filter(([, v]) => (v as number) > 0);
+    const langSummary = langEntries.length > 0
+      ? langEntries.map(([lang, count]) => `    ${lang.padEnd(14)} ${count}`).join('\n')
+      : '    (no files indexed)';
+
     const summary: [string, string | number][] = [
       ['Project:', projectRoot],
       ['Files:', stats.fileCount],
@@ -37,6 +42,8 @@ export async function handleStatus(projectRoot: string, options: StatusOptions =
     process.stdout.write(nodeKindSummary + '\n');
     process.stdout.write('\nEdges by kind:\n');
     process.stdout.write(edgeKindSummary + '\n');
+    process.stdout.write('\nLanguages:\n');
+    process.stdout.write(langSummary + '\n');
   }
 
   return 0;

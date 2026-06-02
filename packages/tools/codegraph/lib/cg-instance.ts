@@ -25,11 +25,15 @@ export function findProjectRoot(startPath?: string): string {
 }
 
 /**
- * Create or open a CodeGraph index for the given project root.
+ * Initialize a CodeGraph index for the given project root.
  *
- * If the project is already initialized, opens it. Otherwise, initializes
- * a new CodeGraph project. When `options.index` is true, runs initial indexing
- * after init.
+ * If the project is already initialized, throws an error suggesting
+ * `apltk codegraph sync` instead. Otherwise, initializes a new CodeGraph
+ * project. When `options.index` is true, runs initial indexing after init.
+ *
+ * Note: `CodeGraph.init()` supports an `{ index: true }` shorthand that
+ * runs initial indexing inline -- this deviates from a two-step init-then-index
+ * pattern but is the supported API through the npm package.
  */
 export async function createOrOpenIndex(
   projectRoot: string,
@@ -37,7 +41,9 @@ export async function createOrOpenIndex(
 ): Promise<any> {
   const isInit = CodeGraph.isInitialized(projectRoot);
   if (isInit) {
-    return CodeGraph.open(projectRoot, { sync: false, readOnly: false });
+    throw new Error(
+      `Project is already initialized at ${projectRoot}. Use \`apltk codegraph sync\` to update the index.`,
+    );
   }
   return CodeGraph.init(projectRoot, {
     index: options?.index ?? false,

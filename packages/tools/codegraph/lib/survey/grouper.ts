@@ -12,48 +12,134 @@ export interface SubmoduleSuggestion {
  * Group scanned symbols into suggested submodule groupings.
  *
  * Algorithm (hybrid):
- * 1. Identify entry points: exported symbols with high caller count from other files
- * 2. Group by file boundaries when no cross-file connectivity is detected
- * 3. Infer kind from symbol naming patterns and file path patterns
+ * 1. Build adjacency map from call graph: for each symbol, find callees within the scan
+ * 2. BFS on undirected graph to find connected components
+ * 3. Components with >=2 symbols create connectivity-based submodule suggestions
+ * 4. Remaining (isolated) symbols fall back to per-file grouping
+ * 5. Apply mergeByDirectoryPrefix as final step
  */
-export function groupIntoSubmodules(scan: ScanResult): SubmoduleSuggestion[] {
+export function groupIntoSubmodules(scan: ScanResult, cg: any): SubmoduleSuggestion[] {
   if (scan.allSymbols.length === 0) return [];
 
+  // --- Phase 1: Build adjacency map from call graph connectivity ---
+  const allNameSet = new Set(scan.allSymbols.map(s => s.name));
+  const adj = new Map<string, Set<string>>();
+  const nodeKeyMap = new Map<string, { name: string; filePath: string; kind: string; isExported: boolean }>();
+
+  for (const sym of scan.allSymbols) {
+    const key = `${sym.filePath}::${sym.name}`;
+    const calleeSet = new Set<string>();
+    adj.set(key, calleeSet);
+    nodeKeyMap.set(key, sym);
+
+    const nodes = cg.getNodesByName(sym.name);
+    for (const node of nodes) {
+      if (node.filePath !== sym.filePath) continue;
+      const callees = cg.getCallees(node.id);
+      for (const callee of callees) {
+        if (allNameSet.has(callee.node.name)) {
+          calleeSet.add(callee.node.name);
+        }
+      }
+    }
+  }
+
+  // Build reverse index: name -> list of symbol keys (for efficient BFS lookup)
+  const nameToKeys = new Map<string, string[]>();
+  for (const [key, sym] of nodeKeyMap.entries()) {
+    const arr = nameToKeys.get(sym.name) || [];
+    arr.push(key);
+    nameToKeys.set(sym.name, arr);
+  }
+
+  // --- Phase 2: BFS to find connected components (undirected graph) ---
+  const visited = new Set<string>();
+  const components: Array<Array<{ name: string; filePath: string; kind: string; isExported: boolean }>> = [];
+
+  for (const key of adj.keys()) {
+    if (visited.has(key)) continue;
+
+    const component: Array<{ name: string; filePath: string; kind: string; isExported: boolean }> = [];
+    const queue = [key];
+    visited.add(key);
+
+    while (queue.length > 0) {
+      const currentKey = queue.shift()!;
+      const sym = nodeKeyMap.get(currentKey)!;
+      component.push(sym);
+
+      const calleeNames = adj.get(currentKey) || new Set();
+      for (const calleeName of calleeNames) {
+        const targetKeys = nameToKeys.get(calleeName) || [];
+        for (const tk of targetKeys) {
+          if (!visited.has(tk)) {
+            visited.add(tk);
+            queue.push(tk);
+          }
+        }
+      }
+    }
+
+    if (component.length > 0) {
+      components.push(component);
+    }
+  }
+
+  // --- Phase 3: Build suggestions from connected components ---
   const suggestions: SubmoduleSuggestion[] = [];
   const processed = new Set<string>();
 
-  // Group by file: each file with exported symbols becomes a candidate submodule
-  for (const file of scan.files) {
-    const exportedSymbols = file.symbols.filter((s) => s.isExported);
-    if (exportedSymbols.length === 0 && file.symbols.length === 0) continue;
+  // Components with >=2 symbols become connectivity-based submodules
+  for (const component of components) {
+    if (component.length < 2) continue;
 
-    // Build a slug from the filename (strip extension)
-    const fileName = file.filePath.split('/').pop() || '';
+    const files = [...new Set(component.map(s => s.filePath))];
+    const representativePath = files[0];
+    const fileName = representativePath.split('/').pop() || '';
     const slug = fileName.replace(/\.\w+$/, '').replace(/[_ ]/g, '-').toLowerCase();
+    const kind = inferKind(representativePath, component);
+    const role = inferRole(kind, slug, component.filter(s => s.isExported));
 
-    // Infer kind from file path and naming
-    const kind = inferKind(file.filePath, file.symbols);
-    const symbols = file.symbols.map((s) => s.name);
-    if (symbols.length === 0) continue;
+    for (const s of component) {
+      processed.add(`${s.filePath}::${s.name}`);
+    }
 
-    // Avoid duplicating symbols already assigned
-    const newSymbols = symbols.filter((s) => !processed.has(`${file.filePath}::${s}`));
-    if (newSymbols.length === 0) continue;
-    for (const s of symbols) processed.add(`${file.filePath}::${s}`);
-
-    const role = inferRole(kind, slug, exportedSymbols);
     suggestions.push({
       slug,
       kind,
       role,
-      memberFunctions: newSymbols,
+      memberFunctions: [...new Set(component.map(s => s.name))],
+      memberFiles: files,
+    });
+  }
+
+  // --- Phase 4: Remaining (isolated) symbols fall back to per-file grouping ---
+  for (const file of scan.files) {
+    const unprocessedSymbols = file.symbols.filter(
+      s => !processed.has(`${file.filePath}::${s.name}`)
+    );
+    if (unprocessedSymbols.length === 0 && file.symbols.length === 0) continue;
+
+    const fileName = file.filePath.split('/').pop() || '';
+    const slug = fileName.replace(/\.\w+$/, '').replace(/[_ ]/g, '-').toLowerCase();
+    const kind = inferKind(file.filePath, file.symbols);
+    const symbols = unprocessedSymbols.map(s => s.name);
+    if (symbols.length === 0) continue;
+
+    for (const s of unprocessedSymbols) processed.add(`${file.filePath}::${s.name}`);
+
+    const role = inferRole(kind, slug, file.symbols.filter(s => s.isExported));
+    suggestions.push({
+      slug,
+      kind,
+      role,
+      memberFunctions: symbols,
       memberFiles: [file.filePath],
     });
   }
 
-  // Merge small files into a single submodule when they share a common directory prefix
+  // --- Phase 5: Merge small files sharing a directory prefix ---
   const merged = mergeByDirectoryPrefix(suggestions, scan.directory);
-
   return merged;
 }
 
