@@ -105,6 +105,13 @@ apltk open-github-issue --help
 # Browse architecture HTML atlas and active-spec diffs
 apltk architecture          # opens resources/project-architecture/index.html
 apltk architecture diff     # paginates docs/plans/**/architecture_diff/ vs atlas
+
+# CodeGraph code intelligence (powered by @colbymchenry/codegraph)
+apltk codegraph init        # Initialize code knowledge graph for the project
+apltk codegraph status      # Show index statistics (files, nodes, edges, languages)
+apltk codegraph search <q>  # Search code for symbols via FTS5
+apltk codegraph survey      # Survey directory with submodule and edge suggestions
+apltk codegraph verify --spec <dir>  # Verify spec overlay against actual code
 ```
 
 ### Non-interactive install
@@ -197,6 +204,12 @@ Compatibility note:
 - `qa` reads `REPORT.md` and spec documents to generate `FIX.md` — a complete fix plan with dependency analysis and subagent routing. `fix` then reads `FIX.md` and executes mechanically.
 - `update-project-html` is a local skill that depends on `init-project-html` for semantic rules and on the `apltk architecture` CLI to refresh the base atlas after code changes; for spec overlay diagrams use `spec-to-project-html` instead.
 
+
+## Code Intelligence: CodeGraph
+
+Apollo Toolkit 的 `apltk codegraph` 子命令系統建構於 [**@colbymchenry/codegraph**](https://github.com/colbymchenry/codegraph) — 由 Colt McHenry 開發的 tree-sitter 程式碼知識圖譜引擎。CodeGraph 將原始碼解析為節點（函式、類別）與邊（呼叫關係）的 SQLite 資料庫，支援 FTS5 全文搜尋與結構化查詢。
+
+感謝 Colt McHenry 的傑出工作，使 LLM agent 能以確定性方式取代 grep/Read 來探索程式碼結構。
 
 ## Release publishing
 

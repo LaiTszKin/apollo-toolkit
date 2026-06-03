@@ -2,6 +2,37 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v4.1.0] - 2026-06-03
+
+### Added
+
+- **CodeGraph integration**: New `apltk codegraph` CLI with 8 subcommands (init/sync/status/search/explore/survey/list-apis/verify) powered by [@colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) — a tree-sitter-backed code knowledge graph engine.
+  - `init` — initialize `.codegraph/` SQLite database and optionally run full index
+  - `sync` — incremental index refresh
+  - `status` — query index statistics (files, nodes, edges, languages)
+  - `search` — full-text symbol search via FTS5
+  - `explore` — deep-dive on a symbol (callers, callees, source context)
+  - `survey` — directory scan with connected-component analysis, submodule grouping, and cross-boundary edge suggestions
+  - `list-apis` — list public API surface per feature, with `--all` flag for non-exported symbols
+  - `verify` — validate spec architecture overlays against actual CodeGraph index
+- `init-project-html` skill: step 1 uses `codegraph survey` for project structure discovery.
+- `design` skill: step 5e includes `apltk codegraph list-apis --all` for API surface enumeration.
+- Architecture atlas: 3 new external actors (tool-registry, tui-lib, codegraph-npm), 6 new cross-feature edges forming complete eval pipeline, 13 new function I/O details across eval submodules.
+- `packages/tools/codegraph/env.d.ts`: type declarations for `@colbymchenry/codegraph` API.
+- Lazy import pattern (`getCodeGraphModule`) for graceful MODULE_NOT_FOUND handling.
+- Regression tests: flag-splice (`--all`/`--index`), init check for status/search, edge relationship validation.
+
+### Changed
+
+- `apltk` global CLI permission: ensure `dist/bin/apollo-toolkit.js` has executable bit after `tsc --build`.
+- `rewrite-imports.test.js`: relax TOOL_MODULE_NAMES assertion to accept bare specifier format.
+
+### Documentation
+
+- README: add CodeGraph integration section with credit to [@colbymchenry/codegraph](https://github.com/colbymchenry/codegraph).
+- CLAUDE.md, AGENTS.md: add `codegraph` and `architecture apply/template` commands; add prohibitions block.
+- Architecture atlas re-rendered with updated summary, enriched actors/edges/functions.
+
 ## [v4.0.11] - 2026-06-02
 
 ### Changed

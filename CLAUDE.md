@@ -8,7 +8,7 @@
 - `node dist/bin/apollo-toolkit.js uninstall [mode...]` - 從目標移除 Apollo Toolkit 技能。
 - `node dist/bin/apollo-toolkit.js tools` - 列出所有內建 CLI 工具及其分類。
 - `node dist/bin/apollo-toolkit.js <tool> [args...]` - 執行內建工具（如 `codegraph`、`architecture`、`filter-logs`）。
-- `apltk codegraph <subcommand> [options]` - CodeGraph 程式碼智慧工具（init/sync/status/search/explore/survey/list-apis/verify）。
+- `apltk codegraph <subcommand> [options]` - CodeGraph 程式碼智慧工具（init/sync/status/search/explore/survey/list-apis/verify）。基於 [@colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)，一個 tree-sitter 驅動的程式碼知識圖譜引擎。
 - `apltk architecture [diff|merge|apply|template]` - 架構圖管理與 spec overlay 操作。
 - `apltk eval <skill>` - LLM-as-Judge 技能評測。
 - `apltk validate-skill-frontmatter` - 驗證技能 SKILL.md frontmatter 格式。
