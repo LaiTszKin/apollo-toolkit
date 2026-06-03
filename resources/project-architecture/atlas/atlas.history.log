@@ -6,3 +6,33 @@
 {"ts":"2026-05-29T13:27:30.597Z","action":"submodule set","args":{"feature":"eval-scorer","slug":"judge-prompt-builder","role":"評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示"},"mode":"base"}
 {"ts":"2026-06-03T12:34:41.876Z","action":"merge","args":{"specs":["docs/plans/2026-06-03/codegraph-integration"]},"mode":"base"}
 {"ts":"2026-06-03T12:35:20.204Z","action":"merge","args":{"specs":["docs/plans/2026-06-03/codegraph-integration"]},"mode":"base"}
+{"ts":"2026-06-03T13:17:20.902Z","action":"actor add","args":{"id":"codegraph-npm","label":"@colbymchenry/codegraph npm package"},"mode":"base"}
+{"ts":"2026-06-03T13:17:21.339Z","action":"actor add","args":{"id":"tool-registry","label":"Tool Registry (@laitszkin/tool-registry)"},"mode":"base"}
+{"ts":"2026-06-03T13:17:21.782Z","action":"actor add","args":{"id":"tui-lib","label":"TUI Library (@laitszkin/tui)"},"mode":"base"}
+{"ts":"2026-06-03T13:17:28.148Z","action":"edge add","args":{"from":{"feature":"eval-cli"},"to":{"feature":"tool-registry"},"kind":"call","label":"所有 CLI 工具透過 ToolDefinition 註冊到 tool-registry"},"mode":"base"}
+{"ts":"2026-06-03T13:17:32.395Z","action":"edge add","args":{"from":{"feature":"eval-cli"},"to":{"feature":"actor:tool-registry"},"kind":"call","label":"CLI 工具透過 ToolDefinition 註冊"},"mode":"base"}
+{"ts":"2026-06-03T13:17:40.638Z","action":"edge add","args":{"from":{"feature":"eval-cli","submodule":"cli-handler"},"to":{"feature":"user-dev"},"kind":"call","label":"開發者透過 CLI 觸發評測","id":"eval-cli-user"},"mode":"base"}
+{"ts":"2026-06-03T13:17:51.133Z","action":"function add","args":{"feature":"eval-cli","submodule":"cli-handler","name":"evalHandler"},"mode":"base"}
+{"ts":"2026-06-03T13:17:58.482Z","action":"undo","mode":"base"}
+{"ts":"2026-06-03T13:18:20.853Z","action":"function add","args":{"feature":"eval-cli","submodule":"cli-handler","name":"evalHandler"},"mode":"base"}
+{"ts":"2026-06-03T13:18:21.437Z","action":"function add","args":{"feature":"eval-cli","submodule":"cli-handler","name":"parseArgs"},"mode":"base"}
+{"ts":"2026-06-03T13:18:22.010Z","action":"function add","args":{"feature":"eval-cli","submodule":"cli-handler","name":"tool"},"mode":"base"}
+{"ts":"2026-06-03T13:18:24.988Z","action":"function add","args":{"feature":"eval-executor","submodule":"trace-recorder","name":"runSingleTest"},"mode":"base"}
+{"ts":"2026-06-03T13:18:25.681Z","action":"function add","args":{"feature":"eval-executor","submodule":"exec-api-client","name":"withRetry"},"mode":"base"}
+{"ts":"2026-06-03T13:18:26.471Z","action":"function add","args":{"feature":"eval-scorer","submodule":"judge-prompt-builder","name":"buildJudgePrompt"},"mode":"base"}
+{"ts":"2026-06-03T13:18:27.104Z","action":"function add","args":{"feature":"eval-scorer","submodule":"judge-api-client","name":"callJudgeModel"},"mode":"base"}
+{"ts":"2026-06-03T13:18:30.197Z","action":"function add","args":{"feature":"eval-isolation","submodule":"tool-dispatcher","name":"buildSystemPrompt"},"mode":"base"}
+{"ts":"2026-06-03T13:18:30.842Z","action":"function add","args":{"feature":"eval-question","submodule":"question-loader","name":"loadQuestions"},"mode":"base"}
+{"ts":"2026-06-03T13:18:31.691Z","action":"function add","args":{"feature":"eval-question","submodule":"variant-generator","name":"generateVariants"},"mode":"base"}
+{"ts":"2026-06-03T13:18:32.174Z","action":"function add","args":{"feature":"eval-reporter","submodule":"report-composer","name":"generateReport"},"mode":"base"}
+{"ts":"2026-06-03T13:18:34.967Z","action":"function add","args":{"feature":"eval-optimizer","submodule":"issue-extractor","name":"extractIssues"},"mode":"base"}
+{"ts":"2026-06-03T13:18:35.639Z","action":"function add","args":{"feature":"eval-optimizer","submodule":"dedup-engine","name":"deduplicateIssues"},"mode":"base"}
+{"ts":"2026-06-03T13:18:36.404Z","action":"function add","args":{"feature":"eval-optimizer","submodule":"issue-extractor","name":"generateOptimizationPlan"},"mode":"base"}
+{"ts":"2026-06-03T13:18:37.146Z","action":"function add","args":{"feature":"eval-ci-gate","submodule":"workflow-trigger","name":"detectSkillChanges"},"mode":"base"}
+{"ts":"2026-06-03T13:18:40.020Z","action":"edge add","args":{"from":{"feature":"eval-cli","submodule":"cli-handler"},"to":{"feature":"eval-executor","submodule":"trace-recorder"},"kind":"call","label":"evalHandler 觸發 runSingleTest","id":"eval-cli-exec"},"mode":"base"}
+{"ts":"2026-06-03T13:18:40.712Z","action":"edge add","args":{"from":{"feature":"eval-executor","submodule":"trace-recorder"},"to":{"feature":"eval-isolation","submodule":"tool-dispatcher"},"kind":"call","label":"執行隔離環境中的工具調用","id":"eval-exec-iso"},"mode":"base"}
+{"ts":"2026-06-03T13:18:41.390Z","action":"edge add","args":{"from":{"feature":"eval-executor","submodule":"trace-recorder"},"to":{"feature":"eval-scorer","submodule":"judge-prompt-builder"},"kind":"data-row","label":"trace events 送入評分","id":"eval-exec-scorer"},"mode":"base"}
+{"ts":"2026-06-03T13:18:42.015Z","action":"edge add","args":{"from":{"feature":"eval-scorer","submodule":"judge-api-client"},"to":{"feature":"judge-model-api"},"kind":"call","label":"呼叫 Judge Model API 評分","id":"eval-judge-api"},"mode":"base"}
+{"ts":"2026-06-03T13:18:56.177Z","action":"edge add","args":{"from":{"feature":"eval-scorer"},"to":{"feature":"eval-reporter"},"kind":"data-row","label":"ScoreResult 送入報告組合","id":"eval-scorer-reporter"},"mode":"base"}
+{"ts":"2026-06-03T13:18:56.778Z","action":"edge add","args":{"from":{"feature":"eval-executor"},"to":{"feature":"eval-optimizer"},"kind":"data-row","label":"執行結果觸發優化","id":"eval-exec-optimizer"},"mode":"base"}
+{"ts":"2026-06-03T13:18:57.451Z","action":"edge add","args":{"from":{"feature":"eval-cli"},"to":{"feature":"eval-ci-gate"},"kind":"call","label":"CI 模式下觸發 PR 回報","id":"eval-cli-ci"},"mode":"base"}

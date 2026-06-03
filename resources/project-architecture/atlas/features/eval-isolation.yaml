@@ -6,7 +6,12 @@ submodules:
   - slug: tool-dispatcher
     kind: service
     role: 工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護
-    functions: []
+    functions:
+      - name: buildSystemPrompt
+        in: question
+        out: string
+        side: pure
+        purpose: 建立隔離環境的 system prompt
     variables: []
     dataflow: []
     errors: []

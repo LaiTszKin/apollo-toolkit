@@ -6,14 +6,24 @@ submodules:
   - slug: trace-recorder
     kind: service
     role: 多輪tool-use loop軌跡記錄：tool_call/tool_result事件序列、JSONL行號標記、.done完成標記
-    functions: []
+    functions:
+      - name: runSingleTest
+        in: question, skillDir
+        out: TraceEvent[]
+        side: pure
+        purpose: 執行單一技能測試，記錄 tool call 軌跡
     variables: []
     dataflow: []
     errors: []
   - slug: exec-api-client
     kind: api
     role: Exec Model HTTP client with retry
-    functions: []
+    functions:
+      - name: withRetry
+        in: fn, options
+        out: Result
+        side: io
+        purpose: HTTP client with retry for exec model
     variables: []
     dataflow: []
     errors: []

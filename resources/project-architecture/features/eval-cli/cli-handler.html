@@ -20,7 +20,14 @@
   <main class="submodule-main">
     <section aria-label="Function I/O">
       <h2>Function I/O</h2>
-      <p class="sub-section__empty">No functions recorded.</p>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Out</th><th scope="col">Side</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>evalHandler</td><td>argv, context</td><td>exitCode</td><td>pure</td><td>CLI 入口：解析參數、調度評測流程</td></tr>
+          <tr><td>parseArgs</td><td>argv</td><td>ParsedArgs</td><td>pure</td><td>解析 CLI 參數與模式選擇</td></tr>
+          <tr><td>tool</td><td>ToolDefinition</td><td>void</td><td>pure</td><td>向 tool-registry 註冊 eval 命令</td></tr>
+        </tbody>
+      </table>
     </section>
     <section aria-label="Variables">
       <h2>Variables</h2>

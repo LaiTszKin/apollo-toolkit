@@ -20,7 +20,13 @@
   <main class="submodule-main">
     <section aria-label="Function I/O">
       <h2>Function I/O</h2>
-      <p class="sub-section__empty">No functions recorded.</p>
+      <table class="sub-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Out</th><th scope="col">Side</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>extractIssues</td><td>scores</td><td>RawIssue[]</td><td>pure</td><td>從 score.json 提取問題與分類統計</td></tr>
+          <tr><td>generateOptimizationPlan</td><td>issues</td><td>OptimizationPlan</td><td>pure</td><td>從去重後問題生成 FIND/REPLACE 優化 diff</td></tr>
+        </tbody>
+      </table>
     </section>
     <section aria-label="Variables">
       <h2>Variables</h2>

@@ -6,7 +6,12 @@ submodules:
   - slug: workflow-trigger
     kind: service
     role: GitHub Actions workflow on PR skill file change
-    functions: []
+    functions:
+      - name: detectSkillChanges
+        in: prFiles
+        out: string[]
+        side: pure
+        purpose: 檢測 PR 中技能檔案變更
     variables: []
     dataflow: []
     errors: []

@@ -6,7 +6,22 @@ submodules:
   - slug: cli-handler
     kind: service
     role: ToolDefinition註冊、參數解析、流程編排
-    functions: []
+    functions:
+      - name: evalHandler
+        in: argv, context
+        out: exitCode
+        side: pure
+        purpose: CLI 入口：解析參數、調度評測流程
+      - name: parseArgs
+        in: argv
+        out: ParsedArgs
+        side: pure
+        purpose: 解析 CLI 參數與模式選擇
+      - name: tool
+        in: ToolDefinition
+        out: void
+        side: pure
+        purpose: 向 tool-registry 註冊 eval 命令
     variables: []
     dataflow: []
     errors: []

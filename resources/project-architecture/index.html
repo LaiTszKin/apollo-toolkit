@@ -13,7 +13,7 @@
 <body>
   <header class="atlas-header">
     <h1>Project architecture  (+ codegraph integration overlay)</h1>
-    <p class="atlas-summary">Baseline: eval 系統 (8 features). Overlay: 新增 codegraph 功能模組，包含 lifecycle 命令、discovery 命令、validation/apply 命令。 新增外部 actor: @colbymchenry/codegraph (npm 套件)。
+    <p class="atlas-summary">完整 C4 架構圖：eval 評測系統 (8 features) + codegraph 程式碼分析 (1 feature, 3 submodules)。 外部 actor: Judge Model API, GitHub Actions CI, Developer, Skill Files, @colbymchenry/codegraph (npm), @laitszkin/tool-registry, @laitszkin/tui。 Eval 管線包含完整資料流: CLI → Executor → Scorer → Reporter → CI Gate。
 </p>
   </header>
   <main class="atlas-main">
@@ -24,7 +24,7 @@
         <button type="button" data-pan-zoom="fit" aria-label="Reset view">Fit</button>
       </div>
       <div class="atlas-canvas__viewport" data-pan-zoom-viewport>
-<svg class="atlas-svg" viewBox="0 0 2488 2238" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Project architecture atlas" data-atlas-svg="macro">
+<svg class="atlas-svg" viewBox="0 0 4335 1245" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Project architecture atlas" data-atlas-svg="macro">
   <defs>
     <marker id="arrow-call" class="m-arrow m-arrow--call" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>
     <marker id="arrow-return" class="m-arrow m-arrow--return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" /></marker>
@@ -33,168 +33,168 @@
   </defs>
   <g transform="translate(24,24)">
     <g class="m-cluster" data-feature="codegraph">
-      <rect class="m-cluster__bg" x="20.00" y="1432.00" width="1748.00" height="252.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="894.00" y="1458.00" text-anchor="middle">CodeGraph Integration</text>
+      <rect class="m-cluster__bg" x="20.00" y="318.00" width="1748.00" height="252.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="894.00" y="344.00" text-anchor="middle">CodeGraph Integration</text>
     </g>
     <g class="m-cluster" data-feature="eval-optimizer">
-      <rect class="m-cluster__bg" x="20.00" y="20.00" width="488.00" height="266.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="264.00" y="46.00" text-anchor="middle">優化引擎</text>
+      <rect class="m-cluster__bg" x="3243.00" y="227.75" width="255.00" height="405.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="3370.50" y="253.75" text-anchor="middle">優化引擎</text>
     </g>
     <g class="m-cluster" data-feature="eval-cli">
-      <rect class="m-cluster__bg" x="2129.00" y="1517.50" width="291.00" height="295.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="2274.50" y="1543.50" text-anchor="middle">CLI命令</text>
+      <rect class="m-cluster__bg" x="2129.00" y="368.00" width="291.00" height="295.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="2274.50" y="394.00" text-anchor="middle">CLI命令</text>
     </g>
     <g class="m-cluster" data-feature="eval-ci-gate">
-      <rect class="m-cluster__bg" x="1431.00" y="1716.00" width="342.00" height="266.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="1602.00" y="1742.00" text-anchor="middle">PR閘門</text>
+      <rect class="m-cluster__bg" x="2675.00" y="375.25" width="342.00" height="295.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="2846.00" y="401.25" text-anchor="middle">PR閘門</text>
     </g>
     <g class="m-cluster" data-feature="eval-isolation">
-      <rect class="m-cluster__bg" x="20.00" y="914.00" width="524.00" height="156.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="282.00" y="940.00" text-anchor="middle">上下文隔離與工具模擬</text>
+      <rect class="m-cluster__bg" x="3264.00" y="991.75" width="524.00" height="185.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="3526.00" y="1017.75" text-anchor="middle">上下文隔離與工具模擬</text>
     </g>
     <g class="m-cluster" data-feature="eval-question">
-      <rect class="m-cluster__bg" x="20.00" y="318.00" width="252.00" height="266.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="146.00" y="344.00" text-anchor="middle">評測題庫</text>
+      <rect class="m-cluster__bg" x="2931.00" y="20.00" width="252.00" height="266.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="3057.00" y="46.00" text-anchor="middle">評測題庫</text>
     </g>
     <g class="m-cluster" data-feature="eval-executor">
-      <rect class="m-cluster__bg" x="20.00" y="1102.00" width="322.00" height="298.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="181.00" y="1128.00" text-anchor="middle">評測執行器</text>
+      <rect class="m-cluster__bg" x="2702.00" y="702.25" width="322.00" height="327.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="2863.00" y="728.25" text-anchor="middle">評測執行器</text>
     </g>
     <g class="m-cluster" data-feature="eval-scorer">
-      <rect class="m-cluster__bg" x="20.00" y="616.00" width="451.00" height="266.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="245.50" y="642.00" text-anchor="middle">評分引擎</text>
+      <rect class="m-cluster__bg" x="3290.00" y="664.75" width="451.00" height="295.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="3515.50" y="690.75" text-anchor="middle">評分引擎</text>
     </g>
     <g class="m-cluster" data-feature="eval-reporter">
-      <rect class="m-cluster__bg" x="20.00" y="2014.00" width="252.00" height="156.00" rx="14" ry="14" />
-      <text class="m-cluster__title" x="146.00" y="2040.00" text-anchor="middle">評測報告</text>
+      <rect class="m-cluster__bg" x="4015.00" y="700.25" width="252.00" height="185.00" rx="14" ry="14" />
+      <text class="m-cluster__title" x="4141.00" y="726.25" text-anchor="middle">評測報告</text>
     </g>
     <a class="m-node m-node--service" href="features/codegraph/cg-lifecycle.html" data-feature="codegraph" data-submodule="cg-lifecycle" tabindex="0" aria-label="cg-lifecycle — Manage CodeGraph index lifecycle — init, sync, status, search — open sub-module page">
       <title>cg-lifecycle — Manage CodeGraph index lifecycle — init, sync, status, search</title>
-      <rect x="36.00" y="1561.00" width="393.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="232.50" y="1591.00" text-anchor="middle">cg-lifecycle</text>
-      <text class="m-node__kind" x="232.50" y="1607.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="232.50" y="1627.00" text-anchor="middle">Manage CodeGraph index lifecycle — init, sync, status, search</text>
+      <rect x="36.00" y="447.00" width="393.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="232.50" y="477.00" text-anchor="middle">cg-lifecycle</text>
+      <text class="m-node__kind" x="232.50" y="493.00" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="232.50" y="513.00" text-anchor="middle">Manage CodeGraph index lifecycle — init, sync, status, search</text>
     </a>
     <a class="m-node m-node--service" href="features/codegraph/cg-discovery.html" data-feature="codegraph" data-submodule="cg-discovery" tabindex="0" aria-label="cg-discovery — Explore and survey code structure — explore, survey, list-apis — open sub-module page">
       <title>cg-discovery — Explore and survey code structure — explore, survey, list-apis</title>
-      <rect x="701.00" y="1561.00" width="399.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="900.50" y="1591.00" text-anchor="middle">cg-discovery</text>
-      <text class="m-node__kind" x="900.50" y="1607.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="900.50" y="1627.00" text-anchor="middle">Explore and survey code structure — explore, survey, list-apis</text>
+      <rect x="701.00" y="447.00" width="399.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="900.50" y="477.00" text-anchor="middle">cg-discovery</text>
+      <text class="m-node__kind" x="900.50" y="493.00" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="900.50" y="513.00" text-anchor="middle">Explore and survey code structure — explore, survey, list-apis</text>
     </a>
     <a class="m-node m-node--service" href="features/codegraph/cg-validation.html" data-feature="codegraph" data-submodule="cg-validation" tabindex="0" aria-label="cg-validation — Verify architecture proposals and batch-apply atlas mutations — open sub-module page">
       <title>cg-validation — Verify architecture proposals and batch-apply atlas mutations</title>
-      <rect x="1352.00" y="1536.43" width="400.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="1552.00" y="1566.43" text-anchor="middle">cg-validation</text>
-      <text class="m-node__kind" x="1552.00" y="1582.43" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="1552.00" y="1602.43" text-anchor="middle">Verify architecture proposals and batch-apply atlas mutations</text>
+      <rect x="1352.00" y="422.43" width="400.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="1552.00" y="452.43" text-anchor="middle">cg-validation</text>
+      <text class="m-node__kind" x="1552.00" y="468.43" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="1552.00" y="488.43" text-anchor="middle">Verify architecture proposals and batch-apply atlas mutations</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-optimizer/issue-extractor.html" data-feature="eval-optimizer" data-submodule="issue-extractor" tabindex="0" aria-label="issue-extractor — 從score.json提取問題、分類統計 — open sub-module page">
       <title>issue-extractor — 從score.json提取問題、分類統計</title>
-      <rect x="36.00" y="64.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="146.00" y="94.00" text-anchor="middle">issue-extractor</text>
-      <text class="m-node__kind" x="146.00" y="110.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="146.00" y="130.00" text-anchor="middle">從score.json提取問題、分類統計</text>
+      <rect x="3260.50" y="410.75" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="3370.50" y="440.75" text-anchor="middle">issue-extractor</text>
+      <text class="m-node__kind" x="3370.50" y="456.75" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="3370.50" y="476.75" text-anchor="middle">從score.json提取問題、分類統計</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-optimizer/dedup-engine.html" data-feature="eval-optimizer" data-submodule="dedup-engine" tabindex="0" aria-label="dedup-engine — Jaccard+Judge語意去重 — open sub-module page">
       <title>dedup-engine — Jaccard+Judge語意去重</title>
-      <rect x="272.00" y="64.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="382.00" y="94.00" text-anchor="middle">dedup-engine</text>
-      <text class="m-node__kind" x="382.00" y="110.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="382.00" y="130.00" text-anchor="middle">Jaccard+Judge語意去重</text>
+      <rect x="3260.50" y="520.75" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="3370.50" y="550.75" text-anchor="middle">dedup-engine</text>
+      <text class="m-node__kind" x="3370.50" y="566.75" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="3370.50" y="586.75" text-anchor="middle">Jaccard+Judge語意去重</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-optimizer/diff-generator.html" data-feature="eval-optimizer" data-submodule="diff-generator" tabindex="0" aria-label="diff-generator — FIND/REPLACE diff生成與備份/復原 — open sub-module page">
       <title>diff-generator — FIND/REPLACE diff生成與備份/復原</title>
-      <rect x="36.00" y="174.00" width="223.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="147.50" y="204.00" text-anchor="middle">diff-generator</text>
-      <text class="m-node__kind" x="147.50" y="220.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="147.50" y="240.00" text-anchor="middle">FIND/REPLACE diff生成與備份/復原</text>
+      <rect x="3259.00" y="300.75" width="223.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="3370.50" y="330.75" text-anchor="middle">diff-generator</text>
+      <text class="m-node__kind" x="3370.50" y="346.75" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="3370.50" y="366.75" text-anchor="middle">FIND/REPLACE diff生成與備份/復原</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-cli/cli-handler.html" data-feature="eval-cli" data-submodule="cli-handler" tabindex="0" aria-label="cli-handler — ToolDefinition註冊、參數解析、流程編排 — open sub-module page">
       <title>cli-handler — ToolDefinition註冊、參數解析、流程編排</title>
-      <rect x="2145.00" y="1590.50" width="259.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="2274.50" y="1620.50" text-anchor="middle">cli-handler</text>
-      <text class="m-node__kind" x="2274.50" y="1636.50" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="2274.50" y="1656.50" text-anchor="middle">ToolDefinition註冊、參數解析、流程編排</text>
+      <rect x="2145.00" y="551.00" width="259.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="2274.50" y="581.00" text-anchor="middle">cli-handler</text>
+      <text class="m-node__kind" x="2274.50" y="597.00" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="2274.50" y="617.00" text-anchor="middle">ToolDefinition註冊、參數解析、流程編排</text>
     </a>
     <a class="m-node m-node--ui" href="features/eval-cli/progress-display.html" data-feature="eval-cli" data-submodule="progress-display" tabindex="0" aria-label="progress-display — 終端機進度指示 — open sub-module page">
       <title>progress-display — 終端機進度指示</title>
-      <rect x="2164.50" y="1700.50" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="2274.50" y="1730.50" text-anchor="middle">progress-display</text>
-      <text class="m-node__kind" x="2274.50" y="1746.50" text-anchor="middle">UI</text>
-      <text class="m-node__role" x="2274.50" y="1766.50" text-anchor="middle">終端機進度指示</text>
+      <rect x="2164.50" y="441.00" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="2274.50" y="471.00" text-anchor="middle">progress-display</text>
+      <text class="m-node__kind" x="2274.50" y="487.00" text-anchor="middle">UI</text>
+      <text class="m-node__role" x="2274.50" y="507.00" text-anchor="middle">終端機進度指示</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-ci-gate/workflow-trigger.html" data-feature="eval-ci-gate" data-submodule="workflow-trigger" tabindex="0" aria-label="workflow-trigger — GitHub Actions workflow on PR skill file change — open sub-module page">
       <title>workflow-trigger — GitHub Actions workflow on PR skill file change</title>
-      <rect x="1447.00" y="1760.00" width="310.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="1602.00" y="1790.00" text-anchor="middle">workflow-trigger</text>
-      <text class="m-node__kind" x="1602.00" y="1806.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="1602.00" y="1826.00" text-anchor="middle">GitHub Actions workflow on PR skill file change</text>
+      <rect x="2691.00" y="448.25" width="310.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="2846.00" y="478.25" text-anchor="middle">workflow-trigger</text>
+      <text class="m-node__kind" x="2846.00" y="494.25" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="2846.00" y="514.25" text-anchor="middle">GitHub Actions workflow on PR skill file change</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-ci-gate/pr-reporter.html" data-feature="eval-ci-gate" data-submodule="pr-reporter" tabindex="0" aria-label="pr-reporter — PR評論回報評測結果 — open sub-module page">
       <title>pr-reporter — PR評論回報評測結果</title>
-      <rect x="1447.00" y="1870.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="1557.00" y="1900.00" text-anchor="middle">pr-reporter</text>
-      <text class="m-node__kind" x="1557.00" y="1916.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="1557.00" y="1936.00" text-anchor="middle">PR評論回報評測結果</text>
+      <rect x="2736.00" y="558.25" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="2846.00" y="588.25" text-anchor="middle">pr-reporter</text>
+      <text class="m-node__kind" x="2846.00" y="604.25" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="2846.00" y="624.25" text-anchor="middle">PR評論回報評測結果</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-isolation/tool-dispatcher.html" data-feature="eval-isolation" data-submodule="tool-dispatcher" tabindex="0" aria-label="tool-dispatcher — 工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護 — open sub-module page">
       <title>tool-dispatcher — 工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護</title>
-      <rect x="36.00" y="958.00" width="492.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="282.00" y="988.00" text-anchor="middle">tool-dispatcher</text>
-      <text class="m-node__kind" x="282.00" y="1004.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="282.00" y="1024.00" text-anchor="middle">工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護</text>
+      <rect x="3280.00" y="1064.75" width="492.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="3526.00" y="1094.75" text-anchor="middle">tool-dispatcher</text>
+      <text class="m-node__kind" x="3526.00" y="1110.75" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="3526.00" y="1130.75" text-anchor="middle">工具調用攔截系統：讀取工具在workspace內真實執行、寫入工具模擬回傳、路徑穿越防護</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-question/question-loader.html" data-feature="eval-question" data-submodule="question-loader" tabindex="0" aria-label="question-loader — 題目載入與JSON Schema驗證 — open sub-module page">
       <title>question-loader — 題目載入與JSON Schema驗證</title>
-      <rect x="36.00" y="362.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="146.00" y="392.00" text-anchor="middle">question-loader</text>
-      <text class="m-node__kind" x="146.00" y="408.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="146.00" y="428.00" text-anchor="middle">題目載入與JSON Schema驗證</text>
+      <rect x="2947.00" y="64.00" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="3057.00" y="94.00" text-anchor="middle">question-loader</text>
+      <text class="m-node__kind" x="3057.00" y="110.00" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="3057.00" y="130.00" text-anchor="middle">題目載入與JSON Schema驗證</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-question/variant-generator.html" data-feature="eval-question" data-submodule="variant-generator" tabindex="0" aria-label="variant-generator — LLM變體生成，保留評分標準 — open sub-module page">
       <title>variant-generator — LLM變體生成，保留評分標準</title>
-      <rect x="36.00" y="472.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="146.00" y="502.00" text-anchor="middle">variant-generator</text>
-      <text class="m-node__kind" x="146.00" y="518.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="146.00" y="538.00" text-anchor="middle">LLM變體生成，保留評分標準</text>
+      <rect x="2947.00" y="174.00" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="3057.00" y="204.00" text-anchor="middle">variant-generator</text>
+      <text class="m-node__kind" x="3057.00" y="220.00" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="3057.00" y="240.00" text-anchor="middle">LLM變體生成，保留評分標準</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-executor/trace-recorder.html" data-feature="eval-executor" data-submodule="trace-recorder" tabindex="0" aria-label="trace-recorder — 多輪tool-use loop軌跡記錄：tool_call/tool_result事件序列、JSONL行號標記、.done完成標記 — open sub-module page">
       <title>trace-recorder — 多輪tool-use loop軌跡記錄：tool_call/tool_result事件序列、JSONL行號標記、.done完成標記</title>
-      <rect x="36.00" y="1146.00" width="290.00" height="126.00" rx="10" ry="10" />
-      <text class="m-node__title" x="181.00" y="1176.00" text-anchor="middle">trace-recorder</text>
-      <text class="m-node__kind" x="181.00" y="1192.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="181.00" y="1212.00" text-anchor="middle">多輪tool-use loop軌跡記錄：</text>
-      <text class="m-node__role" x="181.00" y="1228.00" text-anchor="middle">tool_call/tool_result事件序列、JSONL行號標</text>
-      <text class="m-node__role" x="181.00" y="1244.00" text-anchor="middle">記、.done完成標記</text>
+      <rect x="2718.00" y="885.25" width="290.00" height="126.00" rx="10" ry="10" />
+      <text class="m-node__title" x="2863.00" y="915.25" text-anchor="middle">trace-recorder</text>
+      <text class="m-node__kind" x="2863.00" y="931.25" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="2863.00" y="951.25" text-anchor="middle">多輪tool-use loop軌跡記錄：</text>
+      <text class="m-node__role" x="2863.00" y="967.25" text-anchor="middle">tool_call/tool_result事件序列、JSONL行號標</text>
+      <text class="m-node__role" x="2863.00" y="983.25" text-anchor="middle">記、.done完成標記</text>
     </a>
     <a class="m-node m-node--api" href="features/eval-executor/exec-api-client.html" data-feature="eval-executor" data-submodule="exec-api-client" tabindex="0" aria-label="exec-api-client — Exec Model HTTP client with retry — open sub-module page">
       <title>exec-api-client — Exec Model HTTP client with retry</title>
-      <rect x="36.00" y="1288.00" width="227.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="149.50" y="1318.00" text-anchor="middle">exec-api-client</text>
-      <text class="m-node__kind" x="149.50" y="1334.00" text-anchor="middle">API</text>
-      <text class="m-node__role" x="149.50" y="1354.00" text-anchor="middle">Exec Model HTTP client with retry</text>
+      <rect x="2749.50" y="775.25" width="227.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="2863.00" y="805.25" text-anchor="middle">exec-api-client</text>
+      <text class="m-node__kind" x="2863.00" y="821.25" text-anchor="middle">API</text>
+      <text class="m-node__role" x="2863.00" y="841.25" text-anchor="middle">Exec Model HTTP client with retry</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-scorer/judge-prompt-builder.html" data-feature="eval-scorer" data-submodule="judge-prompt-builder" tabindex="0" aria-label="judge-prompt-builder — 評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示 — open sub-module page">
       <title>judge-prompt-builder — 評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示</title>
-      <rect x="36.00" y="660.00" width="419.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="245.50" y="690.00" text-anchor="middle">judge-prompt-builder</text>
-      <text class="m-node__kind" x="245.50" y="706.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="245.50" y="726.00" text-anchor="middle">評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示</text>
+      <rect x="3306.00" y="737.75" width="419.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="3515.50" y="767.75" text-anchor="middle">judge-prompt-builder</text>
+      <text class="m-node__kind" x="3515.50" y="783.75" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="3515.50" y="803.75" text-anchor="middle">評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示</text>
     </a>
     <a class="m-node m-node--api" href="features/eval-scorer/judge-api-client.html" data-feature="eval-scorer" data-submodule="judge-api-client" tabindex="0" aria-label="judge-api-client — Judge Model HTTP client with parse fallback — open sub-module page">
       <title>judge-api-client — Judge Model HTTP client with parse fallback</title>
-      <rect x="36.00" y="770.00" width="287.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="179.50" y="800.00" text-anchor="middle">judge-api-client</text>
-      <text class="m-node__kind" x="179.50" y="816.00" text-anchor="middle">API</text>
-      <text class="m-node__role" x="179.50" y="836.00" text-anchor="middle">Judge Model HTTP client with parse fallback</text>
+      <rect x="3372.00" y="847.75" width="287.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="3515.50" y="877.75" text-anchor="middle">judge-api-client</text>
+      <text class="m-node__kind" x="3515.50" y="893.75" text-anchor="middle">API</text>
+      <text class="m-node__role" x="3515.50" y="913.75" text-anchor="middle">Judge Model HTTP client with parse fallback</text>
     </a>
     <a class="m-node m-node--service" href="features/eval-reporter/report-composer.html" data-feature="eval-reporter" data-submodule="report-composer" tabindex="0" aria-label="report-composer — Markdown報告組合與渲染 — open sub-module page">
       <title>report-composer — Markdown報告組合與渲染</title>
-      <rect x="36.00" y="2058.00" width="220.00" height="94.00" rx="10" ry="10" />
-      <text class="m-node__title" x="146.00" y="2088.00" text-anchor="middle">report-composer</text>
-      <text class="m-node__kind" x="146.00" y="2104.00" text-anchor="middle">Service</text>
-      <text class="m-node__role" x="146.00" y="2124.00" text-anchor="middle">Markdown報告組合與渲染</text>
+      <rect x="4031.00" y="773.25" width="220.00" height="94.00" rx="10" ry="10" />
+      <text class="m-node__title" x="4141.00" y="803.25" text-anchor="middle">report-composer</text>
+      <text class="m-node__kind" x="4141.00" y="819.25" text-anchor="middle">Service</text>
+      <text class="m-node__role" x="4141.00" y="839.25" text-anchor="middle">Markdown報告組合與渲染</text>
     </a>
     <g class="m-edge m-edge--data-row m-edge--cross" data-edge="cg-e-001">
       <path d="M409.00,185.40 L419.00,185.40 L419.00,182.77 L663.00,182.77 L663.00,191.67 L681.00,191.67" fill="none" marker-end="url(#arrow-data-row)" />
@@ -209,27 +209,63 @@
       </text>
     </g>
     <g class="m-edge m-edge--call m-edge--cross" data-edge="cg-e-003">
-      <path d="M429.00,1636.20 L439.00,1636.20 L439.00,1665.00 L2129.00,1665.00" fill="none" marker-end="url(#arrow-call)" />
-      <text class="m-edge__label" x="1951.00" y="1683.00" text-anchor="middle">
+      <path d="M429.00,522.20 L439.00,522.20 L439.00,551.00 L2129.00,551.00" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="1951.00" y="569.00" text-anchor="middle">
         <tspan x="1951.00">codegraph init --index 與 eval-cli 共用</tspan>
         <tspan x="1951.00" dy="14">CLI 工具基礎架構</tspan>
       </text>
     </g>
+    <g class="m-edge m-edge--call m-edge--cross" data-edge="eval-cli-exec">
+      <path d="M2404.00,598.00 L2435.00,598.00 L2435.00,948.25 L2718.00,948.25" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="2541.00" y="966.25" text-anchor="middle">
+        <tspan x="2541.00">evalHandler 觸發 runSingleTest</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--call m-edge--cross" data-edge="eval-exec-iso">
+      <path d="M3008.00,969.25 L3039.00,969.25 L3039.00,1111.75 L3280.00,1111.75" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="3124.00" y="1129.75" text-anchor="middle">
+        <tspan x="3124.00">執行隔離環境中的工具調用</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--data-row m-edge--cross" data-edge="eval-exec-scorer">
+      <path d="M3008.00,927.25 L3049.00,927.25 L3049.00,784.75 L3306.00,784.75" fill="none" marker-end="url(#arrow-data-row)" />
+      <text class="m-edge__label" x="3157.00" y="802.75" text-anchor="middle">
+        <tspan x="3157.00">trace events 送入評分</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--data-row m-edge--cross" data-edge="eval-scorer-reporter">
+      <path d="M3741.00,792.75 L4015.00,792.75" fill="none" marker-end="url(#arrow-data-row)" />
+      <text class="m-edge__label" x="3878.00" y="810.75" text-anchor="middle">
+        <tspan x="3878.00">ScoreResult 送入報告組合</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--data-row m-edge--cross" data-edge="eval-exec-optimizer">
+      <path d="M3024.00,917.25 L3039.00,917.25 L3039.00,430.25 L3243.00,430.25" fill="none" marker-end="url(#arrow-data-row)" />
+      <text class="m-edge__label" x="3130.00" y="448.25" text-anchor="middle">
+        <tspan x="3130.00">執行結果觸發優化</tspan>
+      </text>
+    </g>
+    <g class="m-edge m-edge--call m-edge--cross" data-edge="eval-cli-ci">
+      <path d="M2420.00,588.00 L2475.00,588.00 L2475.00,522.75 L2675.00,522.75" fill="none" marker-end="url(#arrow-call)" />
+      <text class="m-edge__label" x="2550.00" y="512.75" text-anchor="middle">
+        <tspan x="2550.00">CI 模式下觸發 PR 回報</tspan>
+      </text>
+    </g>
     <g class="m-edge m-edge--data-row" data-edge="cg-fe-001">
-      <path d="M429.00,1598.60 L439.00,1598.60 L439.00,1592.33 L701.00,1592.33" fill="none" marker-end="url(#arrow-data-row)" />
-      <text class="m-edge__label" x="565.00" y="1582.33" text-anchor="middle">
+      <path d="M429.00,484.60 L439.00,484.60 L439.00,478.33 L701.00,478.33" fill="none" marker-end="url(#arrow-data-row)" />
+      <text class="m-edge__label" x="565.00" y="468.33" text-anchor="middle">
         <tspan x="565.00">survey/list-apis 依賴已索引的資料庫</tspan>
       </text>
     </g>
     <g class="m-edge m-edge--data-row" data-edge="cg-fe-002">
-      <path d="M1100.00,1592.33 L1334.00,1592.33 L1334.00,1583.43 L1352.00,1583.43" fill="none" marker-end="url(#arrow-data-row)" />
-      <text class="m-edge__label" x="1226.00" y="1582.33" text-anchor="middle">
+      <path d="M1100.00,478.33 L1334.00,478.33 L1334.00,469.43 L1352.00,469.43" fill="none" marker-end="url(#arrow-data-row)" />
+      <text class="m-edge__label" x="1226.00" y="468.33" text-anchor="middle">
         <tspan x="1226.00">verify 使用 discovery 的搜尋能力</tspan>
       </text>
     </g>
     <g class="m-edge m-edge--data-row" data-edge="cg-fe-003">
-      <path d="M1352.00,1559.93 L1334.00,1559.93 L1334.00,1544.00 L439.00,1544.00 L439.00,1579.80 L429.00,1579.80" fill="none" marker-end="url(#arrow-data-row)" />
-      <text class="m-edge__label" x="900.50" y="1520.00" text-anchor="middle">
+      <path d="M1352.00,445.93 L1334.00,445.93 L1334.00,430.00 L439.00,430.00 L439.00,465.80 L429.00,465.80" fill="none" marker-end="url(#arrow-data-row)" />
+      <text class="m-edge__label" x="900.50" y="406.00" text-anchor="middle">
         <tspan x="900.50">apply 非索引操作，不需 lifecycle — 但</tspan>
         <tspan x="900.50" dy="14">template 可搭配 list-apis</tspan>
       </text>

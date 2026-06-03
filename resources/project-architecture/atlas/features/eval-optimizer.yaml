@@ -6,14 +6,29 @@ submodules:
   - slug: issue-extractor
     kind: service
     role: 從score.json提取問題、分類統計
-    functions: []
+    functions:
+      - name: extractIssues
+        in: scores
+        out: RawIssue[]
+        side: pure
+        purpose: 從 score.json 提取問題與分類統計
+      - name: generateOptimizationPlan
+        in: issues
+        out: OptimizationPlan
+        side: pure
+        purpose: 從去重後問題生成 FIND/REPLACE 優化 diff
     variables: []
     dataflow: []
     errors: []
   - slug: dedup-engine
     kind: service
     role: Jaccard+Judge語意去重
-    functions: []
+    functions:
+      - name: deduplicateIssues
+        in: issues
+        out: DedupedIssue[]
+        side: pure
+        purpose: Jaccard+Judge 語意去重
     variables: []
     dataflow: []
     errors: []

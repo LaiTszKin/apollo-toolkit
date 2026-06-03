@@ -45,9 +45,11 @@ test('dist/tool-registration.js TOOL_MODULE_NAMES uses only forward slashes', ()
     );
   }
 
-  // Also verify the array contains at least some expected relative paths
+  // Verify the array contains tools — either as relative paths or @laitszkin bare specifiers
+  const hasRelativePaths = toolModuleNames.includes("'../../tools/");
+  const hasBareSpecifiers = toolModuleNames.includes("'@laitszkin/tool-");
   assert.ok(
-    toolModuleNames.includes("'../../tools/"),
-    `Expected relative paths with forward slashes in TOOL_MODULE_NAMES, got:\n${toolModuleNames.slice(0, 200)}`
+    hasRelativePaths || hasBareSpecifiers,
+    `Expected tool references in TOOL_MODULE_NAMES, got:\n${toolModuleNames.slice(0, 200)}`
   );
 });

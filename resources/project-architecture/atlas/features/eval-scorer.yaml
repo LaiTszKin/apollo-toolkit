@@ -6,14 +6,24 @@ submodules:
   - slug: judge-prompt-builder
     kind: service
     role: 評分提示詞構建：trace事件摘要含JSONL行號(L{N})引用、三維度評分指示
-    functions: []
+    functions:
+      - name: buildJudgePrompt
+        in: trace, scoreCriteria
+        out: string
+        side: pure
+        purpose: 將 trace 事件摘要轉為評分提示詞
     variables: []
     dataflow: []
     errors: []
   - slug: judge-api-client
     kind: api
     role: Judge Model HTTP client with parse fallback
-    functions: []
+    functions:
+      - name: callJudgeModel
+        in: prompt, options
+        out: ScoreResult
+        side: io
+        purpose: 呼叫 Judge Model API 進行評分
     variables: []
     dataflow: []
     errors: []

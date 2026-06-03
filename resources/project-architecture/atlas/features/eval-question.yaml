@@ -6,14 +6,24 @@ submodules:
   - slug: question-loader
     kind: service
     role: 題目載入與JSON Schema驗證
-    functions: []
+    functions:
+      - name: loadQuestions
+        in: specDir
+        out: Question[]
+        side: pure
+        purpose: 載入題目並進行 JSON Schema 驗證
     variables: []
     dataflow: []
     errors: []
   - slug: variant-generator
     kind: service
     role: LLM變體生成，保留評分標準
-    functions: []
+    functions:
+      - name: generateVariants
+        in: questions, count
+        out: Question[]
+        side: io
+        purpose: LLM 變體生成，保留評分標準
     variables: []
     dataflow: []
     errors: []
