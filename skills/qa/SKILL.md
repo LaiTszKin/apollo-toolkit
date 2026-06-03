@@ -84,17 +84,18 @@ Design principles:
 
 ### 5. Analyze Fix Dependencies → FIX.md Section 4
 
-- **File overlap dependency**: Multiple issues touch the same area of the same file → must be sequential
+- **File overlap dependency**: Multiple issues touch the same file → must be sequential. This is a hard constraint — parallel workers are only permitted when file sets have ZERO overlap, regardless of logical independence
 - **Logical dependency**: Fix B depends on Fix A being completed first
 - **Independent issues**: No file overlap and no logical dependency → can be parallel
 - **Regression test dependency**: Regression tests must run after their corresponding fix is complete (tests verify the fixed code)
 
-### 6. Detect File Overlap
+### 6. Detect File Overlap (Parallelism Gate)
 
-Perform file overlap detection across all fixes and regression tests:
+File overlap detection is the **gate that determines parallel vs sequential execution**. Perform this across all fixes and regression tests:
+
 1. Collect the file list for each fix and regression test
-2. Compare file lists and mark overlaps
-3. Overlapping work must not run in parallel and cannot be assigned to different workers
+2. Compare file lists and mark overlaps — zero overlap is the only condition for parallel execution
+3. Any file overlap at all → must be sequential. This is a hard constraint — never dispatch parallel workers for overlapping files
 
 ### 7. Write Worker Prompts
 
@@ -144,9 +145,9 @@ Each regression test worker prompt must include:
 
 ### 8. Create Batch Schedule → FIX.md Section 7
 
-**Batch partitioning principles:**
-- Fix batches: Ordered by dependencies. P0 issues first.
-- Regression test batches: Dispatched **after all fixes are complete**, because tests verify the fixed code. Regression tests without file overlap can run in parallel.
+**Batch partitioning principles (file overlap is the hard gate):**
+- Fix batches: Ordered by dependencies. P0 issues first. Within each batch, workers require ZERO file overlap to run in parallel — overlapping fixes must be sequentialized across sub-batches
+- Regression test batches: Dispatched **after all fixes are complete**, because tests verify the fixed code. Regression tests without file overlap can run in parallel; those sharing files must be sequential
 - Final batch: Full test suite + lint + confirmation that all issues are resolved.
 
 **Typical schedule:**

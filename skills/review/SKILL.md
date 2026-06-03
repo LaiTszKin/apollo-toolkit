@@ -32,7 +32,7 @@ Using each requirement's implementation scope and affected files (from DESIGN.md
 
 ### 2. Dispatch Per-requirement Subagents
 
-Create one subagent per requirement (Requirement N). All subagents can review source code in parallel.
+**Mandatory: one agent per requirement.** Every `### Requirement N` must have its own dedicated review agent. Never merge requirements or skip any requirement. All subagents can review source code in parallel.
 
 **If a previous REPORT.md exists**: Condense its verdict and key findings into one history entry. Prepend it to the Review History section, keeping all past rounds. Then perform a fresh review — do not let prior results bias the new assessment.
 
@@ -58,19 +58,51 @@ Each subagent's task:
 | **P2 — Requirement Risk** | Functionality is correct but there are potential risks (architecture deviation, security weakness, performance bottleneck). This finding does **NOT** affect current requirement satisfaction. | → Needs Attention |
 | **P3 — Suggestion** | Functionality is fully correct. Code can be improved but nothing is blocking. This finding does **NOT** affect any requirement's satisfaction. | → Ready to Merge |
 
-If the same code corresponds to multiple requirements, cross-agent findings are handled in the synthesis phase.
+### 3. Identify Cross-requirement Connections
 
-### 3. Synthesize Review Results
+After all per-requirement subagents have completed, analyze the collected findings and requirement scopes to detect interactions:
 
-Collect all subagent findings and synthesize:
+- **Shared modules**: Multiple requirements touch the same code modules or utilities
+- **Shared data structures**: Multiple requirements read/write the same data structures or state
+- **Functional coupling**: One requirement's output feeds into another's input path
+- **Same-file modifications**: Multiple requirements modify the same file (merge conflict risk)
+- **Findings cross-references**: Individual agents flagged code that affects multiple requirements
+
+Group connected requirements into **Requirement Groups**:
+
+- Two requirements are connected if they share any interaction type above
+- Connections are transitive: if A connects to B and B connects to C, all three form one group
+- An isolated requirement (no connections to any other) is its own group of size 1
+
+Output: Requirement Groups list, each with:
+- Grouped requirement IDs
+- Interaction type (shared module, shared data, functional coupling, file overlap)
+- Interaction summary for group-level review
+
+### 4. Dispatch Group Subagents
+
+Create one review agent per Requirement Group. Each group agent reviews the **interactions between requirements** within its group:
+
+1. Read the individual review findings for all requirements in the group
+2. Focus on interaction-level concerns:
+   - **Interface mismatch**: One requirement's output consumed by another — does the contract align?
+   - **Side effect risk**: Changes for one requirement break assumptions of another
+   - **Merge conflict potential**: Same-file modifications require careful ordering
+   - **Architecture consistency**: Combined changes maintain DESIGN.md integrity
+3. Classify interaction findings using the same severity scale (P0-P3)
+4. Report findings scoped to the group interaction
+
+### 5. Synthesize Review Results
+
+Collect findings from both per-requirement and group subagents:
 
 1. **Dedup overlapping findings**: Merge identical issues found by multiple agents into a single finding. Preserve dimension-specific notes from each agent.
-2. **Resort by severity**: Reorder all findings by P0 → P3 across the entire list (not per-agent order).
+2. **Resort by severity**: Reorder all findings by P0 → P3 across the entire list.
 3. **Collapse empty severity levels**: If a severity level has zero findings, do NOT generate its table header or column labels.
-4. **Cross-requirement interaction check**: Identify code introduced for one requirement that modifies shared modules or data structures used by another requirement. Flag these as potential interaction risks (P2).
-5. **Conditional dimension summary**: If total findings exceed 5, include a one-line summary of finding counts per dimension. Otherwise omit — the findings table itself is sufficient.
+4. **Include group-level findings**: Cross-requirement interaction findings sit alongside individual findings.
+5. **Conditional dimension summary**: If total findings exceed 5, include a one-line summary of finding counts per dimension. Otherwise omit.
 
-### 4. Generate REPORT.md
+### 6. Generate REPORT.md
 
 Use `assets/templates/REPORT.md` and populate accordingly.
 
@@ -87,8 +119,6 @@ Include the following sections:
 | Has P0 or P1 findings | Needs Work |
 | No P0/P1, has P2 findings | Needs Attention |
 | Only P3 or no findings | Ready to Merge |
-
-The verdict is derived directly from the severity of findings. P0 and P1 are defined as "requirement not satisfied" — if they exist, the review must fail. If only P3 exists, requirements are satisfied and no P3 finding can block a merge.
 
 **The report must NOT contain** fix suggestions, root cause analysis, or verification methods. These are handled by the `qa` skill.
 

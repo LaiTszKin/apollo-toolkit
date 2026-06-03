@@ -53,7 +53,7 @@ Decompose the architecture design from DESIGN.md into tasks precise to the file 
 
 **Decide whether each task needs an independent worker:**
 - Touches ≥2 files → needs independent worker
-- No file overlap between tasks → can run in parallel workers
+- **No file overlap between tasks → workers may run in parallel.** This is permitted ONLY when file lists have ZERO overlap across all workers within the same batch. Any shared file between tasks means sequential execution — this is a hard constraint to prevent overwrite conflicts.
 - File overlap or logical dependency between tasks → must run sequentially
 - Purely procedural operations (lockfile update, merge, commit) → no worker needed; coordinator handles directly
 
@@ -78,13 +78,13 @@ Analyze dependencies between specs:
 
 Output: Spec DAG.
 
-### 5. Detect File Overlap
+### 5. Detect File Overlap (Parallelism Gate)
 
-Perform file overlap detection across all task units:
+File overlap detection is the **gate that determines parallelism**. Perform this across all task units:
 
 1. Collect the file list each task unit is expected to modify
-2. Compare file lists and mark overlaps
-3. File-overlapping task units must not run in parallel and cannot be assigned to different workers
+2. Compare file lists and mark overlaps — zero overlap is the **only** condition for parallel execution
+3. Any file overlap at all → must be sequential. This is a hard constraint — never dispatch parallel workers for tasks sharing a file
 
 ### 6. Write Worker Prompts (One Per Dispatchable Task)
 
@@ -114,8 +114,8 @@ Tasks that do not need a worker (purely procedural operations) do not get a work
 
 Based on dependency analysis and file overlap detection, build the batch schedule → PROMPT.md Section 7 (Batch Schedule).
 
-**Batch partitioning principles:**
-- Within the same batch: tasks have no file overlap and no logical dependency → can dispatch workers in parallel
+**Batch partitioning principles (file overlap is the hard gate):**
+- Within the same batch: tasks must have ZERO file overlap — only then may they dispatch workers in parallel. File-overlapping tasks must be placed in separate sequential batches regardless of dependency
 - Between batches: the previous batch must complete and pass its gate before the next batch begins
 - A final integration batch handles housekeeping tasks (lockfile update, final test suite)
 
