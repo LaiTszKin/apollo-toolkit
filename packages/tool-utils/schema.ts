@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util';
 import type { ParseArgsOptionsConfig } from 'node:util';
 import type { ToolContext } from '@laitszkin/tool-registry';
+import { UserInputError, SystemError } from './app-error.js';
 
 /** Option definition for parseArgs schema. */
 export type SchemaOption =
@@ -94,7 +95,13 @@ export function createToolRunner(schema: ToolSchema) {
 
       return await schema.handler(values as Record<string, unknown>, positionals, context);
     } catch (err) {
-      stderr.write(`Error: ${(err as Error).message}\n`);
+      if (err instanceof UserInputError) {
+        stderr.write(`${err.message}\n`);
+      } else if (err instanceof SystemError) {
+        stderr.write(`${err.message}\n${err.stack}\n`);
+      } else {
+        stderr.write(`Error: ${(err as Error).message}\n`);
+      }
       return 1;
     }
   };
