@@ -19,6 +19,9 @@ dist/
 assets/spec/*/test_*/
 results/
 
+# Coverage reports (generated from c8 / --experimental-test-coverage)
+coverage/
+
 # Node — after clone or `npm install -g`, dependencies live here locally only.
 # Root package-lock.json MUST stay committed (not ignored) so `npm ci` and npm
 # installs resolve the same tree as published versions (e.g. elkjs, js-yaml for
