@@ -12,7 +12,6 @@ import { handleVerify } from './lib/cmd-verify.js';
 export async function codegraphHandler(args: string[], context: ToolContext): Promise<number> {
   const stdout = context.stdout || process.stdout;
   const stderr = context.stderr || process.stderr;
-  const projectRoot = findProjectRoot(context.cwd || process.cwd());
 
   // Parse --json flag early (can appear anywhere)
   const jsonIndex = args.indexOf('--json');
@@ -33,6 +32,20 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
   if (rest.includes('--help') || rest.includes('-h')) {
     printSubcommandHelp(subcommand, stdout, stderr);
     return 0;
+  }
+
+  // findProjectRoot requires @colbymchenry/codegraph — only called after
+  // help checks so that --help works without the optional dependency installed.
+  let projectRoot: string;
+  try {
+    projectRoot = findProjectRoot(context.cwd || process.cwd());
+  } catch (error: any) {
+    if (error.code === 'MODULE_NOT_FOUND' || (error.message && error.message.includes('Cannot find module'))) {
+      stderr.write('`@colbymchenry/codegraph` is not installed. Run `npm install @colbymchenry/codegraph` in your project directory.\n');
+    } else {
+      stderr.write(`Error finding project root: ${error.message}\n`);
+    }
+    return 1;
   }
 
   // Parse --spec <dir> for verify
