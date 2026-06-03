@@ -207,9 +207,11 @@ Compatibility note:
 
 ## Code Intelligence: CodeGraph
 
-Apollo Toolkit 的 `apltk codegraph` 子命令系統建構於 [**@colbymchenry/codegraph**](https://github.com/colbymchenry/codegraph) — 由 Colt McHenry 開發的 tree-sitter 程式碼知識圖譜引擎。CodeGraph 將原始碼解析為節點（函式、類別）與邊（呼叫關係）的 SQLite 資料庫，支援 FTS5 全文搜尋與結構化查詢。
+The `apltk codegraph` subcommand system is built on [**@colbymchenry/codegraph**](https://github.com/colbymchenry/codegraph), a tree-sitter-backed code knowledge graph engine by Colt McHenry. CodeGraph parses source code into nodes (functions, classes) and edges (call relationships) in a local SQLite database, supporting FTS5 full-text search and structured queries.
 
-感謝 Colt McHenry 的傑出工作，使 LLM agent 能以確定性方式取代 grep/Read 來探索程式碼結構。
+Special thanks to Colt McHenry for this excellent work, enabling LLM agents to discover code structure deterministically instead of relying on grep/Read.
+
+## Release publishing
 
 ## Release publishing
 
