@@ -73,6 +73,7 @@ const TOOL_NAMES = [
   'generate-storyboard-images',
   'enforce-video-aspect-ratio',
   'architecture',
+  'codegraph',
   'eval',
   'create-specs',
   'create-review-report',
