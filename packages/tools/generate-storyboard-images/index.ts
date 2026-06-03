@@ -4,110 +4,7 @@ import https from 'node:https';
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-
-interface StoryboardArgs {
-  contentName: string | null;
-  projectDir: string;
-  envFile: string | null;
-  apiUrl: string | null;
-  apiKey: string | null;
-  promptsFile: string | null;
-  prompts: string[];
-  imageModel: string | null;
-  aspectRatio: string | null;
-  imageSize: string | null;
-  quality: string | null;
-  style: string | null;
-  help: boolean;
-}
-
-function parseArgs(args: string[]): StoryboardArgs {
-  const parsed: StoryboardArgs = {
-    contentName: null,
-    projectDir: '.',
-    envFile: null,
-    apiUrl: null,
-    apiKey: null,
-    promptsFile: null,
-    prompts: [],
-    imageModel: null,
-    aspectRatio: null,
-    imageSize: null,
-    quality: null,
-    style: null,
-    help: false,
-  };
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (arg === '--help' || arg === '-h') {
-      parsed.help = true;
-      continue;
-    }
-    if (arg.startsWith('--')) {
-      const eqIndex = arg.indexOf('=');
-      let key: string;
-      let value: string;
-
-      if (eqIndex !== -1) {
-        key = arg.slice(2, eqIndex);
-        value = arg.slice(eqIndex + 1);
-      } else {
-        key = arg.slice(2);
-        if (key === 'prompt') {
-          // --prompt can be multiple
-          value = args[++i] || '';
-          parsed.prompts.push(value);
-          continue;
-        }
-        value = args[++i] || '';
-      }
-
-      switch (key) {
-        case 'input':
-        case 'content-name':
-          parsed.contentName = value;
-          break;
-        case 'project-dir':
-          parsed.projectDir = value;
-          break;
-        case 'env-file':
-          parsed.envFile = value;
-          break;
-        case 'api-url':
-          parsed.apiUrl = value;
-          break;
-        case 'api-key':
-          parsed.apiKey = value;
-          break;
-        case 'prompts-file':
-          parsed.promptsFile = value;
-          break;
-        case 'image-model':
-          parsed.imageModel = value;
-          break;
-        case 'aspect-ratio':
-          parsed.aspectRatio = value;
-          break;
-        case 'image-size':
-        case 'size':
-          parsed.imageSize = value;
-          break;
-        case 'quality':
-          parsed.quality = value;
-          break;
-        case 'style':
-          parsed.style = value;
-          break;
-      }
-    } else if (!parsed.contentName && !arg.startsWith('-')) {
-      // positional: content name
-      parsed.contentName = arg;
-    }
-  }
-
-  return parsed;
-}
+import { UserInputError, SystemError, createToolRunner } from '@laitszkin/tool-utils';
 
 function sanitizeComponent(name: string, fallback: string): string {
   return name
@@ -284,47 +181,64 @@ function parsePromptsFile(filePath: string): Array<{ title: string; prompt: stri
   throw new Error('Top-level JSON must be an array or an object.');
 }
 
-export async function generateStoryboardImagesHandler(args: string[], context: ToolContext): Promise<number> {
-  const stdout = context.stdout || process.stdout;
-  const stderr = context.stderr || process.stderr;
+const schema = {
+  options: {
+    'input': { type: 'string' as const },
+    'content-name': { type: 'string' as const },
+    'project-dir': { type: 'string' as const, default: '.' },
+    'env-file': { type: 'string' as const },
+    'api-url': { type: 'string' as const },
+    'api-key': { type: 'string' as const },
+    'prompts-file': { type: 'string' as const },
+    'prompt': { type: 'string' as const },
+    'image-model': { type: 'string' as const },
+    'aspect-ratio': { type: 'string' as const },
+    'image-size': { type: 'string' as const },
+    'size': { type: 'string' as const },
+    'quality': { type: 'string' as const },
+    'style': { type: 'string' as const },
+  },
+  allowPositionals: true,
+  usage: 'apltk generate-storyboard-images --input <name> [options]',
+  description: 'Generate storyboard images from prompts via OpenAI-compatible API.',
+  handler: async (
+    values: Record<string, unknown>,
+    positionals: string[],
+    context: ToolContext,
+  ): Promise<number> => {
+    const stdout = context.stdout || process.stdout;
+    const stderr = context.stderr || process.stderr;
 
-  try {
-    const opts = parseArgs(args);
+    const contentName = (values['input'] as string | undefined) ||
+      (values['content-name'] as string | undefined) ||
+      positionals[0] ||
+      null;
 
-    if (opts.help || (!opts.contentName)) {
-      stdout.write(`Usage: apltk generate-storyboard-images --input <name> [options]
+    const projectDir = (values['project-dir'] as string) || '.';
+    const envFile = (values['env-file'] as string | undefined) ?? null;
+    const apiUrl = (values['api-url'] as string | undefined) ?? null;
+    const apiKey = (values['api-key'] as string | undefined) ?? null;
+    const promptsFile = (values['prompts-file'] as string | undefined) ?? null;
+    const prompts = (values['prompt'] as string[] | undefined) || [];
+    const imageModel = (values['image-model'] as string | undefined) ?? null;
+    const aspectRatio = (values['aspect-ratio'] as string | undefined) ?? null;
+    const imageSize = (values['image-size'] as string | undefined) || (values['size'] as string | undefined) || null;
+    const quality = (values['quality'] as string | undefined) ?? null;
+    const style = (values['style'] as string | undefined) ?? null;
 
-Generate storyboard images from prompts via OpenAI-compatible API.
-
-Options:
-  --input, --content-name <name>  Output subfolder name under pictures/
-  --project-dir <path>            Project root (default: .)
-  --env-file <path>               Path to .env file
-  --api-url <url>                 API base URL for /images/generations
-  --api-key <key>                 API key
-  --prompts-file <path>           JSON file with prompt entries
-  --prompt <text>                 Image prompt (repeatable)
-  --image-model <model>           Image model (default: gpt-image-1)
-  --aspect-ratio <ratio>          Aspect ratio, e.g. 16:9
-  --image-size <size>             Image size, e.g. 1024x768
-  --quality <q>                   Image quality
-  --style <style>                 Image style
-
-Either --prompts-file or at least one --prompt is required.
-`);
-      return opts.contentName ? 1 : 0;
+    if (!contentName) {
+      throw new UserInputError('--input or --content-name is required.');
     }
 
-    const projectDir = path.resolve(opts.projectDir);
-    const contentName = opts.contentName;
+    const resolvedProjectDir = path.resolve(projectDir);
 
     // Resolve API config
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const sourceRoot = context.sourceRoot || path.resolve(__dirname, '..', '..');
 
     // Try loading env file
-    const envFilePath = opts.envFile
-      ? path.resolve(opts.envFile)
+    const envFilePath = envFile
+      ? path.resolve(envFile)
       : path.join(sourceRoot, 'openai-text-to-image-storyboard', '.env');
     if (fs.existsSync(envFilePath)) {
       const envContent = fs.readFileSync(envFilePath, 'utf-8');
@@ -346,40 +260,36 @@ Either --prompts-file or at least one --prompt is required.
       }
     }
 
-    const apiUrl = opts.apiUrl || process.env.OPENAI_API_URL || '';
-    const apiKey = opts.apiKey || process.env.OPENAI_API_KEY || '';
-    const imageModel = opts.imageModel || process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
-    const aspectRatio = opts.aspectRatio || process.env.OPENAI_IMAGE_RATIO || process.env.OPENAI_IMAGE_ASPECT_RATIO || null;
-    const imageSize = opts.imageSize || process.env.OPENAI_IMAGE_SIZE || null;
-    const quality = opts.quality || process.env.OPENAI_IMAGE_QUALITY || null;
-    const style = opts.style || process.env.OPENAI_IMAGE_STYLE || null;
+    const resolvedApiUrl = apiUrl || process.env.OPENAI_API_URL || '';
+    const resolvedApiKey = apiKey || process.env.OPENAI_API_KEY || '';
+    const resolvedImageModel = imageModel || process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
+    const resolvedAspectRatio = aspectRatio || process.env.OPENAI_IMAGE_RATIO || process.env.OPENAI_IMAGE_ASPECT_RATIO || null;
+    const resolvedImageSize = imageSize || process.env.OPENAI_IMAGE_SIZE || null;
+    const resolvedQuality = quality || process.env.OPENAI_IMAGE_QUALITY || null;
+    const resolvedStyle = style || process.env.OPENAI_IMAGE_STYLE || null;
 
-    if (!apiUrl) {
-      stderr.write('Error: Missing API URL. Set --api-url or OPENAI_API_URL.\n');
-      return 1;
+    if (!resolvedApiUrl) {
+      throw new UserInputError('Missing API URL. Set --api-url or OPENAI_API_URL.');
     }
-    if (!apiKey) {
-      stderr.write('Error: Missing API key. Set --api-key or OPENAI_API_KEY.\n');
-      return 1;
+    if (!resolvedApiKey) {
+      throw new UserInputError('Missing API key. Set --api-key or OPENAI_API_KEY.');
     }
 
     // Build prompt items
     let promptItems: Array<{ title: string; prompt: string }>;
-    if (opts.promptsFile) {
-      promptItems = parsePromptsFile(path.resolve(opts.promptsFile));
-    } else if (opts.prompts.length > 0) {
-      promptItems = opts.prompts.map((p, i) => ({ title: `scene-${i + 1}`, prompt: p.trim() }));
+    if (promptsFile) {
+      promptItems = parsePromptsFile(path.resolve(promptsFile));
+    } else if (prompts.length > 0) {
+      promptItems = prompts.map((p, i) => ({ title: `scene-${i + 1}`, prompt: p.trim() }));
     } else {
-      stderr.write('Error: Either --prompts-file or at least one --prompt is required.\n');
-      return 1;
+      throw new UserInputError('Either --prompts-file or at least one --prompt is required.');
     }
 
     if (promptItems.length === 0) {
-      stderr.write('Error: No prompts provided.\n');
-      return 1;
+      throw new UserInputError('No prompts provided.');
     }
 
-    const outputDir = path.join(projectDir, 'pictures', sanitizeComponent(contentName, 'untitled-content'));
+    const outputDir = path.join(resolvedProjectDir, 'pictures', sanitizeComponent(contentName, 'untitled-content'));
     fs.mkdirSync(outputDir, { recursive: true });
 
     const records: Array<Record<string, unknown>> = [];
@@ -390,15 +300,15 @@ Either --prompts-file or at least one --prompt is required.
       const imagePath = uniquePath(path.join(outputDir, `${String(i + 1).padStart(2, '0')}_${titleSlug}.png`));
 
       const payload: Record<string, unknown> = {
-        model: imageModel,
+        model: resolvedImageModel,
         prompt: item.prompt,
       };
-      if (aspectRatio) payload.aspect_ratio = aspectRatio;
-      if (imageSize) payload.size = imageSize;
-      if (quality) payload.quality = quality;
-      if (style) payload.style = style;
+      if (resolvedAspectRatio) payload.aspect_ratio = resolvedAspectRatio;
+      if (resolvedImageSize) payload.size = resolvedImageSize;
+      if (resolvedQuality) payload.quality = resolvedQuality;
+      if (resolvedStyle) payload.style = resolvedStyle;
 
-      const response = await postJson(apiUrl, '/images/generations', apiKey, payload);
+      const response = await postJson(resolvedApiUrl, '/images/generations', resolvedApiKey, payload);
 
       const data = response.data;
       if (!Array.isArray(data) || data.length === 0) {
@@ -436,29 +346,25 @@ Either --prompts-file or at least one --prompt is required.
     // Write summary
     const summary: Record<string, unknown> = {
       content_name: contentName,
-      project_dir: projectDir,
+      project_dir: resolvedProjectDir,
       output_dir: outputDir,
-      image_model: imageModel,
+      image_model: resolvedImageModel,
       images: records,
     };
-    if (aspectRatio) summary.aspect_ratio = aspectRatio;
-    if (imageSize) summary.image_size = imageSize;
+    if (resolvedAspectRatio) summary.aspect_ratio = resolvedAspectRatio;
+    if (resolvedImageSize) summary.image_size = resolvedImageSize;
 
     const summaryPath = path.join(outputDir, 'storyboard.json');
     fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2), 'utf-8');
     stdout.write(`[OK] Wrote plan to ${summaryPath}\n`);
 
     return 0;
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Unknown error';
-    stderr.write(`Error: ${msg}\n`);
-    return 1;
-  }
-}
+  },
+};
 
 export const tool: ToolDefinition = {
   name: 'generate-storyboard-images',
   category: 'media',
   description: 'Generate storyboard images from prompts via OpenAI-compatible API.',
-  handler: generateStoryboardImagesHandler,
+  handler: createToolRunner(schema),
 };
