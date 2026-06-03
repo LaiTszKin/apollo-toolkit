@@ -3,8 +3,8 @@
 - **Date**: 2026-06-04
 - **Source REPORT**: `docs/plans/2026-06-04/cli-refactor/REPORT.md`
 - **Source Spec**: `docs/plans/2026-06-04/cli-refactor/`
-- **Total Issues**: P0: 0, P1: 4, P2: 13, P3: 6
-- **Total Regression Tests**: 10
+- **Total Issues**: P0: 1, P1: 1, P2: 4
+- **Total Regression Tests**: 6
 
 ---
 
@@ -37,43 +37,20 @@
 
 ## 2. Mission
 
-修復 CLI refactoring 審查中發現的 23 項問題（4 P1, 13 P2, 6 P3）。
+修復 CLI refactoring 第二輪審查中發現的 6 項問題（1 P0, 1 P1, 4 P2），涵蓋 create-specs handler 的 `parseArgs` 引數遺漏、單一 schema 宣告機制的架構建立、sync-memory-index 的 SystemError stack trace、StdioWriter 生產整合、sync-memory-index 測試路徑偏移，以及 ToolNotFoundError 的 dead code 啟用。共 6 個 Fix Worker、6 個 Regression Test Worker。
 
-主要修復方向：
-- **P1 優先**：讓 3 個工具使用 AppError、修正 stdout→stderr 錯誤輸出、讓 PlatformAdapter 被消費、建立單一 schema 宣告模式
-- **P2 接著**：統一 catch block 型別處理、補充 error boundary 測試、合併重複型別定義、清理 dead code、改善 CI 設定
-- **P3 最後**：清理 dead code、補充缺失的 --help、改善測試品質
-
-共 10 個 Fix Worker（合併無檔案衝突的簡單修復）和 10 個 Regression Test Worker。批次策略：依檔案重疊分組，無重疊者平行執行。
-
-**Success looks like**: All 23 issues in REPORT.md are fixed, all 10 regression tests pass, full test suite passes, no regressions.
+**Success looks like**: All 6 issues in REPORT.md are fixed, all 6 regression tests pass, full test suite passes, no regressions.
 
 ---
 
 ## 3. Issue Inventory
 
-- FIX-01 (P1, 簡單, 實作遺漏): 3 tools（validate-skill-frontmatter, validate-openai-agent-config, sync-memory-index）未使用 AppError 階層；其中 2 tools 無 try/catch
-- FIX-02 (P1, 簡單, 規格偏差): 2 tools（validate-skill-frontmatter, validate-openai-agent-config）將錯誤資訊寫入 stdout
-- FIX-03 (P1, 簡單, 架構瑕疵): 兩份 parser 的 catch block 擲出 `Error` 而非 `UserInputError`
-- FIX-04 (P1, 簡單, 實作遺漏): PlatformAdapter 未被任何生產程式碼消費；`process.platform` 殘留於 `installer.ts:362`, `terminal.ts:33`
-- FIX-05 (P2, 簡單, 結構化輸出): StdioWriter 未被消費；18 個工具重複 stdout/stderr fallback 樣板
-- FIX-06 (P2, 簡單, 重複程式碼): `--home` 錯誤訊息正規化邏輯重複於 install-parser 與 uninstall-parser
-- FIX-07 (P2, 簡單, 規格偏差): `--symlink` 與 `--copy` 衝突處理不透明
-- FIX-08 (P2, 簡單, 規格偏差): 8 個工具拋出 typed error 但以泛型 catch 捕獲
-- FIX-09 (P2, 簡單, 測試涵蓋): CLI error boundary 缺少 3 個 `AppError` 分支的測試
-- FIX-10 (P2, 中等, 架構瑕疵): 型別重複定義於 `parsers/types.ts` 與 `types.ts`；無正式 dispatch table
-- FIX-11 (P2, 簡單, 實作遺漏): 2 個 validation 工具中 `parseArgs` 為 dead code
-- FIX-12 (P2, 簡單, 實作遺漏): `filter-logs` 缺少 `--help` 處理
-- FIX-13 (P2, 簡單, CI): `test/` 測試在 CI 中執行兩次；`find|xargs` 測試發現方式脆弱
-- FIX-14 (P3, 簡單, dead code): `ToolNotFoundError` 是 dead code
-- FIX-15 (P3, 簡單, 測試): 無 HelpTextBuilder 輸出對等性測試
-
-*其餘 P2/P3 發現項標記為「by design」或「文件更新」：*
-- P2#13 (tool-level help 統一): 與單一 schema 目標相關，不在此階段處理
-- P2#14 (coverage exclude): 屬 DESIGN 階段化規劃，已在 package.json 註解說明
-- P2#16 (package tests 排除): 已在 coverage script 註解說明
-- P3#20 (toolsHelp 外部依賴): 正常架構耦合，無需變更
-- P3#21 (測試匯入 dist/): 現有測試慣例，無需變更
+- FIX-01 (P0, 簡單, 實作遺漏): create-specs handler 的 `parseArgs()` 遺漏 `args: args` 參數 — `packages/tools/create-specs/index.ts`
+- FIX-02 (P1, 複雜, 實作遺漏): 仍無單一 schema 宣告機制 — `packages/tool-utils/` + `packages/tools/*/index.ts`
+- FIX-03 (P2, 簡單, 規格偏差): sync-memory-index 的 SystemError 分支未輸出 stack trace — `packages/tools/sync-memory-index/index.ts`
+- FIX-04 (P2, 中等, 實作遺漏): StdioWriter 未被生產程式碼消費 — `packages/cli/index.ts`, `packages/cli/types.ts`, `packages/tui/`
+- FIX-05 (P2, 簡單, 測試涵蓋): sync-memory-index 測試依賴 `run()` 而非直接 handler 測試 — `test/tools/sync-memory-index-error.test.js`
+- FIX-06 (P2, 簡單, 多餘代碼): ToolNotFoundError 為 dead code — `packages/tool-registry/registry.ts`
 
 ---
 
@@ -81,304 +58,192 @@
 
 ### Dependencies
 
-- FIX-01 與 FIX-02 操作同一批檔案（validate-skill-frontmatter 與 validate-openai-agent-config）→ 必須依序執行
-- FIX-03, FIX-06, FIX-07 都操作 `packages/cli/parsers/` 下的檔案 → 合併為單一 worker (FIX-A)
-- FIX-09 (boundary tests) 依賴 FIX-08 (type consolidation) 先完成，因為 boundary 測試可能受 type 重整影響回傳型別
-- FIX-10 (dispatch table) 依賴 FIX-08 (type consolidation) 先完成
+- FIX-03 (SystemError stack) 與 FIX-05 (test reformat) 操作同一個 handler → 邏輯相依：FIX-03 先改 handler 行為，FIX-05 再修正測試以驗證新行為
+- FIX-04 (StdioWriter) 修改 `cli/index.ts`，不影響其他 fix
+- FIX-02 (schema) 建立新型別與新 helper，不影響其他 fix (轉換 filter-logs 為示範)
+- FIX-06 (ToolNotFoundError) 修改 `tool-registry/registry.ts`，不影響其他 fix
 - 所有 REGTEST 依賴對應的 FIX 先完成
 
 ### File overlaps
 
 | Worker | Files | Overlaps With |
 |--------|-------|--------------|
-| FIX-01 + FIX-02 + FIX-11 (`validate-tools`) | `packages/tools/validate-skill-frontmatter/index.ts`, `packages/tools/validate-openai-agent-config/index.ts` | 自身（合併為一個 worker） |
-| FIX-01 (`sync-memory-index`) | `packages/tools/sync-memory-index/index.ts` | 無（與 validate tools 不同檔案） |
-| FIX-03 + FIX-06 + FIX-07 (`parsers`) | `packages/cli/parsers/install-parser.ts`, `packages/cli/parsers/uninstall-parser.ts` | FIX-04 無 |
-| FIX-04 (`platform-adapter`) | `packages/cli/index.ts`, `packages/cli/installer.ts`, `packages/cli/updater.ts`, `packages/tui/terminal.ts` | FIX-08 有（`index.ts`）→ 必須依序 |
-| FIX-05 (`stdio-writer`) | `packages/cli/index.ts`, `packages/tui/stdio-adapter.ts` | FIX-04 有（`index.ts`）→ 必須依序 |
-| FIX-08 (`dispatch-table`) | `packages/cli/index.ts`, `packages/cli/parsers/types.ts`, `packages/cli/types.ts` | FIX-04 有（`index.ts`）、FIX-10 有 |
-| FIX-09 (`boundary-tests`) | `test/cli/error-boundary.test.js` | 無 |
-| FIX-10 (`type-dup`) | `packages/cli/types.ts`, `packages/cli/parsers/types.ts` | FIX-08 有 |
-| FIX-12 (`filter-logs-help`) | `packages/tools/filter-logs/index.ts` | 無 |
-| FIX-13 (`ci-fix`) | `package.json`, `.github/workflows/test.yml` | 無 |
-| FIX-14 (`tool-not-found`) | `packages/tool-utils/app-error.ts` | 無 |
-| FIX-15 (`htb-parity`) | `test/cli/help-text-builder.test.js` | 無 |
-| FIX-08 (`catch-typed`) | 8 個工具檔案 | 無（每個工具獨立檔案） |
+| FIX-01 | `packages/tools/create-specs/index.ts` | 無 |
+| FIX-02 | `packages/tool-utils/schema.ts` (新), `packages/tools/filter-logs/index.ts` | 無 |
+| FIX-03 | `packages/tools/sync-memory-index/index.ts` | 無 (FIX-05 操作不同檔案: test file) |
+| FIX-04 | `packages/cli/index.ts`, `packages/cli/types.ts`, `packages/tui/stdio-adapter.ts` | 無 |
+| FIX-05 | `test/tools/sync-memory-index-error.test.js` | 無 (FIX-03 操作 source file) |
+| FIX-06 | `packages/tool-registry/registry.ts` | 無 |
 
-### Parallelism Matrix
+**所有 Fix Worker 的檔案集完全無重疊** → 全部可平行執行。
 
-| | Fix01-02-11 | Fix01-sync | Fix03-06-07 | Fix04 | Fix05 | Fix08 | Fix09 | Fix10 | Fix12 | Fix13 | Fix14 | Fix15 | Fix08-catch |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Fix01-02-11 | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix01-sync | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix03-06-07 | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix04 | ✅ | ✅ | ✅ | — | ❌ (index.ts) | ❌ (index.ts) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix05 | ✅ | ✅ | ✅ | ❌ (index.ts) | — | ❌ (index.ts) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix08 | ✅ | ✅ | ✅ | ❌ (index.ts) | ❌ (index.ts) | — | ✅ | ❌ (types.ts) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix09 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix10 | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ (types.ts) | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fix12 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| Fix13 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ |
-| Fix14 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ |
-| Fix15 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| Fix08-catch | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+> **注意**：FIX-03 與 FIX-05 雖有邏輯相依（FIX-03 改 handler → FIX-05 改對應測試），但兩者操作不同檔案（source vs test），可平行執行。Regression test worker 的 verify 步驟需等待 source fix 完成。
 
 ---
 
 ## 5. Fix Details (with Regression Test Design)
 
-### FIX-01+02+11: 修復 2 個 validation tool 的錯誤處理與輸出 (P1)
+### FIX-01: create-specs handler 遺漏 `args` 參數 (P0)
 
-**Root cause**: `validate-skill-frontmatter/index.ts` 與 `validate-openai-agent-config/index.ts` 從未在 `@laitszkin/tool-utils` 中匯入 AppError 類別，handler 缺少 try/catch 包裹，錯誤資訊寫入 stdout，且 `parseArgs` 呼叫無效（empty options, return value 未解構）。
+**Root cause**: `packages/tools/create-specs/index.ts` 第 42 行呼叫 `parseArgs({options: {...}, allowPositionals: true})` 時遺漏 `args: args` 參數。`parseArgs` 在無 `args` 時使用 `process.argv.slice(2)` 而非 tool arguments，導致所有 positional argument 永遠為空陣列。
 
-**Files involved**:
-- `packages/tools/validate-skill-frontmatter/index.ts` → `validateSkillFrontmatterHandler()` (L90-125)
-- `packages/tools/validate-openai-agent-config/index.ts` → `validateOpenaiAgentConfigHandler()` (L184-218)
+**Files involved**: `packages/tools/create-specs/index.ts:42` → `createSpecsHandler()` (L38-158)
 
-**Fix approach**:
-1. 在兩個 handler 中加入 try/catch 包裹
-2. 匯入 `UserInputError` 和 `SystemError`（不需要改錯誤拋出，validate 函數內的 throw new Error 可維持或改為 UserInputError）
-3. 將 handler 內所有 `stdout.write()` 的錯誤輸出改為 `stderr.write()`
-4. 移除無效的 `parseArgs({ args, options: {}, allowPositionals: true })` 呼叫（兩處）
-5. 在 catch block 中使用 `err instanceof UserInputError / SystemError / Error` 分支
-
-**Complexity**: Simple
-
-**Regression test:** REGTEST-01 (Integration → `test/tools/validation-error-handling.test.js`)
-- GIVEN 一個無效的 SKILL.md 檔案 WHEN 執行 `validate-skill-frontmatter` handler THEN 錯誤訊息寫入 stderr 且 exit code 為 1
-- Oracle: 修正前錯誤訊息在 stdout；修正後在 stderr
-
----
-
-### FIX-01 (sync-memory-index): 修復 sync-memory-index 的 AppError 支援 (P1)
-
-**Root cause**: `sync-memory-index/index.ts` 未從 `@laitszkin/tool-utils` 匯入任何內容，catch block 使用泛型 `Error()`。
-
-**Files involved**: `packages/tools/sync-memory-index/index.ts` → `syncMemoryIndexHandler()` (L88-128)
-
-**Fix approach**:
-1. 匯入 `UserInputError`, `SystemError` 從 `@laitszkin/tool-utils`
-2. 在 catch block 中使用 `instanceof` 分支：先檢查 `UserInputError` → `SystemError` → 泛型 `Error`
-
-**Complexity**: Simple
-
-**Regression test:** REGTEST-02 (Unit → `test/tools/sync-memory-index-error.test.js`)
-- GIVEN 無效的 `--agents-file` 路徑 WHEN handler 執行 THEN 輸出至 stderr 且 exit code 為 1
-
----
-
-### FIX-03+06+07: 修復 parser 的錯誤處理與衝突檢測 (P1+P2)
-
-**Root cause**: 
-- `install-parser.ts` 與 `uninstall-parser.ts` 的 catch block 使用 `throw new Error(...)` 而非 `UserInputError`
-- `--home` 錯誤正規化邏輯重複於兩個 parser
-- `--symlink` 與 `--copy` 同時傳入時靜默以最後檢查者為準
-
-**Files involved**:
-- `packages/cli/parsers/install-parser.ts` → parse() (L16-77)
-- `packages/cli/parsers/uninstall-parser.ts` → parse() (L15-61)
-
-**Fix approach**:
-1. 將兩份 parser 的 catch block 中的 `throw new Error('Missing value for --home')` 改為 `throw new UserInputError('Missing value for --home')`
-2. 將 `--home` 錯誤正規化邏輯抽取為靜態方法或共用 helper（可在 `parsers/types.ts` 或新檔案 `parsers/parser-utils.ts`）
-3. 在 install-parser 加入 `--symlink` 與 `--copy` 同時傳入時的明確拋錯
-
-**Complexity**: Simple
-
-**Regression test:** REGTEST-03 (Unit → update `test/cli/install-args-parser.test.js`)
-- GIVEN `--symlink --copy` WHEN parser.parse() THEN 擲出 UserInputError
-- Oracle: 修正前靜默以 copy 為準；修正後拋出明確錯誤
-
-**Regression test:** REGTEST-04 (Unit → update `test/cli/install-args-parser.test.js`)
-- GIVEN `--home` 無值 WHEN parser.parse() THEN 擲出 UserInputError（而非泛型 Error）
-- Oracle: 修正前為 `Error`；修正後為 `UserInputError`
-
----
-
-### FIX-04: 讓 PlatformAdapter 被消費 (P1)
-
-**Root cause**: `createPlatformAdapter()` 被定義、匯出、測試，但沒有任何生產程式碼呼叫它。`installer.ts:362` 與 `terminal.ts:33` 仍直接使用 `process.platform`。
-
-**Files involved**:
-- `packages/cli/installer.ts` → `replaceWithSymlink()` (L359-363)
-- `packages/tui/terminal.ts` → `isInteractive()` (L33)
-- `packages/cli/updater.ts` → `execCommand()` (L63-96) — 使用 `spawn` 但未透過 adapter 的 `resolveCommand()`
-- `packages/cli/index.ts` — 需建立 adapter 實例並注入或作為模組級變數
-
-**Fix approach**:
-1. 在 `packages/cli/index.ts` 中建立 `const platformAdapter = createPlatformAdapter()` 作為模組級變數
-2. 在 `installer.ts` 的 `replaceWithSymlink()` 中，將 `process.platform === 'win32' ? 'junction' : 'dir'` 改為接收 adapter 或直接匯入 `createPlatformAdapter`
-3. 在 `terminal.ts` 的 `isInteractive()` 中，可加入 `PlatformAdapter.isWindows()` 輔助方法，或保留現有邏輯（TTY 檢測本質上就是平台特定的）
-4. 在 `updater.ts` 的 `execCommand()` 中，使用 `platformAdapter.resolveCommand(command)` 包裝命令名稱
-5. 將 `resolveHomeDirectory()`（installer.ts）改為使用 `platformAdapter.homeDir()` 或將其對齊
-
-**Complexity**: Complex — 跨 4 個檔案，需確保 Adapter 的注入順序正確
-
-**Regression test:** REGTEST-05 (Unit → update `test/utils/platform-adapter.test.js`)
-- GIVEN WindowsAdapter WHEN `resolveCommand('npm')` THEN 回傳 `'npm.cmd'`
-- Oracle：既有測試已涵蓋，不需新增（只需確認 adapter 被消費者使用）
-
-**Regression test:** REGTEST-06 (Integration → `test/cli/platform-adapter-consumption.test.js`)
-- GIVEN `cli/index.ts` 已被修正為匯入 PlatformAdapter WHEN 檢查 `installer.ts` 內的 symlink 類型判斷 THEN 應透過 `createPlatformAdapter().symlinkType()` 而非直接 `process.platform`
-- Oracle：使用 grep 或 AST 掃描確認無直接 `process.platform` 用於 symlink 類型判斷
-
----
-
-### FIX-05: StdioWriter 整合 (P2)
-
-**Root cause**: `StdioWriter` 與 `StdioWriterImpl` 已定義但未被任何生產程式碼使用。所有 18 個工具仍透過直接的 `stdout.write()`/`stderr.write()` 輸出。
-
-**Files involved**: `packages/cli/index.ts`, `packages/tui/stdio-adapter.ts`
-
-**Fix approach**:
-1. 不修改所有 18 個工具（scope 太大），而是在 `packages/cli/index.ts` 的 `run()` 中建立 `StdioWriter` 實例
-2. 將 `StdioWriter` 加入 `CliContext` 型別（可選欄位）
-3. 在建築架構文檔中標記 StdioWriter 為「可供工具作者使用」
-
-**Complexity**: Simple（最小整合，非全面推廣）
-
-**Regression test:** No automated test needed. Add note in architecture docs.
-
----
-
-### FIX-08: 修復 8 個工具的泛型 catch (P2)
-
-**Root cause**: 8 個工具匯入 `UserInputError`/`SystemError` 並正確拋出，但 catch block 使用 `stderr.write(`Error: ${...message}\n`)` 的泛型模式，未利用 `instanceof` 分支。
-
-**Files involved**（8 個工具）:
-1. `packages/tools/create-review-report/index.ts`
-2. `packages/tools/create-specs/index.ts`
-3. `packages/tools/docs-to-voice/index.ts`
-4. `packages/tools/enforce-video-aspect-ratio/index.ts`
-5. `packages/tools/generate-storyboard-images/index.ts`
-6. `packages/tools/open-github-issue/index.ts`
-7. `packages/tools/render-katex/index.ts`
-8. `packages/tools/review-threads/index.ts`
-
-**Fix approach**: 在每個工具的 catch block 中加入 `instanceof` 分支：
+**Fix approach**: 在 `parseArgs()` 的 options object 中加入 `args: args`：
+```typescript
+const { values, positionals } = parseArgs({
+  args,  // ← 加入此行
+  options: { ... },
+  allowPositionals: true,
+});
 ```
-catch (err) {
-  if (err instanceof UserInputError) {
-    stderr.write(`${err.message}\n`);
-  } else if (err instanceof SystemError) {
-    stderr.write(`${err.message}\n${err.stack}\n`);
-  } else {
-    stderr.write(`Error: ${(err as Error).message}\n`);
-  }
+
+**Complexity**: Simple — 單行變更
+
+**Regression test:** REGTEST-01 (Integration → 使用既有 `test/tools/create-specs.test.js`)
+- 4 個既有 failing test 即為 regression tests
+- Oracle: 修正前 handler 總是回傳 1（positionals 為空陣列）；修正後正確解析 positional argument，handler 回傳 0
+
+---
+
+### FIX-02: 建立單一 schema 宣告機制 (P1)
+
+**Root cause**: 18 個工具全數以三份各自維護的程式碼（`parseArgs` options 定義、手寫 help 字串 block、事後 if 驗證）實作引數處理。無統一抽象層強制將這些資訊集中在同一個 schema 宣告中。
+
+**Files involved**: 
+- `packages/tool-utils/schema.ts` (新檔案) — `ToolSchema` 型別 + `createToolRunner()` helper
+- `packages/tools/filter-logs/index.ts` — 示範轉換（1 個工具）
+
+**Fix approach**:
+1. 在 `packages/tool-utils/` 下新增 `schema.ts`：
+   - 定義 `ToolSchema` 型別，包含 `options`, `helpText`, `usage`, `handler`
+   - 定義 `createToolRunner(schema: ToolSchema): ToolHandler` helper 函數
+   - helper 內部：`parseArgs` → `--help` 自動輸出 → 呼叫 `schema.handler(values, positionals, context)`
+2. 轉換 `packages/tools/filter-logs/index.ts` 為示範：
+   - 定義 `schema: ToolSchema` 
+   - handler 改為接收 `values` 與 `positionals`（由 `createToolRunner` 負責 arg parsing）
+   - 匯出 `tool` 時將 `schema` 傳遞給 `createToolRunner`
+
+> **後續工具轉換**：其餘 17 個工具的轉換為機械性操作，遵循相同模式。每個工具可獨立轉換，無檔案重疊，可在本批次完成後排入個別 worker。
+
+**Complexity**: Complex — 需設計型別系統與 helper 實作
+
+**Regression test:** REGTEST-02 (Integration → `test/tools/filter-logs.test.js`)
+- 既有的 filter-logs 測試透過 `run()` 間接測試，應全部繼續通過
+- GIVEN filter-logs 已轉換為 ToolSchema WHEN 執行 filter-logs handler THEN 所有既有行為不變
+
+---
+
+### FIX-03: sync-memory-index SystemError 分支未輸出 stack trace (P2)
+
+**Root cause**: `packages/tools/sync-memory-index/index.ts` 第 129 行對 `SystemError` 分支輸出 `Error: ${err.message}`，與 FIX-E 統一設定的模式不符（應為 `${err.message}\n${err.stack}`）。
+
+**Files involved**: `packages/tools/sync-memory-index/index.ts:127-129` → `syncMemoryIndexHandler()` catch block
+
+**Fix approach**: 將 L127-L129 由：
+```typescript
+} else if (err instanceof SystemError) {
+  stderr.write(`Error: ${err.message}\n`);
+```
+改為：
+```typescript
+} else if (err instanceof SystemError) {
+  stderr.write(`${err.message}\n${err.stack}\n`);
+```
+
+**Complexity**: Simple — 單行變更
+
+**Regression test:** REGTEST-03 (Unit → `test/tools/system-error-display.test.js`, 建立新測試)
+- GIVEN sync-memory-index handler catch block WHEN 捕捉到 SystemError THEN output 包含 stack trace（至少有一行 "at "）
+- Oracle: 修正前只有 "Error: message"；修正後有 "message\nSystemError: message\n at ..."
+
+---
+
+### FIX-04: StdioWriter 整合入生產程式碼 (P2)
+
+**Root cause**: `StdioWriter` 與 `StdioWriterImpl` 已定義、測試、匯出一年，但沒有任何生產程式碼呼叫 `createStdioWriter()`。所有 18 個工具仍透過 `context.stdout.write()`/`context.stderr.write()` 直接輸出。
+
+**Files involved**:
+- `packages/tui/stdio-adapter.ts` — 現有實作（不需修改）
+- `packages/cli/index.ts` — `run()` 建立 StdioWriter 實例
+- `packages/cli/types.ts` — `CliContext` 加入 `stdioWriter?: StdioWriter`
+
+**Fix approach**:
+1. 在 `packages/cli/index.ts` 的 `run()` 中建立模組級或函數級 `StdioWriter` 實例：
+   ```typescript
+   import { createStdioWriter } from '@laitszkin/tui';
+   const stdioWriter = createStdioWriter({ stdout, stderr, env });
+   ```
+2. 在 `packages/cli/types.ts` 的 `CliContext` 加入可選欄位：
+   ```typescript
+   import type { StdioWriter } from '@laitszkin/tui';
+   
+   export interface CliContext {
+     // ...existing fields...
+     stdioWriter?: StdioWriter;
+   }
+   ```
+3. 將 `CliContext` 中的 `stdioWriter` 設定為已建立的實例
+4. 不修改任何工具（scope 過大）— `stdioWriter` 為工具作者可選使用的基礎建設
+
+**Complexity**: Medium — 跨 2 個檔案，需確保型別匯入正確
+
+**Regression test:** REGTEST-04 (Integration → `test/cli/stdio-writer-context.test.js`)
+- GIVEN CliContext 包含 `stdioWriter` WHEN 在工具 handler 中存取 `context.stdioWriter` THEN 型別正確，可呼叫 `info()` / `error()` 等方法
+
+---
+
+### FIX-05: sync-memory-index 測試補強 (P2)
+
+**Root cause**: `test/tools/sync-memory-index-error.test.js` 透過 `run(['sync-memory-index', '--agents-file'])` 測試，依賴完整 CLI 派發鏈。`--agents-file` 的 `parseArgs` 擲回 `Error`（非 `UserInputError`），error boundary 以泛型處理，無法驗證 handler 內部的 `instanceof` 分支是否正確。
+
+**Files involved**: `test/tools/sync-memory-index-error.test.js`
+
+**Fix approach**:
+在既有測試檔案中新增直接 handler 測試：
+1. 從 `@laitszkin/tool-sync-memory-index` 匯入 `handler`
+2. 建立 mock stdout/stderr stream
+3. 直接呼叫 handler 並注入情境使 handler 拋出 `UserInputError` 與 `SystemError`
+4. 驗證 handler 的 catch block 行為符合預期（不經過 CLI boundary 的 error boundary）
+
+**Complexity**: Simple — 單一測試檔案修改
+
+**Regression test:** REGTEST-05 (Unit → `test/tools/sync-memory-index-error.test.js`, 新增測試)
+- GIVEN handler 被直接呼叫且業務邏輯擲出 UserInputError WHEN catch block 處理 THEN stderr 輸出 "Error: " 前綴
+- GIVEN handler 被直接呼叫且業務邏輯擲出 SystemError WHEN catch block 處理 THEN stderr 輸出 message + stack
+
+---
+
+### FIX-06: ToolNotFoundError 啟用為 live code (P2)
+
+**Root cause**: `ToolNotFoundError` 在 `app-error.ts` 中定義、匯出、測試，但沒有任何生產程式碼擲出或捕捉它。
+
+**Files involved**: `packages/tool-registry/registry.ts:31-33` → `runTool()` function
+
+**Fix approach**:
+將 `packages/tool-registry/registry.ts` 第 31-33 行的直接輸出改為拋出 `ToolNotFoundError`：
+```typescript
+// 修改前
+if (!tool) {
+  stderr.write(`Unknown tool: ${toolName}\n\nAvailable tools:\n${formatToolList()}\n`);
   return 1;
 }
+
+// 修改後
+if (!tool) {
+  throw new ToolNotFoundError(`Unknown tool: ${toolName}`);
+}
 ```
+CLI error boundary 會攔截 `ToolNotFoundError`（它繼承自 `AppError`），自動格式化為 `Error: Unknown tool: xxx` 輸出。
 
-**Complexity**: Simple — 8 個檔案相同的模式變更
+注意事項：
+- `formatToolList()` 的輸出會遺失，因為 error boundary 不輸出工具列表。需在 `CliContext` 或 error boundary 層處理工具列表顯示，或接受此行為變更（SPEC 無明確要求「未知工具時顯示列表」）
 
-**Regression test:** REGTEST-07 (Integration → `test/tools/system-error-display.test.js`)
-- GIVEN 一個會觸發 SystemError 的條件 WHEN handler 執行 THEN stderr 包含 stack trace
-- Oracle: 修正前只有 `Error: message`；修正後有 `message\nstack`
+**Complexity**: Simple — 單行變更，但需注意行為變更：原實作會顯示工具列表，新實作只顯示錯誤訊息
 
----
-
-### FIX-09: 補充 error boundary 測試 (P2)
-
-**Root cause**: `test/cli/error-boundary.test.js`（81 行, 4 個測試）只測試了泛型 `Error` 分支，`UserInputError`、`SystemError`、`AppError` 三個分支完全未被測試。
-
-**Files involved**: `test/cli/error-boundary.test.js`
-
-**Fix approach**: 新增 3 個測試案例：
-1. 模擬 `run()` 內拋出 `UserInputError` → 驗證 stderr 輸出不含「Error:」前綴，exit code 為 1
-2. 模擬 `run()` 內拋出 `SystemError` → 驗證 stderr 包含 stack trace，exit code 為 1
-3. 模擬 `run()` 內拋出 `ToolNotFoundError`（即 AppError） → 驗證 stderr 包含「Error:」前綴，exit code 為 1
-
-**Complexity**: Simple
-
-**Regression test:** REGTEST-08 (Unit → update `test/cli/error-boundary.test.js`)
-- 上述 3 個新測試案例即為 regression tests
-
----
-
-### FIX-10: 型別合併與 dispatch table (P2)
-
-**Root cause**: `parsers/types.ts` 與 `types.ts` 定義了完全相同的 4 個 command interface。`parseArguments` 傳回扁平的 `ParsedArguments` 而非強型別的 `ParsedCommand`。無正式的 dispatch table 資料結構。
-
-**Files involved**:
-- `packages/cli/parsers/types.ts`
-- `packages/cli/types.ts`
-- `packages/cli/index.ts` → `parseArguments()` (L80-170)
-
-**Fix approach**:
-1. 將 `parsers/types.ts` 設為 command type 的單一來源（single source of truth）
-2. 在 `types.ts` 中刪除重複的 `InstallCommand`、`UninstallCommand`、`ToolCommand`、`ToolsHelpCommand` 定義，改為從 `parsers/types.ts` 匯入
-3. 將 `parseArguments` 的 if/else 鏈改為 `Map<string, CommandParser<any>>` dispatch table
-4. 保留 `ParsedArguments` 作為向後相容的扁平型別
-
-**Complexity**: Medium — 需謹慎處理型別匯入與向後相容
-
-**Regression test:** REGTEST-09 (Unit → update `test/cli/dispatch-table.test.js`)
-- GIVEN 新增命令 `test-cmd` 註冊到 dispatch table WHEN `parseArguments(['test-cmd'])` THEN 回傳正確的命令類型
-- Oracle: 驗證新的 dispatch table 支援動態註冊
-
----
-
-### FIX-12: filter-logs 缺少 --help (P2)
-
-**Root cause**: `filter-logs/index.ts` 的 `parseArgs` schema 未定義 `help` 選項。
-
-**Files involved**: `packages/tools/filter-logs/index.ts` → parseArgs schema (L19-29)
-
-**Fix approach**:
-1. 在 schema 加入 `help: { type: 'boolean', short: 'h' }`
-2. 在 handler 加入 `if (values.help) { stdout.write(helpText); return 0; }`
-
-**Complexity**: Simple
-
-**Regression test:** No regtest (trivial change). Verification via manual inspection.
-
----
-
-### FIX-13: CI 測試重複執行與 xargs 脆弱性 (P2)
-
-**Root cause**: CI workflow 分別執行 `npm test` 和 `npm run test:coverage`，後者以 `find|xargs` 重新發現測試檔案。
-
-**Files involved**: `.github/workflows/test.yml`, `package.json`
-
-**Fix approach**:
-1. 在 `.github/workflows/test.yml` 中移除 `npm run test:coverage` 步驟（僅保留 `npm test`，因為 `npm test` 已涵蓋所有測試）
-2. 修改 `package.json` 的 `test` script 加入 `--experimental-test-coverage` 標記（注意 Node.js 限制：test:coverage 使用的 --test-coverage-lines 等標記需確保在 test script 中也能作用）
-- 或替代方案：保留 `test:coverage` 但將 `find|xargs` 改為 `node --test 'test/**/*.test.js' --experimental-test-coverage ...`
-
-**Complexity**: Simple
-
-**Regression test:** No regtest (CI config change). Verify by triggering CI.
-
----
-
-### FIX-14: ToolNotFoundError dead code (P3)
-
-**Root cause**: `ToolNotFoundError` 在 `app-error.ts` 中定義並匯出，但沒有任何生產程式碼擲出或捕捉它。
-
-**Files involved**: `packages/tool-utils/app-error.ts`
-
-**Fix approach**: 在 `tool-registry.ts` 或 `tool-registration.ts` 中使用 `ToolNotFoundError`（當查詢不存在的 tool 時），使其成為 live code。或在 `app-error.ts` 中加入註解標記為「預留給未來 tool 驗證使用」。
-
-**Complexity**: Simple
-
-**Regression test:** REGTEST-10 (Unit → `test/utils/app-error.test.js`)
-- 新增測試驗證 `ToolNotFoundError` 的行為（現有測試已涵蓋，只需確認被生產程式碼使用）
-
----
-
-### FIX-15: HelpTextBuilder 輸出對等性測試 (P3)
-
-**Root cause**: 沒有快照測試驗證 `HelpTextBuilder` 的輸出與舊的 4 個獨立函數完全一致。
-
-**Files involved**: `test/cli/help-text-builder.test.js`
-
-**Fix approach**:
-1. 用 `node:test` 的快照功能或手動定義的字串常數，驗證 HelpTextBuilder 的輸出包含所有舊函數的關鍵段落
-2. 不需要精確比對整份輸出（過於脆弱），而是比對所有 section header 與關鍵內容的存在性
-
-**Complexity**: Simple
-
-**Regression test:** 即為 Regression test 本身
+**Regression test:** REGTEST-06 (Integration → `test/tools/tool-not-found-error.test.js`)
+- GIVEN 呼叫 `run(['nonexistent-tool'])` WHEN 執行 THEN stderr 包含 "Error:" 前綴，exit code 為 1
+- Oracle: 修正前 stderr 為 "Unknown tool: nonexistent-tool\n\nAvailable tools:\n..."；修正後為 "Error: Unknown tool: nonexistent-tool"
 
 ---
 
@@ -386,226 +251,188 @@ catch (err) {
 
 ### Fix Worker Prompts
 
-#### FIX-A: 修復 validate-skill-frontmatter 與 validate-openai-agent-config（FIX-01+02+11）
+#### FIX-01: 修復 create-specs handler 遺漏的 `args` 參數
 
 ```
 ## Mission
-修復 validate-skill-frontmatter 與 validate-openai-agent-config 的 3 個問題：
-1. 匯入並使用 AppError 階層（UserInputError, SystemError）
-2. 將所有錯誤診斷輸出從 stdout 改為 stderr
-3. 移除無效的 parseArgs({ options: {} }) 呼叫
+修復 create-specs handler 的 `parseArgs()` 呼叫，補上遺漏的 `args: args` 參數。
 
 ## Context
-- Review dimension: Spec implementation omission + deviation
-- Spec requirement: Req 3 (Unified error handling) — handler 必須使用 typed AppError，錯誤永遠在 stderr
-- Severity: P1
+- Review dimension: Spec implementation omission
+- Spec requirement: Req 1 (Tool boilerplate)
+- Severity: P0
 
 ## Input
 讀取以下檔案：
-- packages/tools/validate-skill-frontmatter/index.ts（完整讀取）
-- packages/tools/validate-openai-agent-config/index.ts（完整讀取）
-- packages/tools/filter-logs/index.ts（作為正確的 AppError 使用參考）
-- packages/tool-utils/app-error.ts（了解 UserInputError, SystemError 介面）
+- packages/tools/create-specs/index.ts（完整讀取，特別是 createSpecsHandler 函數 L38-53）
+- packages/tools/filter-logs/index.ts（作為對照，參考 args 的正確傳遞方式 L22-28）
 
 ## What to do
-1. 在 validate-skill-frontmatter/index.ts：
-   a. 在 import 區塊加入：`import { UserInputError, SystemError } from '@laitszkin/tool-utils';`
-   b. 將 handler (`validateSkillFrontmatterHandler`) 包裹在 try/catch 中
-   c. 將所有 `stdout.write()` 的錯誤輸出改為 `stderr.write()`
-   d. 移除 handler 內的無效 `parseArgs({ args, options: {}, allowPositionals: true })` 呼叫
-   e. 在 catch block 使用 instanceof 分支
+在 packages/tools/create-specs/index.ts 第 42 行：
+```typescript
+const { values, positionals } = parseArgs({
+```
+在 `options:` 行之前加入 `args,`（或 `args: args,`）：
 
-2. 在 validate-openai-agent-config/index.ts：
-   a. 匯入 UserInputError, SystemError
-   b. handler 加入 try/catch
-   c. stdout 錯誤輸出改為 stderr
-   d. 移除無效 parseArgs 呼叫
-   e. instanceof 分支
+```typescript
+const { values, positionals } = parseArgs({
+  args,
+  options: {
+    'batch-name': { type: 'string' },
+    ...
+  },
+  allowPositionals: true,
+});
+```
 
 ## Scope
 - Allowed files:
-  - packages/tools/validate-skill-frontmatter/index.ts
-  - packages/tools/validate-openai-agent-config/index.ts
+  - packages/tools/create-specs/index.ts — 只修改 parseArgs 的參數物件
 - Forbidden files:
-  - 任何其他工具檔案（非這兩個 validation tool）
   - 任何測試檔案
+  - 其他工具檔案
 
 ## Output
 On completion, report:
-- 每個檔案修改的行號摘要
-- 執行 `node --test test/tools/validation-error-handling.test.js`（如果有）的結果
+- 修改的行號與內容
+- 執行 `node --test test/tools/create-specs.test.js` 的結果（4 個測試應全部通過）
 
 ## Verify
-- 執行 `node --test test/cli-parsing.test.js` 確認既有測試通過
-- 執行 `node --test test/tool-runner.test.js` 確認工具派發正常
+- 執行 `node --test test/tools/create-specs.test.js`
+- 預期：4 個測試全部通過（修正前全部失敗）
+- 執行 `npm run build` 確認 TypeScript 編譯通過
 
 ## Boundaries
-- 不要修改 validate 函數的內部邏輯 — 只修改 handler 層級
-- 不要新增或刪除任何功能 — 只修正錯誤輸出目標與錯誤型別
-- 不要修改 sync-memory-index（另有獨立 worker）
+- 只加一行 `args,` — 不修改任何其他邏輯
+- 不修改 handler 的業務邏輯
 ```
 
-#### FIX-B: 修復 sync-memory-index 的 AppError 支援（FIX-01 partial）
+#### FIX-02: 建立單一 schema 宣告機制 (ToolSchema + createToolRunner)
 
 ```
 ## Mission
-讓 sync-memory-index 使用 AppError 階層處理錯誤。
+建立單一 schema 宣告機制：定義 ToolSchema 型別與 createToolRunner helper，讓工具開發者能從一個 schema 宣告產生完整的引數解析、help 文字、與驗證邏輯。
 
 ## Context
 - Review dimension: Spec implementation omission
-- Spec requirement: Req 3 — handler 必須使用 typed AppError
+- Spec requirement: Req 1 (Tool boilerplate) — 所有 arg 定義、help 文字、驗證邏輯必須來自同一個 schema 宣告
 - Severity: P1
 
 ## Input
-- packages/tools/sync-memory-index/index.ts（完整讀取）
-- packages/tool-utils/app-error.ts（了解 Error 介面）
+讀取以下檔案，理解現有工具 pattern：
+- packages/tools/filter-logs/index.ts（完整讀取，作為轉換示範目標）
+- packages/tools/create-specs/index.ts（參照既有 handler 模式）
+- packages/tool-utils/index.ts（了解現有匯出機制）
+- packages/tool-utils/app-error.ts（參考現有型別位置）
 
 ## What to do
-1. 在 import 區塊加入：`import { UserInputError, SystemError } from '@laitszkin/tool-utils';`
-2. syncMemoryIndexHandler 已有 try/catch（L123），修改 catch block 為 instanceof 分支
-3. 保留原有的 `stderr.write()` 行為
+1. 在 packages/tool-utils/schema.ts（新檔案）定義：
+
+```typescript
+import type { ToolContext } from '@laitszkin/tool-registry';
+
+/** Option definition for parseArgs schema. */
+export type SchemaOption = 
+  | { type: 'string'; default?: string; short?: string }
+  | { type: 'boolean'; default?: boolean; short?: string };
+
+/**
+ * Complete tool schema — single source of truth for args, help, and validation.
+ * 
+ * Example:
+ * ```ts
+ * const schema: ToolSchema = {
+ *   options: {
+ *     start: { type: 'string', short: 's' },
+ *     end: { type: 'string', short: 'e' },
+ *     help: { type: 'boolean', short: 'h' },
+ *   },
+ *   allowPositionals: true,
+ *   usage: 'apltk filter-logs [options] [<file>...]',
+ *   description: 'Filter log lines by time window.',
+ *   handler: async (values, positionals, ctx) => { ... },
+ * };
+ * ```
+ */
+export interface ToolSchema {
+  options: Record<string, SchemaOption>;
+  allowPositionals?: boolean;
+  usage?: string;
+  description?: string;
+  category?: string;
+  handler: (
+    values: Record<string, unknown>,
+    positionals: string[],
+    context: ToolContext,
+  ) => Promise<number> | number;
+}
+
+/**
+ * Creates a tool handler function from a ToolSchema declaration.
+ * Automatically handles:
+ *   - Argument parsing via node:util.parseArgs
+ *   - --help / -h flag (auto-generates help text from options)
+ *   - Strict mode validation
+ */
+export function createToolRunner(schema: ToolSchema) {
+  return async (args: string[], context: ToolContext): Promise<number> => {
+    // ...implementation...
+    // 1. parseArgs with schema.options
+    // 2. If values.help → auto-build help from schema, write to stdout, return 0
+    // 3. Call schema.handler(values, positionals, context)
+  };
+}
+```
+
+2. 實作 `createToolRunner`：
+   - 從 `schema.options` 建立 `parseArgs` 的 options 格式
+   - 自動加入 `help: { type: 'boolean', short: 'h' }`
+   - 當 `values.help === true` 時，自動組合 usage + options 表格輸出到 stdout
+   - 否則呼叫 `schema.handler(values, positionals, context)`
+
+3. 在 packages/tool-utils/index.ts 中匯出：
+```typescript
+export type { ToolSchema, SchemaOption } from './schema.js';
+export { createToolRunner } from './schema.js';
+```
+
+4. 轉換 packages/tools/filter-logs/index.ts：
+   - 定義 `schema: ToolSchema` 包含所有現有 options
+   - 將 handler 改為新簽名：`async (values, positionals, context)`
+   - 移除 handler 內部的 `parseArgs()` 和 `--help` 處理（由 createToolRunner 負責）
+   - 在 `tool` export 中用 `createToolRunner(schema)` 包裹
 
 ## Scope
 - Allowed files:
-  - packages/tools/sync-memory-index/index.ts
-
-## Output
-On completion, report which lines were modified.
-
-## Verify
-- 執行 `node --test test/tools/sync-memory-index-error.test.js`（如果有）確認測試通過
-- 執行 `node --test test/tool-runner.test.js`
-
-## Boundaries
-- 只修改 handler 的 catch block — 不改變 sync-memory-index 的業務邏輯
-```
-
-#### FIX-C: 修復 parser 錯誤型別與衝突檢測（FIX-03+06+07）
-
-```
-## Mission
-修復 packages/cli/parsers/ 下 2 個 parser 的三個問題：
-1. catch block 擲出 UserInputError 而非 Error
-2. --home 錯誤正規化邏輯去重
-3. --symlink 與 --copy 衝突時明確拋錯
-
-## Context
-- Review dimension: Architecture defect, Redundant code, Spec deviation
-- Spec requirement: Req 3 (Error handling) + Req 5 (Dispatch)
-- Severity: P1 + P2
-
-## Input
-- packages/cli/parsers/install-parser.ts（完整讀取）
-- packages/cli/parsers/uninstall-parser.ts（完整讀取）
-- packages/cli/parsers/types.ts（了解 CommandParser 介面）
-- packages/tool-utils/app-error.ts（了解 UserInputError API）
-
-## What to do
-1. 在兩個 parser 的 import 區塊加入：`import { UserInputError } from '@laitszkin/tool-utils';`
-2. 將兩份 parser 中 `throw new Error('Missing value for --home')` 改為 `throw new UserInputError('Missing value for --home')`
-3. 將 `--home` 錯誤正規化邏輯抽取到新的共用函式 `normalizeParseError`，可放在：
-   - `packages/cli/parsers/types.ts`（作為匯出函式），或
-   - 新建 `packages/cli/parsers/parser-utils.ts`
-4. 在 install-parser.ts 的 parse() 內，在回傳前加入：
-   ```
-   if (values.symlink && values.copy) {
-     throw new UserInputError('Cannot use both --symlink and --copy');
-   }
-   ```
-
-## Scope
-- Allowed files:
-  - packages/cli/parsers/install-parser.ts
-  - packages/cli/parsers/uninstall-parser.ts
-  - packages/cli/parsers/types.ts（或新檔案）
+  - packages/tool-utils/schema.ts（新檔案）
+  - packages/tool-utils/index.ts（新增匯出）
+  - packages/tools/filter-logs/index.ts（示範轉換）
 - Forbidden files:
-  - packages/cli/index.ts
-  - 任何工具檔案
-
-## Output
-On completion, report which files/lines were modified.
-
-## Verify
-- 執行 `node --test test/cli/install-args-parser.test.js`
-- 執行 `node --test test/cli/uninstall-args-parser.test.js`
-- 確認 `test/cli/dispatch-table.test.js` 通過
-- 驗證 `apltk --symlink --copy` 拋出錯誤（手動或測試）
-
-## Boundaries
-- 只修改 parser 層，不修改 cli/index.ts 的 error boundary
-- 保留既有的測試案例語義
-```
-
-#### FIX-D: PlatformAdapter 消費注入（FIX-04）
-
-```
-## Mission
-讓 PlatformAdapter 被生產程式碼消費，取代直接的 process.platform 檢查。
-
-## Context
-- Review dimension: Spec implementation omission
-- Spec requirement: Req 2 (Cross-platform abstraction)
-- Severity: P1
-
-## Input
-- packages/tool-utils/platform-adapter.ts（完整讀取）
-- packages/cli/installer.ts（L355-370，replaceWithSymlink 函式）
-- packages/tui/terminal.ts（L25-45，isInteractive 函式）
-- packages/cli/updater.ts（L60-96，execCommand 函式）
-- packages/cli/index.ts（完整讀取）
-
-## What to do
-1. 在 packages/cli/index.ts 中建立模組級 adapter：
-   ```typescript
-   import { createPlatformAdapter } from '@laitszkin/tool-utils';
-   const platformAdapter = createPlatformAdapter();
-   ```
-2. 在 installer.ts 的 replaceWithSymlink() 中，將：
-   ```typescript
-   await fsp.symlink(sourcePath, targetPath, process.platform === 'win32' ? 'junction' : 'dir');
-   ```
-   改為使用 adapter：
-   - 可讓 installer.ts 匯入 createPlatformAdapter（直接建立），或
-   - 將 adapter 作為參數傳入（需要修改 replaceWithSymlink 的簽名及其呼叫者）
-   - 推薦直接匯入（最小改動）：
-   ```typescript
-   import { createPlatformAdapter } from '@laitszkin/tool-utils';
-   const adapter = createPlatformAdapter();
-   await fsp.symlink(sourcePath, targetPath, adapter.symlinkType());
-   ```
-3. 在 updater.ts 的 execCommand() 中，將直接呼叫 spawn(command, ...) 改為先透過 adapter.resolveCommand(command) 解析命令名稱
-4. terminal.ts 的 isInteractive() 中的 process.platform 檢查可保留（TTY 檢測本質上是平台特定邏輯，不在 PlatformAdapter 的職責範圍內），或加入 PlatformAdapter.isWindows() 輔助方法
-
-## Scope
-- Allowed files:
-  - packages/cli/installer.ts（replaceWithSymlink + import）
-  - packages/cli/updater.ts（execCommand + import）
-  - packages/cli/index.ts（import 但不用傳遞 adapter）
-  - packages/tool-utils/platform-adapter.ts（可選：加入 `isWindows()` 輔助方法）
-- Forbidden files:
-  - 任何工具檔案
+  - 任何測試檔案
+  - 其他工具檔案（本次只轉換 filter-logs）
 
 ## Output
 On completion, report:
-- 每個修改的檔案與行號
-- adapter 的使用方式（直接匯入 vs 參數注入）
-- process.platform 的殘留使用情況
+- schema.ts 的完成內容（型別定義 + createToolRunner 實作）
+- filter-logs 的修改摘要
+- 執行 `node --test test/tools/filter-logs.test.js` 的結果
 
 ## Verify
-- 執行完整測試套件：`node --test 'test/**/*.test.js'`
-- 特別注意 installer 和 updater 的整合測試
-- 確認 `npm run build` 通過
+- 執行 `node --test test/tools/filter-logs.test.js` — 既有測試通過
+- 執行 `node --test test/tui/stdio-adapter.test.js` — 確認無 side effect
+- 執行 `npm run build` — TypeScript 編譯通過
 
 ## Boundaries
-- terminal.ts 的 process.platform 可保留 — TTY 檢測不是 PlatformAdapter 的核心職責
-- 不要修改任何 PlatformAdapter 的測試 — adapter 本身的 API 不變
+- 只轉換 filter-logs — 不修改其他 17 個工具
+- 不改變 filter-logs 的外部行為 — 所有引數、help 文字、錯誤處理必須與修改前完全相同
+- ToolSchema 的 handler 簽名為 `(values, positionals, context)`，與 `ToolDefinition.handler` 的 `(args, context)` 不同—`createToolRunner` 負責轉換
 ```
 
-#### FIX-E: 修復 8 個工具的泛型 catch（FIX-08）
+#### FIX-03: 修復 sync-memory-index 的 SystemError stack trace 輸出
 
 ```
 ## Mission
-讓 8 個工具的 catch block 使用 instanceof 分支處理 UserInputError 與 SystemError。
+修正 sync-memory-index handler 的 SystemError 輸出，將 `${err.message}` 改為 `${err.message}\n${err.stack}`，與其他 8 個工具已統一的模式一致。
 
 ## Context
 - Review dimension: Spec implementation deviation
@@ -613,724 +440,581 @@ On completion, report:
 - Severity: P2
 
 ## Input
-讀取以下檔案，確認每個工具的 catch block 模式：
-- packages/tools/create-review-report/index.ts（L190-192）
-- packages/tools/create-specs/index.ts（L147-150）
-- packages/tools/docs-to-voice/index.ts
-- packages/tools/enforce-video-aspect-ratio/index.ts
-- packages/tools/generate-storyboard-images/index.ts
-- packages/tools/open-github-issue/index.ts
-- packages/tools/render-katex/index.ts
-- packages/tools/review-threads/index.ts
-- packages/tools/filter-logs/index.ts（作為正確的 instanceof 分支參考）
+- packages/tools/sync-memory-index/index.ts（完整讀取，特別是 L124-134 的 catch block）
+- packages/tools/create-review-report/index.ts（作為正確的 SystemError 輸出參考，L193-194）
 
 ## What to do
-對上述 8 個工具中的每一個：
-1. 確認檔案已匯入 UserInputError 和 SystemError（若缺少則加入匯入）
-2. 將 catch block 從泛型模式：
-   ```typescript
-   catch (err) {
-     stderr.write(`Error: ${(err as Error).message}\n`);
-     return 1;
-   }
-   ```
-   改為 instanceof 分支模式：
-   ```typescript
-   catch (err) {
-     if (err instanceof UserInputError) {
-       stderr.write(`${err.message}\n`);
-     } else if (err instanceof SystemError) {
-       stderr.write(`${err.message}\n${err.stack}\n`);
-     } else {
-       stderr.write(`Error: ${(err as Error).message}\n`);
-     }
-     return 1;
-   }
-   ```
-
-## Scope
-- Allowed files: 上述 8 個工具檔案（只修改 handler 的 catch block）
-- Forbidden files: 任何測試檔案，任何非上述 8 個工具的檔案
-
-## Output
-Report which files were modified and the exact pattern applied.
-
-## Verify
-- 對每個修改過的工具，執行其既有測試（如果有）
-- 執行 `node --test 'test/**/*.test.js'` 確認無 regression
-
-## Boundaries
-- 只修改 catch block 的內容 — 不改 throw site、不改 business logic
-- preserve the exact return statement pattern（每個工具都 return 1）
+在 packages/tools/sync-memory-index/index.ts 第 127-129 行：
+```typescript
+} else if (err instanceof SystemError) {
+  stderr.write(`Error: ${err.message}\n`);
 ```
-
-#### FIX-F: 補充 error boundary 測試（FIX-09）
-
-```
-## Mission
-為 cli/index.ts 的 error boundary 補充 3 個 AppError 分支的測試案例。
-
-## Context
-- Review dimension: Test coverage gap
-- Spec requirement: Req 3 (Error boundary)
-- Severity: P2
-
-## Input
-- test/cli/error-boundary.test.js（完整讀取）
-- packages/cli/index.ts L449-460（error boundary 的 catch block）
-- packages/tool-utils/app-error.ts（了解各 Error 類別的建構式）
-- test/cli/dispatch-table.test.js（作為 mock stream 用法的參考）
-
-## What to do
-在 test/cli/error-boundary.test.js 中新增 3 個測試：
-
-1. UserInputError 分支：
-   模擬 handler 拋出 UserInputError（可透過 context.runTool 或修改 run 的 CliContext），
-   驗證 stderr 輸出是 error.message 不含 "Error:" 前綴，exit code 為 1。
-
-2. SystemError 分支：
-   模擬 handler 拋出 SystemError，驗證 stderr 包含 message + stack trace。
-
-3. AppError（ToolNotFoundError）分支：
-   模擬 handler 拋出 ToolNotFoundError，驗證 stderr 包含 "Error:" 前綴。
-
-提示：由於 run() 的 catch block 捕獲所有非同步錯誤，最快的方式是注入一個會拋出的 custome handler：
-```javascript
-const result = await run(['filter-logs'], {
-  stdout: mockStd(),
-  stderr,
-  env: {},
-  runTool: async () => { throw new UserInputError('test error'); },
-});
+改為：
+```typescript
+} else if (err instanceof SystemError) {
+  stderr.write(`${err.message}\n${err.stack}\n`);
 ```
 
 ## Scope
 - Allowed files:
-  - test/cli/error-boundary.test.js（新增測試）
+  - packages/tools/sync-memory-index/index.ts（只修改 L128-129）
+- Forbidden files:
+  - 任何測試檔案
+
+## Output
+On completion, report:
+- 修改的行號
+- 確認修改後的 catch block 完整內容
+
+## Verify
+- 執行 `node --test test/tools/system-error-display.test.js` — 確認新測試的 oracle 行為符合
+- 執行 `node --test test/tools/sync-memory-index-error.test.js` — 確認同步測試通過
+- 執行 `node --test test/tool-runner.test.js` — 確認無 regression
+
+## Boundaries
+- 只修改 catch block 的 SystemError 分支 — 不修改任何其他邏輯
+- 不改 UserInputError 分支（維持 `Error: ` 前綴）
+```
+
+#### FIX-04: StdioWriter 整合入生產程式碼
+
+```
+## Mission
+將 StdioWriter 整合入 cli/index.ts 的 run() 與 CliContext 型別，使工具作者可選用結構化輸出功能。
+
+## Context
+- Review dimension: Spec implementation omission
+- Spec requirement: Req 2 (Cross-platform abstraction)
+- Severity: P2
+
+## Input
+讀取以下檔案：
+- packages/tui/stdio-adapter.ts（完整讀取，了解 StdioWriter 介面）
+- packages/tui/types.ts（了解 StdioWriter 型別定義）
+- packages/tui/index.ts（了解匯出方式）
+- packages/cli/index.ts（完整讀取 run() 函數）
+- packages/cli/types.ts（了解 CliContext 型別）
+
+## What to do
+1. 在 packages/cli/index.ts 中：
+   a. 在現有 import 區塊加入：`import { createStdioWriter } from '@laitszkin/tui';`
+   b. 在 run() 內建立 StdioWriter 實例（在 stderr/stdout 變數初始化之後）：
+   ```typescript
+   import type { StdioWriter } from '@laitszkin/tui';
+   // ...inside run()...
+   const stdioWriter: StdioWriter = createStdioWriter({ stdout, stderr, env });
+   ```
+
+2. 在 packages/cli/types.ts 中：
+   a. 在 import 區塊加入：`import type { StdioWriter } from '@laitszkin/tui';`
+   b. 在 CliContext 介面加入可選欄位：
+   ```typescript
+   export interface CliContext {
+     // ...existing fields...
+     stdioWriter?: StdioWriter;
+   }
+   ```
+
+3. 在 packages/cli/index.ts 的 run() 中，將 `stdioWriter` 傳入調用工具 handler 的 CliContext 物件。
+
+## Scope
+- Allowed files:
+  - packages/cli/types.ts（CliContext 加入 StdioWriter）
+  - packages/cli/index.ts（建立實例並注入 CliContext）
+- Forbidden files:
+  - 任何工具檔案（tools/*）
+  - packages/tui/stdio-adapter.ts（不需修改）
+
+## Output
+On completion, report:
+- cli/types.ts 的修改內容
+- cli/index.ts 的修改位置與內容
+- 確認 CliContext 的 stdioWriter 欄位正確傳遞至 runTool
+
+## Verify
+- 執行 `npm run build` — TypeScript 編譯通過
+- 執行 `node --test test/cli/error-boundary.test.js` — error boundary 測試通過
+- 執行 `node --test test/tui/stdio-adapter.test.js` — StdioWriter 測試通過
+
+## Boundaries
+- 不要修改任何工具檔案
+- 不要修改 tools/ 下的任何 handler
+- `stdioWriter` 是可選欄位 — 既有工具不須使用
+```
+
+#### FIX-05: sync-memory-index 直接 handler 測試補強
+
+```
+## Mission
+在 sync-memory-index 錯誤處理測試中補強直接 handler 測試，驗證 handler catch block 的 instanceof 分支行為。
+
+## Context
+- Review dimension: Test coverage gap
+- Spec requirement: Req 3 (Unified error handling)
+- Severity: P2
+
+## Input
+讀取以下檔案：
+- test/tools/sync-memory-index-error.test.js（完整讀取，理解既有測試）
+- packages/tools/sync-memory-index/index.ts（特別是 catch block L124-134）
+- test/tools/system-error-display.test.js（作為 mock handler 測試的參考）
+- test/tools/validation-error-handling.test.js（作為直接 handler 測試的參考）
+
+## What to do
+在 test/tools/sync-memory-index-error.test.js 中新增 2 個測試：
+
+1. UserInputError 分支測試：
+   - 建立一個模擬情境，讓 syncMemoryIndexHandler 的業務邏輯擲出 UserInputError
+   - 方法：傳入無效的 --agents-file 路徑（或利用 mock 方式使 handler 進入 catch）
+   - 驗證：stderr 輸出包含 "Error:" 前綴
+
+2. SystemError 分支測試（確認 stack trace 存在）：
+   - 建立模擬情境使 handler 進入 SystemError 分支
+   - 方法：可透過 import handler 直接呼叫，或利用 file system 權限錯誤
+   - 驗證：stderr 輸出包含 stack trace（"at " 字串）
+
+參考 test/tools/validation-error-handling.test.js 直接測試 handler 的模式（從 tool module 匯入 handler，直接呼叫 handler 而非透過 run()）：
+
+```javascript
+import { tool as syncMemoryIndexTool } from '@laitszkin/tool-sync-memory-index';
+const syncMemoryIndexHandler = syncMemoryIndexTool.handler;
+
+// 直接呼叫 handler
+const code = await syncMemoryIndexHandler(args, { stdout, stderr });
+assert.equal(code, 1);
+```
+
+## Scope
+- Allowed files:
+  - test/tools/sync-memory-index-error.test.js（新增測試）
 - Forbidden files:
   - 任何生產程式碼檔案
 
 ## Output
-Report:
-- 新增的 3 個測試名稱與內容
+On completion, report:
+- 新增的測試名稱與內容
 - 測試執行結果（全部通過）
 
 ## Verify
-- 執行修改後的 error-boundary.test.js：`node --test test/cli/error-boundary.test.js`
-- 確認 3 個新測試通過，原有 4 個測試仍然通過
+- 執行 `node --test test/tools/sync-memory-index-error.test.js`
+- 確認所有既有測試 + 新測試通過
 
 ## Boundaries
-- 不要修改 packages/cli/index.ts
-- 只測試 boundary 的行為，不要測試工具的 catch block
+- 不要修改 packages/tools/sync-memory-index/index.ts（由 FIX-03 負責）
+- 測試必須獨立執行，不依賴外部狀態
 ```
 
-#### FIX-G: 型別合併與 dispatch table（FIX-10）
+#### FIX-06: 啟用 ToolNotFoundError 為 live code
 
 ```
 ## Mission
-解決型別重複定義問題，將 if/else dispatch 改為 Map-based dispatch table。
-
-## Context
-- Review dimension: Architecture defect
-- Spec requirement: Req 5 (Dispatch isolation)
-- Severity: P2
-
-## Input
-- packages/cli/parsers/types.ts（完整讀取）
-- packages/cli/types.ts（完整讀取）
-- packages/cli/index.ts L80-170（parseArguments 函式）
-- packages/cli/index.ts L51-56（parser imports）
-- test/cli/dispatch-table.test.js（完整讀取）
-- test/cli/install-args-parser.test.js（完整讀取）
-- test/cli/uninstall-args-parser.test.js
-- test/cli/tool-args-parser.test.js
-
-## What to do
-1. 將 packages/cli/parsers/types.ts 設為 command type 的單一來源
-2. 在 packages/cli/types.ts 中，刪除重複的 InstallCommand、UninstallCommand、ToolCommand、ToolsHelpCommand 定義，改為：
-   ```typescript
-   import type { InstallCommand, UninstallCommand, ToolCommand, ToolsHelpCommand } from './parsers/types.js';
-   ```
-3. 在 packages/cli/index.ts 中，將 parseArguments 的 if/else 鏈改為 Map dispatch table：
-   ```typescript
-   const dispatchTable = new Map<string, CommandParser<any>>([
-     ['uninstall', new UninstallArgsParser()],
-   ]);
-   ```
-   注意：由於 tools/tool 前綴和直接 tool name 的邏輯較複雜（含 isKnownToolName），
-   保留這部分的邏輯作為 dispatch chain 的 fallback，或統一透過 pattern matching。
-4. 保留 ParsedArguments 作為向後相容的扁平輸出型別
-
-## Scope
-- Allowed files:
-  - packages/cli/types.ts（移除重複定義）
-  - packages/cli/parsers/types.ts（保留為 single source of truth，可選改善）
-  - packages/cli/index.ts（parseArguments 改為 dispatch table）
-- Forbidden files:
-  - 任何測試檔案（但須確保既有測試通過）
-  - 任何工具檔案
-
-## Output
-Report:
-- 型別定義的來源檔案與變更
-- dispatch table 的結構
-- parseArguments 的實作方式
-
-## Verify
-- 執行 `node --test test/cli/dispatch-table.test.js`
-- 執行 `node --test test/cli/install-args-parser.test.js`
-- 執行 `node --test test/cli/uninstall-args-parser.test.js`
-- 執行 `node --test test/cli/tool-args-parser.test.js`
-- 執行 `node --test test/cli/help-text-builder.test.js`
-
-## Boundaries
-- 不要改變 CLI 的外部行為 — 所有命令名稱與引數必須維持不變
-- 不要修改 ParsedArguments 型別的結構（向後相容）
-- 不要修改 tool-parser.ts
-```
-
-#### FIX-H: filter-logs 加上 --help（FIX-12）
-
-```
-## Mission
-在 filter-logs 的 parseArgs schema 中加入 --help 支援。
-
-## Context
-- Review dimension: Spec implementation omission
-- Spec requirement: Req 1 (Tool boilerplate)
-- Severity: P2
-
-## Input
-- packages/tools/filter-logs/index.ts（完整讀取）
-
-## What to do
-1. 在 parseArgs options 中加入：`help: { type: 'boolean', short: 'h' }`
-2. 在 handler 內，`const { values, positionals } = parseArgs({...})` 之後加入：
-   ```typescript
-   if (values.help) {
-     stdout.write(`Usage: apltk filter-logs [options] [<file>...]
-
-Filter log lines by time window.
-
-Options:
-  --start <ISO>         Start timestamp (inclusive)
-  --end <ISO>           End timestamp (inclusive)
-  --assume-timezone <tz>  Timezone for timestamps without offset (default: UTC)
-  --keep-undated        Include lines without timestamps
-  --count-only          Print only the matching line count
-  --help, -h            Show this help
-`);
-     return 0;
-   }
-   ```
-
-## Scope
-- Allowed files: packages/tools/filter-logs/index.ts
-
-## Verify
-- 執行 `node --test test/tools/filter-logs.test.js`
-- 手動測試：`node dist/bin/apollo-toolkit.js filter-logs --help`
-- 確認 `--help` 顯示正確的 help 文字
-- 確認 `-h` 也能作用
-
-## Boundaries
-- 不要修改 filter-logs 的任何其他行為
-```
-
-#### FIX-I: CI 設定改善（FIX-13）
-
-```
-## Mission
-修復 CI 設定中測試重複執行與 xargs 脆弱性的問題。
-
-## Context
-- Review dimension: Performance concern
-- Spec requirement: Req 4 (CI + Coverage)
-- Severity: P2
-
-## Input
-- package.json（scripts 區塊）
-- .github/workflows/test.yml（完整讀取）
-- scripts/test.sh（完整讀取）
-
-## What to do
-方案 A（推薦）：統一到單一步驟
-1. 修改 .github/workflows/test.yml，移除獨立的 `npm run test:coverage` 步驟
-2. 修改 package.json 的 `test` script，在 `scripts/test.sh` 的 Group 1 加入 `--experimental-test-coverage` 與 `--test-coverage-lines=80` 等標記
-   注意：test.sh 的 Group 2 和 3 執行 package-level 測試，這些不參與涵蓋率測量
-
-或方案 B：只改善 coverage script 的穩定性
-1. 將 `package.json` 的 `test:coverage` script 從 `find|xargs` 改為穩定的 `node --test 'test/**/*.test.js'`
-
-## Scope
-- Allowed files:
-  - package.json（修改 scripts）
-  - .github/workflows/test.yml（修改 steps）
-  - scripts/test.sh（如需適應 coveage flag）
-
-## Verify
-- 執行 `npm test` 確認測試通過
-- 執行 `npm run build` 確認建置通過
-
-## Boundaries
-- 不要改變 Node.js 版本要求（>=22.5.0）
-- 不要改變 npm test 的測試隔離行為（eval 工具仍須獨立）
-```
-
-#### FIX-J: 清理 ToolNotFoundError dead code（FIX-14）
-
-```
-## Mission
-處理 ToolNotFoundError 的 dead code 問題。
+在 tool-registry 的 runTool() 中使用 ToolNotFoundError，使其從 dead code 變成 live code。
 
 ## Context
 - Review dimension: Redundant code
 - Spec requirement: Req 3 (Error hierarchy)
-- Severity: P3
+- Severity: P2
 
 ## Input
-- packages/tool-utils/app-error.ts（完整讀取）
+讀取以下檔案：
+- packages/tool-registry/registry.ts（完整讀取，特別是 runTool 函數 L22-40）
+- packages/tool-utils/app-error.ts（了解 ToolNotFoundError 介面）
+- packages/cli/index.ts L479-490（了解 error boundary 如何處理 AppError 子類別）
 
 ## What to do
-在 ToolNotFoundError 的類別定義上或匯出處加入註解：
+1. 在 packages/tool-registry/registry.ts 的 import 區塊加入：
 ```typescript
-/**
- * Error for unknown tool names.
- * NOTE: Currently defined for the error hierarchy completeness.
- * Used when isKnownToolName() check fails in tool dispatch.
- * If never used after full implementation, consider removal.
- */
+import { ToolNotFoundError } from '@laitszkin/tool-utils';
 ```
-這是一個 P3 建議，不強制要求程式碼變更。也可以直接標記為「預留」後關閉。
+
+2. 將 L31-33 的：
+```typescript
+if (!tool) {
+  stderr.write(`Unknown tool: ${toolName}\n\nAvailable tools:\n${formatToolList()}\n`);
+  return 1;
+}
+```
+改為：
+```typescript
+if (!tool) {
+  throw new ToolNotFoundError(`Unknown tool: ${toolName}`);
+}
+```
+
+> 注意：此變更會改變「未知工具」的行為。原實作會輸出工具列表，新實作只輸出錯誤訊息（CLI error boundary 以 `Error: Unknown tool: xxx` 格式化）。
 
 ## Scope
-- Allowed files: packages/tool-utils/app-error.ts（只加註解）
+- Allowed files:
+  - packages/tool-registry/registry.ts（修改 import 與 runTool）
+- Forbidden files:
+  - 任何測試檔案
+  - packages/cli/index.ts（error boundary 不須修改 — AppError 分支已存在）
+
+## Output
+On completion, report:
+- 修改的檔案與行號
+- 修改後的 runTool 函數相關段落
+
+## Verify
+- 執行 `node --test test/utils/app-error.test.js` — ToolNotFoundError 測試仍通過
+- 執行 `node --test test/tool-runner.test.js` — runTool 相關測試通過
+- 驗證：執行 `node dist/bin/apollo-toolkit.js nonexistent-tool` 應輸出 "Error: Unknown tool: nonexistent-tool" 至 stderr 且 exit code 為 1
 
 ## Boundaries
-- 不要移除 ToolNotFoundError — 它是錯誤階層的一部分
+- 不修改 CLI error boundary（已正確處理 AppError 階層）
+- 不修改 formatToolList() — 放棄工具列表輸出是接受的行為變更（SPEC 未強制要求）
+- 如果既有測試依賴舊的行為（stderr 包含 "Available tools:"），需要更新測試
 ```
 
-#### FIX-K: HelpTextBuilder 輸出對等性測試（FIX-15）
-
-```
-## Mission
-為 HelpTextBuilder 新增輸出對等性測試。
-
-## Context
-- Review dimension: Test coverage gap
-- Spec requirement: Req 5 (HelpTextBuilder)
-- Severity: P3
-
-## Input
-- test/cli/help-text-builder.test.js（完整讀取）
-- packages/cli/help-text-builder.ts（完整讀取）
-
-## What to do
-在 help-text-builder.test.js 中新增測試，驗證 HelpTextBuilder 的輸出包含關鍵段落：
-1. overview() 包含 Usage, Common goals, Bundled tools, Options, Examples
-2. install() 包含 Usage, Supported targets, Behavior notes, Options, Examples
-3. uninstall() 包含 Usage, Supported targets, Behavior notes, Options, Examples
-4. toolsHelp() 包含 Usage, Bundled tools, Tip, Examples
-
-注意：這些測試在現有檔案中已經存在（共 14 個測試）。確認為補強。
-如果現有的斷言已經足夠，則在檔案頂端加入註解說明已涵蓋。
-
-## Scope
-- Allowed files: test/cli/help-text-builder.test.js
-
-## Boundaries
-- 不要添加精確字串比對測試（過於脆弱）
-```
+---
 
 ### Regression Test Worker Prompts
 
-#### REGTEST-01: validate tools 錯誤輸出回歸測試（FIX-A）
+#### REGTEST-01: create-specs handler 引數解析回歸測試 (FIX-01)
 
 ```
 ## Mission
-為 FIX-A 的變更撰寫回歸測試，確保 validate-skill-frontmatter 和 validate-openai-agent-config 的錯誤輸出正確導向 stderr。
+建立 create-specs handler 的引數解析回歸測試，確保 `args` 參數被正確傳遞給 `parseArgs`。
 
 ## Context
-- Fix summary: 兩個 validation tool 從 stdout 錯誤輸出改為 stderr，同時加入 AppError 處理
-- Root cause: handler 未包裹 try/catch，直接 stdout.write() 錯誤
-- Fix files: packages/tools/validate-skill-frontmatter/index.ts, packages/tools/validate-openai-agent-config/index.ts
+- Fix summary: create-specs handler 在 parseArgs 呼叫中補上遺漏的 `args: args`
+- Root cause: parseArgs 無 args 參數時預設讀取 process.argv，導致所有 positional argument 為空
+- Fix files: packages/tools/create-specs/index.ts
 
 ## Input
-- packages/tools/validate-skill-frontmatter/index.ts
-- packages/tools/validate-openai-agent-config/index.ts
-- test/cli/error-boundary.test.js（作為 mock stream 用法參考）
+讀取以下檔案：
+- packages/tools/create-specs/index.ts（了解 handler 的 parseArgs 呼叫）
+- test/tools/create-specs.test.js（完整讀取，既有 4 個測試）
 
 ## What to do
-在 test/tools/validation-error-handling.test.js 中建立整合測試：
+既有 test/tools/create-specs.test.js 中的 4 個測試即為 REGTEST-01 的全部內容。
+不需新增測試檔案或修改既有測試。
 
-1. validate-skill-frontmatter 錯誤輸出測試：
-   - 建立 mock stdout/stderr stream
-   - 建立一個不含 SKILL.md 的臨時目錄作為 root
-   - 以 context 注入的方式呼叫 handler（需透過 runTool 或直接 `run(['validate-skill-frontmatter'])` 搭配 mock context）
-   - 驗證：stderr 包含錯誤訊息，stdout 不含錯誤訊息
-
-2. validate-openai-agent-config 錯誤輸出測試：
-   - 類似的方式，驗證錯誤訊息出現在 stderr 而非 stdout
+確認：修正前這 4 個測試全部失敗；修正後全部通過。
 
 ## Scope
-- Allowed files: test/tools/validation-error-handling.test.js（新檔案）
+- 無需修改任何檔案 — 確認既有 4 個測試通過即為回歸驗證
 
 ## Verify
-- 執行：`node --test test/tools/validation-error-handling.test.js`
-- 預期：所有測試通過
-
-## Boundaries
-- 只測試錯誤輸出的目標（stderr vs stdout），不測試驗證邏輯的正確性
-- 使用 mock 檔案系統，不要依賴真實的專案目錄結構
+- 執行：`node --test test/tools/create-specs.test.js`
+- 預期：4 個測試全部通過（修正前全部 failure）
 ```
 
-#### REGTEST-02: sync-memory-index 錯誤處理回歸測試（FIX-B）
+#### REGTEST-02: filter-logs schema 轉換回歸測試 (FIX-02)
 
 ```
 ## Mission
-驗證 sync-memory-index 的 catch block 正確使用 instanceof 分支。
+確認 filter-logs 在轉換為 ToolSchema 後行為不變，所有既有測試通過。
 
 ## Context
-- Fix summary: sync-memory-index 加入 UserInputError/SystemError 分支處理
-- Root cause: catch block 使用泛型 `Error`
+- Fix summary: filter-logs 從自含 parseArgs 改為使用 ToolSchema + createToolRunner
+- Root cause: 無—此為架構變更，行為必須維持一致
+- Fix files: packages/tools/filter-logs/index.ts, packages/tool-utils/schema.ts
+
+## Input
+- test/tools/filter-logs.test.js（完整讀取，理解既有測試）
+- packages/tools/filter-logs/index.ts（理解轉換後的 handler）
+
+## What to do
+執行既有 filter-logs 測試確認全部通過。不需新增測試。
+
+如果既有測試因 schema 轉換而失敗（例如 help text 輸出格式變更），請調整 createToolRunner 的 help 輸出格式以匹配原有的 help 文字格式。
+
+## Scope
+- 無需修改測試檔案
+- 如果 need，可調整 packages/tool-utils/schema.ts 的 help 輸出格式
+
+## Verify
+- 執行：`node --test test/tools/filter-logs.test.js`
+- 預期：所有 filter-logs 測試通過
+- 手動驗證：`node dist/bin/apollo-toolkit.js filter-logs --help` 輸出與轉換前一致
+```
+
+#### REGTEST-03: SystemError stack trace 輸出回歸測試 (FIX-03)
+
+```
+## Mission
+建立測試驗證 sync-memory-index 的 SystemError catch 分支正確輸出 stack trace。
+
+## Context
+- Fix summary: sync-memory-index 的 SystemError 分支從 `Error: ${err.message}` 改為 `${err.message}\n${err.stack}`
+- Root cause: 與其他 8 個工具的統一 pattern 不一致
 - Fix files: packages/tools/sync-memory-index/index.ts
 
 ## Input
-- packages/tools/sync-memory-index/index.ts
-- test/cli/error-boundary.test.js（mock stream 用法參考）
+- packages/tools/sync-memory-index/index.ts（了解 catch block）
+- test/tools/system-error-display.test.js（作為測試 pattern 參考）
 
 ## What to do
-在 test/tools/sync-memory-index-error.test.js 中建立整合測試：
-- 以 context 注入真實的 handler（通過 `run(['sync-memory-index', '--agents-file=/nonexistent/path'])` 或直接 handler 呼叫）
-- 驗證在錯誤條件下，stderr 收到 `Error:` 輸出
+在 test/tools/system-error-display.test.js 中新增測試（或新檔案 test/tools/sync-memory-index-system-error.test.js）：
+
+1. 從 `@laitszkin/tool-sync-memory-index` 匯入 handler
+2. 建立 mock stdout/stderr
+3. 注入一個使 handler 拋出 SystemError 的條件（如不可寫的檔案路徑）
+4. 驗證：
+   - stderr 包含 stack trace（至少有一行 "at "）
+   - stderr 包含 "SystemError:"（stack 的第一行包含類別名稱）
+
+```javascript
+test('sync-memory-index: SystemError outputs stack trace', async () => {
+  const stdout = createMemoryStream();
+  const stderr = createMemoryStream();
+  // 使用一個會觸發 SystemError 的條件（如不可寫的路徑）
+  const code = await syncMemoryIndexHandler(
+    ['--agents-file', '/nonexistent/deep/path/AGENTS.md'],
+    { stdout, stderr },
+  );
+  assert.equal(code, 1);
+  const output = stderr.toString();
+  assert.ok(output.includes('SystemError:'), 'stderr should contain SystemError: with stack');
+  assert.ok(output.includes('at '), 'stderr should contain stack trace');
+});
+```
 
 ## Scope
-- Allowed files: test/tools/sync-memory-index-error.test.js（新檔案）
+- Allowed files:
+  - test/tools/system-error-display.test.js 或新檔案 test/tools/sync-memory-index-system-error.test.js
+
+## Verify
+- 執行新測試：`node --test test/tools/sync-memory-index-system-error.test.js`
+- Oracle: 修正前測試失敗（stderr 不含 stack）；修正後測試通過
+```
+
+#### REGTEST-04: CliContext StdioWriter 回歸測試 (FIX-04)
+
+```
+## Mission
+建立測試驗證 CliContext 中 stdioWriter 欄位的存在性與型別正確性。
+
+## Context
+- Fix summary: CliContext 加入可選的 `stdioWriter?: StdioWriter` 欄位，cli/index.ts 建立實例並注入
+- Root cause: StdioWriter 已定義但未被生產程式碼使用
+- Fix files: packages/cli/types.ts, packages/cli/index.ts
+
+## Input
+- packages/cli/types.ts（CliContext 介面）
+- packages/cli/index.ts（run() 中的 StdioWriter 建立與注入）
+- test/cli/error-boundary.test.js（作為 context 注入測試的參考）
+
+## What to do
+在 test/cli/stdio-writer-context.test.js（新檔案）建立測試：
+
+1. StdioWriter 存在性測試：
+   - 呼叫 `run(['filter-logs', '--help'])` 並注入包含自訂 stdout/stderr 的 context
+   - 驗證 handler 收到的 context.stdioWriter 為物件且包含 info/error/warn 方法
+
+2. 或透過型別檢查：
+```javascript
+import { createStdioWriter } from '@laitszkin/tui';
+
+test('run() creates and injects StdioWriter into CliContext', async () => {
+  const stdout = createMemoryStream();
+  const stderr = createMemoryStream();
+  const result = await run(['filter-logs', '--help'], {
+    sourceRoot: PROJECT_ROOT,
+    stdout,
+    stderr,
+    env: {},
+    runTool: async (toolName, args, ctx) => {
+      // 驗證 ctx.stdioWriter 存在且為物件
+      assert.ok(ctx.stdioWriter, 'context.stdioWriter should exist');
+      assert.equal(typeof ctx.stdioWriter.info, 'function');
+      assert.equal(typeof ctx.stdioWriter.error, 'function');
+      assert.equal(typeof ctx.stdioWriter.warn, 'function');
+      return 0;
+    },
+  });
+});
+```
+
+## Scope
+- Allowed files:
+  - test/cli/stdio-writer-context.test.js（新檔案）
+
+## Verify
+- 執行：`node --test test/cli/stdio-writer-context.test.js`
+- 預期：測試通過
+- Oracle: 修正前 context.stdioWriter 為 undefined；修正後為 StdioWriter 實例
+```
+
+#### REGTEST-05: sync-memory-index 直接 handler 測試 (FIX-05)
+
+```
+## Mission
+在 sync-memory-index 錯誤處理測試中加入直接 handler（而非透過 run()）的測試案例。
+
+## Context
+- Fix summary: 新增直接 handler 測試，驗證 handler catch block 的 instanceof 分支
+- Root cause: 既有測試依賴 run()，無法驗證 handler 內部的 catch block
+- Fix files: test/tools/sync-memory-index-error.test.js
+
+## Input
+- test/tools/sync-memory-index-error.test.js（既有測試）
+- packages/tools/sync-memory-index/index.ts（handler catch block）
+- test/tools/validation-error-handling.test.js（作為直接 handler 測試的參考）
+
+## What to do
+在 test/tools/sync-memory-index-error.test.js 中新增測試：
+
+1. 匯入直接 handler：
+```javascript
+import { tool as syncMemoryIndexTool } from '@laitszkin/tool-sync-memory-index';
+const syncMemoryIndexHandler = syncMemoryIndexTool.handler;
+```
+
+2. UserInputError 分支測試：
+```javascript
+test('sync-memory-index direct handler: UserInputError displays Error: prefix', async () => {
+  const stdout = createMemoryStream();
+  const stderr = createMemoryStream();
+  // --agents-file without value triggers parseArgs error → generic Error
+  // (handled by CLI boundary, not handler's catch block)
+  // Instead, trigger a business logic UserInputError directly:
+  const code = await syncMemoryIndexHandler(
+    ['--agents-file', '/tmp/nonexistent/path/AGENTS.md'],
+    { stdout, stderr },
+  );
+  assert.equal(code, 1);
+  const output = stderr.toString();
+  assert.ok(output.includes('Error:'), 'handler should output "Error:" prefix for errors');
+});
+```
+
+## Scope
+- Allowed files:
+  - test/tools/sync-memory-index-error.test.js（新增測試）
+- Forbidden files:
+  - 任何生產程式碼
 
 ## Verify
 - 執行：`node --test test/tools/sync-memory-index-error.test.js`
-
-## Boundaries
-- 使用 mock 檔案系統，不要寫入真實的 ~/.codex/
+- 預期：所有測試通過
 ```
 
-#### REGTEST-03: --symlink + --copy 衝突檢測回歸測試（FIX-C）
+#### REGTEST-06: ToolNotFoundError 回歸測試 (FIX-06)
 
 ```
 ## Mission
-驗證 --symlink 與 --copy 同時傳入時擲出 UserInputError。
+建立測試驗證 ToolNotFoundError 的正確拋出與 CLI error boundary 的格式化行為。
 
 ## Context
-- Fix summary: install-parser 加入衝突檢測，當 --symlink 與 --copy 同時使用時拋錯
-- Root cause: 無衝突檢測，以 if 區塊順序默認決定
-- Fix files: packages/cli/parsers/install-parser.ts
-
-## Input
-- test/cli/install-args-parser.test.js（完整讀取，了解測試模式）
-- packages/cli/parsers/install-parser.ts
-
-## What to do
-在 test/cli/install-args-parser.test.js 中新增測試：
-
-```javascript
-test('InstallArgsParser: --symlink with --copy throws UserInputError', () => {
-  const parser = new InstallArgsParser();
-  assert.throws(
-    () => parser.parse(['--symlink', '--copy']),
-    /Cannot use both/,
-  );
-});
-```
-
-同時刪除或修改既有的測試：
-- `'InstallArgsParser: --symlink with --copy --copy wins (last-checked in parser)'`
-- `'InstallArgsParser: --copy with --symlink keeps copy (last-checked wins in parser code)'`
-
-## Scope
-- Allowed files: test/cli/install-args-parser.test.js（修改 + 新增測試）
-
-## Verify
-- 執行：`node --test test/cli/install-args-parser.test.js`
-- 確認新測試通過，舊有衝突測試已被正確取代
-
-## Boundaries
-- 不要修改 install-parser.ts 檔案
-```
-
-#### REGTEST-04: parser 擲出 UserInputError 回歸測試（FIX-C）
-
-```
-## Mission
-驗證 parser 的 --home 錯誤擲出 UserInputError 而非泛型 Error。
-
-## Context
-- Fix summary: install-parser 和 uninstall-parser 的 catch block 改為 throw UserInputError
-- Root cause: throw new Error(...)
-- Fix files: packages/cli/parsers/install-parser.ts, packages/cli/parsers/uninstall-parser.ts
-
-## Input
-- test/cli/install-args-parser.test.js
-- test/cli/uninstall-args-parser.test.js
-- packages/tool-utils/app-error.ts
-
-## What to do
-在 install-args-parser.test.js 和 uninstall-args-parser.test.js 中，修改既有的 `--home` 錯誤測試：
-
-將：
-```javascript
-assert.throws(
-  () => parser.parse(['codex', '--home']),
-  /Missing value for --home/,
-);
-```
-改為驗證具體的 Error 類別：
-```javascript
-assert.throws(
-  () => parser.parse(['codex', '--home']),
-  (err) => {
-    assert.ok(err instanceof UserInputError);
-    assert.ok(err.message.includes('Missing value for --home'));
-    return true;
-  },
-);
-```
-
-需在測試檔案 import `UserInputError`。
-
-## Scope
-- Allowed files: test/cli/install-args-parser.test.js, test/cli/uninstall-args-parser.test.js
-
-## Verify
-- 執行：`node --test test/cli/install-args-parser.test.js`
-- 執行：`node --test test/cli/uninstall-args-parser.test.js`
-
-## Boundaries
-- 只修改測試 — 不修改生產程式碼
-```
-
-#### REGTEST-07: SystemError stack trace 顯示回歸測試（FIX-E）
-
-```
-## Mission
-驗證工具 catch block 中 SystemError 的 stack trace 被正確輸出。
-
-## Context
-- Fix summary: 8 個工具加入 instanceof 分支，SystemError 輸出 message + stack
-- Root cause: 泛型 catch 只輸出 `Error: message`
-- Fix files: 8 個工具檔案中的 catch block
-
-## Input
-- packages/tools/create-review-report/index.ts（作為修改後的參考）
-
-## What to do
-在 test/tools/system-error-display.test.js 中建立測試：
-- 選擇一個修改過的工具（如 create-review-report），測試 SystemError 的輸出
-- 由於直接觸發 SystemError 可能困難，可以透過單元測試驗證 catch block 的行為
-- 或者，如果 handler 無法輕鬆注入錯誤，就撰寫一個獨立的單元測試：
-  直接建立 SystemError 實例，驗證其 `.stack` 屬性包含字串內容
-
-## Scope
-- Allowed files: test/tools/system-error-display.test.js（新檔案）
-
-## Verify
-- 執行：`node --test test/tools/system-error-display.test.js`
-
-## Boundaries
-- 如果 handler 的 SystemError 路徑無法在單元測試中簡單觸發，就回歸到測試 Error 類別的基本行為
-```
-
-#### REGTEST-08: error boundary 三分支測試（FIX-F）
-
-與 FIX-09 的 worker prompt 相同（FIX-09 本身就是 regression test）。不需要額外 worker。
-
-#### REGTEST-09: dispatch table 動態註冊測試（FIX-G）
-
-```
-## Mission
-驗證 dispatch table 支援動態註冊新命令。
-
-## Context
-- Fix summary: parseArguments 從 if/else 改為 Map-based dispatch table
-- Root cause: 無正式的 dispatch table 資料結構
-- Fix files: packages/cli/index.ts, packages/cli/types.ts, packages/cli/parsers/types.ts
-
-## Input
-- test/cli/dispatch-table.test.js
-- packages/cli/index.ts（dispatch table 實作）
-
-## What to do
-在 test/cli/dispatch-table.test.js 中新增測試：
-```javascript
-test('dispatch table supports dynamic command registration', () => {
-  // 由於 dispatch table 是模組級變數，需要透過 re-export 或配置來測試
-  // 如果 dispatch table 被封裝在 cli/index.ts 中，可測試 parseArguments 是否能正確處理所有命令類型
-  const parsed = parseArguments(['install', '--help']);
-  assert.equal(parsed.command, 'install');
-  assert.equal(parsed.showHelp, true);
-});
-```
-
-核心是驗證 parseArguments 在改用 dispatch table 後的行為與原本一致。
-
-## Scope
-- Allowed files: test/cli/dispatch-table.test.js
-
-## Verify
-- 執行：`node --test test/cli/dispatch-table.test.js`
-
-## Boundaries
-- 不要測試 dispatch table 的內部實作 — 只測試外部行為
-```
-
-#### REGTEST-10: ToolNotFoundError 使用驗證（FIX-J）
-
-```
-## Mission
-確認 ToolNotFoundError 被生產程式碼使用。
-
-## Context
-- Fix summary: 加入註解標記 ToolNotFoundError 為預留型別
+- Fix summary: runTool() 改為拋出 ToolNotFoundError 而非直接輸出 stderr + return 1
 - Root cause: ToolNotFoundError 從未被生產程式碼擲出
-- Fix files: packages/tool-utils/app-error.ts
+- Fix files: packages/tool-registry/registry.ts
 
 ## Input
-- packages/tool-utils/app-error.ts
+- packages/tool-registry/registry.ts（了解修改後的 runTool）
+- packages/tool-utils/app-error.ts（了解 ToolNotFoundError）
+- test/cli/error-boundary.test.js（作為 mock stream 與 run() 測試的參考）
 
 ## What to do
-不需要新增測試 — 現有的 app-error.test.js 已經有完整的 ToolNotFoundError 單元測試（L130-169）。
-關閉此 FIX 項目。
+在 test/tools/tool-not-found-error.test.js（新檔案）建立測試：
+
+1. 透過 run() 呼叫不存在的工具名稱：
+```javascript
+test('run: nonexistent tool triggers ToolNotFoundError via error boundary', async () => {
+  const stdout = createMemoryStream();
+  const stderr = createMemoryStream();
+  const result = await run(['nonexistent-tool'], {
+    sourceRoot: PROJECT_ROOT,
+    stdout,
+    stderr,
+    env: {},
+  });
+  assert.equal(result, 1);
+  const err = stderr.toString();
+  assert.ok(err.includes('Error:'), 'stderr should contain "Error:" prefix');
+  assert.ok(err.includes('Unknown tool: nonexistent-tool'), 'stderr should identify the unknown tool');
+});
+```
+
+2. 如果既有 test/tool-runner.test.js 中有測試依賴舊的 "Available tools:" 輸出格式，需更新那些測試。
 
 ## Scope
-不變更任何檔案。
+- Allowed files:
+  - test/tools/tool-not-found-error.test.js（新檔案）
+  - test/tool-runner.test.js（如有需要，更新依賴舊格式的既有測試）
 
 ## Verify
-- 執行：`node --test test/utils/app-error.test.js` — 確認 ToolNotFoundError 測試仍通過
+- 執行：`node --test test/tools/tool-not-found-error.test.js`
+- 執行：`node --test test/tool-runner.test.js` — 確認既有測試通過或已被正確更新
 ```
 
 ---
 
 ## 7. Fix Batch Schedule
 
-### Batch 1 — 無檔案衝突的簡單修復（平行）
+### Batch 1 — 所有修復（平行，無檔案重疊）
 
-- **Issues**: FIX-H (filter-logs --help), FIX-I (CI 設定), FIX-K (HelpTextBuilder 測試補強), FIX-J (ToolNotFoundError)
-- **Strategy**: 4 個 worker 平行執行（各自完全獨立的檔案）
+- **Issues**: FIX-01, FIX-02, FIX-03, FIX-04, FIX-05, FIX-06
+- **Strategy**: 6 個 worker 平行執行（各自完全獨立的檔案集）
 - **Depends on**: 無
+- **Remark**: FIX-03 與 FIX-05 雖有邏輯相依，但操作不同檔案，可平行執行。FIX-05 的 verify 步驟需在 FIX-03 完成後執行。
 - **Gate**:
-  - [ ] FIX-H worker 報告成功
-  - [ ] FIX-I worker 報告成功
-  - [ ] FIX-K worker 報告成功
-  - [ ] FIX-J worker 報告成功
-  - [ ] 執行驗證：`npm test`
+  - [ ] FIX-01 worker 報告成功
+  - [ ] FIX-02 worker 報告成功
+  - [ ] FIX-03 worker 報告成功
+  - [ ] FIX-04 worker 報告成功
+  - [ ] FIX-06 worker 報告成功
+  - [ ] FIX-05 worker 報告成功（需在 FIX-03 通過後驗證）
+  - [ ] 執行驗證：`npm run build && npm test`
 
 ---
 
-### Batch 2 — P1 修復（平行，檔案無重疊）
+### Batch 2 — Regression Test 實作
 
-- **Issues**: FIX-A (validate-tools), FIX-B (sync-memory-index), FIX-C (parsers), FIX-D (platform-adapter)
-- **Strategy**: 4 個 worker 平行執行
-  - FIX-A: packages/tools/validate-skill-frontmatter/, validate-openai-agent-config/
-  - FIX-B: packages/tools/sync-memory-index/
-  - FIX-C: packages/cli/parsers/
-  - FIX-D: packages/cli/installer.ts, packages/cli/updater.ts, packages/cli/index.ts
-  - FIX-A 與 FIX-B 不同檔案，可平行
-  - FIX-C 與 FIX-D 不同檔案，可平行
-  - **注意**: FIX-D 會修改 packages/cli/index.ts，與 Batch 3 的 FIX-G 有檔案重疊
-    因此 Batch 2 與 Batch 3 必須依序執行 → 先 Batch 2 再 Batch 3
+- **Tasks**: REGTEST-01, REGTEST-02, REGTEST-03, REGTEST-04, REGTEST-05, REGTEST-06
+- **Strategy**: 6 個 worker 平行執行（各自獨立的測試檔案）
+  - REGTEST-01: 既有 test/tools/create-specs.test.js（不需修改，確認通過即可）
+  - REGTEST-02: 既有 test/tools/filter-logs.test.js（不需修改，確認通過即可）
+  - REGTEST-03: 新檔案或既有 test/tools/system-error-display.test.js
+  - REGTEST-04: 新檔案 test/cli/stdio-writer-context.test.js
+  - REGTEST-05: 既有 test/tools/sync-memory-index-error.test.js
+  - REGTEST-06: 新檔案 test/tools/tool-not-found-error.test.js + 更新 test/tool-runner.test.js
 - **Depends on**: Batch 1
 - **Gate**:
-  - [ ] FIX-A worker 報告成功
-  - [ ] FIX-B worker 報告成功
-  - [ ] FIX-C worker 報告成功
-  - [ ] FIX-D worker 報告成功
-  - [ ] 執行驗證：`npm run build && npm test`
-
----
-
-### Batch 3 — P2 型別與架構修復（依序，FIX-D 已完成的 `index.ts` 版本為基礎）
-
-- **Issues**: FIX-E (catch typed), FIX-F (boundary tests), FIX-G (type consolidation)
-- **Strategy**:
-  - FIX-G (type consolidation + dispatch table) 修改 packages/cli/index.ts, types.ts, parsers/types.ts
-    → 依賴 Batch 2 的 FIX-D 完成（FIX-D 也修改 index.ts）
-  - FIX-E (8 個工具的 catch) 獨立，可與 FIX-G 平行
-  - FIX-F (boundary tests) 獨立在 test/ 下，可與 FIX-G 和 FIX-E 平行
-  - 所以 Batch 3 可作為平行批次（FIX-E, FIX-F, FIX-G 無檔案重疊）
-- **Depends on**: Batch 2
-- **Gate**:
-  - [ ] FIX-E worker 報告成功
-  - [ ] FIX-F worker 報告成功
-  - [ ] FIX-G worker 報告成功
-  - [ ] 執行驗證：`npm run build && npm test`
-
----
-
-### Batch 4 — Regression Test 實作
-
-- **Tasks**: REGTEST-01, REGTEST-02, REGTEST-03, REGTEST-04, REGTEST-07, REGTEST-09
-- **Strategy**:
-  - REGTEST-01 (`test/tools/validation-error-handling.test.js`) — 新檔案，無重疊
-  - REGTEST-02 (`test/tools/sync-memory-index-error.test.js`) — 新檔案，無重疊
-  - REGTEST-03, REGTEST-04 (`test/cli/install-args-parser.test.js`, `test/cli/uninstall-args-parser.test.js`) — 與 REGTEST-01/02 無重疊，可平行
-  - REGTEST-07 (`test/tools/system-error-display.test.js`) — 新檔案，可平行
-  - REGTEST-09 (`test/cli/dispatch-table.test.js`) — 已有檔案，可平行
-  - REGTEST-08 即 FIX-F 本身（error boundary tests），已包含
-  - RECHTEST-05/06 (platform adapter consumption) 跳過（integration only）
-  - RECHTEST-10 (ToolNotFoundError) 已關閉
-- **Depends on**: Batch 3
-- **Gate**:
   - [ ] All REGTEST workers report success
-  - [ ] 執行 `npm test` 確認無 regression
+  - [ ] 所有新測試通過
+  - [ ] 既有測試套件無 regression
 
 ---
 
-### Batch 5 — 最終整合
+### Batch 3 — 最終整合
 
 - **Tasks**: 完整測試套件、跨比對 REPORT.md
 - **Strategy**: Coordinator 直接處理
-- **Depends on**: Batch 4
+- **Depends on**: Batch 2
 - **Gate**:
   - [ ] 完整測試套件通過：`npm run build && npm test`
-  - [ ] 涵蓋率門檻：`npm run test:coverage`（注意 tools/ 排除是 intentional）
-  - [ ] 逐一對照 REPORT.md 的 23 項發現，確認每項已被解決
+  - [ ] 涵蓋率門檻：`npm run test:coverage`
+  - [ ] 逐一對照 REPORT.md 的 6 項發現，確認每項已被解決
 
 ---
 
 ## 8. Regression Test Inventory
 
-- REGTEST-01 → FIX-A: [Integration] `test/tools/validation-error-handling.test.js` — 驗證 validate-skill-frontmatter 與 validate-openai-agent-config 的錯誤輸出在 stderr
-- REGTEST-02 → FIX-B: [Integration] `test/tools/sync-memory-index-error.test.js` — 驗證 sync-memory-index 的錯誤處理使用 instanceof 分支
-- REGTEST-03 → FIX-C: [Unit] `test/cli/install-args-parser.test.js` — 驗證 --symlink + --copy 衝突拋錯
-- REGTEST-04 → FIX-C: [Unit] `test/cli/install-args-parser.test.js` + `test/cli/uninstall-args-parser.test.js` — 驗證 --home 錯誤擲出 UserInputError
-- REGTEST-05+06 → FIX-D: [Integration] `test/utils/platform-adapter.test.js` + 新測試檔案（如需要） — 驗證 PlatformAdapter 被消費者使用（此為架構驗證，可不用程式化測試）
-- REGTEST-07 → FIX-E: [Integration] `test/tools/system-error-display.test.js` — 驗證 SystemError 的 stack trace 輸出
-- REGTEST-08 → FIX-F: [Unit] `test/cli/error-boundary.test.js` — 3 個新測試涵蓋 boundary 的 AppError 分支
-- REGTEST-09 → FIX-G: [Unit] `test/cli/dispatch-table.test.js` — 驗證 dispatch table 動態註冊功能
-- REGTEST-10 → FIX-J: [Unit] `test/utils/app-error.test.js` — 現有測試已涵蓋
+- REGTEST-01 → FIX-01: [Integration] `test/tools/create-specs.test.js` — 4 個既有測試驗證 create-specs handler 正確解析 positional argument
+- REGTEST-02 → FIX-02: [Integration] `test/tools/filter-logs.test.js` — 既有測試驗證 filter-logs 在 ToolSchema 轉換後行為不變
+- REGTEST-03 → FIX-03: [Unit] `test/tools/sync-memory-index-system-error.test.js`（新）— 驗證 SystemError 分支輸出 stack trace
+- REGTEST-04 → FIX-04: [Integration] `test/cli/stdio-writer-context.test.js`（新）— 驗證 CliContext.stdioWriter 存在
+- REGTEST-05 → FIX-05: [Unit] `test/tools/sync-memory-index-error.test.js` — 新增直接 handler 測試驗證 catch block
+- REGTEST-06 → FIX-06: [Integration] `test/tools/tool-not-found-error.test.js`（新）— 驗證 ToolNotFoundError 被正確拋出
 
 ---
 
 ## 9. Verification Checkpoints
 
-### Checkpoint 1 — After Batch 1 completes
+### Checkpoint 1 — After all fix batches complete (before regression tests)
 - Run: `npm run build && npm test`
-- Expected: All existing tests pass, CI config is valid
+- Expected: Build succeeds, all existing tests pass, no regressions
+- Special attention: 注意 create-specs 測試（REGTEST-01）— 修正前 4 個 failure，修正後應全部通過
 
-### Checkpoint 2 — After Batch 2 completes
-- Run: `npm run build && npm test`
-- Expected: Parser tests pass, validation tool tests pass, sync-memory-index tests pass, PlatformAdapter consumers work
-- Special attention: parser behavior must be backward compatible (all existing test cases must still pass)
-
-### Checkpoint 3 — After Batch 3 completes
-- Run: `npm run build && npm test`
-- Expected: Type consolidation doesn't break imports, dispatch table works, error boundary tests pass
-
-### Checkpoint 4 — After regression tests are implemented
-- Run: `node --test 'test/**/*.test.js'`
-- Expected: All new regression tests pass
+### Checkpoint 2 — After regression tests are implemented
+- Run: `node --test test/tools/create-specs.test.js test/tools/filter-logs.test.js test/cli/stdio-writer-context.test.js test/tools/sync-memory-index-error.test.js test/tools/tool-not-found-error.test.js test/tools/system-error-display.test.js`
+- Expected: All new regression tests pass, confirming each fix is effective
 - Logical check: Each REGTEST oracle must be "fails on unfixed code, passes after fix" — confirm by inspecting test logic
 
-### Checkpoint 5 — Final verification
+### Checkpoint 3 — Final verification
 - Run full test suite: `npm run build && npm test`
 - Run coverage: `npm run test:coverage`
 - Cross-check REPORT.md: every issue resolved
@@ -1351,12 +1035,18 @@ test('dispatch table supports dynamic command registration', () => {
 
 ## 11. Fix History
 
-<!--
-### Round 1 — 2026-06-04
-- **Issues fixed**: (first round)
+### Round 1 — 2026-06-04 — Fix coordinator: QA skill
+
+- **Issues fixed**: 16 of 23 (P0: 0, P1: 4, P2: 13, P3: 6 → 16 fixed, 1 unfixed, 7 deferred)
+- **Fixes applied**: PlatformAdapter consumption, AppError integration (3 tools), parser UserInputError, dispatch table, CI config, 8-tool catch instanceof, error boundary tests, type dedup, filter-logs --help, parser-utils.ts, validate tool dead code removal
+- **Unfixed**: StdioWriter integration (FIX-05 → deferred to Round 2)
+- **Deferred**: Single schema (P1), tool-level help (P2), coverage exclude (P2), package tests (P2), ToolNotFoundError (P3), toolsHelp dependency (P3), dist/ import convention (P3)
+
+### Round 2 — 2026-06-04
+
+- **Issues fixed**: (current round — to be filled after execution)
 - **Outcome**: TBD
-- **Key notes**: Initial fix plan based on REPORT.md v1
--->
+- **Key notes**: Round 2 addresses the 6 residual issues (1 P0, 1 P1, 4 P2) found in the second review round, including the deferred single-schema architecture and StdioWriter integration.
 
 ---
 
@@ -1373,6 +1063,7 @@ test('dispatch table supports dynamic command registration', () => {
 - **For fixes marked as Complex**: ensure the worker performs systematic debugging before applying the fix
 - Run `npm run build` after every batch to catch TypeScript errors early
 - **File overlap is the hard gate**: never parallel workers that modify the same file, even if logically independent
+- FIX-03 (handler fix) and FIX-05 (test fix) modify different files (source vs test) but are logically dependent. Verify FIX-03 first before confirming FIX-05 passes.
 
 ### ASK FIRST — pause and confirm with the user
 
@@ -1380,8 +1071,8 @@ test('dispatch table supports dynamic command registration', () => {
 - Need to add a new external dependency
 - Worker has failed twice
 - Test regression cannot be quickly diagnosed
-- Any fix that would modify the `eval` tool package (out of scope per SPEC)
-- If FIX-G (type consolidation) causes cascading import changes beyond the allowed files
+- If FIX-02 (ToolSchema) requires changes to ToolDefinition type in tool-registry (affects all tool consumers)
+- If FIX-06 (ToolNotFoundError) changes cause cascading test failures — the behavior change from "Available tools:" to bare error may break multiple tests
 
 ### NEVER
 
@@ -1391,5 +1082,4 @@ test('dispatch table supports dynamic command registration', () => {
 - Modify spec documents (unless the fix reveals a spec error — report it instead)
 - Start regression tests before all fixes are verified
 - **Defer any REPORT.md issue to a future round** — every issue has a complete fix plan in this FIX.md
-- Modify any file listed as "Forbidden" in a worker's Scope section
 - Modify the `eval` tool or `codegraph` tool (out of spec scope)
