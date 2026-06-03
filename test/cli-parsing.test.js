@@ -64,6 +64,20 @@ test('parseArguments recognizes direct tool invocation', () => {
   assert.deepEqual(result.toolArgs, ['app.log', '--count-only']);
 });
 
+test('parseArguments recognizes codegraph as a known tool', () => {
+  const result = parseArguments(['codegraph', '--help']);
+  assert.equal(result.command, 'tool');
+  assert.equal(result.toolName, 'codegraph');
+  assert.deepEqual(result.toolArgs, ['--help']);
+});
+
+test('parseArguments recognizes codegraph subcommand invocation', () => {
+  const result = parseArguments(['codegraph', 'status', '--json']);
+  assert.equal(result.command, 'tool');
+  assert.equal(result.toolName, 'codegraph');
+  assert.deepEqual(result.toolArgs, ['status', '--json']);
+});
+
 test('parseArguments recognizes explicit install command', () => {
   const result = parseArguments(['install', 'codex', '--copy']);
   assert.equal(result.command, 'install');

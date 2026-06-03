@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
+import { isInteractive } from '@laitszkin/tui';
 
 interface Version {
   parts: number[];
@@ -56,7 +57,7 @@ function shouldSkipUpdateCheck({ env = process.env, stdin = process.stdin, stdou
   stdin?: NodeJS.ReadStream;
   stdout?: NodeJS.WriteStream;
 }): boolean {
-  return env.APOLLO_TOOLKIT_SKIP_UPDATE_CHECK === '1' || !stdin.isTTY || !stdout.isTTY;
+  return env.APOLLO_TOOLKIT_SKIP_UPDATE_CHECK === '1' || !isInteractive(stdin, stdout, env);
 }
 
 export function execCommand(command: string, args: string[], { env = process.env, stdout, stderr }: {

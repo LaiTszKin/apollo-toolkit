@@ -1,4 +1,4 @@
-export { supportsColor, supportsAnimation, color, clearScreen, sleep } from './terminal.js';
+export { supportsColor, supportsAnimation, color, clearScreen, sleep, isInteractive } from './terminal.js';
 export {
   buildWordmark,
   buildBanner,

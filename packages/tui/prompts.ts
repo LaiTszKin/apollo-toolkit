@@ -1,4 +1,5 @@
 import { checkbox, confirm as inquirerConfirm } from '@inquirer/prompts';
+import { isInteractive } from './terminal.js';
 
 export interface ChoiceOption {
   name: string;
@@ -21,7 +22,7 @@ export interface PromptYesNoOpts {
 }
 
 export async function promptForModes(opts: PromptForModesOpts): Promise<string[]> {
-  if (!opts.input?.isTTY || !opts.output?.isTTY) {
+  if (!opts.input || !opts.output || !isInteractive(opts.input, opts.output)) {
     throw new Error('Interactive selection requires a TTY. Re-run with explicit targets.');
   }
   const result = await checkbox(
@@ -38,7 +39,7 @@ export async function promptForModes(opts: PromptForModesOpts): Promise<string[]
 }
 
 export async function promptYesNo(opts: PromptYesNoOpts): Promise<boolean> {
-  if (!opts.input?.isTTY || !opts.output?.isTTY) {
+  if (!opts.input || !opts.output || !isInteractive(opts.input, opts.output)) {
     return opts.default !== false;
   }
   return inquirerConfirm(

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { color, supportsColor, supportsAnimation, buildBanner, buildWordmark, buildWelcomeScreen, buildSupportedTargetLines, renderSelectionScreen, animateWelcomeScreen, promptYesNo, promptForModes } from '@laitszkin/tui';
+import { color, supportsColor, supportsAnimation, buildBanner, buildWordmark, buildWelcomeScreen, buildSupportedTargetLines, renderSelectionScreen, animateWelcomeScreen, promptYesNo, promptForModes, isInteractive } from '@laitszkin/tui';
 import type { TargetDefinition } from '@laitszkin/tui';
 import { formatToolList, buildToolDiscoveryHelp, runTool, getTool as getToolCommand } from '@laitszkin/tool-registry';
 import { formatExamples } from '@laitszkin/tool-registry';
@@ -371,7 +371,7 @@ async function confirmInstall({ stdin, stdout, version, toolkitHome, modes, link
   }
   stdout.write('\n');
 
-  if (!stdin.isTTY || !stdout.isTTY) return true;
+  if (!isInteractive(stdin, stdout, env)) return true;
 
   return promptYesNo({ message: 'Install Apollo Toolkit to these targets?', default: true, input: stdin, output: stdout });
 }
@@ -461,7 +461,7 @@ export async function run(argv: string[], context: CliContext = {}): Promise<num
     // Uninstall flow
     if (parsed.command === 'uninstall') {
       const toolkitHome = parsed.toolkitHome || resolveToolkitHome(env);
-      const isTTY = stdin.isTTY && stdout.isTTY;
+      const isTTY = isInteractive(stdin, stdout, env);
 
       let resolvedModes: InstallMode[] | null = null;
       if (parsed.modes.length > 0) {

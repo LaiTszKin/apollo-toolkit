@@ -15,12 +15,35 @@ const ANSI_MAP: Record<string, (s: string) => string> = {
   '1;37': (s: string) => forceChalk.bold.white(s),
 };
 
+/**
+ * Check whether stdin/stdout are connected to an interactive terminal.
+ *
+ * On Unix/macOS `stdin.isTTY` and `stdout.isTTY` work reliably.
+ * On Windows with MSYS2/MINGW (Git Bash, Cygwin) these return `undefined`
+ * because the MSYS2 PTY layer communicates via pipes, not native console
+ * handles. Fall back to environment variable detection for known Windows
+ * terminal environments.
+ */
+export function isInteractive(
+  stdin: { isTTY?: boolean },
+  stdout: { isTTY?: boolean },
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  if (stdin.isTTY && stdout.isTTY) return true;
+  if (process.platform === 'win32') {
+    if (env.MSYSTEM) return true;    // MSYS2/MINGW (Git Bash)
+    if (env.WT_SESSION) return true; // Windows Terminal / VS Code integrated terminal
+    if (env.CMDER_ROOT) return true; // ConEmu / cmder
+  }
+  return false;
+}
+
 export function supportsColor(stream: { isTTY?: boolean }, env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(stream && stream.isTTY && !env.NO_COLOR);
+  return Boolean(stream && isInteractive(stream, stream, env) && !env.NO_COLOR);
 }
 
 export function supportsAnimation(stream: { isTTY?: boolean }, env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(stream && stream.isTTY && !env.CI && env.APOLLO_TOOLKIT_NO_ANIMATION !== '1');
+  return Boolean(stream && isInteractive(stream, stream, env) && !env.CI && env.APOLLO_TOOLKIT_NO_ANIMATION !== '1');
 }
 
 export function color(text: string, code: string, enabled: boolean): string {
