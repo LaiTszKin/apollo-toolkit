@@ -1,7 +1,6 @@
 import { execFile } from 'node:child_process';
-import { parseArgs } from 'node:util';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError } from '@laitszkin/tool-utils';
+import { createToolRunner } from '@laitszkin/tool-utils';
 
 const ISSUE_FIELDS =
   'number,title,body,state,author,labels,assignees,comments,createdAt,updatedAt,closedAt,url';
@@ -11,26 +10,6 @@ interface ReadIssueArgs {
   repo: string | null;
   comments: boolean;
   json: boolean;
-}
-
-function parseArgsFn(argv: string[]): ReadIssueArgs {
-  const { values, positionals } = parseArgs({
-    options: {
-      repo: { type: 'string' },
-      comments: { type: 'boolean' },
-      json: { type: 'boolean' },
-    },
-    allowPositionals: true,
-  });
-
-  const issue = (positionals[0] as string | undefined) ?? null;
-
-  return {
-    issue,
-    repo: (values.repo as string) ?? null,
-    comments: values.comments === true,
-    json: values.json === true,
-  };
 }
 
 interface CommandResult {
@@ -127,31 +106,50 @@ function printSummary(
   }
 }
 
-export async function readGitHubIssueHandler(
-  argv: string[],
-  context: ToolContext,
-): Promise<number> {
-  const { stdout, stderr } = context;
+const schema = {
+  options: {
+    repo: { type: 'string' as const },
+    comments: { type: 'boolean' as const },
+    json: { type: 'boolean' as const },
+  },
+  allowPositionals: true,
+  usage: 'apltk read-github-issue [options] <issue>',
+  description: 'Read GitHub issue details through gh.',
+  handler: async (
+    values: Record<string, unknown>,
+    positionals: string[],
+    context: ToolContext,
+  ): Promise<number> => {
+    const { stdout, stderr } = context;
 
-  try {
-    const args = parseArgsFn(argv);
+    const args: ReadIssueArgs = {
+      issue: positionals[0] ?? null,
+      repo: (values.repo as string) ?? null,
+      comments: values.comments === true,
+      json: values.json === true,
+    };
 
     if (!args.issue) {
-      throw new UserInputError('Issue number or URL is required.');
+      stderr!.write(
+        'Error: issue number or URL is required.\n',
+      );
+      return 1;
     }
 
     const cmd = buildCommand(args);
     const result = await runGh(cmd);
 
     if (result.exitCode !== 0) {
-      throw new UserInputError(result.stderr.trim() || 'gh issue view failed.');
+      stderr!.write(result.stderr.trim() || 'gh issue view failed.\n');
+      return result.exitCode;
     }
 
     let issue: Record<string, unknown>;
     try {
       issue = JSON.parse(result.stdout);
     } catch {
-      throw new UserInputError('Unable to parse gh output as JSON.');
+      stderr!.write('Error: unable to parse gh output as JSON.\n');
+      return 1;
     }
 
     if (args.json) {
@@ -161,11 +159,8 @@ export async function readGitHubIssueHandler(
 
     printSummary(issue, args.comments, context);
     return 0;
-  } catch (err) {
-    stderr!.write(`Error: ${(err as Error).message}\n`);
-    return 1;
-  }
-}
+  },
+};
 
 // ---- Tool definition ----
 
@@ -173,5 +168,5 @@ export const tool: ToolDefinition = {
   name: 'read-github-issue',
   category: 'GitHub workflows',
   description: 'Read GitHub issue details through gh.',
-  handler: readGitHubIssueHandler,
+  handler: createToolRunner(schema),
 };

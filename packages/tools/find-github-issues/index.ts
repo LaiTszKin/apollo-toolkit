@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError } from '@laitszkin/tool-utils';
+import { createToolRunner } from '@laitszkin/tool-utils';
 
 const ISSUE_FIELDS = 'number,title,state,updatedAt,url,labels,assignees';
 
@@ -14,43 +14,9 @@ interface FindIssuesArgs {
   output: 'table' | 'json';
 }
 
-function parseArgsFn(argv: string[]): FindIssuesArgs {
-  const { values } = parseArgs({
-    options: {
-      repo: { type: 'string' },
-      state: { type: 'string' },
-      limit: { type: 'string' },
-      label: { type: 'string', multiple: true },
-      search: { type: 'string' },
-      output: { type: 'string' },
-    },
-    allowPositionals: true,
-  });
-
-  const state = (values.state as string | undefined) ?? 'open';
-  if (state !== 'open' && state !== 'closed' && state !== 'all') {
-    throw new UserInputError(`Invalid state: ${state}. Use open, closed, or all.`);
-  }
-
-  const limit = values.limit ? parseInt(values.limit as string, 10) : 50;
-  if (limit <= 0) {
-    throw new UserInputError('Invalid limit: must be a positive number.');
-  }
-
-  const output = (values.output as string | undefined) ?? 'table';
-  if (output !== 'table' && output !== 'json') {
-    throw new UserInputError(`Invalid output: ${output}. Use table or json.`);
-  }
-
-  return {
-    repo: (values.repo as string) ?? null,
-    state,
-    limit,
-    label: (values.label as string[]) ?? [],
-    search: (values.search as string) ?? null,
-    output,
-  };
-}
+// Holds the raw argv for re-parsing the --label option with multiple:true,
+// since SchemaOption does not support the `multiple` property.
+let _rawArgs: string[] = [];
 
 interface CommandResult {
   stdout: string;
@@ -167,27 +133,57 @@ function printTable(
   }
 }
 
-export async function findGitHubIssuesHandler(
-  argv: string[],
-  context: ToolContext,
-): Promise<number> {
-  const { stdout, stderr } = context;
+const schema = {
+  options: {
+    repo: { type: 'string' as const },
+    state: { type: 'string' as const },
+    limit: { type: 'string' as const },
+    label: { type: 'string' as const },
+    search: { type: 'string' as const },
+    output: { type: 'string' as const },
+  },
+  allowPositionals: true,
+  usage: 'apltk find-github-issues [options]',
+  description: 'List GitHub issues through gh.',
+  handler: async (
+    values: Record<string, unknown>,
+    _positionals: string[],
+    context: ToolContext,
+  ): Promise<number> => {
+    const { stdout, stderr } = context;
 
-  try {
-    const args = parseArgsFn(argv);
+    // Re-parse --label with multiple:true from raw args
+    const { values: parsed } = parseArgs({
+      args: _rawArgs,
+      options: { label: { type: 'string', multiple: true } },
+      strict: false,
+      allowPositionals: true,
+    });
+    const labels = (parsed.label as string[]) ?? [];
+
+    const args: FindIssuesArgs = {
+      repo: (values.repo as string) ?? null,
+      state: (values.state as string | undefined) ?? 'open',
+      limit: values.limit ? parseInt(values.limit as string, 10) : 50,
+      label: labels,
+      search: (values.search as string) ?? null,
+      output: ((values.output as string | undefined) ?? 'table') as 'table' | 'json',
+    };
 
     const cmd = buildCommand(args);
     const result = await runGh(cmd);
 
     if (result.exitCode !== 0) {
-      throw new UserInputError(result.stderr.trim() || 'gh issue list failed.');
+      stderr!.write(result.stderr.trim() || 'gh issue list failed.\n');
+      return result.exitCode;
     }
 
     let issues: Array<Record<string, unknown>>;
     try {
       issues = JSON.parse(result.stdout);
     } catch {
-      throw new UserInputError('Unable to parse gh output as JSON.');
+      stderr!.write('Error: unable to parse gh output as JSON.\n');
+      return 1;
     }
 
     if (args.output === 'json') {
@@ -197,11 +193,10 @@ export async function findGitHubIssuesHandler(
 
     printTable(issues, context);
     return 0;
-  } catch (err) {
-    stderr!.write(`Error: ${(err as Error).message}\n`);
-    return 1;
-  }
-}
+  },
+};
+
+const _runner = createToolRunner(schema);
 
 // ---- Tool definition ----
 
@@ -209,5 +204,8 @@ export const tool: ToolDefinition = {
   name: 'find-github-issues',
   category: 'GitHub workflows',
   description: 'List GitHub issues through gh.',
-  handler: findGitHubIssuesHandler,
+  handler: async (args, context) => {
+    _rawArgs = args;
+    return _runner(args, context);
+  },
 };

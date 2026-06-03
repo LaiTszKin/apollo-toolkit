@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, SystemError } from '@laitszkin/tool-utils';
+import { createToolRunner } from '@laitszkin/tool-utils';
 
 const LIST_QUERY = `
 query($owner: String!, $name: String!, $number: Int!, $after: String) {
@@ -64,50 +64,9 @@ interface ReviewThreadsArgs {
   dryRun: boolean;
 }
 
-function parseArgsFn(argv: string[]): ReviewThreadsArgs {
-  const { values, positionals } = parseArgs({
-    options: {
-      repo: { type: 'string' },
-      pr: { type: 'string' },
-      state: { type: 'string' },
-      output: { type: 'string' },
-      'thread-id': { type: 'string', multiple: true },
-      'thread-id-file': { type: 'string' },
-      'all-unresolved': { type: 'boolean' },
-      'dry-run': { type: 'boolean' },
-    },
-    allowPositionals: true,
-  });
-
-  const command = positionals[0] ?? '';
-
-  const state = (values.state as string | undefined) ?? 'unresolved';
-  if (!['unresolved', 'resolved', 'all'].includes(state)) {
-    throw new UserInputError(`Invalid state: ${state}. Use unresolved, resolved, or all.`);
-  }
-
-  const output = (values.output as string | undefined) ?? 'table';
-  if (output !== 'table' && output !== 'json') {
-    throw new UserInputError(`Invalid output: ${output}. Use table or json.`);
-  }
-
-  const pr = values.pr ? parseInt(values.pr as string, 10) : null;
-  if (values.pr !== undefined && (pr === null || pr <= 0)) {
-    throw new UserInputError('Invalid --pr value: must be a positive integer.');
-  }
-
-  return {
-    command,
-    repo: (values.repo as string) ?? null,
-    pr,
-    state,
-    output,
-    threadId: (values['thread-id'] as string[]) ?? [],
-    threadIdFile: (values['thread-id-file'] as string) ?? null,
-    allUnresolved: values['all-unresolved'] === true,
-    dryRun: values['dry-run'] === true,
-  };
-}
+// Holds the raw argv for re-parsing the --thread-id option with multiple:true,
+// since SchemaOption does not support the `multiple` property.
+let _rawArgs: string[] = [];
 
 // ---- Utilities ----
 
@@ -442,11 +401,31 @@ async function cmdList(
   args: ReviewThreadsArgs,
   context: ToolContext,
 ): Promise<number> {
-  const { stdout } = context;
+  const { stdout, stderr } = context;
 
-  const repo = await resolveRepo(args.repo);
-  const prNumber = await resolvePrNumber(repo, args.pr);
-  const threads = await fetchReviewThreads(repo, prNumber);
+  let repo: string;
+  try {
+    repo = await resolveRepo(args.repo);
+  } catch (err) {
+    stderr!.write(`Error: ${(err as Error).message}\n`);
+    return 1;
+  }
+
+  let prNumber: number;
+  try {
+    prNumber = await resolvePrNumber(repo, args.pr);
+  } catch (err) {
+    stderr!.write(`Error: ${(err as Error).message}\n`);
+    return 1;
+  }
+
+  let threads: Array<Record<string, unknown>>;
+  try {
+    threads = await fetchReviewThreads(repo, prNumber);
+  } catch (err) {
+    stderr!.write(`Error: ${(err as Error).message}\n`);
+    return 1;
+  }
 
   const filtered = filterThreads(threads, args.state);
   const normalized = filtered.map(normalizeThread);
@@ -475,17 +454,40 @@ async function cmdResolve(
   args: ReviewThreadsArgs,
   context: ToolContext,
 ): Promise<number> {
-  const { stdout } = context;
+  const { stdout, stderr } = context;
 
-  const repo = await resolveRepo(args.repo);
-  const prNumber = await resolvePrNumber(repo, args.pr);
-  const threads = await fetchReviewThreads(repo, prNumber);
+  let repo: string;
+  try {
+    repo = await resolveRepo(args.repo);
+  } catch (err) {
+    stderr!.write(`Error: ${(err as Error).message}\n`);
+    return 1;
+  }
+
+  let prNumber: number;
+  try {
+    prNumber = await resolvePrNumber(repo, args.pr);
+  } catch (err) {
+    stderr!.write(`Error: ${(err as Error).message}\n`);
+    return 1;
+  }
+
+  let threads: Array<Record<string, unknown>>;
+  try {
+    threads = await fetchReviewThreads(repo, prNumber);
+  } catch (err) {
+    stderr!.write(`Error: ${(err as Error).message}\n`);
+    return 1;
+  }
 
   const unresolved = filterThreads(threads, 'unresolved').map(normalizeThread);
   const threadIds = collectThreadIds(args, unresolved);
 
   if (threadIds.length === 0) {
-    throw new UserInputError('No thread IDs selected. Use --thread-id, --thread-id-file, or --all-unresolved.');
+    stderr!.write(
+      'Error: no thread IDs selected. Use --thread-id, --thread-id-file, or --all-unresolved.\n',
+    );
+    return 1;
   }
 
   const { resolved, failed } = await resolveThreads(threadIds, args.dryRun);
@@ -505,38 +507,71 @@ async function cmdResolve(
 
 // ---- Main handler ----
 
-export async function reviewThreadsHandler(
-  argv: string[],
-  context: ToolContext,
-): Promise<number> {
-  const { stderr } = context;
+const schema = {
+  options: {
+    repo: { type: 'string' as const },
+    pr: { type: 'string' as const },
+    state: { type: 'string' as const },
+    output: { type: 'string' as const },
+    'thread-id': { type: 'string' as const },
+    'thread-id-file': { type: 'string' as const },
+    'all-unresolved': { type: 'boolean' as const },
+    'dry-run': { type: 'boolean' as const },
+  },
+  allowPositionals: true,
+  usage: 'apltk review-threads [list|resolve] [options]',
+  description: 'List or resolve GitHub PR review threads.',
+  handler: async (
+    values: Record<string, unknown>,
+    positionals: string[],
+    context: ToolContext,
+  ): Promise<number> => {
+    const { stderr } = context;
 
-  try {
-    const args = parseArgsFn(argv);
+    // Re-parse --thread-id with multiple:true from raw args
+    const { values: parsed } = parseArgs({
+      args: _rawArgs,
+      options: { 'thread-id': { type: 'string', multiple: true } },
+      strict: false,
+      allowPositionals: true,
+    });
+    const threadId = (parsed['thread-id'] as string[]) ?? [];
 
-    switch (args.command) {
-      case 'list':
-        return await cmdList(args, context);
-      case 'resolve':
-        return await cmdResolve(args, context);
-      default:
-        throw new UserInputError(
-          args.command
-            ? `Unsupported command: ${args.command}`
-            : 'Missing command. Use list or resolve.',
-        );
-    }
-  } catch (err) {
-    if (err instanceof UserInputError) {
-      stderr!.write(`${err.message}\n`);
-    } else if (err instanceof SystemError) {
-      stderr!.write(`${err.message}\n${err.stack}\n`);
-    } else {
+    const command = positionals[0] ?? '';
+    const state = (values.state as string | undefined) ?? 'unresolved';
+    const output = (values.output as string | undefined) ?? 'table';
+    const pr = values.pr ? parseInt(values.pr as string, 10) : null;
+
+    const args: ReviewThreadsArgs = {
+      command,
+      repo: (values.repo as string) ?? null,
+      pr,
+      state,
+      output: output as 'table' | 'json',
+      threadId,
+      threadIdFile: (values['thread-id-file'] as string) ?? null,
+      allUnresolved: values['all-unresolved'] === true,
+      dryRun: values['dry-run'] === true,
+    };
+
+    try {
+      switch (args.command) {
+        case 'list':
+          return await cmdList(args, context);
+        case 'resolve':
+          return await cmdResolve(args, context);
+        default:
+          stderr!.write(`Unsupported command: ${args.command}\n`);
+          return 1;
+      }
+    } catch (err) {
       stderr!.write(`Error: ${(err as Error).message}\n`);
+      return 1;
     }
-    return 1;
-  }
-}
+  },
+};
+
+const _runner = createToolRunner(schema);
 
 // ---- Tool definition ----
 
@@ -544,5 +579,8 @@ export const tool: ToolDefinition = {
   name: 'review-threads',
   category: 'GitHub workflows',
   description: 'List or resolve GitHub PR review threads.',
-  handler: reviewThreadsHandler,
+  handler: async (args, context) => {
+    _rawArgs = args;
+    return _runner(args, context);
+  },
 };

@@ -1,13 +1,10 @@
 import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { request as httpsRequest } from 'node:https';
-import { request as httpRequest } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join as joinPath } from 'node:path';
-import { cwd } from 'node:process';
-import { parseArgs } from 'node:util';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, SystemError } from '@laitszkin/tool-utils';
+import { createToolRunner } from '@laitszkin/tool-utils';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 const README_ACCEPT = 'application/vnd.github.raw+json';
@@ -95,49 +92,6 @@ interface OpenIssueArgs {
   affectedScope: string | null;
   repo: string | null;
   dryRun: boolean;
-}
-
-function parseArgsFn(argv: string[]): OpenIssueArgs {
-  const { values } = parseArgs({
-    options: {
-      'payload-file': { type: 'string' },
-      title: { type: 'string' },
-      'issue-type': { type: 'string' },
-      'problem-description': { type: 'string' },
-      'suspected-cause': { type: 'string' },
-      reproduction: { type: 'string' },
-      proposal: { type: 'string' },
-      reason: { type: 'string' },
-      'suggested-architecture': { type: 'string' },
-      impact: { type: 'string' },
-      evidence: { type: 'string' },
-      'suggested-action': { type: 'string' },
-      severity: { type: 'string' },
-      'affected-scope': { type: 'string' },
-      repo: { type: 'string' },
-      'dry-run': { type: 'boolean' },
-    },
-    allowPositionals: true,
-  });
-
-  return {
-    payloadFile: (values['payload-file'] as string) ?? null,
-    title: (values.title as string) ?? null,
-    issueType: (values['issue-type'] as string) ?? null,
-    problemDescription: (values['problem-description'] as string) ?? null,
-    suspectedCause: (values['suspected-cause'] as string) ?? null,
-    reproduction: (values.reproduction as string) ?? null,
-    proposal: (values.proposal as string) ?? null,
-    reason: (values.reason as string) ?? null,
-    suggestedArchitecture: (values['suggested-architecture'] as string) ?? null,
-    impact: (values.impact as string) ?? null,
-    evidence: (values.evidence as string) ?? null,
-    suggestedAction: (values['suggested-action'] as string) ?? null,
-    severity: (values.severity as string) ?? null,
-    affectedScope: (values['affected-scope'] as string) ?? null,
-    repo: (values.repo as string) ?? null,
-    dryRun: values['dry-run'] === true,
-  };
 }
 
 // ---- Utilities ----
@@ -718,13 +672,17 @@ function hydrateArgs(args: OpenIssueArgs): OpenIssueArgs {
 
 async function resolveRepoAsync(
   explicitRepo: string | null,
+  context: ToolContext,
 ): Promise<string> {
   if (explicitRepo) return validateRepo(explicitRepo);
 
   // Try to resolve from git remote
   const result = await runCommand('git', ['remote', 'get-url', 'origin']);
   if (result.exitCode !== 0) {
-    throw new UserInputError('Unable to resolve origin remote. Pass --repo owner/repo.');
+    context.stderr!.write(
+      'Unable to resolve origin remote. Pass --repo owner/repo.\n',
+    );
+    throw new Error('--repo resolution failed');
   }
 
   const remote = result.stdout.trim();
@@ -732,7 +690,10 @@ async function resolveRepoAsync(
     /github\.com[:/](?<owner>[A-Za-z0-9_.-]+)\/(?<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$/,
   );
   if (!match?.groups) {
-    throw new UserInputError('Origin remote is not a GitHub repository. Pass --repo owner/repo.');
+    context.stderr!.write(
+      'Origin remote is not a GitHub repository. Pass --repo owner/repo.\n',
+    );
+    throw new Error('--repo resolution failed');
   }
 
   return `${match.groups.owner}/${match.groups.repo}`;
@@ -751,20 +712,71 @@ interface IssueResult {
   publish_error: string;
 }
 
-export async function openGitHubIssueHandler(
-  argv: string[],
-  context: ToolContext,
-): Promise<number> {
-  const { stdout, stderr, env } = context;
+const schema = {
+  options: {
+    'payload-file': { type: 'string' as const },
+    title: { type: 'string' as const },
+    'issue-type': { type: 'string' as const },
+    'problem-description': { type: 'string' as const },
+    'suspected-cause': { type: 'string' as const },
+    reproduction: { type: 'string' as const },
+    proposal: { type: 'string' as const },
+    reason: { type: 'string' as const },
+    'suggested-architecture': { type: 'string' as const },
+    impact: { type: 'string' as const },
+    evidence: { type: 'string' as const },
+    'suggested-action': { type: 'string' as const },
+    severity: { type: 'string' as const },
+    'affected-scope': { type: 'string' as const },
+    repo: { type: 'string' as const },
+    'dry-run': { type: 'boolean' as const },
+  },
+  allowPositionals: true,
+  usage: 'apltk open-github-issue [options]',
+  description: 'Publish or draft a structured GitHub issue.',
+  handler: async (
+    values: Record<string, unknown>,
+    _positionals: string[],
+    context: ToolContext,
+  ): Promise<number> => {
+    const { stdout, stderr, env } = context;
 
-  try {
-    const args = hydrateArgs(parseArgsFn(argv));
-    validateIssueContent(args);
+    let args: OpenIssueArgs;
+    try {
+      args = hydrateArgs({
+        payloadFile: (values['payload-file'] as string) ?? null,
+        title: (values.title as string) ?? null,
+        issueType: (values['issue-type'] as string) ?? null,
+        problemDescription: (values['problem-description'] as string) ?? null,
+        suspectedCause: (values['suspected-cause'] as string) ?? null,
+        reproduction: (values.reproduction as string) ?? null,
+        proposal: (values.proposal as string) ?? null,
+        reason: (values.reason as string) ?? null,
+        suggestedArchitecture: (values['suggested-architecture'] as string) ?? null,
+        impact: (values.impact as string) ?? null,
+        evidence: (values.evidence as string) ?? null,
+        suggestedAction: (values['suggested-action'] as string) ?? null,
+        severity: (values.severity as string) ?? null,
+        affectedScope: (values['affected-scope'] as string) ?? null,
+        repo: (values.repo as string) ?? null,
+        dryRun: values['dry-run'] === true,
+      });
+      validateIssueContent(args);
+    } catch (err) {
+      stderr!.write(`Error: ${(err as Error).message}\n`);
+      return 1;
+    }
 
     const ghAuthenticated = await hasGhAuth();
     const token = getToken(env || {});
 
-    const repo = await resolveRepoAsync(args.repo);
+    let repo: string;
+    try {
+      repo = await resolveRepoAsync(args.repo, context);
+    } catch {
+      return 1;
+    }
+
     const readmeContent = await fetchRemoteReadme(repo, ghAuthenticated, token);
     const language = detectIssueLanguage(readmeContent);
 
@@ -785,46 +797,46 @@ export async function openGitHubIssueHandler(
       affectedScope: args.affectedScope,
     });
 
-  let mode = 'draft-only';
-  let issueUrl = '';
-  let publishError = '';
+    let mode = 'draft-only';
+    let issueUrl = '';
+    let publishError = '';
 
-  if (args.dryRun) {
-    mode = 'dry-run';
-  } else if (ghAuthenticated) {
-    try {
-      issueUrl = await createIssueWithGh(repo, args.title || '', issueBody);
-      mode = 'gh-cli';
-    } catch (exc) {
-      if (token) {
-        try {
-          issueUrl = await createIssueWithToken(
-            repo,
-            args.title || '',
-            issueBody,
-            token,
-          );
-          mode = 'github-token';
-        } catch (tokenExc) {
-          publishError = (tokenExc as Error).message;
+    if (args.dryRun) {
+      mode = 'dry-run';
+    } else if (ghAuthenticated) {
+      try {
+        issueUrl = await createIssueWithGh(repo, args.title || '', issueBody);
+        mode = 'gh-cli';
+      } catch (exc) {
+        if (token) {
+          try {
+            issueUrl = await createIssueWithToken(
+              repo,
+              args.title || '',
+              issueBody,
+              token,
+            );
+            mode = 'github-token';
+          } catch (tokenExc) {
+            publishError = (tokenExc as Error).message;
+          }
+        } else {
+          publishError = (exc as Error).message;
         }
-      } else {
+      }
+    } else if (token) {
+      try {
+        issueUrl = await createIssueWithToken(
+          repo,
+          args.title || '',
+          issueBody,
+          token,
+        );
+        mode = 'github-token';
+      } catch (exc) {
         publishError = (exc as Error).message;
       }
     }
-  } else if (token) {
-    try {
-      issueUrl = await createIssueWithToken(
-        repo,
-        args.title || '',
-        issueBody,
-        token,
-      );
-      mode = 'github-token';
-    } catch (exc) {
-      publishError = (exc as Error).message;
-    }
-  }
 
     const output: IssueResult = {
       repo,
@@ -853,17 +865,8 @@ export async function openGitHubIssueHandler(
     }
 
     return 0;
-  } catch (err) {
-    if (err instanceof UserInputError) {
-      stderr!.write(`${err.message}\n`);
-    } else if (err instanceof SystemError) {
-      stderr!.write(`${err.message}\n${err.stack}\n`);
-    } else {
-      stderr!.write(`Error: ${(err as Error).message}\n`);
-    }
-    return 1;
-  }
-}
+  },
+};
 
 // ---- Tool definition ----
 
@@ -903,5 +906,5 @@ export const tool: ToolDefinition = {
   name: 'open-github-issue',
   category: 'GitHub workflows',
   description: 'Publish or draft a structured GitHub issue.',
-  handler: openGitHubIssueHandler,
+  handler: createToolRunner(schema),
 };
