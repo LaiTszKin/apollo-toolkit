@@ -19,3 +19,77 @@ describe('execCommand shell behavior', () => {
     );
   });
 });
+
+describe('compareVersions pre-release handling', () => {
+  it('should order pre-release tags correctly', async () => {
+    const { compareVersions } = await import('../packages/cli/dist/updater.js');
+
+    // alpha < beta (lexicographic order)
+    assert.strictEqual(compareVersions('1.0.0-alpha', '1.0.0-beta'), -1);
+    assert.strictEqual(compareVersions('1.0.0-beta', '1.0.0-alpha'), 1);
+
+    // pre-release < release
+    assert.strictEqual(compareVersions('1.0.0-alpha', '1.0.0'), -1);
+    assert.strictEqual(compareVersions('1.0.0', '1.0.0-alpha'), 1);
+
+    // identical pre-release
+    assert.strictEqual(compareVersions('1.0.0-alpha', '1.0.0-alpha'), 0);
+
+    // same numeric version, different pre-release length
+    assert.strictEqual(compareVersions('1.0.0-rc.1', '1.0.0-rc.2'), -1);
+  });
+});
+
+describe('getLatestPublishedVersion array branch', () => {
+  it('should take the last element when npm returns an array', async () => {
+    const { checkForPackageUpdate } = await import('../packages/cli/dist/updater.js');
+
+    const calls = [];
+    const mockExec = async (cmd, args) => {
+      calls.push({ cmd, args });
+      return { stdout: '["1.0.0","1.1.0","1.2.0"]' };
+    };
+
+    const result = await checkForPackageUpdate({
+      packageName: 'test-pkg',
+      currentVersion: '0.9.0',
+      env: {},
+      stdin: { isTTY: true },
+      stdout: { isTTY: true, write: () => true },
+      stderr: { write: () => true },
+      exec: mockExec,
+      confirmUpdate: async () => false,
+    });
+
+    assert.strictEqual(result.latestVersion, '1.2.0');
+    assert.strictEqual(result.checked, true);
+    assert.strictEqual(result.updated, false);
+    assert.strictEqual(calls.length, 1);
+    assert.ok(calls[0].args.includes('--json'));
+  });
+});
+
+describe('checkForPackageUpdate catch block', () => {
+  it('should handle exec errors gracefully', async () => {
+    const { checkForPackageUpdate } = await import('../packages/cli/dist/updater.js');
+
+    const mockExec = async () => {
+      throw new Error('network error');
+    };
+
+    const result = await checkForPackageUpdate({
+      packageName: 'test-pkg',
+      currentVersion: '0.9.0',
+      env: {},
+      stdin: { isTTY: true },
+      stdout: { isTTY: true, write: () => true },
+      stderr: { write: () => true },
+      exec: mockExec,
+    });
+
+    assert.strictEqual(result.checked, false);
+    assert.strictEqual(result.updated, false);
+    assert.ok(result.error instanceof Error);
+    assert.strictEqual(result.error.message, 'network error');
+  });
+});

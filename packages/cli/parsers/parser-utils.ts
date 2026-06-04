@@ -10,7 +10,7 @@ import { UserInputError } from '@laitszkin/tool-utils';
  */
 export function normalizeParseError(err: unknown): never {
   const message = (err as Error).message;
-  if (message.includes('--home') && (message.includes('argument missing') || message.includes('value'))) {
+  if (message.includes('--home') && (message.includes('argument missing') || message.includes('value') || message.includes('ambiguous'))) {
     throw new UserInputError('Missing value for --home');
   }
   throw err;

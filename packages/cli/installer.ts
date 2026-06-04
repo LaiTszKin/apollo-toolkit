@@ -121,7 +121,7 @@ function isSafeSkillName(skillName: string): boolean {
     && skillName.length > 0
     && !skillName.includes('\0')
     && !skillName.includes('/')
-    && !skillName.includes('\\')
+    && !(createPlatformAdapter().isWindows() && skillName.includes('\\'))
     && !path.isAbsolute(skillName)
     && skillName !== '.'
     && skillName !== '..';

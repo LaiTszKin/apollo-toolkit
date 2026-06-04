@@ -190,7 +190,7 @@ const schema = {
     'api-url': { type: 'string' as const },
     'api-key': { type: 'string' as const },
     'prompts-file': { type: 'string' as const },
-    'prompt': { type: 'string' as const },
+    'prompt': { type: 'string' as const, multiple: true },
     'image-model': { type: 'string' as const },
     'aspect-ratio': { type: 'string' as const },
     'image-size': { type: 'string' as const },

@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 import yaml from 'js-yaml';
-import { createToolRunner } from '@laitszkin/tool-utils';
+import { UserInputError } from '@laitszkin/tool-utils';
 
 // ── Apply & Template helpers (mirrors cli.js internals for the new verbs) ─────
 
@@ -245,7 +245,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
     // 1) Features (add / modify / remove)
     for (const feat of batch.features || []) {
       const slug: string = feat.slug;
-      if (!slug) throw new Error('"features" entry missing required "slug" field');
+      if (!slug) throw new UserInputError('"features" entry missing required "slug" field');
 
       switch (feat.action) {
         case 'add': {
@@ -260,7 +260,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
         }
         case 'modify': {
           const existing = findFeature(merged, slug);
-          if (!existing) throw new Error(`feature "${slug}" not found for action "modify"`);
+          if (!existing) throw new UserInputError(`feature "${slug}" not found for action "modify"`);
           if (feat.title !== undefined) existing.title = String(feat.title);
           if (feat.story !== undefined) existing.story = String(feat.story);
           if (feat.dependsOn !== undefined)
@@ -272,7 +272,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
           removeFeature(merged, slug);
           break;
         default:
-          throw new Error(`feature "${slug}": unknown action "${feat.action}"`);
+          throw new UserInputError(`feature "${slug}": unknown action "${feat.action}"`);
       }
     }
 
@@ -280,7 +280,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
     for (const feat of batch.features || []) {
       if (feat.action === 'remove') continue;
       const parent = findFeature(merged, feat.slug);
-      if (!parent) throw new Error(`feature "${feat.slug}" not found for submodule operations`);
+      if (!parent) throw new UserInputError(`feature "${feat.slug}" not found for submodule operations`);
       for (const sub of feat.submodules || []) {
         switch (sub.action) {
           case 'add': {
@@ -295,7 +295,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
             removeSubmodule(parent, sub.slug, merged);
             break;
           default:
-            throw new Error(
+            throw new UserInputError(
               `submodule "${feat.slug}/${sub.slug}": unknown action "${sub.action}"`,
             );
         }
@@ -311,7 +311,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
         if (sub.action === 'remove') continue;
         const subMod = findSubmodule(parent, sub.slug);
         if (!subMod)
-          throw new Error(`submodule "${feat.slug}/${sub.slug}" not found for function operations`);
+          throw new UserInputError(`submodule "${feat.slug}/${sub.slug}" not found for function operations`);
         for (const fn of sub.functions || []) {
           switch (fn.action) {
             case 'add': {
@@ -333,7 +333,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
               );
               break;
             default:
-              throw new Error(
+              throw new UserInputError(
                 `function "${feat.slug}/${sub.slug}/${fn.name}": unknown action "${fn.action}"`,
               );
           }
@@ -349,7 +349,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
         from = parseEndpoint(edge.from);
         to = parseEndpoint(edge.to);
       } catch (er: any) {
-        throw new Error(`edge: ${er.message}`);
+        throw new UserInputError(`edge: ${er.message}`);
       }
 
       switch (edge.action) {
@@ -357,28 +357,28 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
           // Referential integrity validation
           const fromFeature = findFeature(merged, from.feature);
           if (!fromFeature) {
-            throw new Error(
+            throw new UserInputError(
               `edge "${edge.from} → ${edge.to}": source feature "${from.feature}" not found`,
             );
           }
           if (from.submodule) {
             const fromSub = findSubmodule(fromFeature, from.submodule);
             if (!fromSub) {
-              throw new Error(
+              throw new UserInputError(
                 `edge "${edge.from} → ${edge.to}": source submodule "${from.submodule}" not found in feature "${from.feature}"`,
               );
             }
           }
           const toFeature = findFeature(merged, to.feature);
           if (!toFeature) {
-            throw new Error(
+            throw new UserInputError(
               `edge "${edge.from} → ${edge.to}": target feature "${to.feature}" not found`,
             );
           }
           if (to.submodule) {
             const toSub = findSubmodule(toFeature, to.submodule);
             if (!toSub) {
-              throw new Error(
+              throw new UserInputError(
                 `edge "${edge.from} → ${edge.to}": target submodule "${to.submodule}" not found in feature "${to.feature}"`,
               );
             }
@@ -427,11 +427,15 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
           break;
         }
         default:
-          throw new Error(`edge "${edge.from} → ${edge.to}": unknown action "${edge.action}"`);
+          throw new UserInputError(`edge "${edge.from} → ${edge.to}": unknown action "${edge.action}"`);
       }
     }
   } catch (e: any) {
-    stderr.write(`Batch aborted: ${e.message}\n`);
+    if (e instanceof UserInputError) {
+      stderr.write(`${e.message}\n`);
+    } else {
+      stderr.write(`Batch aborted: ${e.message}\n`);
+    }
     return 1;
   }
 
@@ -591,38 +595,6 @@ async function handleTemplate(templateArgs: string[], context: ToolContext): Pro
 
   return 0;
 }
-
-// ── Schema ────────────────────────────────────────────────────────────────────
-
-const schema = {
-  options: {
-    // No tool-level options; all options are sub-command-specific
-  },
-  allowPositionals: true,
-  strict: false,
-  usage: 'apltk architecture [diff|merge|apply|template] [options]',
-  description: 'Open the project HTML architecture atlas, or render a paginated diff (`architecture diff`).',
-  handler: async (
-    values: Record<string, unknown>,
-    positionals: string[],
-    context: ToolContext,
-  ): Promise<number> => {
-    // Reconstruct flat args for sub-command handlers.
-    // With strict:false, unknown flags from sub-commands end up in values
-    // instead of positionals; rebuild them here so sub-command handlers
-    // (which do their own manual flag parsing) still receive the complete args.
-    const extraArgs: string[] = [];
-    for (const [key, value] of Object.entries(values)) {
-      if (key === 'help') continue;
-      if (typeof value === 'boolean' && value) {
-        extraArgs.push(`--${key}`);
-      } else if (typeof value === 'string') {
-        extraArgs.push(`--${key}`, value);
-      }
-    }
-    return architectureHandler([...positionals, ...extraArgs], context);
-  },
-};
 
 // ── Handler entrypoint ───────────────────────────────────────────────────────
 

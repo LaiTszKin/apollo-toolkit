@@ -50,9 +50,7 @@ export class UserInputError extends AppError {
 
 /**
  * Error for unknown tool names.
- * NOTE: Currently defined for the error hierarchy completeness.
- * Used when isKnownToolName() check fails in tool dispatch.
- * If never used after full implementation, consider removal.
+ * Thrown by runTool() in @laitszkin/tool-registry when getTool() returns null.
  */
 export class ToolNotFoundError extends AppError {
   constructor(message: string, details?: ErrorDetails) {

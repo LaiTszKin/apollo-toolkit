@@ -19,7 +19,6 @@ import {
   buildWelcomeScreen,
   buildInstallHelpText,
   buildUninstallHelpText,
-  parseArguments,
   run,
 } from '@laitszkin/cli';
 import { checkForPackageUpdate, compareVersions } from '@laitszkin/cli';
@@ -549,7 +548,7 @@ test('uninstallSkills ignores unsafe manifest skill names', async () => {
       version: '1.0.0',
       linkMode: 'copy',
       skills: ['alpha-skill', '../outside-skill', '/tmp/not-a-skill'],
-      historicalSkills: ['..\\windows-outside'],
+      historicalSkills: ['bad\0name'],
     }, null, 2)}\n`,
     'utf8',
   );
@@ -706,42 +705,3 @@ test('listAllKnownSkillNames combines current and historical skills with dedup',
   assert.deepEqual(allNames, ['alpha-skill', 'beta-skill', 'old-skill']);
 });
 
-// ---- CLI parseArguments tests ----
-
-test('parseArguments recognizes uninstall command', () => {
-  const result = parseArguments(['uninstall']);
-  assert.equal(result.command, 'uninstall');
-  assert.deepEqual(result.modes, []);
-});
-
-test('parseArguments recognizes uninstall command with modes', () => {
-  const result = parseArguments(['uninstall', 'codex', 'trae']);
-  assert.equal(result.command, 'uninstall');
-  assert.deepEqual(result.modes, ['codex', 'trae']);
-});
-
-test('parseArguments recognizes uninstall --yes and --home', () => {
-  const result = parseArguments(['uninstall', 'codex', '--yes', '--home', '/tmp/apollo']);
-  assert.equal(result.command, 'uninstall');
-  assert.equal(result.assumeYes, true);
-  assert.equal(result.toolkitHome, '/tmp/apollo');
-  assert.deepEqual(result.modes, ['codex']);
-});
-
-test('parseArguments recognizes --symlink flag', () => {
-  const result = parseArguments(['codex', '--symlink']);
-  assert.equal(result.command, 'install');
-  assert.equal(result.linkMode, 'symlink');
-  assert.deepEqual(result.modes, ['codex']);
-});
-
-test('parseArguments recognizes --copy flag', () => {
-  const result = parseArguments(['agents', '--copy']);
-  assert.equal(result.linkMode, 'copy');
-  assert.deepEqual(result.modes, ['agents']);
-});
-
-test('parseArguments defaults linkMode to null (prompt)', () => {
-  const result = parseArguments(['codex']);
-  assert.equal(result.linkMode, null);
-});

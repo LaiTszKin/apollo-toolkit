@@ -7,6 +7,9 @@
 EXIT=0
 
 # When COVERAGE=true, Group 1 runs with --experimental-test-coverage flags.
+# packages/tools 排除在涵蓋率測量之外：這些工具由獨立的 test/tools/ 測試檔案驗證，
+# 且部分工具（codegraph、architecture）因子指令複雜度不適合以行涵蓋率衡量框架品質。
+# 此排除讓涵蓋率門檻聚焦在 CLI 框架碼而非個別工具業務邏輯。
 GROUP1_FLAGS=""
 if [ "${COVERAGE:-}" = "true" ]; then
   GROUP1_FLAGS="--experimental-test-coverage --test-coverage-lines=80 --test-coverage-branches=60 --test-coverage-functions=75 --test-coverage-exclude=packages/tools/**"

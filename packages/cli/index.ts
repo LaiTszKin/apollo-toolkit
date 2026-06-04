@@ -78,24 +78,36 @@ function readPackageJson(sourceRoot: string): { version: string; name: string } 
   return JSON.parse(fs.readFileSync(path.join(sourceRoot, 'package.json'), 'utf8'));
 }
 
+/**
+ * Type guard that asserts a parsed command matches the expected command name.
+ * Catches dispatch table misconfiguration during development.
+ */
+function assertCommand<T>(cmd: any, expected: string): asserts cmd is T {
+  if (!cmd || cmd.command !== expected) {
+    throw new Error(`Internal error: expected command "${expected}", got "${cmd?.command}"`);
+  }
+}
+
 function parseArguments(argv: string[]): ParsedArguments {
   const firstArg = argv[0];
 
-  // Shared InstallArgsParser instance (eliminates double instantiation)
+  // Shared parser instances (eliminates double instantiation)
   const installParser = new InstallArgsParser();
+  const toolParser = new ToolArgsParser();
 
   // Dispatch table for all known command types
   const commandParsers = new Map<string, CommandParser<any>>([
     ['install', installParser],
     ['uninstall', new UninstallArgsParser()],
-    ['tools', new ToolArgsParser()],
-    ['tool', new ToolArgsParser()],
+    ['tools', toolParser],
+    ['tool', toolParser],
   ]);
 
   const parser = commandParsers.get(firstArg);
   if (parser) {
     if (firstArg === 'uninstall') {
       const cmd = parser.parse(argv) as UninstallCommand;
+      assertCommand<UninstallCommand>(cmd, 'uninstall');
       return {
         command: 'uninstall',
         modes: cmd.modes,
@@ -113,6 +125,7 @@ function parseArguments(argv: string[]): ParsedArguments {
 
     if (firstArg === 'install') {
       const cmd = parser.parse(argv) as InstallCommand;
+      assertCommand<InstallCommand>(cmd, 'install');
       return {
         command: 'install',
         modes: cmd.modes,
@@ -142,7 +155,7 @@ function parseArguments(argv: string[]): ParsedArguments {
         linkMode: null,
         assumeYes: false,
         explicitInstallCommand: false,
-        helpTopic: 'overview',
+        helpTopic: 'tools-help',
       };
     }
     return {

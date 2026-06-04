@@ -3,47 +3,22 @@ import assert from 'node:assert/strict';
 import os from 'node:os';
 import { createPlatformAdapter, WindowsAdapter, PosixAdapter } from '../../packages/tool-utils/dist/platform-adapter.js';
 
-/**
- * Helper to temporarily override process.platform.
- * Restores the original value after callback completes.
- * @param {'win32' | 'darwin' | 'linux'} platform
- * @param {() => void} fn
- */
-function withPlatform(platform, fn) {
-  const original = Object.getOwnPropertyDescriptor(process, 'platform');
-  try {
-    Object.defineProperty(process, 'platform', { value: platform });
-    fn();
-  } finally {
-    if (original) {
-      Object.defineProperty(process, 'platform', original);
-    }
-  }
-}
-
 // ----------------------------------------------------------------
-// createPlatformAdapter() factory
+// createPlatformAdapter() factory (singleton)
 // ----------------------------------------------------------------
 
-test('createPlatformAdapter() returns WindowsAdapter on win32', () => {
-  withPlatform('win32', () => {
-    const adapter = createPlatformAdapter();
-    assert.ok(adapter instanceof WindowsAdapter);
-  });
+test('createPlatformAdapter() returns the correct adapter for the current platform', () => {
+  const adapter = createPlatformAdapter();
+  const expected = process.platform === 'win32' ? WindowsAdapter : PosixAdapter;
+  assert.ok(adapter instanceof expected);
 });
 
-test('createPlatformAdapter() returns PosixAdapter on non-win32 (darwin)', () => {
-  withPlatform('darwin', () => {
-    const adapter = createPlatformAdapter();
-    assert.ok(adapter instanceof PosixAdapter);
-  });
-});
-
-test('createPlatformAdapter() returns PosixAdapter on non-win32 (linux)', () => {
-  withPlatform('linux', () => {
-    const adapter = createPlatformAdapter();
-    assert.ok(adapter instanceof PosixAdapter);
-  });
+test('createPlatformAdapter() returns the same instance on repeated calls', () => {
+  const a = createPlatformAdapter();
+  const b = createPlatformAdapter();
+  const c = createPlatformAdapter();
+  assert.strictEqual(a, b);
+  assert.strictEqual(b, c);
 });
 
 // ----------------------------------------------------------------

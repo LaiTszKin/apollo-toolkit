@@ -67,6 +67,8 @@ export function execCommand(command: string, args: string[], { env = process.env
   stderr?: NodeJS.WriteStream;
 } = {}): Promise<ExecResult> {
   return new Promise((resolve, reject) => {
+    // PlatformAdapter normalizes command names across OS (e.g., appending
+    // .cmd on Windows) so spawn works reliably on any platform.
     const adapter = createPlatformAdapter();
     const child = spawn(adapter.resolveCommand(command), args, {
       env,

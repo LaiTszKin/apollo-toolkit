@@ -98,10 +98,13 @@ export class PosixAdapter implements PlatformAdapter {
 
 /**
  * Factory that returns the appropriate PlatformAdapter for the current OS.
+ * Singleton: the adapter is created once and cached for subsequent calls.
  */
+let _adapter: PlatformAdapter | undefined;
+
 export function createPlatformAdapter(): PlatformAdapter {
-  if (process.platform === 'win32') {
-    return new WindowsAdapter();
+  if (!_adapter) {
+    _adapter = process.platform === 'win32' ? new WindowsAdapter() : new PosixAdapter();
   }
-  return new PosixAdapter();
+  return _adapter;
 }
