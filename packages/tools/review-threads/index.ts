@@ -554,7 +554,6 @@ const schema = {
       dryRun: values['dry-run'] === true,
     };
 
-    try {
       switch (args.command) {
         case 'list':
           return await cmdList(args, context);
@@ -564,10 +563,6 @@ const schema = {
           stderr!.write(`Unsupported command: ${args.command}\n`);
           return 1;
       }
-    } catch (err) {
-      stderr!.write(`Error: ${(err as Error).message}\n`);
-      return 1;
-    }
   },
 };
 

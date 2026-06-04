@@ -117,7 +117,7 @@ function wrapOutput(renderedHtml: string, tex: string, opts: KatexArgs): string 
         2,
       ) + '\n';
     default:
-      throw new Error(`Unsupported output format: ${opts.outputFormat}`);
+      throw new UserInputError(`Unsupported output format: ${opts.outputFormat}`);
   }
 }
 
@@ -169,7 +169,6 @@ const schema = {
     const stdout = context.stdout || process.stdout;
     const stderr = context.stderr || process.stderr;
 
-    try {
       const opts = convertValuesToKatexArgs(values);
 
       const tex = loadTex(opts);
@@ -238,17 +237,6 @@ const schema = {
       const wrapped = wrapOutput(renderedHtml, tex, opts);
       writeOutput(wrapped, opts.outputFile, stdout);
       return 0;
-    } catch (err: unknown) {
-      if (err instanceof UserInputError) {
-        stderr.write(`${err.message}\n`);
-      } else if (err instanceof SystemError) {
-        stderr.write(`${err.message}\n${err.stack}\n`);
-      } else {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        stderr.write(`Error: ${message}\n`);
-      }
-      return 1;
-    }
   },
 };
 

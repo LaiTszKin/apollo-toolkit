@@ -1,4 +1,5 @@
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
+import { SystemError } from '@laitszkin/tool-utils';
 import { findProjectRoot } from './lib/cg-instance.js';
 import { handleInit } from './lib/cmd-init.js';
 import { handleSync } from './lib/cmd-sync.js';
@@ -39,11 +40,14 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
   let projectRoot: string;
   try {
     projectRoot = findProjectRoot(context.cwd || process.cwd());
-  } catch (error: any) {
-    if (error.code === 'MODULE_NOT_FOUND' || (error.message && error.message.includes('Cannot find module'))) {
+  } catch (error: unknown) {
+    const sysError = error instanceof Error
+      ? new SystemError(error.message, { code: (error as any).code })
+      : new SystemError('Unknown error finding project root');
+    if ((sysError as any).code === 'MODULE_NOT_FOUND' || (sysError.message && sysError.message.includes('Cannot find module'))) {
       stderr.write('`@colbymchenry/codegraph` is not installed. Run `npm install @colbymchenry/codegraph` in your project directory.\n');
     } else {
-      stderr.write(`Error finding project root: ${error.message}\n`);
+      stderr.write(`Error finding project root: ${sysError.message}\n`);
     }
     return 1;
   }
@@ -137,11 +141,14 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
         printHelp(stderr);
         return 1;
     }
-  } catch (error: any) {
-    if (error.code === 'MODULE_NOT_FOUND' || (error.message && error.message.includes('Cannot find module'))) {
+  } catch (error: unknown) {
+    const sysError = error instanceof Error
+      ? new SystemError(error.message, { code: (error as any).code })
+      : new SystemError('Unknown error running codegraph');
+    if ((sysError as any).code === 'MODULE_NOT_FOUND' || (sysError.message && sysError.message.includes('Cannot find module'))) {
       stderr.write('`@colbymchenry/codegraph` is not installed. Run `npm install @colbymchenry/codegraph` in your project directory.\n');
     } else {
-      stderr.write(`Error running codegraph ${subcommand}: ${error.message}\n`);
+      stderr.write(`Error running codegraph ${subcommand}: ${sysError.message}\n`);
     }
     return 1;
   }

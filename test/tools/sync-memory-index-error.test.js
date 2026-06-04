@@ -16,7 +16,7 @@ function createMemoryStream() {
   };
 }
 
-test('sync-memory-index handler catches UserInputError with Error: prefix', async (t) => {
+test('sync-memory-index handler propagates UserInputError without Error: prefix', async (t) => {
   t.mock.method(fs, 'mkdirSync', () => {
     throw new UserInputError('agents file path is invalid');
   });
@@ -30,12 +30,17 @@ test('sync-memory-index handler catches UserInputError with Error: prefix', asyn
 
   assert.equal(code, 1);
   assert.ok(
-    stderr.toString().includes('Error:'),
-    `Expected stderr to contain "Error:", got: ${JSON.stringify(stderr.toString())}`,
+    stderr.toString().includes('agents file path is invalid'),
+    `Expected stderr to contain "agents file path is invalid", got: ${JSON.stringify(stderr.toString())}`,
+  );
+  // UserInputError must not have "Error:" prefix (delegated to createToolRunner)
+  assert.ok(
+    !stderr.toString().includes('Error:'),
+    `Expected stderr not to contain "Error:", got: ${JSON.stringify(stderr.toString())}`,
   );
 });
 
-test('sync-memory-index handler catches SystemError with error context', async (t) => {
+test('sync-memory-index handler propagates SystemError without Error: prefix', async (t) => {
   t.mock.method(fs, 'mkdirSync', () => {
     throw new SystemError('disk write failure');
   });
@@ -49,10 +54,18 @@ test('sync-memory-index handler catches SystemError with error context', async (
 
   assert.equal(code, 1);
   assert.ok(
-    stderr.toString().includes('Error:'),
-    `Expected stderr to contain "Error:", got: ${JSON.stringify(stderr.toString())}`,
+    stderr.toString().includes('disk write failure\n'),
+    `Expected stderr to contain "disk write failure", got: ${JSON.stringify(stderr.toString())}`,
   );
-  // TODO: After FIX-03 adds stack trace output for SystemError branch,
-  // this test should also verify:
-  //   assert.ok(stderr.toString().includes('at '));
+  // SystemError must not have "Error: " prefix (delegated to createToolRunner);
+  // stderr may contain "Error" as substring in "SystemError:" stack type label
+  assert.ok(
+    !stderr.toString().startsWith('Error:'),
+    `Expected stderr not to start with "Error:", got: ${JSON.stringify(stderr.toString())}`,
+  );
+  // createToolRunner outputs stack trace for SystemError
+  assert.ok(
+    stderr.toString().includes('at '),
+    `Expected stderr to contain a stack trace, got: ${JSON.stringify(stderr.toString())}`,
+  );
 });

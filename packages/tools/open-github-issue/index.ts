@@ -4,7 +4,7 @@ import { request as httpsRequest } from 'node:https';
 import { tmpdir } from 'node:os';
 import { join as joinPath } from 'node:path';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { createToolRunner } from '@laitszkin/tool-utils';
+import { createToolRunner, UserInputError } from '@laitszkin/tool-utils';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 const README_ACCEPT = 'application/vnd.github.raw+json';
@@ -132,7 +132,7 @@ function readPayloadFile(rawPath: string): PayloadEntry {
 
   if (rawPath === '-') {
     // We cannot read stdin here easily; throw clear error
-    throw new Error('stdin payload (-) is not supported in handler mode; use a file path');
+    throw new UserInputError('stdin payload (-) is not supported in handler mode; use a file path');
   } else {
     rawContent = readFileSync(rawPath, 'utf-8');
     context = rawPath;
@@ -142,18 +142,18 @@ function readPayloadFile(rawPath: string): PayloadEntry {
   try {
     payload = JSON.parse(rawContent);
   } catch (exc) {
-    throw new Error(`Invalid JSON payload in ${context}: ${(exc as Error).message}`);
+    throw new UserInputError(`Invalid JSON payload in ${context}: ${(exc as Error).message}`);
   }
 
   if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
-    throw new Error(`Invalid JSON payload in ${context}: top-level value must be an object.`);
+    throw new UserInputError(`Invalid JSON payload in ${context}: top-level value must be an object.`);
   }
 
   const normalized: PayloadEntry = {};
   for (const [rawKey, value] of Object.entries(payload as Record<string, unknown>)) {
     const key = normalizeKey(rawKey);
     if (!PAYLOAD_FIELDS.has(key)) {
-      throw new Error(`Unsupported payload key: ${rawKey}`);
+      throw new UserInputError(`Unsupported payload key: ${rawKey}`);
     }
     normalized[key] = value;
   }
@@ -164,14 +164,14 @@ function readAtFileValue(fieldName: string, value: string | null): string | null
   if (value == null) return null;
   if (value.startsWith('@@')) return value.slice(1);
   if (value === '@-') {
-    throw new Error('stdin reading (@-) is not supported in handler mode');
+    throw new UserInputError('stdin reading (@-) is not supported in handler mode');
   }
   if (value.startsWith('@') && value.length > 1) {
     const filePath = value.slice(1);
     try {
       return readFileSync(filePath, 'utf-8');
     } catch (exc) {
-      throw new Error(
+      throw new UserInputError(
         `Unable to read @${fieldName} file ${filePath}: ${(exc as Error).message}`,
       );
     }
@@ -181,7 +181,7 @@ function readAtFileValue(fieldName: string, value: string | null): string | null
 
 function requireNonEmpty(value: string | null | undefined, message: string): void {
   if (!(value || '').trim()) {
-    throw new Error(message);
+    throw new UserInputError(message);
   }
 }
 
@@ -203,7 +203,7 @@ function getToken(env: Record<string, string | undefined>): string | null {
 function validateRepo(repo: string): string {
   const candidate = repo.trim();
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(candidate)) {
-    throw new Error('Invalid repo format. Use owner/repo.');
+    throw new UserInputError('Invalid repo format. Use owner/repo.');
   }
   return candidate;
 }
@@ -607,7 +607,7 @@ function validateIssueContent(args: OpenIssueArgs): void {
   requireNonEmpty(args.problemDescription, 'Problem issues require --problem-description.');
   requireNonEmpty(args.suspectedCause, 'Problem issues require --suspected-cause.');
   if (!hasRequiredProblemBddSections(args.problemDescription || '')) {
-    throw new Error(
+    throw new UserInputError(
       'Problem issues require --problem-description to include ' +
         'Expected Behavior (BDD), Current Behavior (BDD), and Behavior Gap sections.',
     );
@@ -623,7 +623,7 @@ function hydrateArgs(args: OpenIssueArgs): OpenIssueArgs {
     for (const [key, value] of Object.entries(payload)) {
       if (key === 'dry_run') {
         if (typeof value !== 'boolean') {
-          throw new Error("Payload field 'dry_run' must be a boolean.");
+          throw new UserInputError("Payload field 'dry_run' must be a boolean.");
         }
         if (!result.dryRun) {
           result.dryRun = value;
@@ -634,10 +634,10 @@ function hydrateArgs(args: OpenIssueArgs): OpenIssueArgs {
       // String fields
       if (TEXT_FIELDS.includes(key as (typeof TEXT_FIELDS)[number])) {
         if (value !== null && typeof value !== 'string') {
-          throw new Error(`Payload field '${key}' must be a string or null.`);
+          throw new UserInputError(`Payload field '${key}' must be a string or null.`);
         }
       } else if (typeof value !== 'string') {
-        throw new Error(`Payload field '${key}' must be a string.`);
+        throw new UserInputError(`Payload field '${key}' must be a string.`);
       }
 
       const currentVal = (result as Record<string, unknown>)[key];
@@ -652,7 +652,7 @@ function hydrateArgs(args: OpenIssueArgs): OpenIssueArgs {
     result.issueType = ISSUE_TYPE_PROBLEM;
   }
   if (!ISSUE_TYPES.includes(result.issueType as (typeof ISSUE_TYPES)[number])) {
-    throw new Error(`Invalid issue_type: ${result.issueType}`);
+    throw new UserInputError(`Invalid issue_type: ${result.issueType}`);
   }
 
   // Resolve @-prefixed file values
@@ -664,7 +664,7 @@ function hydrateArgs(args: OpenIssueArgs): OpenIssueArgs {
 
   // Title is required
   if (!(result.title || '').trim()) {
-    throw new Error('Issue title is required. Pass --title or include title in --payload-file.');
+    throw new UserInputError('Issue title is required. Pass --title or include title in --payload-file.');
   }
 
   return result;

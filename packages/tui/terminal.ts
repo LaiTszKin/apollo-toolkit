@@ -1,4 +1,5 @@
 import { Chalk } from 'chalk';
+import { createPlatformAdapter } from '@laitszkin/tool-utils';
 
 // Force-enabled chalk instance — the `enabled` parameter on `color()` already
 // handles the TTY / NO_COLOR check, so we always produce ANSI codes here.
@@ -30,7 +31,8 @@ export function isInteractive(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
   if (stdin.isTTY && stdout.isTTY) return true;
-  if (process.platform === 'win32') {
+  const adapter = createPlatformAdapter();
+  if (adapter.isWindows()) {
     if (env.MSYSTEM) return true;    // MSYS2/MINGW (Git Bash)
     if (env.WT_SESSION) return true; // Windows Terminal / VS Code integrated terminal
     if (env.CMDER_ROOT) return true; // ConEmu / cmder

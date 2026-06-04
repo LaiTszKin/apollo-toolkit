@@ -103,7 +103,6 @@ const schema = {
     const stdout = context.stdout ?? process.stdout;
     const stderr = context.stderr ?? process.stderr;
 
-    try {
       const homeDir = process.env.HOME || '';
       const agentsFile = (values['agents-file'] as string) || path.join(homeDir, '.codex', 'AGENTS.md');
       const memoryDir = (values['memory-dir'] as string) || path.join(homeDir, '.codex', 'memory');
@@ -121,16 +120,6 @@ const schema = {
       stdout.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);
       stdout.write(`MEMORY_FILES_INDEXED=${memoryFiles.length}\n`);
       return 0;
-    } catch (err) {
-      if (err instanceof UserInputError) {
-        stderr.write(`Error: ${err.message}\n`);
-      } else if (err instanceof SystemError) {
-        stderr.write(`${err.message}\n${err.stack}\n`);
-      } else {
-        stderr.write(`Error: ${(err as Error).message}\n`);
-      }
-      return 1;
-    }
   },
 };
 

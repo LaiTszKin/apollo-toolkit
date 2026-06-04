@@ -27,7 +27,7 @@
     "postbuild": "node scripts/rewrite-imports.mjs",
     "prepublishOnly": "npm run build",
     "watch": "tsc --build --watch",
-    "test": "COVERAGE=true scripts/test.sh",
+    "test": "scripts/test.sh",
     "test:coverage": "npm test",
     "test:ts": "node --test dist/test/"
   },

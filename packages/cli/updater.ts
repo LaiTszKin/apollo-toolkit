@@ -71,6 +71,7 @@ export function execCommand(command: string, args: string[], { env = process.env
     const child = spawn(adapter.resolveCommand(command), args, {
       env,
       stdio: ['ignore', 'pipe', 'pipe'],
+      shell: true,
     });
 
     let capturedStdout = '';

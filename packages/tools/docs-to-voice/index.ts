@@ -24,7 +24,7 @@ function readInputText(inputFile: string | null, inputText: string | null): stri
   if (inputFile) {
     const inputPath = path.resolve(inputFile);
     if (!fs.existsSync(inputPath)) {
-      throw new Error(`Input file not found: ${inputPath}`);
+      throw new UserInputError(`Input file not found: ${inputPath}`);
     }
     return fs.readFileSync(inputPath, 'utf-8');
   }
@@ -232,7 +232,7 @@ function applySpeechRateToAudio(outputPath: string, speechRate: number): void {
     }
   } catch (err: unknown) {
     if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
-    throw new Error(
+    throw new SystemError(
       `ffmpeg failed while applying --speech-rate: ${err instanceof Error ? err.message : 'unknown error'}`,
     );
   }
@@ -283,7 +283,7 @@ function splitTextForTts(text: string, maxChars: number | null): string[] {
 
 function concatAudioFiles(partPaths: string[], outputPath: string): void {
   if (partPaths.length === 0) {
-    throw new Error('No chunk audio generated for concatenation.');
+    throw new SystemError('No chunk audio generated for concatenation.');
   }
   if (partPaths.length === 1) {
     fs.copyFileSync(partPaths[0], outputPath);
@@ -302,7 +302,7 @@ function concatAudioFiles(partPaths: string[], outputPath: string): void {
       { stdio: 'ignore', timeout: 120000 },
     );
   } catch (err: unknown) {
-    throw new Error(
+    throw new SystemError(
       `ffmpeg concat failed: ${err instanceof Error ? err.message : 'unknown error'}`,
     );
   } finally {
@@ -367,20 +367,20 @@ function requestAlibabaCloudTTS(
           const audioFormat = audio.format || audio.mime_type || '';
 
           if (!audioUrl && !audioData) {
-            reject(new Error('API response does not contain output.audio.url or output.audio.data'));
+            reject(new SystemError('API response does not contain output.audio.url or output.audio.data'));
             return;
           }
 
           resolve({ audioUrl, audioData, audioFormat });
         } catch {
-          reject(new Error('API response is not valid JSON.'));
+          reject(new SystemError('API response is not valid JSON.'));
         }
       });
       res.on('error', reject);
     });
 
     req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('API request timed out')); });
+    req.on('timeout', () => { req.destroy(); reject(new SystemError('API request timed out')); });
     req.write(payload);
     req.end();
   });
@@ -418,7 +418,6 @@ const schema = {
     const stdout = context.stdout ?? process.stdout;
     const stderr = context.stderr ?? process.stderr;
 
-    try {
       // Resolve args (previously handled by parseCliArgs)
       const inputText: string | null = (values['text'] as string | undefined) ?? null;
       const inputFile: string | null = (values['input'] as string | undefined) || (values['input-file'] as string | undefined) || null;
@@ -502,7 +501,7 @@ const schema = {
             });
           } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'unknown error';
-            throw new Error(`say mode failed: ${msg}`);
+            throw new SystemError(`say mode failed: ${msg}`);
           } finally {
             try { fs.unlinkSync(tmpFile); fs.rmdirSync(path.dirname(tmpFile)); } catch { /* ignore */ }
           }
@@ -605,11 +604,11 @@ const schema = {
             } else if (apiResult.audioData) {
               fs.writeFileSync(partPath, Buffer.from(apiResult.audioData, 'base64'));
             } else {
-              throw new Error('No audio data in API response.');
+              throw new SystemError('No audio data in API response.');
             }
 
             if (!fs.existsSync(partPath) || fs.statSync(partPath).size === 0) {
-              throw new Error(`Failed to generate audio chunk ${i + 1}.`);
+              throw new SystemError(`Failed to generate audio chunk ${i + 1}.`);
             }
             partPaths.push(partPath);
 
@@ -681,17 +680,6 @@ const schema = {
       }
 
       return 0;
-    } catch (err: unknown) {
-      if (err instanceof UserInputError) {
-        stderr.write(`${err.message}\n`);
-      } else if (err instanceof SystemError) {
-        stderr.write(`${err.message}\n${err.stack}\n`);
-      } else {
-        const msg = err instanceof Error ? err.message : 'Unknown error';
-        stderr.write(`Error: ${msg}\n`);
-      }
-      return 1;
-    }
   },
 };
 

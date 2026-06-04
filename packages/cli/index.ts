@@ -49,16 +49,12 @@ export {
   execCommand,
 };
 import type { CliContext, InstallMode, ParsedArguments } from './types.js';
-import type { CommandParser, InstallCommand, UninstallCommand } from './parsers/types.js';
-import { AppError, UserInputError, SystemError, createPlatformAdapter } from '@laitszkin/tool-utils';
+import type { CommandParser, InstallCommand, UninstallCommand, ToolCommand, ToolsHelpCommand } from './parsers/types.js';
+import { AppError, UserInputError, SystemError } from '@laitszkin/tool-utils';
 import { InstallArgsParser } from './parsers/install-parser.js';
 import { UninstallArgsParser } from './parsers/uninstall-parser.js';
 import { ToolArgsParser } from './parsers/tool-parser.js';
 import { HelpTextBuilder } from './help-text-builder.js';
-
-// ---- Module-level platform adapter ---
-
-const platformAdapter = createPlatformAdapter();
 
 // ---- Backward-compatible help text wrappers (delegate to HelpTextBuilder) ---
 
@@ -83,24 +79,23 @@ function readPackageJson(sourceRoot: string): { version: string; name: string } 
 }
 
 function parseArguments(argv: string[]): ParsedArguments {
-  // Normalise "tool" alias to "tools"
-  const normalised = [...argv];
-  if (normalised[0] === 'tool') {
-    normalised[0] = 'tools';
-  }
+  const firstArg = argv[0];
 
-  const firstArg = normalised[0];
+  // Shared InstallArgsParser instance (eliminates double instantiation)
+  const installParser = new InstallArgsParser();
 
-  // Dispatch table for simple commands
+  // Dispatch table for all known command types
   const commandParsers = new Map<string, CommandParser<any>>([
-    ['install', new InstallArgsParser()],
+    ['install', installParser],
     ['uninstall', new UninstallArgsParser()],
+    ['tools', new ToolArgsParser()],
+    ['tool', new ToolArgsParser()],
   ]);
 
   const parser = commandParsers.get(firstArg);
   if (parser) {
     if (firstArg === 'uninstall') {
-      const cmd = parser.parse(normalised) as UninstallCommand;
+      const cmd = parser.parse(argv) as UninstallCommand;
       return {
         command: 'uninstall',
         modes: cmd.modes,
@@ -115,26 +110,26 @@ function parseArguments(argv: string[]): ParsedArguments {
         helpTopic: cmd.helpTopic,
       };
     }
-    // install
-    const cmd = parser.parse(normalised) as InstallCommand;
-    return {
-      command: 'install',
-      modes: cmd.modes,
-      showHelp: cmd.showHelp,
-      showToolsHelp: false,
-      toolkitHome: cmd.toolkitHome,
-      toolName: null,
-      toolArgs: [],
-      linkMode: cmd.linkMode,
-      assumeYes: false,
-      explicitInstallCommand: cmd.explicitInstallCommand,
-      helpTopic: cmd.helpTopic,
-    };
-  }
 
-  // tools/tool prefix (fallback)
-  if (firstArg === 'tools') {
-    const cmd = new ToolArgsParser().parse(normalised);
+    if (firstArg === 'install') {
+      const cmd = parser.parse(argv) as InstallCommand;
+      return {
+        command: 'install',
+        modes: cmd.modes,
+        showHelp: cmd.showHelp,
+        showToolsHelp: false,
+        toolkitHome: cmd.toolkitHome,
+        toolName: null,
+        toolArgs: [],
+        linkMode: cmd.linkMode,
+        assumeYes: false,
+        explicitInstallCommand: cmd.explicitInstallCommand,
+        helpTopic: cmd.helpTopic,
+      };
+    }
+
+    // tools/tool dispatch
+    const cmd = parser.parse(argv) as ToolCommand | ToolsHelpCommand;
     if (cmd.command === 'tools-help') {
       return {
         command: 'tools-help',
@@ -174,7 +169,7 @@ function parseArguments(argv: string[]): ParsedArguments {
       showToolsHelp: false,
       toolkitHome: null,
       toolName: firstArg,
-      toolArgs: normalised.slice(1),
+      toolArgs: argv.slice(1),
       linkMode: null,
       assumeYes: false,
       explicitInstallCommand: false,
@@ -183,7 +178,7 @@ function parseArguments(argv: string[]): ParsedArguments {
   }
 
   // Default: install (handles bare arguments like "codex", "--help", or empty argv)
-  const cmd = new InstallArgsParser().parse(normalised);
+  const cmd = installParser.parse(argv);
   return {
     command: 'install',
     modes: cmd.modes,

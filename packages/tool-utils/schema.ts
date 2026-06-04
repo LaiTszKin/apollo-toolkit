@@ -1,12 +1,12 @@
 import { parseArgs } from 'node:util';
 import type { ParseArgsOptionsConfig } from 'node:util';
 import type { ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, SystemError } from './app-error.js';
+import { AppError, UserInputError, SystemError } from './app-error.js';
 
 /** Option definition for parseArgs schema. */
 export type SchemaOption =
-  | { type: 'string'; default?: string; short?: string }
-  | { type: 'boolean'; default?: boolean; short?: string };
+  | { type: 'string'; default?: string; short?: string; multiple?: boolean }
+  | { type: 'boolean'; default?: boolean; short?: string; multiple?: boolean };
 
 /**
  * Complete tool schema — single source of truth for args, help, and validation.
@@ -69,9 +69,10 @@ function buildHelpText(schema: ToolSchema): string {
 export function createToolRunner(schema: ToolSchema) {
   const options: ParseArgsOptionsConfig = {};
   for (const [key, opt] of Object.entries(schema.options)) {
-    const entry: { type: 'string' | 'boolean'; default?: string | boolean; short?: string } = { type: opt.type };
+    const entry: { type: 'string' | 'boolean'; default?: string | boolean; short?: string; multiple?: boolean } = { type: opt.type };
     if (opt.default !== undefined) entry.default = opt.default;
     if (opt.short) entry.short = opt.short;
+    if (opt.multiple) entry.multiple = true;
     options[key] = entry;
   }
   options.help = { type: 'boolean', short: 'h' };
@@ -99,6 +100,8 @@ export function createToolRunner(schema: ToolSchema) {
         stderr.write(`${err.message}\n`);
       } else if (err instanceof SystemError) {
         stderr.write(`${err.message}\n${err.stack}\n`);
+      } else if (err instanceof AppError) {
+        stderr.write(`Error: ${err.message}\n`);
       } else {
         stderr.write(`Error: ${(err as Error).message}\n`);
       }

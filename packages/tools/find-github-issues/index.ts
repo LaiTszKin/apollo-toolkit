@@ -1,5 +1,4 @@
 import { execFile } from 'node:child_process';
-import { parseArgs } from 'node:util';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 import { createToolRunner } from '@laitszkin/tool-utils';
 
@@ -13,10 +12,6 @@ interface FindIssuesArgs {
   search: string | null;
   output: 'table' | 'json';
 }
-
-// Holds the raw argv for re-parsing the --label option with multiple:true,
-// since SchemaOption does not support the `multiple` property.
-let _rawArgs: string[] = [];
 
 interface CommandResult {
   stdout: string;
@@ -138,7 +133,7 @@ const schema = {
     repo: { type: 'string' as const },
     state: { type: 'string' as const },
     limit: { type: 'string' as const },
-    label: { type: 'string' as const },
+    label: { type: 'string' as const, multiple: true },
     search: { type: 'string' as const },
     output: { type: 'string' as const },
   },
@@ -152,14 +147,7 @@ const schema = {
   ): Promise<number> => {
     const { stdout, stderr } = context;
 
-    // Re-parse --label with multiple:true from raw args
-    const { values: parsed } = parseArgs({
-      args: _rawArgs,
-      options: { label: { type: 'string', multiple: true } },
-      strict: false,
-      allowPositionals: true,
-    });
-    const labels = (parsed.label as string[]) ?? [];
+    const labels = (values.label as string[]) ?? [];
 
     const args: FindIssuesArgs = {
       repo: (values.repo as string) ?? null,
@@ -205,7 +193,6 @@ export const tool: ToolDefinition = {
   category: 'GitHub workflows',
   description: 'List GitHub issues through gh.',
   handler: async (args, context) => {
-    _rawArgs = args;
     return _runner(args, context);
   },
 };

@@ -1,3 +1,5 @@
+import type { StdioWriter } from '@laitszkin/tui';
+
 export interface ToolHelp {
   purpose: string;
   useWhen: string[];
@@ -33,4 +35,5 @@ export interface ToolContext {
   spawnCommand?: Function;
   cwd?: string;
   stdio?: any;
+  stdioWriter?: StdioWriter;
 }

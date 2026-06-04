@@ -21,6 +21,9 @@ export interface PlatformAdapter {
   /** Appends '.cmd' on Windows for npm/node commands. */
   resolveCommand(command: string): string;
 
+  /** Returns true on Windows (process.platform === 'win32'). */
+  isWindows(): boolean;
+
   /** Platform-specific end-of-line marker. */
   readonly EOL: string;
 
@@ -49,6 +52,10 @@ export class WindowsAdapter implements PlatformAdapter {
     return command;
   }
 
+  isWindows(): boolean {
+    return true;
+  }
+
   get EOL(): string {
     return os.EOL;
   }
@@ -74,6 +81,10 @@ export class PosixAdapter implements PlatformAdapter {
 
   resolveCommand(command: string): string {
     return command;
+  }
+
+  isWindows(): boolean {
+    return false;
   }
 
   get EOL(): string {

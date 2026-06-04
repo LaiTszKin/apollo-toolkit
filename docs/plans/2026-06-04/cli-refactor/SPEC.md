@@ -71,7 +71,7 @@
 
 **GIVEN** CI pipeline 被觸發（push / pull request）
 **WHEN** `npm test` 執行完畢
-**THEN** c8 報告的 line coverage >= 80%
+**THEN** node --experimental-test-coverage 報告的 line coverage >= 80%
 **AND** 該 pipeline 在 `ubuntu-latest` 與 `windows-latest` 兩者上都通過
 
 **Uncertainty Level**: Exploratory

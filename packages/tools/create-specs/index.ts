@@ -59,7 +59,6 @@ Output:
   ): Promise<number> => {
     const stderr = context.stderr ?? process.stderr;
 
-    try {
       const featureName = (positionals[0] || '').trim();
       if (!featureName) {
         throw new UserInputError('feature_name is required.');
@@ -130,17 +129,6 @@ Output:
       }
 
       return 0;
-    } catch (err: unknown) {
-      if (err instanceof UserInputError) {
-        stderr.write(`${err.message}\n`);
-      } else if (err instanceof SystemError) {
-        stderr.write(`${err.message}\n${err.stack}\n`);
-      } else {
-        const msg = err instanceof Error ? err.message : 'Unknown error';
-        stderr.write(`Error: ${msg}\n`);
-      }
-      return 1;
-    }
   },
 };
 
