@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 import yaml from 'js-yaml';
-import { UserInputError } from '@laitszkin/tool-utils';
+import { UserInputError, SystemError } from '@laitszkin/tool-utils';
 
 // ── Apply & Template helpers (mirrors cli.js internals for the new verbs) ─────
 
@@ -78,7 +78,7 @@ function removeSubmodule(feature: any, slug: string, merged?: any): boolean {
 
 function parseEndpoint(value: string): { feature: string; submodule?: string } {
   const parts = value.split('/').filter(Boolean);
-  if (parts.length === 0) throw new Error(`Invalid endpoint: "${value}"`);
+  if (parts.length === 0) throw new UserInputError(`Invalid endpoint: "${value}"`);
   return parts.length > 1
     ? { feature: parts[0], submodule: parts[1] }
     : { feature: parts[0] };
@@ -433,6 +433,8 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
   } catch (e: any) {
     if (e instanceof UserInputError) {
       stderr.write(`${e.message}\n`);
+    } else if (e instanceof SystemError) {
+      stderr.write(`${e.message}\n${e.stack}\n`);
     } else {
       stderr.write(`Batch aborted: ${e.message}\n`);
     }
@@ -486,54 +488,52 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
 // ── template ─────────────────────────────────────────────────────────────────
 
 async function handleTemplate(templateArgs: string[], context: ToolContext): Promise<number> {
-  const stdout = context.stdout || process.stdout;
-  const stderr = context.stderr || process.stderr;
+  try {
+    const stdout = context.stdout || process.stdout;
+    const stderr = context.stderr || process.stderr;
 
-  // Parse --spec <dir> --output <dir>
-  let specDir: string | undefined;
-  let outputDir: string | undefined;
-  for (let i = 0; i < templateArgs.length; i++) {
-    const a = templateArgs[i];
-    if (a === '--spec' && i + 1 < templateArgs.length) specDir = templateArgs[++i];
-    else if (a === '--output' && i + 1 < templateArgs.length) outputDir = templateArgs[++i];
-  }
-
-  if (!specDir || !outputDir) {
-    stderr.write('Usage: apltk architecture template --spec <spec-dir> --output <output-dir>\n');
-    return 1;
-  }
-
-  const specPath = path.resolve(specDir, 'SPEC.md');
-  const outputDirPath = path.resolve(outputDir);
-  const outputPath = path.join(outputDirPath, 'proposal.yaml');
-
-  // Extract spec metadata (title, goal) from SPEC.md
-  let featureSlug = 'feature';
-  let featureTitle = 'Feature';
-  let goal = '';
-
-  if (fs.existsSync(specPath)) {
-    const meta = parseSpecMetadata(specPath);
-    if (meta.title) {
-      featureTitle = meta.title;
-      featureSlug = toSlug(featureTitle);
+    // Parse --spec <dir> --output <dir>
+    let specDir: string | undefined;
+    let outputDir: string | undefined;
+    for (let i = 0; i < templateArgs.length; i++) {
+      const a = templateArgs[i];
+      if (a === '--spec' && i + 1 < templateArgs.length) specDir = templateArgs[++i];
+      else if (a === '--output' && i + 1 < templateArgs.length) outputDir = templateArgs[++i];
     }
-    if (meta.goal) {
-      goal = meta.goal;
+
+    if (!specDir || !outputDir) {
+      stderr.write('Usage: apltk architecture template --spec <spec-dir> --output <output-dir>\n');
+      return 1;
     }
-  } else {
+
+    const specPath = path.resolve(specDir, 'SPEC.md');
+    const outputDirPath = path.resolve(outputDir);
+    const outputPath = path.join(outputDirPath, 'proposal.yaml');
+
+    // Extract spec metadata (title, goal) from SPEC.md
+    let featureSlug = 'feature';
+    let featureTitle = 'Feature';
+    let goal = '';
+
+    if (fs.existsSync(specPath)) {
+      const meta = parseSpecMetadata(specPath);
+      if (meta.title) {
+        featureTitle = meta.title;
+        featureSlug = toSlug(featureTitle);
+      }
+      if (meta.goal) {
+        goal = meta.goal;
+      }
+    } else {
     const resolvedSpecDir = path.resolve(specDir);
     if (!fs.existsSync(resolvedSpecDir)) {
-      stderr.write(`Spec directory not found: ${resolvedSpecDir}\n`);
-    } else {
-      const mdFiles = fs.readdirSync(resolvedSpecDir).filter((f: string) => f.endsWith('.md'));
-      if (mdFiles.length > 0) {
-        stderr.write(`Spec directory found but no SPEC.md. Found: ${mdFiles.join(', ')}\n`);
-      } else {
-        stderr.write(`Spec directory found but no SPEC.md. No .md files found.\n`);
-      }
+      throw new UserInputError(`Spec directory not found: ${resolvedSpecDir}`);
     }
-    return 1;
+    const mdFiles = fs.readdirSync(resolvedSpecDir).filter((f: string) => f.endsWith('.md'));
+    if (mdFiles.length > 0) {
+      throw new UserInputError(`Spec directory found but no SPEC.md. Found: ${mdFiles.join(', ')}`);
+    }
+    throw new UserInputError('Spec directory found but no SPEC.md. No .md files found.');
   }
 
   // Build proposal.yaml content
@@ -562,8 +562,7 @@ async function handleTemplate(templateArgs: string[], context: ToolContext): Pro
     fs.writeFileSync(outputPath, lines.join('\n'), 'utf8');
     stdout.write(`${outputPath}\n`);
   } catch (e: any) {
-    stderr.write(`Error writing proposal.yaml: ${e.message}\n`);
-    return 1;
+    throw new SystemError(`Error writing proposal.yaml: ${e.message}`);
   }
 
   // Try to enrich with CodeGraph API listing
@@ -594,6 +593,16 @@ async function handleTemplate(templateArgs: string[], context: ToolContext): Pro
   }
 
   return 0;
+  } catch (e: any) {
+    if (e instanceof UserInputError) {
+      (context.stderr || process.stderr).write(`${e.message}\n`);
+    } else if (e instanceof SystemError) {
+      (context.stderr || process.stderr).write(`${e.message}\n${e.stack}\n`);
+    } else {
+      (context.stderr || process.stderr).write(`Error: ${e.message}\n`);
+    }
+    return 1;
+  }
 }
 
 // ── Handler entrypoint ───────────────────────────────────────────────────────

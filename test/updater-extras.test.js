@@ -93,3 +93,41 @@ describe('checkForPackageUpdate catch block', () => {
     assert.strictEqual(result.error.message, 'network error');
   });
 });
+
+describe('checkForPackageUpdate missing latest version', () => {
+  it('returns early when latest version is empty', async () => {
+    const { checkForPackageUpdate } = await import('../packages/cli/dist/updater.js');
+
+    const mockExec = async () => {
+      return { stdout: '""' };  // Valid JSON empty string -> falsy -> !latestVersion
+    };
+
+    const result = await checkForPackageUpdate({
+      packageName: 'test-pkg',
+      currentVersion: '1.0.0',
+      env: {},
+      stdin: { isTTY: true },
+      stdout: { isTTY: true, write: () => true },
+      stderr: { write: () => true },
+      exec: mockExec,
+    });
+
+    assert.strictEqual(result.checked, true);
+    assert.strictEqual(result.updated, false);
+    assert.strictEqual(result.latestVersion, '');
+  });
+});
+
+describe('execCommand spawn error event', () => {
+  it('rejects when spawned command does not exist', async () => {
+    const { execCommand } = await import('../packages/cli/dist/updater.js');
+
+    await assert.rejects(
+      () => execCommand('__nonexistent_xyzzy_command__', []),
+      (err) => {
+        assert.ok(err instanceof Error);
+        return true;
+      },
+    );
+  });
+});

@@ -88,7 +88,7 @@ for (const name of TOOL_NAMES) {
 /**
  * Map a @laitszkin/* specifier to a root-relative path.
  */
-function resolvePackage(specifier) {
+export function resolvePackage(specifier) {
   const name = specifier.replace('@laitszkin/', '');
   return PACKAGE_MAP[name] || null;
 }
@@ -96,7 +96,7 @@ function resolvePackage(specifier) {
 /**
  * Compute relative import path from sourceFile to pkgPath.
  */
-function relativePath(fromFile, pkgPath) {
+export function relativePath(fromFile, pkgPath) {
   const fromDir = dirname(fromFile);
   let rel = relative(fromDir, resolve(root, pkgPath));
   if (!rel.startsWith('.')) rel = './' + rel;

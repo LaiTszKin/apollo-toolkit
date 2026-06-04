@@ -84,7 +84,7 @@ function readPackageJson(sourceRoot: string): { version: string; name: string } 
  */
 function assertCommand<T>(cmd: any, expected: string): asserts cmd is T {
   if (!cmd || cmd.command !== expected) {
-    throw new Error(`Internal error: expected command "${expected}", got "${cmd?.command}"`);
+    throw new SystemError(`Internal error: expected command "${expected}", got "${cmd?.command}"`);
   }
 }
 
@@ -144,6 +144,7 @@ function parseArguments(argv: string[]): ParsedArguments {
     // tools/tool dispatch
     const cmd = parser.parse(argv) as ToolCommand | ToolsHelpCommand;
     if (cmd.command === 'tools-help') {
+      assertCommand<ToolsHelpCommand>(cmd, 'tools-help');
       return {
         command: 'tools-help',
         modes: [],
@@ -158,6 +159,7 @@ function parseArguments(argv: string[]): ParsedArguments {
         helpTopic: 'tools-help',
       };
     }
+    assertCommand<ToolCommand>(cmd, 'tool');
     return {
       command: 'tool',
       modes: [],

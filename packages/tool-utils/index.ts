@@ -17,6 +17,7 @@ export {
 export type { ErrorDetails } from './app-error.js';
 export {
   createPlatformAdapter,
+  resetPlatformAdapter,
   WindowsAdapter,
   PosixAdapter,
 } from './platform-adapter.js';

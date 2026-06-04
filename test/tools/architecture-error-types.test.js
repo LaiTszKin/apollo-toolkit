@@ -125,3 +125,46 @@ test('architectureHandler writes usage for apply without yaml arg', async () => 
     stderr.toString().includes('Usage: apltk architecture apply'),
   );
 });
+
+test('architectureHandler writes "Batch aborted:" for generic errors', async () => {
+  const { architectureHandler } = await import(
+    '../../packages/tools/architecture/dist/index.js'
+  );
+
+  const tmpDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'apltk-arch-gen-'),
+  );
+  const yamlPath = path.join(tmpDir, 'generic-error.yaml');
+
+  try {
+    // "features" as a mapping (object) instead of a sequence (array)
+    // causes a TypeError in the for-of loop inside handleApply's try block.
+    // Since TypeError is not UserInputError or SystemError, it triggers the
+    // catch block's else branch, which writes "Batch aborted:" to stderr.
+    fs.writeFileSync(
+      yamlPath,
+      'features:\n  slug: feat-a\n  action: add\n',
+      'utf8',
+    );
+
+    const stderr = createMemoryStream();
+    const context = {
+      stdout: { write: () => {} },
+      stderr,
+    };
+
+    const result = await architectureHandler(
+      ['apply', yamlPath],
+      context,
+    );
+    assert.strictEqual(result, 1);
+    const err = stderr.toString();
+    assert.ok(err.length > 0, 'stderr should have content');
+    assert.ok(
+      err.includes('Batch aborted:'),
+      `stderr should contain "Batch aborted:", got: ${err}`,
+    );
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

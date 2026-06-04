@@ -108,3 +108,8 @@ export function createPlatformAdapter(): PlatformAdapter {
   }
   return _adapter;
 }
+
+/** Reset the cached adapter (for test use only). */
+export function resetPlatformAdapter(): void {
+  _adapter = undefined;
+}

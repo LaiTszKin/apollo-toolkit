@@ -1,20 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { resolve, dirname, relative, join } from 'node:path';
+import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolvePackage, relativePath } from '../scripts/rewrite-imports.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
-
-// ---- Helper: replicate resolvePackage logic from rewrite-imports.mjs ----
-
-const PACKAGE_MAP = {
-  cli: 'packages/cli/dist/index.js',
-  tui: 'packages/tui/dist/index.js',
-  'tool-registry': 'packages/tool-registry/dist/index.js',
-  'tool-utils': 'packages/tool-utils/dist/index.js',
-};
 
 const TOOL_NAMES = [
   'filter-logs',
@@ -39,22 +31,6 @@ const TOOL_NAMES = [
   'create-review-report',
   'extract-pdf-text',
 ];
-
-for (const name of TOOL_NAMES) {
-  PACKAGE_MAP[`tool-${name}`] = `packages/tools/${name}/dist/index.js`;
-}
-
-function resolvePackage(specifier) {
-  const name = specifier.replace('@laitszkin/', '');
-  return PACKAGE_MAP[name] || null;
-}
-
-function relativePath(fromFile, pkgPath, root) {
-  const fromDir = dirname(fromFile);
-  let rel = relative(fromDir, resolve(root, pkgPath));
-  if (!rel.startsWith('.')) rel = './' + rel;
-  return rel.replace(/\\/g, '/');
-}
 
 // ==============================================================
 // resolvePackage mapping tests
@@ -106,17 +82,20 @@ test('resolvePackage strips @laitszkin/ prefix correctly', () => {
 // ==============================================================
 
 test('relativePath computes correct relative path from a source file to package', () => {
-  const result = relativePath('/project/packages/cli/dist/index.js', 'packages/tui/dist/index.js', '/project');
+  const fromFile = resolve(repoRoot, 'packages/cli/dist/index.js');
+  const result = relativePath(fromFile, 'packages/tui/dist/index.js');
   assert.equal(result, '../../tui/dist/index.js');
 });
 
 test('relativePath adds leading dot when relative path has no leading dot', () => {
-  const result = relativePath('/project/packages/cli/dist/tool.js', 'packages/cli/dist/index.js', '/project');
+  const fromFile = resolve(repoRoot, 'packages/cli/dist/tool.js');
+  const result = relativePath(fromFile, 'packages/cli/dist/index.js');
   assert.ok(result.startsWith('./'), `Expected leading "./", got "${result}"`);
 });
 
 test('relativePath normalizes backslashes to forward slashes', () => {
-  const result = relativePath('/project/packages/cli/dist/index.js', 'packages/tools/filter-logs/dist/index.js', '/project');
+  const fromFile = resolve(repoRoot, 'packages/cli/dist/index.js');
+  const result = relativePath(fromFile, 'packages/tools/filter-logs/dist/index.js');
   assert.equal(result.includes('\\'), false, 'relativePath must not produce backslashes');
 });
 

@@ -1,18 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-
-function isSafeSkillName(skillName) {
-  const isWindows = process.platform === 'win32';
-  return typeof skillName === 'string'
-    && skillName.length > 0
-    && !skillName.includes('\0')
-    && !skillName.includes('/')
-    && !(isWindows && skillName.includes('\\'))
-    && !path.isAbsolute(skillName)
-    && skillName !== '.'
-    && skillName !== '..';
-}
+import { isSafeSkillName } from '../../packages/cli/dist/installer.js';
 
 test('isSafeSkillName allows backslash on non-Windows', () => {
   assert.ok(isSafeSkillName('valid\\name'));

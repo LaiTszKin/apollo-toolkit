@@ -4,7 +4,7 @@ import https from 'node:https';
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, SystemError, createToolRunner } from '@laitszkin/tool-utils';
+import { UserInputError, createToolRunner } from '@laitszkin/tool-utils';
 
 function sanitizeComponent(name: string, fallback: string): string {
   return name

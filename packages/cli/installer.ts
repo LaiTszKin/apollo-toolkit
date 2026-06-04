@@ -116,12 +116,12 @@ export async function readManifest(targetRoot: string): Promise<ManifestData | n
   }
 }
 
-function isSafeSkillName(skillName: string): boolean {
+export function isSafeSkillName(skillName: string): boolean {
   return typeof skillName === 'string'
     && skillName.length > 0
     && !skillName.includes('\0')
     && !skillName.includes('/')
-    && !(createPlatformAdapter().isWindows() && skillName.includes('\\'))
+    && !(skillName.includes('\\') && createPlatformAdapter().isWindows())
     && !path.isAbsolute(skillName)
     && skillName !== '.'
     && skillName !== '..';
