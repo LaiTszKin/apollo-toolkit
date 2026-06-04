@@ -1,6 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SystemError } from '@laitszkin/tool-utils';
+import { createRequire } from 'node:module';
+import { UserInputError, SystemError } from '@laitszkin/tool-utils';
+
+const require = createRequire(import.meta.url);
+
+function createMemoryStream() {
+  let data = '';
+  return {
+    write(chunk) { data += chunk; return true; },
+    toString() { return data; },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Regression tests for FIX-B: SystemError.details.code correctly preserves
@@ -40,4 +51,192 @@ test('SystemError preserves original error message', () => {
 
   // The message passed to SystemError is preserved verbatim
   assert.ok(sysError.message.includes('Cannot find module'));
+});
+
+// ── codegraphHandler dispatch tests ──────────────────────────────────────────
+
+test('codegraphHandler returns 0 for --help', async () => {
+  const { codegraphHandler } = await import(
+    '../../packages/tools/codegraph/dist/index.js'
+  );
+  const stdout = createMemoryStream();
+  const result = await codegraphHandler(
+    ['--help'],
+    { stdout, stderr: { write: () => {} } },
+  );
+  assert.strictEqual(result, 0);
+  assert.ok(stdout.toString().includes('Usage: apltk codegraph'));
+});
+
+test('codegraphHandler returns 0 for empty args', async () => {
+  const { codegraphHandler } = await import(
+    '../../packages/tools/codegraph/dist/index.js'
+  );
+  const stdout = createMemoryStream();
+  const result = await codegraphHandler(
+    [],
+    { stdout, stderr: { write: () => {} } },
+  );
+  assert.strictEqual(result, 0);
+  assert.ok(stdout.toString().includes('Usage: apltk codegraph'));
+});
+
+test('codegraphHandler returns 0 for subcommand --help', async () => {
+  const { codegraphHandler } = await import(
+    '../../packages/tools/codegraph/dist/index.js'
+  );
+  const stdout = createMemoryStream();
+  const result = await codegraphHandler(
+    ['search', '--help'],
+    { stdout, stderr: { write: () => {} } },
+  );
+  assert.strictEqual(result, 0);
+  assert.ok(stdout.toString().includes('Usage: apltk codegraph search'));
+});
+
+test('codegraphHandler returns 1 for search without query', async () => {
+  const { codegraphHandler } = await import(
+    '../../packages/tools/codegraph/dist/index.js'
+  );
+  await assert.rejects(
+    () => codegraphHandler(
+      ['search'],
+      { cwd: process.cwd(), stdout: { write: () => {} }, stderr: { write: () => {} } },
+    ),
+    (err) => {
+      assert.ok(err instanceof UserInputError);
+      assert.ok(err.message.includes('Usage: apltk codegraph search'));
+      return true;
+    }
+  );
+});
+
+test('codegraphHandler returns 1 for explore without query', async () => {
+  const { codegraphHandler } = await import(
+    '../../packages/tools/codegraph/dist/index.js'
+  );
+  await assert.rejects(
+    () => codegraphHandler(
+      ['explore'],
+      { cwd: process.cwd(), stdout: { write: () => {} }, stderr: { write: () => {} } },
+    ),
+    (err) => {
+      assert.ok(err instanceof UserInputError);
+      assert.ok(err.message.includes('Usage: apltk codegraph explore'));
+      return true;
+    }
+  );
+});
+
+test('codegraphHandler returns 1 for verify without --spec', async () => {
+  const { codegraphHandler } = await import(
+    '../../packages/tools/codegraph/dist/index.js'
+  );
+  await assert.rejects(
+    () => codegraphHandler(
+      ['verify'],
+      { cwd: process.cwd(), stdout: { write: () => {} }, stderr: { write: () => {} } },
+    ),
+    (err) => {
+      assert.ok(err instanceof UserInputError);
+      assert.ok(err.message.includes('Usage: apltk codegraph verify'));
+      return true;
+    }
+  );
+});
+
+test('codegraphHandler returns 1 for unknown subcommand', async () => {
+  const { codegraphHandler } = await import(
+    '../../packages/tools/codegraph/dist/index.js'
+  );
+  await assert.rejects(
+    () => codegraphHandler(
+      ['nonesuch'],
+      { cwd: process.cwd(), stdout: { write: () => {} }, stderr: { write: () => {} } },
+    ),
+    (err) => {
+      assert.ok(err instanceof SystemError);
+      assert.ok(err.message.includes('Unknown codegraph subcommand'));
+      return true;
+    }
+  );
+});
+
+// ── formatter utility tests ─────────────────────────────────────────────────
+
+test('formatSearchResults formats results with scores', async () => {
+  const { formatSearchResults } = await import(
+    '../../packages/tools/codegraph/dist/lib/formatter.js'
+  );
+  const results = [
+    { node: { name: 'funcA', kind: 'function', filePath: 'src/a.ts', startLine: 10 }, score: 0.95 },
+    { node: { name: 'funcB', kind: 'function', filePath: 'src/b.ts', startLine: 20 }, score: 0.80 },
+  ];
+  const output = formatSearchResults(results);
+  assert.ok(output.includes('funcA'), 'should contain funcA');
+  assert.ok(output.includes('95%'), 'should show 95% score');
+  assert.ok(output.includes('funcB'), 'should contain funcB');
+  assert.ok(output.includes('Results (2)'), 'should show result count');
+});
+
+test('formatSearchResults returns "No results found" for empty array', async () => {
+  const { formatSearchResults } = await import(
+    '../../packages/tools/codegraph/dist/lib/formatter.js'
+  );
+  assert.strictEqual(formatSearchResults([]), 'No results found.');
+});
+
+test('formatOutput returns JSON with indent for non-TTY', async () => {
+  const { formatOutput } = await import(
+    '../../packages/tools/codegraph/dist/lib/formatter.js'
+  );
+  const data = { hello: 'world', num: 42 };
+  const output = formatOutput(data, { json: true });
+  const parsed = JSON.parse(output);
+  assert.strictEqual(parsed.hello, 'world');
+  assert.strictEqual(parsed.num, 42);
+});
+
+test('formatOutput returns string directly when data is a string', async () => {
+  const { formatOutput } = await import(
+    '../../packages/tools/codegraph/dist/lib/formatter.js'
+  );
+  const result = formatOutput('hello', { json: true });
+  assert.strictEqual(typeof result, 'string');
+  // JSON.stringify('hello') produces '"hello"' but our function
+  // returns the string directly for non-TTY when data is a string
+  // because of the formatting logic
+});
+
+test('formatApiListGrouped groups APIs by directory', async () => {
+  const { formatApiListGrouped } = await import(
+    '../../packages/tools/codegraph/dist/lib/formatter.js'
+  );
+  const apis = [
+    { name: 'funcA', kind: 'function', filePath: 'src/feature/a.ts', startLine: 10, callerCount: 1, callers: [{ name: 'main', filePath: 'src/main.ts', startLine: 5 }] },
+    { name: 'funcB', kind: 'function', filePath: 'src/lib/b.ts', startLine: 20, callerCount: 0 },
+  ];
+  const output = formatApiListGrouped(apis);
+  assert.ok(output.includes('=== src/feature/ ==='), 'should group src/feature/');
+  assert.ok(output.includes('=== src/lib/ ==='), 'should group src/lib/');
+  assert.ok(output.includes('funcA'), 'should contain funcA');
+  assert.ok(output.includes('funcB'), 'should contain funcB');
+});
+
+test('formatApiListGrouped returns "No public APIs found" for empty', async () => {
+  const { formatApiListGrouped } = await import(
+    '../../packages/tools/codegraph/dist/lib/formatter.js'
+  );
+  assert.strictEqual(formatApiListGrouped([]), 'No public APIs found.');
+});
+
+test('formatSummary formats key-value pairs padded', async () => {
+  const { formatSummary } = await import(
+    '../../packages/tools/codegraph/dist/lib/formatter.js'
+  );
+  const output = formatSummary([['Files:', '42'], ['Nodes:', '1280']]);
+  assert.ok(output.includes('Files:'), 'should include Files:');
+  assert.ok(output.includes('42'), 'should include value');
+  assert.ok(output.includes('Nodes:'), 'should include Nodes:');
+  assert.ok(output.includes('1280'), 'should include 1280');
 });

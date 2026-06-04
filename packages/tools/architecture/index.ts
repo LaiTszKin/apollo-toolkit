@@ -211,8 +211,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
   try {
     projectRoot = cli.resolveProjectRoot(flags);
   } catch (e: any) {
-    stderr.write(`${e.message}\n`);
-    return 1;
+    throw new UserInputError(e.message);
   }
 
   const isSpec = Boolean(flags.spec);
@@ -426,14 +425,10 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
       }
     }
   } catch (e: any) {
-    if (e instanceof UserInputError) {
-      stderr.write(`${e.message}\n`);
-    } else if (e instanceof SystemError) {
-      stderr.write(`${e.message}\n${e.stack}\n`);
-    } else {
-      stderr.write(`Batch aborted: ${e.message}\n`);
+    if (e instanceof UserInputError || e instanceof SystemError) {
+      throw e;
     }
-    return 1;
+    throw new UserInputError(e.message);
   }
 
   // ── All mutations succeeded — persist ──
@@ -594,43 +589,31 @@ export async function architectureHandler(
   args: string[],
   context: ToolContext,
 ): Promise<number> {
-  try {
-    // Intercept apply / template before passing through to the JS CLI
-    const first = args[0] || '';
-    if (first === 'apply') return await handleApply(args.slice(1), context);
-    if (first === 'template') return await handleTemplate(args.slice(1), context);
+  // Intercept apply / template before passing through to the JS CLI
+  const first = args[0] || '';
+  if (first === 'apply') return await handleApply(args.slice(1), context);
+  if (first === 'template') return await handleTemplate(args.slice(1), context);
 
-    // Delegate to the existing atlas CLI (still in JS)
-    const sourceRoot =
-      context.sourceRoot ||
-      path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
-    const cliPath = path.join(
-      sourceRoot,
-      'skills',
-      'init-project-html',
-      'lib',
-      'atlas',
-      'cli.js',
-    );
+  // Delegate to the existing atlas CLI (still in JS)
+  const sourceRoot =
+    context.sourceRoot ||
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+  const cliPath = path.join(
+    sourceRoot,
+    'skills',
+    'init-project-html',
+    'lib',
+    'atlas',
+    'cli.js',
+  );
 
-    // Use file URL for ESM import compatibility on Windows — import() requires forward slashes.
-    const cliModule = await import(pathToFileURL(cliPath).href);
-    const cli = cliModule.default;
-    return cli.dispatch(args, {
-      stdout: context.stdout || process.stdout,
-      stderr: context.stderr || process.stderr,
-    });
-  } catch (e: unknown) {
-    const stderr = context.stderr || process.stderr;
-    if (e instanceof UserInputError) {
-      stderr.write(`${e.message}\n`);
-    } else if (e instanceof SystemError) {
-      stderr.write(`${e.message}\n${e.stack}\n`);
-    } else {
-      stderr.write(`Error: ${(e as Error).message}\n`);
-    }
-    return 1;
-  }
+  // Use file URL for ESM import compatibility on Windows — import() requires forward slashes.
+  const cliModule = await import(pathToFileURL(cliPath).href);
+  const cli = cliModule.default;
+  return cli.dispatch(args, {
+    stdout: context.stdout || process.stdout,
+    stderr: context.stderr || process.stderr,
+  });
 }
 
 export const tool: ToolDefinition = {

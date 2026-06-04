@@ -27,8 +27,6 @@ export interface SyncResult {
   previousSkillNames: string[];
 }
 
-import type { InstallCommand, UninstallCommand, ToolCommand, ToolsHelpCommand } from './parsers/types.js';
-
 // ---- Legacy ParsedArguments (kept for backward compatibility) --------
 
 export interface ParsedArguments {

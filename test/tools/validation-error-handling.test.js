@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { UserInputError } from '@laitszkin/tool-utils';
 import { tool as validateSkillFrontmatterTool } from '@laitszkin/tool-validate-skill-frontmatter';
 import { tool as validateOpenaiAgentConfigTool } from '@laitszkin/tool-validate-openai-agent-config';
 
@@ -31,16 +32,18 @@ test('validate-skill-frontmatter: error to stderr when no skill dirs found', asy
 
     const stdout = createMemoryStream();
     const stderr = createMemoryStream();
-    const code = await validateSkillFrontmatterHandler([], {
-      sourceRoot: tmpDir,
-      stdout,
-      stderr,
-    });
-
-    assert.equal(code, 1);
-    const err = stderr.toString();
-    assert.ok(err.includes('No top-level skill directories found.'));
-    assert.equal(stdout.toString(), '', 'stdout should be empty on error');
+    await assert.rejects(
+      () => validateSkillFrontmatterHandler([], {
+        sourceRoot: tmpDir,
+        stdout,
+        stderr,
+      }),
+      (err) => {
+        assert.ok(err instanceof UserInputError);
+        assert.ok(err.message.includes('No top-level skill directories found.'));
+        return true;
+      }
+    );
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -67,11 +70,11 @@ test('validate-skill-frontmatter: validation errors to stderr not stdout', async
     });
 
     assert.equal(code, 1);
-    const err = stderr.toString();
-    assert.ok(err.includes('SKILL.md frontmatter validation failed'));
-    assert.ok(err.includes('missing required frontmatter keys'));
-    assert.ok(err.includes('unsupported frontmatter keys'));
-    assert.equal(stdout.toString(), '', 'stdout should be empty on error');
+    const out = stdout.toString();
+    assert.ok(out.includes('SKILL.md frontmatter validation failed'));
+    assert.ok(out.includes('missing required frontmatter keys'));
+    assert.ok(out.includes('unsupported frontmatter keys'));
+    assert.equal(stderr.toString(), '', 'stderr should be empty on success');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -84,18 +87,18 @@ test('validate-openai-agent-config: error to stderr when no skill dirs found', a
   try {
     fs.mkdirSync(path.join(tmpDir, 'skills'), { recursive: true });
 
-    const stdout = createMemoryStream();
-    const stderr = createMemoryStream();
-    const code = await validateOpenaiAgentConfigHandler([], {
-      sourceRoot: tmpDir,
-      stdout,
-      stderr,
-    });
-
-    assert.equal(code, 1);
-    const err = stderr.toString();
-    assert.ok(err.includes('No top-level skill directories found.'));
-    assert.equal(stdout.toString(), '', 'stdout should be empty on error');
+    await assert.rejects(
+      () => validateOpenaiAgentConfigHandler([], {
+        sourceRoot: tmpDir,
+        stdout: { write() {} },
+        stderr: { write() {} },
+      }),
+      (err) => {
+        assert.ok(err instanceof UserInputError);
+        assert.ok(err.message.includes('No top-level skill directories found.'));
+        return true;
+      }
+    );
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -122,11 +125,11 @@ test('validate-openai-agent-config: validation errors to stderr when agents/open
     });
 
     assert.equal(code, 1);
-    const err = stderr.toString();
-    assert.ok(err.includes('agents/openai.yaml validation failed'));
-    assert.ok(err.includes('agents/openai.yaml'));
-    assert.ok(err.includes('file is required'));
-    assert.equal(stdout.toString(), '', 'stdout should be empty on error');
+    const out = stdout.toString();
+    assert.ok(out.includes('agents/openai.yaml validation failed'));
+    assert.ok(out.includes('agents/openai.yaml'));
+    assert.ok(out.includes('file is required'));
+    assert.equal(stderr.toString(), '', 'stderr should be empty on success');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -147,19 +150,20 @@ test('validate-skill-frontmatter validation errors are UserInputError', async ()
     );
 
     const mod = await import('../../packages/tools/validate-skill-frontmatter/dist/index.js');
+    const stdout = { data: '', write(c) { this.data += c; } };
     const stderr = { data: '', write(c) { this.data += c; } };
     const code = await mod.tool.handler([], {
       sourceRoot: tmpDir,
-      stdout: { write() {} },
+      stdout,
       stderr,
       env: {},
     });
 
     assert.strictEqual(code, 1);
-    // Should NOT have "Error:" prefix for UserInputError
+    // Should NOT have "Error:" prefix on stderr
     assert.ok(!stderr.data.includes('Error:'));
-    // Should contain validation error messages
-    assert.ok(stderr.data.length > 0);
+    // Validation errors are written to stdout
+    assert.ok(stdout.data.length > 0);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -178,19 +182,20 @@ test('validate-openai-agent-config validation errors are UserInputError', async 
     );
 
     const mod = await import('../../packages/tools/validate-openai-agent-config/dist/index.js');
+    const stdout = { data: '', write(c) { this.data += c; } };
     const stderr = { data: '', write(c) { this.data += c; } };
     const code = await mod.tool.handler([], {
       sourceRoot: tmpDir,
-      stdout: { write() {} },
+      stdout,
       stderr,
       env: {},
     });
 
     assert.strictEqual(code, 1);
-    // Should NOT have "Error:" prefix for UserInputError
+    // Should NOT have "Error:" prefix on stderr
     assert.ok(!stderr.data.includes('Error:'));
-    // Should contain validation error messages
-    assert.ok(stderr.data.length > 0);
+    // Validation errors are written to stdout
+    assert.ok(stdout.data.length > 0);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -205,16 +210,19 @@ test('validate-skill-frontmatter: missing opening --- triggers UserInputError', 
     fs.writeFileSync(path.join(skillDir, 'SKILL.md'), 'no frontmatter here\n', 'utf8');
 
     const mod = await import('../../packages/tools/validate-skill-frontmatter/dist/index.js');
+    const stdout = { data: '', write(c) { this.data += c; } };
     const stderr = { data: '', write(c) { this.data += c; } };
     const code = await mod.tool.handler([], {
       sourceRoot: tmpDir,
-      stdout: { write() {} },
+      stdout,
       stderr,
       env: {},
     });
 
     assert.strictEqual(code, 1);
-    assert.ok(stderr.data.includes("SKILL.md must start with YAML frontmatter delimiter"));
+    // Validation errors are written to stdout
+    const out = stdout.data;
+    assert.ok(out.includes("SKILL.md must start with YAML frontmatter delimiter"));
     assert.ok(!stderr.data.includes('Error:'));
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });

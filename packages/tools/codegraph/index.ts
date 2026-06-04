@@ -1,5 +1,5 @@
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { SystemError } from '@laitszkin/tool-utils';
+import { SystemError, UserInputError } from '@laitszkin/tool-utils';
 import { findProjectRoot } from './lib/cg-instance.js';
 import { handleInit } from './lib/cmd-init.js';
 import { handleSync } from './lib/cmd-sync.js';
@@ -41,15 +41,11 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
   try {
     projectRoot = findProjectRoot(context.cwd || process.cwd());
   } catch (error: unknown) {
-    const sysError = error instanceof Error
-      ? new SystemError(error.message, { code: (error as any).code })
-      : new SystemError('Unknown error finding project root');
-    if ((sysError.details?.code as string) === 'MODULE_NOT_FOUND' || (sysError.message && sysError.message.includes('Cannot find module'))) {
-      stderr.write('`@colbymchenry/codegraph` is not installed. Run `npm install @colbymchenry/codegraph` in your project directory.\n');
-    } else {
-      stderr.write(`Error finding project root: ${sysError.message}\n`);
+    const message = error instanceof Error ? error.message : 'Unknown error finding project root';
+    if ((error as any)?.code === 'MODULE_NOT_FOUND' || message.includes('Cannot find module')) {
+      throw new UserInputError('`@colbymchenry/codegraph` is not installed. Run `npm install @colbymchenry/codegraph` in your project directory.');
     }
-    return 1;
+    throw new SystemError(`Error finding project root: ${message}`);
   }
 
   // Parse --spec <dir> for verify
@@ -100,8 +96,7 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
       case 'search': {
         const query = rest.join(' ');
         if (!query) {
-          stderr.write('Usage: apltk codegraph search <query> [--limit N] [--json]\n');
-          return 1;
+          throw new UserInputError('Usage: apltk codegraph search <query> [--limit N] [--json]');
         }
         return await handleSearch(projectRoot, query, { limit, json: isJson });
       }
@@ -109,8 +104,7 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
       case 'explore': {
         const query = rest.join(' ');
         if (!query) {
-          stderr.write('Usage: apltk codegraph explore <query> [--json]\n');
-          return 1;
+          throw new UserInputError('Usage: apltk codegraph explore <query> [--json]');
         }
         return await handleExplore(projectRoot, query, { json: isJson, feature: featureName });
       }
@@ -130,27 +124,17 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
 
       case 'verify': {
         if (!specDir) {
-          stderr.write('Usage: apltk codegraph verify --spec <spec-dir> [--json]\n');
-          return 1;
+          throw new UserInputError('Usage: apltk codegraph verify --spec <spec-dir> [--json]');
         }
         return await handleVerify(projectRoot, specDir, { json: isJson });
       }
 
       default:
-        stderr.write(`Unknown subcommand: ${subcommand}\n\n`);
-        printHelp(stderr);
-        return 1;
+        throw new SystemError(`Unknown codegraph subcommand: ${subcommand}`);
     }
   } catch (error: unknown) {
-    const sysError = error instanceof Error
-      ? new SystemError(error.message, { code: (error as any).code })
-      : new SystemError('Unknown error running codegraph');
-    if ((sysError.details?.code as string) === 'MODULE_NOT_FOUND' || (sysError.message && sysError.message.includes('Cannot find module'))) {
-      stderr.write('`@colbymchenry/codegraph` is not installed. Run `npm install @colbymchenry/codegraph` in your project directory.\n');
-    } else {
-      stderr.write(`Error running codegraph ${subcommand}: ${sysError.message}\n`);
-    }
-    return 1;
+    if (error instanceof SystemError || error instanceof UserInputError) throw error;
+    throw new SystemError(error instanceof Error ? error.message : 'Unknown error in codegraph');
   }
 }
 

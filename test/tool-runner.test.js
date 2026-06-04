@@ -1,10 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 import { parseArguments, run, HelpTextBuilder } from '@laitszkin/cli';
 import { listTools, getTool, runTool } from '@laitszkin/tool-registry';
 

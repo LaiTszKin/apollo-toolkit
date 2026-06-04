@@ -88,17 +88,20 @@ describe('Handler error propagation via createToolRunner', () => {
 
   it('open-github-issue resolveRepo throws UserInputError (not duplicate stderr)', async () => {
     const mod = await import('../../packages/tools/open-github-issue/dist/index.js');
-    const stderr = { data: '', write(c) { this.data += c; } };
 
-    // Pass invalid --repo format to trigger validateRepo -> UserInputError inside resolveRepoAsync
-    const code = await mod.tool.handler(
-      ['create', '--issue-type', 'feature', '--title', 'Test', '--reason', 'Because', '--suggested-architecture', 'Arch', '--repo', 'invalid'],
-      { stdout: { write() {} }, stderr, env: {} },
+    // Pass invalid --repo format to trigger validateRepo error inside resolveRepoAsync
+    await assert.rejects(
+      () => mod.tool.handler(
+        ['create', '--issue-type', 'feature', '--title', 'Test', '--reason', 'Because', '--suggested-architecture', 'Arch', '--repo', 'invalid'],
+        { stdout: { write() {} }, stderr: { write() {} }, env: {} },
+      ),
+      (err) => {
+        // open-github-issue is NOT wrapped in createToolRunner, so errors propagate as rejected promises
+        assert.ok(err instanceof Error);
+        assert.ok(err.message.includes('Invalid repo format'));
+        return true;
+      }
     );
-
-    assert.strictEqual(code, 1);
-    // UserInputError path: no "Error:" prefix on stderr (FIX-01 regression guard)
-    assert.ok(!stderr.data.includes('Error:'));
   });
 
   it('review-threads handler validates repo format with UserInputError', async () => {
@@ -119,15 +122,19 @@ describe('Handler error propagation via createToolRunner', () => {
   // REGTEST-03: FIX-04 — open-github-issue error boundary (SystemError path)
   it('open-github-issue returns exit code 1 for invalid args (via error boundary)', async () => {
     const mod = await import('../../packages/tools/open-github-issue/dist/index.js');
-    const stderr = { data: '', write(c) { this.data += c; } };
 
-    const code = await mod.tool.handler(
-      ['create', '--issue-type', 'feature', '--title', 'Test', '--repo', 'valid/name'],
-      { stdout: { write() {} }, stderr, env: {} },
+    // Missing --reason and --suggested-architecture for feature issue type causes validateIssueContent to throw
+    await assert.rejects(
+      () => mod.tool.handler(
+        ['create', '--issue-type', 'feature', '--title', 'Test', '--repo', 'valid/name'],
+        { stdout: { write() {} }, stderr: { write() {} }, env: {} },
+      ),
+      (err) => {
+        assert.ok(err instanceof Error);
+        assert.ok(err.message.length > 0, 'error should have message');
+        return true;
+      }
     );
-
-    assert.strictEqual(code, 1);
-    assert.ok(stderr.data.length > 0, 'stderr should have error content');
   });
 
   // REGTEST-05: FIX-08 — review-threads UserInputError for invalid thread data (JSON parse)

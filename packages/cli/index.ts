@@ -3,8 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { color, supportsColor, supportsAnimation, buildBanner, buildWordmark, buildWelcomeScreen, buildSupportedTargetLines, renderSelectionScreen, animateWelcomeScreen, promptYesNo, promptForModes, isInteractive, createStdioWriter } from '@laitszkin/tui';
 import type { TargetDefinition, StdioWriter } from '@laitszkin/tui';
-import { formatToolList, buildToolDiscoveryHelp, runTool, getTool as getToolCommand } from '@laitszkin/tool-registry';
-import { formatExamples } from '@laitszkin/tool-registry';
+import { runTool } from '@laitszkin/tool-registry';
 import {
   TARGET_DEFINITIONS,
   VALID_MODES,
@@ -56,22 +55,8 @@ import { UninstallArgsParser } from './parsers/uninstall-parser.js';
 import { ToolArgsParser } from './parsers/tool-parser.js';
 import { HelpTextBuilder } from './help-text-builder.js';
 
-// FIX-14: assertCommand calls removed intentionally — the if-else chain above
-// guarantees the command type before each return block.
-// assertCommand function definition at L67-71 kept for future use in parser tests.
-
 function readPackageJson(sourceRoot: string): { version: string; name: string } {
   return JSON.parse(fs.readFileSync(path.join(sourceRoot, 'package.json'), 'utf8'));
-}
-
-/**
- * Type guard that asserts a parsed command matches the expected command name.
- * Catches dispatch table misconfiguration during development.
- */
-function assertCommand<T>(cmd: any, expected: string): asserts cmd is T {
-  if (!cmd || cmd.command !== expected) {
-    throw new SystemError(`Internal error: expected command "${expected}", got "${cmd?.command}"`);
-  }
 }
 
 function parseArguments(argv: string[]): ParsedArguments {

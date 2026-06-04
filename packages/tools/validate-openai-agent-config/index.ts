@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, iterSkillDirs, createToolRunner } from '@laitszkin/tool-utils';
+import { UserInputError, iterSkillDirs } from '@laitszkin/tool-utils';
 
 const TOP_LEVEL_ALLOWED_KEYS = new Set(['interface', 'dependencies', 'policy']);
 const INTERFACE_REQUIRED_KEYS = new Set(['display_name', 'short_description', 'default_prompt']);
@@ -21,19 +21,19 @@ function repoRoot(context?: ToolContext): string {
 function extractFrontmatter(content: string): Record<string, any> {
   const lines = content.split('\n');
   if (!lines.length || lines[0].trim() !== '---') {
-    throw new UserInputError("SKILL.md must start with YAML frontmatter delimiter '---'.");
+    throw new Error("SKILL.md must start with YAML frontmatter delimiter '---'.");
   }
   for (let i = 1; i < lines.length; i++) {
     if (lines[i].trim() === '---') {
       const raw = lines.slice(1, i).join('\n');
       const parsed = yaml.load(raw);
       if (typeof parsed !== 'object' || parsed === null) {
-        throw new UserInputError('SKILL.md frontmatter must be a YAML mapping.');
+        throw new Error('SKILL.md frontmatter must be a YAML mapping.');
       }
       return parsed as Record<string, any>;
     }
   }
-  throw new UserInputError("SKILL.md frontmatter is missing the closing '---' delimiter.");
+  throw new Error("SKILL.md frontmatter is missing the closing '---' delimiter.");
 }
 
 function requireNonEmptyString(
@@ -180,46 +180,38 @@ function validateSkill(skillDir: string): string[] {
   return errors;
 }
 
-const schema = {
-  options: {} as Record<string, never>,
-  allowPositionals: true,
-  usage: 'apltk validate-openai-agent-config',
-  description: 'Validate agents/openai.yaml configuration completeness',
-  handler: async (
-    _values: Record<string, unknown>,
-    _positionals: string[],
-    context: ToolContext,
-  ): Promise<number> => {
-    const stdout = context.stdout ?? process.stdout;
-    const stderr = context.stderr ?? process.stderr;
-    const root = repoRoot(context);
-    const skillDirs = iterSkillDirs(root);
+async function validateOpenaiAgentConfigHandler(
+  args: string[],
+  context: ToolContext,
+): Promise<number> {
+  const stdout = context.stdout ?? process.stdout;
+  const root = repoRoot(context);
+  const skillDirs = iterSkillDirs(root);
 
-    if (!skillDirs.length) {
-      stderr.write('No top-level skill directories found.\n');
-      return 1;
+  if (!skillDirs.length) {
+    throw new UserInputError('No top-level skill directories found.');
+  }
+
+  const allErrors: string[] = [];
+  for (const dir of skillDirs) {
+    allErrors.push(...validateSkill(dir));
+  }
+
+  if (allErrors.length) {
+    stdout.write('agents/openai.yaml validation failed:\n');
+    for (const error of allErrors) {
+      stdout.write(`- ${error}\n`);
     }
+    return 1;
+  }
 
-    const allErrors: string[] = [];
-    for (const dir of skillDirs) {
-      allErrors.push(...validateSkill(dir));
-    }
-
-    if (allErrors.length) {
-      throw new UserInputError(
-        'agents/openai.yaml validation failed:\n' +
-        allErrors.map(e => `- ${e}`).join('\n')
-      );
-    }
-
-    stdout.write(`agents/openai.yaml validation passed for ${skillDirs.length} skills.\n`);
-    return 0;
-  },
-};
+  stdout.write(`agents/openai.yaml validation passed for ${skillDirs.length} skills.\n`);
+  return 0;
+}
 
 export const tool: ToolDefinition = {
   name: 'validate-openai-agent-config',
   category: 'Validation',
   description: 'Validate agents/openai.yaml configuration completeness',
-  handler: createToolRunner(schema),
+  handler: validateOpenaiAgentConfigHandler,
 };

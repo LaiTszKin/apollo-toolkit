@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { createToolRunner } from '@laitszkin/tool-utils';
+import { createToolRunner, UserInputError, SystemError } from '@laitszkin/tool-utils';
 
 const ISSUE_FIELDS = 'number,title,state,updatedAt,url,labels,assignees';
 
@@ -11,6 +11,56 @@ interface FindIssuesArgs {
   label: string[];
   search: string | null;
   output: 'table' | 'json';
+}
+
+function parseArgs(argv: string[]): FindIssuesArgs {
+  const args: FindIssuesArgs = {
+    repo: null,
+    state: 'open',
+    limit: 50,
+    label: [],
+    search: null,
+    output: 'table',
+  };
+
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i];
+    switch (arg) {
+      case '--repo':
+        if (i + 1 < argv.length) args.repo = argv[++i];
+        break;
+      case '--state':
+        if (i + 1 < argv.length) {
+          const val = argv[++i];
+          if (['open', 'closed', 'all'].includes(val)) args.state = val;
+        }
+        break;
+      case '--limit':
+        if (i + 1 < argv.length) {
+          const n = parseInt(argv[++i], 10);
+          if (n > 0) args.limit = n;
+        }
+        break;
+      case '--label':
+        if (i + 1 < argv.length) args.label.push(argv[++i]);
+        break;
+      case '--search':
+        if (i + 1 < argv.length) args.search = argv[++i];
+        break;
+      case '--output':
+        if (i + 1 < argv.length) {
+          const val = argv[++i];
+          if (val === 'table' || val === 'json') args.output = val;
+        }
+        break;
+      default:
+        break;
+    }
+    i++;
+  }
+
+  return args;
 }
 
 interface CommandResult {
@@ -128,61 +178,35 @@ function printTable(
   }
 }
 
-const schema = {
-  options: {
-    repo: { type: 'string' as const },
-    state: { type: 'string' as const },
-    limit: { type: 'string' as const },
-    label: { type: 'string' as const, multiple: true },
-    search: { type: 'string' as const },
-    output: { type: 'string' as const },
-  },
-  allowPositionals: true,
-  usage: 'apltk find-github-issues [options]',
-  description: 'List GitHub issues through gh.',
-  handler: async (
-    values: Record<string, unknown>,
-    _positionals: string[],
-    context: ToolContext,
-  ): Promise<number> => {
-    const { stdout, stderr } = context;
+export async function findGitHubIssuesHandler(
+  argv: string[],
+  context: ToolContext,
+): Promise<number> {
+  const { stdout, stderr } = context;
+  const args = parseArgs(argv);
 
-    const labels = (values.label as string[]) ?? [];
+  const cmd = buildCommand(args);
+  const result = await runGh(cmd);
 
-    const args: FindIssuesArgs = {
-      repo: (values.repo as string) ?? null,
-      state: (values.state as string | undefined) ?? 'open',
-      limit: values.limit ? parseInt(values.limit as string, 10) : 50,
-      label: labels,
-      search: (values.search as string) ?? null,
-      output: ((values.output as string | undefined) ?? 'table') as 'table' | 'json',
-    };
+  if (result.exitCode !== 0) {
+    throw new SystemError(result.stderr.trim() || 'gh issue list failed');
+  }
 
-    const cmd = buildCommand(args);
-    const result = await runGh(cmd);
+  let issues: Array<Record<string, unknown>>;
+  try {
+    issues = JSON.parse(result.stdout);
+  } catch {
+    throw new SystemError('Unable to parse gh output as JSON');
+  }
 
-    if (result.exitCode !== 0) {
-      stderr!.write(result.stderr.trim() || 'gh issue list failed.\n');
-      return result.exitCode;
-    }
-
-    let issues: Array<Record<string, unknown>>;
-    try {
-      issues = JSON.parse(result.stdout);
-    } catch {
-      stderr!.write('Error: unable to parse gh output as JSON.\n');
-      return 1;
-    }
-
-    if (args.output === 'json') {
-      stdout!.write(JSON.stringify(issues, null, 2) + '\n');
-      return 0;
-    }
-
-    printTable(issues, context);
+  if (args.output === 'json') {
+    stdout!.write(JSON.stringify(issues, null, 2) + '\n');
     return 0;
-  },
-};
+  }
+
+  printTable(issues, context);
+  return 0;
+}
 
 // ---- Tool definition ----
 
@@ -190,5 +214,5 @@ export const tool: ToolDefinition = {
   name: 'find-github-issues',
   category: 'GitHub workflows',
   description: 'List GitHub issues through gh.',
-  handler: createToolRunner(schema),
+  handler: findGitHubIssuesHandler,
 };
