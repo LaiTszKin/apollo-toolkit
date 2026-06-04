@@ -27,7 +27,7 @@ export interface SyncResult {
   previousSkillNames: string[];
 }
 
-// ---- Legacy ParsedArguments (kept for backward compatibility) --------
+// ---- Active return type of parseArguments() / input contract for run() --------
 
 export interface ParsedArguments {
   command: 'install' | 'uninstall' | 'tool' | 'tools-help';

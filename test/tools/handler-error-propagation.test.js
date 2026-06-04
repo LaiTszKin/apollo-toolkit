@@ -106,17 +106,19 @@ describe('Handler error propagation via createToolRunner', () => {
 
   it('review-threads handler validates repo format with UserInputError', async () => {
     const mod = await import('../../packages/tools/review-threads/dist/index.js');
-    const stderr = { data: '', write(c) { this.data += c; } };
 
-    // Pass invalid repo format
-    const code = await mod.tool.handler(
-      ['list', '--repo', 'invalid-repo-format'],
-      { stdout: { write() {} }, stderr, env: {} },
+    // Pass invalid repo format — handler now propagates errors (no outer catch)
+    await assert.rejects(
+      () => mod.tool.handler(
+        ['list', '--repo', 'invalid-repo-format'],
+        { stdout: { write() {} }, stderr: { write() {} }, env: {} },
+      ),
+      (err) => {
+        assert.ok(err instanceof Error);
+        assert.ok(err.message.includes('repo must be in owner/name format'));
+        return true;
+      },
     );
-
-    assert.strictEqual(code, 1);
-    // Verify error message from UserInputError propagates through handler
-    assert.ok(stderr.data.includes('repo must be in owner/name format'));
   });
 
   // REGTEST-03: FIX-04 — open-github-issue error boundary (SystemError path)
@@ -140,19 +142,22 @@ describe('Handler error propagation via createToolRunner', () => {
   // REGTEST-05: FIX-08 — review-threads UserInputError for invalid thread data (JSON parse)
   it('review-threads returns exit code 1 for invalid thread-id-file content', async () => {
     const mod = await import('../../packages/tools/review-threads/dist/index.js');
-    const stderr = { data: '', write(c) { this.data += c; } };
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apltk-rt-'));
     const badJson = path.join(tmpDir, 'bad.json');
     fs.writeFileSync(badJson, '{"invalid": "structure"}', 'utf8');
 
     try {
-      const code = await mod.tool.handler(
-        ['list', '--repo', 'test/repo', '--thread-id-file', badJson],
-        { stdout: { write() {} }, stderr, env: {} },
+      await assert.rejects(
+        () => mod.tool.handler(
+          ['list', '--repo', 'test/repo', '--thread-id-file', badJson],
+          { stdout: { write() {} }, stderr: { write() {} }, env: {} },
+        ),
+        (err) => {
+          assert.ok(err instanceof Error);
+          assert.ok(err.message.length > 0, 'error should have message');
+          return true;
+        },
       );
-
-      assert.strictEqual(code, 1);
-      assert.ok(stderr.data.length > 0, 'stderr should have error content');
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

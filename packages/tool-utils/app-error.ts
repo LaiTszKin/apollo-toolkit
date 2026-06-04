@@ -66,3 +66,25 @@ export class SystemError extends AppError {
     super(message, 'SYSTEM_ERROR', 1, false, details);
   }
 }
+
+/**
+ * Format an error to a stderr stream using AppError type-based formatting.
+ * UserInputError -- message only (no prefix)
+ * SystemError -- message + stack trace
+ * AppError -- "Error: " prefix
+ * Other -- "Error: " prefix
+ */
+export function formatAppError(
+  stderr: { write: (s: string) => void },
+  err: unknown,
+): void {
+  if (err instanceof UserInputError) {
+    stderr.write(`${err.message}\n`);
+  } else if (err instanceof SystemError) {
+    stderr.write(`${err.message}\n${err.stack}\n`);
+  } else if (err instanceof AppError) {
+    stderr.write(`Error: ${err.message}\n`);
+  } else {
+    stderr.write(`Error: ${(err as Error).message}\n`);
+  }
+}

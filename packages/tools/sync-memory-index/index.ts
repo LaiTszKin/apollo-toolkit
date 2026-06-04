@@ -1,8 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { homedir } from 'node:os';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, SystemError, createToolRunner } from '@laitszkin/tool-utils';
+import { createPlatformAdapter } from '@laitszkin/tool-utils';
 
 const START_MARKER = '<!-- codex-memory-manager:start -->';
 const END_MARKER = '<!-- codex-memory-manager:end -->';
@@ -86,47 +85,43 @@ function syncAgentsFile(agentsFile: string, sectionText: string): void {
   fs.writeFileSync(agentsFile, updated, 'utf8');
 }
 
-const schema = {
-  options: {
-    'agents-file': { type: 'string' as const },
-    'memory-dir': { type: 'string' as const },
-    'section-title': { type: 'string' as const, default: DEFAULT_SECTION_TITLE },
-    'instruction-line': { type: 'string' as const },
-  },
-  allowPositionals: true,
-  usage: 'apltk sync-memory-index [options]',
-  description: 'Sync memory file index into AGENTS.md.',
-  handler: async (
-    values: Record<string, unknown>,
-    _positionals: string[],
-    context: ToolContext,
-  ): Promise<number> => {
-    const stdout = context.stdout ?? process.stdout;
-    const stderr = context.stderr ?? process.stderr;
+async function syncMemoryIndexHandler(
+  args: string[],
+  context: ToolContext,
+): Promise<number> {
+  const stdout = context.stdout ?? process.stdout;
+  const stderr = context.stderr ?? process.stderr;
 
-      const homeDir = homedir() || '';
-      const agentsFile = (values['agents-file'] as string) || path.join(homeDir, '.codex', 'AGENTS.md');
-      const memoryDir = (values['memory-dir'] as string) || path.join(homeDir, '.codex', 'memory');
-      const sectionTitle = values['section-title'] as string;
-      const instructionLines = [...DEFAULT_INSTRUCTIONS];
-      const extraInstruction = values['instruction-line'] as string | undefined;
-      if (extraInstruction) {
-        instructionLines.push(extraInstruction);
-      }
+  try {
+    const homeDir = createPlatformAdapter().homeDir() || '';
+    let agentsFile = path.join(homeDir, '.codex', 'AGENTS.md');
+    let memoryDir = path.join(homeDir, '.codex', 'memory');
+    let sectionTitle = DEFAULT_SECTION_TITLE;
+    const instructionLines = [...DEFAULT_INSTRUCTIONS];
 
-      const memoryFiles = iterMemoryFiles(memoryDir);
-      const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines);
-      syncAgentsFile(agentsFile, sectionText);
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--agents-file' && i + 1 < args.length) agentsFile = args[++i];
+      else if (args[i] === '--memory-dir' && i + 1 < args.length) memoryDir = args[++i];
+      else if (args[i] === '--section-title' && i + 1 < args.length) sectionTitle = args[++i];
+      else if (args[i] === '--instruction-line' && i + 1 < args.length) instructionLines.push(args[++i]);
+    }
 
-      stdout.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);
-      stdout.write(`MEMORY_FILES_INDEXED=${memoryFiles.length}\n`);
-      return 0;
-  },
-};
+    const memoryFiles = iterMemoryFiles(memoryDir);
+    const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines);
+    syncAgentsFile(agentsFile, sectionText);
+
+    stdout.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);
+    stdout.write(`MEMORY_FILES_INDEXED=${memoryFiles.length}\n`);
+    return 0;
+  } catch (err) {
+    stderr.write(`Error: ${(err as Error).message}\n`);
+    return 1;
+  }
+}
 
 export const tool: ToolDefinition = {
   name: 'sync-memory-index',
   category: 'Maintenance',
   description: 'Sync memory file index into AGENTS.md',
-  handler: createToolRunner(schema),
+  handler: syncMemoryIndexHandler,
 };

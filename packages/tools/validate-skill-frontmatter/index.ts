@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, iterSkillDirs } from '@laitszkin/tool-utils';
+import { UserInputError, iterSkillDirs, createToolRunner } from '@laitszkin/tool-utils';
 
 const NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const REQUIRED_KEYS = new Set(['name', 'description']);
@@ -119,5 +119,10 @@ export const tool: ToolDefinition = {
   name: 'validate-skill-frontmatter',
   category: 'Validation',
   description: 'Validate SKILL.md frontmatter format and naming conventions',
-  handler: validateSkillFrontmatterHandler,
+  handler: createToolRunner({
+    options: { help: { type: 'boolean', short: 'h' } },
+    allowPositionals: true,
+    usage: 'apltk validate-skill-frontmatter',
+    handler: (_values, positionals, context) => validateSkillFrontmatterHandler(positionals, context),
+  }),
 };

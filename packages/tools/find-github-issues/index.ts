@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { createToolRunner, UserInputError, SystemError } from '@laitszkin/tool-utils';
+import { SystemError } from '@laitszkin/tool-utils';
 
 const ISSUE_FIELDS = 'number,title,state,updatedAt,url,labels,assignees';
 

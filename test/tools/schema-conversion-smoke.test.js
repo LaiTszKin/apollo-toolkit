@@ -31,17 +31,17 @@ const TOOL_NAMES = [
 ];
 
 /**
- * Tools with complex sub-command structures or not fully converted to ToolSchema.
- * We skip help-text assertions for these and only verify they don't crash.
+ * Tools without createToolRunner wrapping or with complex subcommand dispatch.
+ * We skip help-text assertions and only verify they don't crash.
+ * When any tool gains createToolRunner wrapping, remove from this set.
+ * Maintained manually — no staleness detection.
  */
 const HELP_SKIP = new Set([
   'architecture',
   'open-github-issue',
-  'read-github-issue',
   'render-error-book',
   'render-katex',
   'review-threads',
-  'validate-openai-agent-config',
 ]);
 
 function createMemoryStream() {

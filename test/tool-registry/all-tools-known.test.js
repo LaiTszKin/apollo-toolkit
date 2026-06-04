@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { isKnownToolName } from '../../packages/cli/dist/tool-registration.js';
 
-// 21 tool names derived from TOOL_MODULE_NAMES (strip @laitszkin/tool- prefix)
+// NOTE: This list derives from packages/cli/tool-registration.ts TOOL_MODULE_NAMES.
+// When adding/removing a tool, update BOTH files. The alias list below also
+// derives from the addToolAlias() calls in tool-registration.ts.
 const TOOL_NAMES = [
   'filter-logs',
   'search-logs',

@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, SystemError } from '@laitszkin/tool-utils';
+import { UserInputError, SystemError, createToolRunner } from '@laitszkin/tool-utils';
 const ISSUE_FIELDS =
   'number,title,body,state,author,labels,assignees,comments,createdAt,updatedAt,closedAt,url';
 
@@ -178,5 +178,10 @@ export const tool: ToolDefinition = {
   name: 'read-github-issue',
   category: 'GitHub workflows',
   description: 'Read GitHub issue details through gh.',
-  handler: readGitHubIssueHandler,
+  handler: createToolRunner({
+    options: { help: { type: 'boolean', short: 'h' } },
+    allowPositionals: true,
+    usage: 'apltk read-github-issue [options] <issue>',
+    handler: (_values, positionals, context) => readGitHubIssueHandler(positionals, context),
+  }),
 };

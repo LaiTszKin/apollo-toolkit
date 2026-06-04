@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError } from '@laitszkin/tool-utils';
+import { UserInputError, SystemError } from '@laitszkin/tool-utils';
 
 const LIST_QUERY = `
 query($owner: String!, $name: String!, $number: Int!, $after: String) {
@@ -159,12 +159,12 @@ function runGh(cmdArgs: string[]): Promise<CommandResult> {
 function runGhJson(cmdArgs: string[]): Promise<Record<string, unknown>> {
   return runGh(cmdArgs).then((result) => {
     if (result.exitCode !== 0) {
-      throw new Error(result.stderr.trim() || 'gh command failed');
+      throw new SystemError(result.stderr.trim() || 'gh command failed');
     }
     try {
       return JSON.parse(result.stdout);
     } catch (exc) {
-      throw new Error('Failed to parse gh JSON output');
+      throw new SystemError('Failed to parse gh JSON output');
     }
   });
 }
@@ -172,7 +172,7 @@ function runGhJson(cmdArgs: string[]): Promise<Record<string, unknown>> {
 function parseOwnerRepo(repo: string): [string, string] {
   const parts = repo.split('/');
   if (parts.length !== 2 || !parts[0] || !parts[1]) {
-    throw new Error('repo must be in owner/name format');
+    throw new UserInputError('repo must be in owner/name format');
   }
   return [parts[0], parts[1]];
 }
@@ -192,7 +192,7 @@ async function resolveRepo(repo: string | null): Promise<string> {
     '.nameWithOwner',
   ]);
   if (result.exitCode !== 0) {
-    throw new Error(result.stderr.trim() || 'Unable to resolve current repo');
+    throw new SystemError(result.stderr.trim() || 'Unable to resolve current repo');
   }
   return result.stdout.trim();
 }
@@ -211,7 +211,7 @@ async function resolvePrNumber(repo: string, pr: number | null): Promise<number>
     '.number',
   ]);
   if (result.exitCode !== 0) {
-    throw new Error(
+    throw new UserInputError(
       'Unable to infer PR number from current branch context',
     );
   }
@@ -249,7 +249,7 @@ async function fetchReviewThreads(
 
     const pr = (payload.data as Record<string, unknown>)?.repository as Record<string, unknown> | undefined;
     if (!pr) {
-      throw new Error(`PR #${prNumber} not found in ${repo}`);
+      throw new UserInputError(`PR #${prNumber} not found in ${repo}`);
     }
 
     const reviewThreads = pr.reviewThreads as Record<string, unknown>;
@@ -382,12 +382,12 @@ function loadThreadIds(filePath: string): string[] {
         .map((item) => item.thread_id)
         .filter((id) => id !== undefined);
     } else {
-      throw new Error(
+      throw new UserInputError(
         'JSON must include thread_ids, adopted_thread_ids, or threads',
       );
     }
   } else {
-    throw new Error('Unsupported JSON payload for thread IDs');
+    throw new UserInputError('Unsupported JSON payload for thread IDs');
   }
 
   const output = ids
@@ -439,11 +439,11 @@ async function resolveThreads(
         payload.data as Record<string, unknown>
       )?.resolveReviewThread as Record<string, unknown> | undefined;
       if (!thread?.thread) {
-        throw new Error('thread did not resolve');
+        throw new SystemError('thread did not resolve');
       }
       const resolvedThread = thread.thread as Record<string, unknown>;
       if (!resolvedThread.isResolved) {
-        throw new Error('thread did not resolve');
+        throw new SystemError('thread did not resolve');
       }
       resolved.push(threadId);
     } catch (exc) {
@@ -530,21 +530,15 @@ export async function reviewThreadsHandler(
   argv: string[],
   context: ToolContext,
 ): Promise<number> {
-  const { stderr } = context;
   const args = parseArgs(argv);
 
-  try {
-    switch (args.command) {
-      case 'list':
-        return await cmdList(args, context);
-      case 'resolve':
-        return await cmdResolve(args, context);
-      default:
-        throw new UserInputError(`Unsupported command: ${args.command}`);
-    }
-  } catch (err) {
-    stderr!.write(`Error: ${(err as Error).message}\n`);
-    return 1;
+  switch (args.command) {
+    case 'list':
+      return await cmdList(args, context);
+    case 'resolve':
+      return await cmdResolve(args, context);
+    default:
+      throw new UserInputError(`Unsupported command: ${args.command}`);
   }
 }
 

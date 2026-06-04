@@ -3,13 +3,23 @@
 # a Node.js 24.x test runner IPC deserialization issue that can make
 # tests flaky when --experimental-test-module-mocks is active globally.
 # See: https://github.com/nodejs/node/issues (test_runner IPC clone)
+#
+# Coverage thresholds: 69% lines, 60% branches, 68% functions.
+# SPEC requires 80% lines (11 points gap — see REPORT.md P1-5).
+# Functions raised from 67% to 68% (CHECKLIST CL-08 specifies 75%).
+# Thresholds are set to Group 2's (package tests) metrics since coverage
+# runs in split processes. Combined single-process coverage reaches ~80%.
+# See REPORT.md P2-18 for the split-process limitation.
+#
+# The --test-coverage-exclude=packages/tools/eval/** glob may behave
+# differently on Windows with backslash paths. See REPORT.md P3-30.
 
 EXIT=0
 
 # When COVERAGE=true, Group 1 runs with --experimental-test-coverage flags.
 GROUP1_FLAGS=""
 if [ "${COVERAGE:-}" = "true" ]; then
-  GROUP1_FLAGS="--experimental-test-coverage --test-coverage-lines=69 --test-coverage-branches=60 --test-coverage-functions=67 --test-coverage-exclude=packages/tools/eval/**"
+  GROUP1_FLAGS="--experimental-test-coverage --test-coverage-lines=69 --test-coverage-branches=60 --test-coverage-functions=68 --test-coverage-exclude=packages/tools/eval/**"
 fi
 
 run_test_group() {

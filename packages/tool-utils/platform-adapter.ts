@@ -6,7 +6,6 @@
  */
 
 import * as os from 'node:os';
-import * as path from 'node:path';
 
 /**
  * Platform adapter interface providing OS-abstracted utility methods.
@@ -27,8 +26,6 @@ export interface PlatformAdapter {
   /** Platform-specific end-of-line marker. */
   readonly EOL: string;
 
-  /** Normalizes path separators via path.normalize(). */
-  normalizePath(p: string): string;
 }
 
 /**
@@ -59,10 +56,6 @@ export class WindowsAdapter implements PlatformAdapter {
   get EOL(): string {
     return os.EOL;
   }
-
-  normalizePath(p: string): string {
-    return path.normalize(p);
-  }
 }
 
 /**
@@ -89,10 +82,6 @@ export class PosixAdapter implements PlatformAdapter {
 
   get EOL(): string {
     return os.EOL;
-  }
-
-  normalizePath(p: string): string {
-    return path.normalize(p);
   }
 }
 

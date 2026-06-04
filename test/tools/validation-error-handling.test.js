@@ -32,18 +32,15 @@ test('validate-skill-frontmatter: error to stderr when no skill dirs found', asy
 
     const stdout = createMemoryStream();
     const stderr = createMemoryStream();
-    await assert.rejects(
-      () => validateSkillFrontmatterHandler([], {
-        sourceRoot: tmpDir,
-        stdout,
-        stderr,
-      }),
-      (err) => {
-        assert.ok(err instanceof UserInputError);
-        assert.ok(err.message.includes('No top-level skill directories found.'));
-        return true;
-      }
-    );
+    const code = await validateSkillFrontmatterHandler([], {
+      sourceRoot: tmpDir,
+      stdout,
+      stderr,
+    });
+    assert.equal(code, 1);
+    const err = stderr.data || stderr.toString();
+    assert.ok(err.includes('No top-level skill directories found.'));
+    assert.equal(stdout.toString(), '', 'stdout should be empty on error');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -87,18 +84,17 @@ test('validate-openai-agent-config: error to stderr when no skill dirs found', a
   try {
     fs.mkdirSync(path.join(tmpDir, 'skills'), { recursive: true });
 
-    await assert.rejects(
-      () => validateOpenaiAgentConfigHandler([], {
-        sourceRoot: tmpDir,
-        stdout: { write() {} },
-        stderr: { write() {} },
-      }),
-      (err) => {
-        assert.ok(err instanceof UserInputError);
-        assert.ok(err.message.includes('No top-level skill directories found.'));
-        return true;
-      }
-    );
+    const stdout = createMemoryStream();
+    const stderr = createMemoryStream();
+    const code = await validateOpenaiAgentConfigHandler([], {
+      sourceRoot: tmpDir,
+      stdout,
+      stderr,
+    });
+    assert.equal(code, 1);
+    const err = stderr.data || stderr.toString();
+    assert.ok(err.includes('No top-level skill directories found.'));
+    assert.equal(stdout.toString(), '', 'stdout should be empty on error');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

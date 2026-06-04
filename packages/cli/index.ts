@@ -49,7 +49,7 @@ export {
 };
 import type { CliContext, InstallMode, ParsedArguments } from './types.js';
 import type { CommandParser, InstallCommand, UninstallCommand, ToolCommand, ToolsHelpCommand } from './parsers/types.js';
-import { AppError, UserInputError, SystemError } from '@laitszkin/tool-utils';
+import { formatAppError } from '@laitszkin/tool-utils';
 import { InstallArgsParser } from './parsers/install-parser.js';
 import { UninstallArgsParser } from './parsers/uninstall-parser.js';
 import { ToolArgsParser } from './parsers/tool-parser.js';
@@ -467,15 +467,7 @@ export async function run(argv: string[], context: CliContext = {}): Promise<num
     printSummary({ stdout, version: packageJson.version, toolkitHome, modes, installResult, env });
     return 0;
   } catch (error) {
-    if (error instanceof UserInputError) {
-      stderr.write(`${error.message}\n`);
-    } else if (error instanceof SystemError) {
-      stderr.write(`${error.message}\n${error.stack}\n`);
-    } else if (error instanceof AppError) {
-      stderr.write(`Error: ${error.message}\n`);
-    } else {
-      stderr.write(`Error: ${(error as Error).message}\n`);
-    }
+    formatAppError(stderr, error);
     return 1;
   }
 }

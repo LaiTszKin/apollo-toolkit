@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, iterSkillDirs } from '@laitszkin/tool-utils';
+import { UserInputError, iterSkillDirs, createToolRunner } from '@laitszkin/tool-utils';
 
 const TOP_LEVEL_ALLOWED_KEYS = new Set(['interface', 'dependencies', 'policy']);
 const INTERFACE_REQUIRED_KEYS = new Set(['display_name', 'short_description', 'default_prompt']);
@@ -213,5 +213,10 @@ export const tool: ToolDefinition = {
   name: 'validate-openai-agent-config',
   category: 'Validation',
   description: 'Validate agents/openai.yaml configuration completeness',
-  handler: validateOpenaiAgentConfigHandler,
+  handler: createToolRunner({
+    options: { help: { type: 'boolean', short: 'h' } },
+    allowPositionals: true,
+    usage: 'apltk validate-openai-agent-config',
+    handler: (_values, positionals, context) => validateOpenaiAgentConfigHandler(positionals, context),
+  }),
 };

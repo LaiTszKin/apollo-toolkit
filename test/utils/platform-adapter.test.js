@@ -91,14 +91,6 @@ test('WindowsAdapter.EOL returns os.EOL', () => {
   assert.equal(adapter.EOL, os.EOL);
 });
 
-test('WindowsAdapter.normalizePath() normalizes path separators', () => {
-  const adapter = new WindowsAdapter();
-  // On Windows, path.normalize converts forward slashes to backslashes.
-  // The test runs on POSIX so path.normalize just cleans up slashes.
-  assert.equal(adapter.normalizePath('foo//bar'), 'foo/bar');
-  assert.equal(adapter.normalizePath('./foo/bar'), 'foo/bar');
-});
-
 // ----------------------------------------------------------------
 // PosixAdapter
 // ----------------------------------------------------------------
@@ -160,8 +152,3 @@ test('PosixAdapter.EOL returns os.EOL', () => {
   assert.equal(adapter.EOL, os.EOL);
 });
 
-test('PosixAdapter.normalizePath() normalizes path separators', () => {
-  const adapter = new PosixAdapter();
-  assert.equal(adapter.normalizePath('foo//bar'), 'foo/bar');
-  assert.equal(adapter.normalizePath('./foo/bar'), 'foo/bar');
-});
