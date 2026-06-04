@@ -4,7 +4,7 @@ import assert from 'node:assert';
 describe('enforce-video-aspect-ratio typed errors', () => {
   it('throws UserInputError instead of generic Error for missing required input', async () => {
     const mod = await import('../../../packages/tools/enforce-video-aspect-ratio/dist/index.js');
-    const stderr = { data: '', write(c: string) { this.data += c; } };
+    const stderr = { data: '', write(c) { this.data += c; } };
 
     const code = await mod.tool.handler(
       [],
@@ -19,7 +19,7 @@ describe('enforce-video-aspect-ratio typed errors', () => {
 
   it('throws UserInputError instead of generic Error for non-existent input file', async () => {
     const mod = await import('../../../packages/tools/enforce-video-aspect-ratio/dist/index.js');
-    const stderr = { data: '', write(c: string) { this.data += c; } };
+    const stderr = { data: '', write(c) { this.data += c; } };
 
     const code = await mod.tool.handler(
       ['--input', '/nonexistent/path/video.mp4'],

@@ -153,10 +153,7 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
 
   const yamlArg = applyArgs[0];
   if (!yamlArg || yamlArg.startsWith('--')) {
-    stderr.write(
-      'Usage: apltk architecture apply <yaml-file> [--spec <dir>] [--project <root>] [--no-render]\n',
-    );
-    return 1;
+    throw new UserInputError('Missing architecture specification YAML file path. Usage: apltk architecture apply <yaml-file>');
   }
 
   // Simple flag parser for trailing flags (--spec, --project, --no-render)
@@ -177,13 +174,11 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
     batch = yaml.load(raw);
   } catch (e: any) {
     const location = e.mark ? ` at line ${e.mark.line + 1}` : '';
-    stderr.write(`Error parsing apply YAML (${yamlArg})${location}: ${e.message}\n`);
-    return 1;
+    throw new UserInputError(`Error parsing apply YAML (${yamlArg})${location}: ${e.message}`);
   }
 
   if (!batch || typeof batch !== 'object') {
-    stderr.write('Invalid apply YAML: expected an object with "features" / "edges" keys.\n');
-    return 1;
+    throw new UserInputError('Invalid apply YAML: expected an object with "features" / "edges" keys.');
   }
 
   // Import atlas modules (shared with the existing JS CLI)
@@ -488,7 +483,6 @@ async function handleApply(applyArgs: string[], context: ToolContext): Promise<n
 // ── template ─────────────────────────────────────────────────────────────────
 
 async function handleTemplate(templateArgs: string[], context: ToolContext): Promise<number> {
-  try {
     const stdout = context.stdout || process.stdout;
     const stderr = context.stderr || process.stderr;
 
@@ -502,8 +496,7 @@ async function handleTemplate(templateArgs: string[], context: ToolContext): Pro
     }
 
     if (!specDir || !outputDir) {
-      stderr.write('Usage: apltk architecture template --spec <spec-dir> --output <output-dir>\n');
-      return 1;
+      throw new UserInputError('Missing --spec and/or --output arguments. Usage: apltk architecture template --spec <spec-dir> --output <output-dir>');
     }
 
     const specPath = path.resolve(specDir, 'SPEC.md');
@@ -593,16 +586,6 @@ async function handleTemplate(templateArgs: string[], context: ToolContext): Pro
   }
 
   return 0;
-  } catch (e: any) {
-    if (e instanceof UserInputError) {
-      (context.stderr || process.stderr).write(`${e.message}\n`);
-    } else if (e instanceof SystemError) {
-      (context.stderr || process.stderr).write(`${e.message}\n${e.stack}\n`);
-    } else {
-      (context.stderr || process.stderr).write(`Error: ${e.message}\n`);
-    }
-    return 1;
-  }
 }
 
 // ── Handler entrypoint ───────────────────────────────────────────────────────
@@ -611,25 +594,25 @@ export async function architectureHandler(
   args: string[],
   context: ToolContext,
 ): Promise<number> {
-  // Intercept apply / template before passing through to the JS CLI
-  const first = args[0] || '';
-  if (first === 'apply') return handleApply(args.slice(1), context);
-  if (first === 'template') return handleTemplate(args.slice(1), context);
-
-  // Delegate to the existing atlas CLI (still in JS)
-  const sourceRoot =
-    context.sourceRoot ||
-    path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
-  const cliPath = path.join(
-    sourceRoot,
-    'skills',
-    'init-project-html',
-    'lib',
-    'atlas',
-    'cli.js',
-  );
-
   try {
+    // Intercept apply / template before passing through to the JS CLI
+    const first = args[0] || '';
+    if (first === 'apply') return await handleApply(args.slice(1), context);
+    if (first === 'template') return await handleTemplate(args.slice(1), context);
+
+    // Delegate to the existing atlas CLI (still in JS)
+    const sourceRoot =
+      context.sourceRoot ||
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+    const cliPath = path.join(
+      sourceRoot,
+      'skills',
+      'init-project-html',
+      'lib',
+      'atlas',
+      'cli.js',
+    );
+
     // Use file URL for ESM import compatibility on Windows — import() requires forward slashes.
     const cliModule = await import(pathToFileURL(cliPath).href);
     const cli = cliModule.default;
@@ -637,10 +620,15 @@ export async function architectureHandler(
       stdout: context.stdout || process.stdout,
       stderr: context.stderr || process.stderr,
     });
-  } catch (error: any) {
-    (context.stderr || process.stderr).write(
-      `Error loading atlas CLI: ${error.message}\n`,
-    );
+  } catch (e: unknown) {
+    const stderr = context.stderr || process.stderr;
+    if (e instanceof UserInputError) {
+      stderr.write(`${e.message}\n`);
+    } else if (e instanceof SystemError) {
+      stderr.write(`${e.message}\n${e.stack}\n`);
+    } else {
+      stderr.write(`Error: ${(e as Error).message}\n`);
+    }
     return 1;
   }
 }

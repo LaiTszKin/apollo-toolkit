@@ -72,7 +72,7 @@ Refactor the Apollo Toolkit CLI codebase from its current state (hardcoded value
 | `packages/tui` | Terminal output + new: `StdioAdapter` (structured output) | `terminal.ts`, `banner.ts`, `prompts.ts`, `types.ts`, `index.ts` |
 | `packages/cli` | CLI entry + refactored: command parsers, dispatch, help text | `index.ts`, `installer.ts`, `tool-registration.ts`, `updater.ts`, `types.ts` |
 | `packages/tool-registry` | Tool registration (minimal changes) | `registry.ts`, `types.ts`, `index.ts` |
-| `packages/tools/*` | 18 individual tool packages (eval excluded) | Each has `index.ts` + `package.json` |
+| `packages/tools/*` | 21 individual tool packages (eval excluded) | Each has `index.ts` + `package.json` |
 
 ### Invariants — must never be broken
 

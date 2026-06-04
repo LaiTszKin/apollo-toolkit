@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, createToolRunner } from '@laitszkin/tool-utils';
+import { UserInputError, createToolRunner, createPlatformAdapter } from '@laitszkin/tool-utils';
 
 function getCodexHome(): string {
-  return process.env.CODEX_HOME || path.join(process.env.HOME || '', '.codex');
+  if (process.env.CODEX_HOME) return process.env.CODEX_HOME;
+  const adapter = createPlatformAdapter();
+  return path.join(adapter.homeDir(), '.codex');
 }
 
 interface Session {

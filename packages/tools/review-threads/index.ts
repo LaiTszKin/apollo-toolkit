@@ -147,7 +147,7 @@ async function resolvePrNumber(repo: string, pr: number | null): Promise<number>
     '.number',
   ]);
   if (result.exitCode !== 0) {
-    throw new Error(
+    throw new UserInputError(
       'Unable to infer PR number from current branch context',
     );
   }
@@ -318,7 +318,7 @@ function loadThreadIds(filePath: string): string[] {
         .map((item) => item.thread_id)
         .filter((id) => id !== undefined);
     } else {
-      throw new Error(
+      throw new UserInputError(
         'JSON must include thread_ids, adopted_thread_ids, or threads',
       );
     }

@@ -91,19 +91,19 @@ function parsePromptEntries(raw: unknown[]): Array<{ title: string; prompt: stri
     const item = raw[i];
     if (typeof item === 'string') {
       const prompt = item.trim();
-      if (!prompt) throw new Error(`Empty prompt at index ${i}`);
+      if (!prompt) throw new UserInputError(`Empty prompt at index ${i}`);
       items.push({ title: `scene-${i + 1}`, prompt });
     } else if (item && typeof item === 'object') {
       const obj = item as Record<string, unknown>;
       const prompt = String(obj.prompt || '').trim();
       const title = String(obj.title || `scene-${i + 1}`).trim() || `scene-${i + 1}`;
-      if (!prompt) throw new Error(`Empty prompt in object at index ${i}`);
+      if (!prompt) throw new UserInputError(`Empty prompt in object at index ${i}`);
       items.push({ title, prompt });
     } else {
-      throw new Error(`Invalid item type at index ${i}: expected string or object`);
+      throw new UserInputError(`Invalid item type at index ${i}: expected string or object`);
     }
   }
-  if (items.length === 0) throw new Error('No prompts found.');
+  if (items.length === 0) throw new UserInputError('No prompts found.');
   return items;
 }
 
@@ -117,7 +117,7 @@ function parsePromptsFile(filePath: string): Array<{ title: string; prompt: stri
   if (raw && typeof raw === 'object') {
     const scenes = raw.scenes;
     if (!Array.isArray(scenes) || scenes.length === 0) {
-      throw new Error('Object mode requires a top-level "scenes" array.');
+      throw new UserInputError('Object mode requires a top-level "scenes" array.');
     }
 
     const characters: Record<string, Record<string, string>> = {};
@@ -141,12 +141,12 @@ function parsePromptsFile(filePath: string): Array<{ title: string; prompt: stri
     for (let si = 0; si < scenes.length; si++) {
       const scene = scenes[si] as Record<string, unknown>;
       if (!scene || typeof scene !== 'object') {
-        throw new Error(`Invalid scene at index ${si}: expected object.`);
+        throw new UserInputError(`Invalid scene at index ${si}: expected object.`);
       }
 
       const title = String(scene.title || `scene-${si + 1}`).trim() || `scene-${si + 1}`;
       const description = String(scene.description || '').trim();
-      if (!description) throw new Error(`Scene ${si}: 'description' is required.`);
+      if (!description) throw new UserInputError(`Scene ${si}: 'description' is required.`);
 
       let promptPayload: Record<string, unknown> = {
         scene_title: title,
@@ -178,7 +178,7 @@ function parsePromptsFile(filePath: string): Array<{ title: string; prompt: stri
     return items;
   }
 
-  throw new Error('Top-level JSON must be an array or an object.');
+  throw new UserInputError('Top-level JSON must be an array or an object.');
 }
 
 const schema = {

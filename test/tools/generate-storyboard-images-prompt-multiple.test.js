@@ -84,3 +84,21 @@ test('handler returns exit code 1 when all prompts fail', async () => {
 
   assert.strictEqual(code, 1);
 });
+
+// REGTEST-01: FIX-02 — input validation throws UserInputError (not generic Error)
+test('REGTEST-01: missing input throws UserInputError (no "Error:" prefix)', async () => {
+  const mod = await import('../../packages/tools/generate-storyboard-images/dist/index.js');
+  const stderr = { data: '', write(c) { this.data += c; } };
+
+  // Without --input/--content-name, the handler throws UserInputError
+  // via createToolRunner's error boundary
+  const code = await mod.tool.handler(
+    ['--api-url', 'http://localhost:99999', '--api-key', 'test', '--prompt', 'test'],
+    { stdout: { write() {} }, stderr, env: {} }
+  );
+
+  assert.strictEqual(code, 1);
+  // UserInputError should NOT have "Error:" prefix
+  assert.ok(!stderr.data.includes('Error:'));
+  assert.ok(stderr.data.includes('--input or --content-name is required'));
+});

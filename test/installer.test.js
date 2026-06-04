@@ -17,8 +17,7 @@ import {
 import {
   buildBanner,
   buildWelcomeScreen,
-  buildInstallHelpText,
-  buildUninstallHelpText,
+  HelpTextBuilder,
   run,
 } from '@laitszkin/cli';
 import { checkForPackageUpdate, compareVersions } from '@laitszkin/cli';
@@ -89,8 +88,9 @@ test('buildWelcomeScreen shows branded setup overview', () => {
 });
 
 test('install and uninstall help pages end with examples', () => {
-  const installHelp = buildInstallHelpText({ version: '2.0.0', colorEnabled: false });
-  const uninstallHelp = buildUninstallHelpText({ version: '2.0.0', colorEnabled: false });
+  const helpBuilder = new HelpTextBuilder({ version: '2.0.0', colorEnabled: false });
+  const installHelp = helpBuilder.install();
+  const uninstallHelp = helpBuilder.uninstall();
   assert.match(installHelp, /Use this when:/);
   assert.match(installHelp, /Examples:/);
   assert.match(uninstallHelp, /Use this when:/);
@@ -331,7 +331,9 @@ test('installLinks replaces previously installed symlinks with copied skill dire
   await fs.writeFile(path.join(sourceSkill, 'SKILL.md'), '# alpha\n', 'utf8');
   await fs.writeFile(path.join(sourceSkill, 'notes.txt'), 'copied\n', 'utf8');
   await fs.mkdir(codexRoot, { recursive: true });
-  await fs.symlink(sourceSkill, targetSkill, process.platform === 'win32' ? 'junction' : 'dir');
+  const { createPlatformAdapter } = await import('@laitszkin/tool-utils');
+const adapter = createPlatformAdapter();
+await fs.symlink(sourceSkill, targetSkill, adapter.symlinkType());
 
   await installLinks({
     toolkitHome,

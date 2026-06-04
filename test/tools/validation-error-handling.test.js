@@ -195,3 +195,28 @@ test('validate-openai-agent-config validation errors are UserInputError', async 
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+// REGTEST-04: FIX-05 — extractFrontmatter throws UserInputError for broken frontmatter
+test('validate-skill-frontmatter: missing opening --- triggers UserInputError', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apltk-vsf-fm-'));
+  try {
+    const skillDir = path.join(tmpDir, 'skills', 'test-skill');
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), 'no frontmatter here\n', 'utf8');
+
+    const mod = await import('../../packages/tools/validate-skill-frontmatter/dist/index.js');
+    const stderr = { data: '', write(c) { this.data += c; } };
+    const code = await mod.tool.handler([], {
+      sourceRoot: tmpDir,
+      stdout: { write() {} },
+      stderr,
+      env: {},
+    });
+
+    assert.strictEqual(code, 1);
+    assert.ok(stderr.data.includes("SKILL.md must start with YAML frontmatter delimiter"));
+    assert.ok(!stderr.data.includes('Error:'));
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

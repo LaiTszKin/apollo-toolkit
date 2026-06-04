@@ -4,7 +4,7 @@ import { request as httpsRequest } from 'node:https';
 import { tmpdir } from 'node:os';
 import { join as joinPath } from 'node:path';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { createToolRunner, UserInputError } from '@laitszkin/tool-utils';
+import { createToolRunner, SystemError, UserInputError } from '@laitszkin/tool-utils';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 const README_ACCEPT = 'application/vnd.github.raw+json';
@@ -522,7 +522,7 @@ async function createIssueWithGh(
     ]);
 
     if (result.exitCode !== 0) {
-      throw new Error(result.stderr.trim() || 'gh issue create failed');
+      throw new SystemError(result.stderr.trim() || 'gh issue create failed');
     }
 
     const urlMatch = result.stdout.match(
@@ -551,7 +551,7 @@ async function createIssueWithToken(
   const parsed = JSON.parse(response);
   const issueUrl: string | undefined = parsed.html_url;
   if (!issueUrl) {
-    throw new Error('Issue created but response did not include html_url');
+    throw new SystemError('Issue created but response did not include html_url');
   }
   return issueUrl;
 }
@@ -863,38 +863,6 @@ const schema = {
 };
 
 // ---- Tool definition ----
-
-const FLAG_MAP: Record<string, { flag: string; type: 'string' | 'boolean' }> = {
-  payloadFile:         { flag: '--payload-file',          type: 'string' },
-  title:               { flag: '--title',                 type: 'string' },
-  issueType:           { flag: '--issue-type',            type: 'string' },
-  problemDescription:  { flag: '--problem-description',   type: 'string' },
-  suspectedCause:      { flag: '--suspected-cause',       type: 'string' },
-  reproduction:        { flag: '--reproduction',          type: 'string' },
-  proposal:            { flag: '--proposal',              type: 'string' },
-  reason:              { flag: '--reason',                type: 'string' },
-  suggestedArchitecture: { flag: '--suggested-architecture', type: 'string' },
-  impact:              { flag: '--impact',                type: 'string' },
-  evidence:            { flag: '--evidence',              type: 'string' },
-  suggestedAction:     { flag: '--suggested-action',      type: 'string' },
-  severity:            { flag: '--severity',              type: 'string' },
-  affectedScope:       { flag: '--affected-scope',        type: 'string' },
-  repo:                { flag: '--repo',                  type: 'string' },
-  dryRun:              { flag: '--dry-run',               type: 'boolean' },
-};
-
-function buildArgsFromYargs(argv: Record<string, unknown>): string[] {
-  const args: string[] = [];
-  for (const [camel, { flag, type }] of Object.entries(FLAG_MAP)) {
-    const value = argv[camel];
-    if (type === 'boolean') {
-      if (value) args.push(flag);
-    } else if (value !== undefined && value !== null) {
-      args.push(flag, String(value));
-    }
-  }
-  return args;
-}
 
 export const tool: ToolDefinition = {
   name: 'open-github-issue',

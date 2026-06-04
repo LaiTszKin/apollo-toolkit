@@ -11,7 +11,7 @@ EXIT=0
 # 其他工具由 test/tools/ 測試檔案驗證，測試涵蓋率直接反映在總覽數字中。
 GROUP1_FLAGS=""
 if [ "${COVERAGE:-}" = "true" ]; then
-  GROUP1_FLAGS="--experimental-test-coverage --test-coverage-lines=65 --test-coverage-branches=60 --test-coverage-functions=65 --test-coverage-exclude=packages/tools/eval/**"
+  GROUP1_FLAGS="--experimental-test-coverage --test-coverage-lines=69 --test-coverage-branches=60 --test-coverage-functions=67 --test-coverage-exclude=packages/tools/eval/**"
 fi
 
 run_test_group() {

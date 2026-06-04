@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-import { parseArguments, buildHelpText, buildToolsHelp, run } from '@laitszkin/cli';
+import { parseArguments, run, HelpTextBuilder } from '@laitszkin/cli';
 import { listTools, getTool, runTool } from '@laitszkin/tool-registry';
 
 // Note: tools are not yet registered in the new registry (Batch 4).
@@ -33,13 +33,13 @@ test('parseArguments keeps tools help separate from install help', () => {
 });
 
 test('buildToolsHelp lists bundled tools', () => {
-  const help = buildToolsHelp({ version: '1.2.3', colorEnabled: false });
+  const help = new HelpTextBuilder({ version: '1.2.3', colorEnabled: false }).toolsHelp();
   assert.match(help, /apltk tools/);
   assert.match(help, /Common goals:/);
 });
 
 test('buildHelpText provides task-oriented overview help', () => {
-  const help = buildHelpText({ version: '1.2.3', colorEnabled: false });
+  const help = new HelpTextBuilder({ version: '1.2.3', colorEnabled: false }).overview();
   assert.match(help, /Common goals:/);
   assert.match(help, /apltk tools --help/);
   assert.match(help, /Examples:/);

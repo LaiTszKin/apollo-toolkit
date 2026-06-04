@@ -115,7 +115,7 @@
 
 - `packages/cli/index.ts` — `run()` (L423-586)、`parseArguments()` (L208-303)、help text builders (L62-202)
 - `packages/cli/installer.ts` — 465 行，包含安裝/解除安裝的核心邏輯與 target root 解析
-- `packages/cli/tool-registration.ts` — 動態匯入 19 個 tool package；`TOOL_MODULE_NAMES` 為 hardcode 列表
+- `packages/cli/tool-registration.ts` — 動態匯入 21 個 tool package；`TOOL_MODULE_NAMES` 為 hardcode 列表
 - `packages/cli/updater.ts` — `execCommand()` (L63-96) 實作跨平台 spawn；`checkForPackageUpdate()` (L130-166)
 - `packages/cli/types.ts` — `CliContext`, `ParsedArguments`, `InstallMode` 等共用型別
 - `packages/tool-registry/registry.ts` — `ToolDefinition` 註冊/查詢/執行/格式化

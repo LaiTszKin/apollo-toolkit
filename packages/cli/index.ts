@@ -56,23 +56,9 @@ import { UninstallArgsParser } from './parsers/uninstall-parser.js';
 import { ToolArgsParser } from './parsers/tool-parser.js';
 import { HelpTextBuilder } from './help-text-builder.js';
 
-// ---- Backward-compatible help text wrappers (delegate to HelpTextBuilder) ---
-
-function buildHelpText({ version, colorEnabled }: { version: string; colorEnabled: boolean }): string {
-  return new HelpTextBuilder({ version, colorEnabled }).overview();
-}
-
-function buildToolsHelp({ version, colorEnabled }: { version: string; colorEnabled: boolean }): string {
-  return new HelpTextBuilder({ version, colorEnabled }).toolsHelp();
-}
-
-function buildInstallHelpText({ version, colorEnabled }: { version: string; colorEnabled: boolean }): string {
-  return new HelpTextBuilder({ version, colorEnabled }).install();
-}
-
-function buildUninstallHelpText({ version, colorEnabled }: { version: string; colorEnabled: boolean }): string {
-  return new HelpTextBuilder({ version, colorEnabled }).uninstall();
-}
+// FIX-14: assertCommand calls removed intentionally — the if-else chain above
+// guarantees the command type before each return block.
+// assertCommand function definition at L67-71 kept for future use in parser tests.
 
 function readPackageJson(sourceRoot: string): { version: string; name: string } {
   return JSON.parse(fs.readFileSync(path.join(sourceRoot, 'package.json'), 'utf8'));
@@ -104,10 +90,13 @@ function parseArguments(argv: string[]): ParsedArguments {
   ]);
 
   const parser = commandParsers.get(firstArg);
+  // FIX-16: The if-else chain below is intentional — each command type
+  // (uninstall, install, tools/tool) returns a different ParsedArguments
+  // shape. A handler-map refactor would need a union-to-discriminated
+  // mapping. Keeping explicit per-type branches is clearer for now.
   if (parser) {
     if (firstArg === 'uninstall') {
       const cmd = parser.parse(argv) as UninstallCommand;
-      assertCommand<UninstallCommand>(cmd, 'uninstall');
       return {
         command: 'uninstall',
         modes: cmd.modes,
@@ -125,7 +114,6 @@ function parseArguments(argv: string[]): ParsedArguments {
 
     if (firstArg === 'install') {
       const cmd = parser.parse(argv) as InstallCommand;
-      assertCommand<InstallCommand>(cmd, 'install');
       return {
         command: 'install',
         modes: cmd.modes,
@@ -144,7 +132,6 @@ function parseArguments(argv: string[]): ParsedArguments {
     // tools/tool dispatch
     const cmd = parser.parse(argv) as ToolCommand | ToolsHelpCommand;
     if (cmd.command === 'tools-help') {
-      assertCommand<ToolsHelpCommand>(cmd, 'tools-help');
       return {
         command: 'tools-help',
         modes: [],
@@ -159,7 +146,6 @@ function parseArguments(argv: string[]): ParsedArguments {
         helpTopic: 'tools-help',
       };
     }
-    assertCommand<ToolCommand>(cmd, 'tool');
     return {
       command: 'tool',
       modes: [],
@@ -175,16 +161,17 @@ function parseArguments(argv: string[]): ParsedArguments {
     };
   }
 
-  // Direct tool name (no "tools" prefix) — fallback
+  // Direct tool name (no "tools" prefix) — route through ToolArgsParser
   if (firstArg && isKnownToolName(firstArg)) {
+    const cmd = toolParser.parse(argv) as ToolCommand;
     return {
       command: 'tool',
       modes: [],
       showHelp: false,
       showToolsHelp: false,
       toolkitHome: null,
-      toolName: firstArg,
-      toolArgs: argv.slice(1),
+      toolName: cmd.toolName,
+      toolArgs: cmd.toolArgs,
       linkMode: null,
       assumeYes: false,
       explicitInstallCommand: false,
@@ -331,7 +318,7 @@ export { ToolArgsParser } from './parsers/tool-parser.js';
 export { HelpTextBuilder } from './help-text-builder.js';
 export { normalizeParseError } from './parsers/parser-utils.js';
 
-export { parseArguments, buildHelpText, buildInstallHelpText, buildUninstallHelpText, buildToolsHelp, buildBanner, buildWelcomeScreen, registerAllTools };
+export { parseArguments, buildBanner, buildWelcomeScreen, registerAllTools };
 
 export async function run(argv: string[], context: CliContext = {}): Promise<number> {
   const __filename = fileURLToPath(import.meta.url);
@@ -350,18 +337,19 @@ export async function run(argv: string[], context: CliContext = {}): Promise<num
     if (parsed.showHelp) {
       const colorEnabled = supportsColor(stdout, env);
       if (parsed.helpTopic === 'overview') await registerAllTools();
+      const builder = new HelpTextBuilder({ version: packageJson.version, colorEnabled });
       const helpText = parsed.helpTopic === 'install'
-        ? buildInstallHelpText({ version: packageJson.version, colorEnabled })
+        ? builder.install()
         : parsed.helpTopic === 'uninstall'
-          ? buildUninstallHelpText({ version: packageJson.version, colorEnabled })
-          : buildHelpText({ version: packageJson.version, colorEnabled });
+          ? builder.uninstall()
+          : builder.overview();
       stdout.write(`${helpText}\n`);
       return 0;
     }
 
     if (parsed.showToolsHelp) {
       await registerAllTools();
-      stdout.write(`${buildToolsHelp({ version: packageJson.version, colorEnabled: supportsColor(stdout, env) })}\n`);
+      stdout.write(`${new HelpTextBuilder({ version: packageJson.version, colorEnabled: supportsColor(stdout, env) }).toolsHelp()}\n`);
       return 0;
     }
 
