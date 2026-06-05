@@ -765,9 +765,6 @@ async function resolveRepoAsync(
   // Try to resolve from git remote
   const result = await runCommand('git', ['remote', 'get-url', 'origin']);
   if (result.exitCode !== 0) {
-    context.stderr!.write(
-      'Unable to resolve origin remote. Pass --repo owner/repo.\n',
-    );
     throw new UserInputError('Unable to resolve origin remote. Pass --repo owner/repo.');
   }
 
@@ -776,9 +773,6 @@ async function resolveRepoAsync(
     /github\.com[:/](?<owner>[A-Za-z0-9_.-]+)\/(?<repo>[A-Za-z0-9_.-]+?)(?:\.git)?$/,
   );
   if (!match?.groups) {
-    context.stderr!.write(
-      'Origin remote is not a GitHub repository. Pass --repo owner/repo.\n',
-    );
     throw new UserInputError('Unable to resolve origin remote. Pass --repo owner/repo.');
   }
 
@@ -798,6 +792,18 @@ interface IssueResult {
   publish_error: string;
 }
 
+/**
+ * openGitHubIssueHandler — Known carryover from createToolRunner migration.
+ *
+ * Reason for not using createToolRunner:
+ * - Positional subcommand architecture (create/draft) with 15+ tool-specific
+ *   flags doesn't map cleanly to createToolRunner's options schema.
+ * - Error handling follows the AppError convention (UserInputError/SystemError
+ *   throws) which is handled by the CLI boundary's formatAppError.
+ * - Argument parsing and help text are handled manually — 83-line parseArgs().
+ *
+ * See DESIGN.md §2.3 for the full architecture discussion.
+ */
 export async function openGitHubIssueHandler(
   argv: string[],
   context: ToolContext,
