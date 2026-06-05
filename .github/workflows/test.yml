@@ -18,10 +18,9 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
-      # Uses bash scripts/test.sh directly (not npm test) for cross-platform
-      # compatibility — .sh is not executable on native Windows PowerShell
-      # without Git Bash. The parallel skill-validation.yml workflow also
-      # uses bash scripts/test.sh for consistency.
+      # Runs bash scripts/test.sh with COVERAGE=true for coverage reporting.
+      # Uses shell:bash for Windows compatibility (Git Bash from Git for Windows).
+      # Coverage thresholds (75/60/75) enforced via --check-coverage.
       - name: Run tests with coverage
         shell: bash
         run: bash scripts/test.sh
