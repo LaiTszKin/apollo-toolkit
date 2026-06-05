@@ -20,7 +20,7 @@ jobs:
       - run: npm run build
       # Runs bash scripts/test.sh with COVERAGE=true for coverage reporting.
       # Uses shell:bash for Windows compatibility (Git Bash from Git for Windows).
-      # Coverage thresholds (75/60/75) enforced natively.
+      # Coverage thresholds (65/60/65) enforced via post-hoc grep (Node 25+).
       - name: Run tests with coverage
         shell: bash
         run: bash scripts/test.sh
