@@ -903,6 +903,7 @@ export async function openGitHubIssueHandler(
       'No authenticated gh CLI session and no GitHub token found. ' +
         'Return draft issue body only.\n',
     );
+    return 0;
   }
 
   return 0;

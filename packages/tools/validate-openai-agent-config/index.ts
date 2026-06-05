@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, iterSkillDirs, createToolRunner } from '@laitszkin/tool-utils';
+import { UserInputError, iterSkillDirs } from '@laitszkin/tool-utils';
 
 const TOP_LEVEL_ALLOWED_KEYS = new Set(['interface', 'dependencies', 'policy']);
 const INTERFACE_REQUIRED_KEYS = new Set(['display_name', 'short_description', 'default_prompt']);
@@ -21,19 +21,19 @@ function repoRoot(context?: ToolContext): string {
 function extractFrontmatter(content: string): Record<string, any> {
   const lines = content.split('\n');
   if (!lines.length || lines[0].trim() !== '---') {
-    throw new Error("SKILL.md must start with YAML frontmatter delimiter '---'.");
+    throw new UserInputError("SKILL.md must start with YAML frontmatter delimiter '---'.");
   }
   for (let i = 1; i < lines.length; i++) {
     if (lines[i].trim() === '---') {
       const raw = lines.slice(1, i).join('\n');
       const parsed = yaml.load(raw);
       if (typeof parsed !== 'object' || parsed === null) {
-        throw new Error('SKILL.md frontmatter must be a YAML mapping.');
+        throw new UserInputError('SKILL.md frontmatter must be a YAML mapping.');
       }
       return parsed as Record<string, any>;
     }
   }
-  throw new Error("SKILL.md frontmatter is missing the closing '---' delimiter.");
+  throw new UserInputError("SKILL.md frontmatter is missing the closing '---' delimiter.");
 }
 
 function requireNonEmptyString(

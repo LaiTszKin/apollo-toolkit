@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { UserInputError, iterSkillDirs, createToolRunner } from '@laitszkin/tool-utils';
+import { UserInputError, iterSkillDirs } from '@laitszkin/tool-utils';
 
 const NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const REQUIRED_KEYS = new Set(['name', 'description']);
@@ -16,14 +16,14 @@ function repoRoot(context?: ToolContext): string {
 function extractFrontmatter(content: string): string {
   const lines = content.split('\n');
   if (!lines.length || lines[0].trim() !== '---') {
-    throw new Error("SKILL.md must start with YAML frontmatter delimiter '---'.");
+    throw new UserInputError("SKILL.md must start with YAML frontmatter delimiter '---'.");
   }
   for (let i = 1; i < lines.length; i++) {
     if (lines[i].trim() === '---') {
       return lines.slice(1, i).join('\n');
     }
   }
-  throw new Error("SKILL.md frontmatter is missing the closing '---' delimiter.");
+  throw new UserInputError("SKILL.md frontmatter is missing the closing '---' delimiter.");
 }
 
 function validateSkill(skillDir: string): string[] {
