@@ -11,39 +11,6 @@ interface ReadIssueArgs {
   json: boolean;
 }
 
-function parseArgs(argv: string[]): ReadIssueArgs {
-  const args: ReadIssueArgs = {
-    issue: null,
-    repo: null,
-    comments: false,
-    json: false,
-  };
-
-  let i = 0;
-  while (i < argv.length) {
-    const arg = argv[i];
-    switch (arg) {
-      case '--repo':
-        if (i + 1 < argv.length) args.repo = argv[++i];
-        break;
-      case '--comments':
-        args.comments = true;
-        break;
-      case '--json':
-        args.json = true;
-        break;
-      default:
-        if (!arg.startsWith('-')) {
-          args.issue = arg;
-        }
-        break;
-    }
-    i++;
-  }
-
-  return args;
-}
-
 interface CommandResult {
   stdout: string;
   stderr: string;
@@ -138,12 +105,19 @@ function printSummary(
   }
 }
 
+/**
+ * readGitHubIssueHandler — Wrapped in createToolRunner for schema-based
+ * argument parsing. The schema (see tool export) declares --repo, --json,
+ * --comments, and --help. Positional <issue> argument comes via positionals[0].
+ *
+ * Error handling uses UserInputError/SystemError which propagate through
+ * createToolRunner's catch block to formatAppError.
+ */
 export async function readGitHubIssueHandler(
-  argv: string[],
+  args: ReadIssueArgs,
   context: ToolContext,
 ): Promise<number> {
   const { stdout, stderr } = context;
-  const args = parseArgs(argv);
 
   if (!args.issue) {
     throw new UserInputError('Issue number or URL is required.');
@@ -179,9 +153,23 @@ export const tool: ToolDefinition = {
   category: 'GitHub workflows',
   description: 'Read GitHub issue details through gh.',
   handler: createToolRunner({
-    options: { help: { type: 'boolean', short: 'h' } },
+    options: {
+      repo: { type: 'string' as const },
+      json: { type: 'boolean' as const },
+      comments: { type: 'boolean' as const },
+      help: { type: 'boolean' as const, short: 'h' },
+    },
     allowPositionals: true,
     usage: 'apltk read-github-issue [options] <issue>',
-    handler: (_values, positionals, context) => readGitHubIssueHandler(positionals, context),
+    description: 'Read GitHub issue details through gh.',
+    handler: async (values, positionals, context) => {
+      const args: ReadIssueArgs = {
+        issue: positionals[0] ?? null,
+        repo: (values.repo as string) ?? null,
+        comments: values.comments === true,
+        json: values.json === true,
+      };
+      return readGitHubIssueHandler(args, context);
+    },
   }),
 };

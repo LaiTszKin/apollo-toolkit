@@ -503,10 +503,9 @@ async function cmdResolve(
   const threadIds = collectThreadIds(args, unresolved);
 
   if (threadIds.length === 0) {
-    stderr!.write(
-      'Error: no thread IDs selected. Use --thread-id, --thread-id-file, or --all-unresolved.\n',
+    throw new UserInputError(
+      'no thread IDs selected. Use --thread-id, --thread-id-file, or --all-unresolved.',
     );
-    return 1;
   }
 
   const { resolved, failed } = await resolveThreads(threadIds, args.dryRun);

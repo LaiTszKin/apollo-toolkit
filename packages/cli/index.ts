@@ -79,6 +79,14 @@ function parseArguments(argv: string[]): ParsedArguments {
   // (uninstall, install, tools/tool) returns a different ParsedArguments
   // shape. A handler-map refactor would need a union-to-discriminated
   // mapping. Keeping explicit per-type branches is clearer for now.
+  //
+  // Adding a new command requires touching 3 locations:
+  // 1. Create a new parser class implementing CommandParser<T>
+  // 2. Add a Map.set() entry in the dispatch table above
+  // 3. Add a new if-else branch below to reshape the parsed result
+  //
+  // Ordering constraint: install/uninstall branches must precede
+  // tools/tool because the same parser reference (toolParser) serves both.
   if (parser) {
     if (firstArg === 'uninstall') {
       const cmd = parser.parse(argv) as UninstallCommand;

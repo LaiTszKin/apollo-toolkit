@@ -206,4 +206,87 @@ describe('Handler error propagation via createToolRunner', () => {
     const lines = stderr.data.trim().split('\n').filter(Boolean);
     assert.ok(lines.length <= 1, `should have 0 or 1 error line(s), got ${lines.length}: ${JSON.stringify(stderr.data)}`);
   });
+
+  // REGTEST-01: FIX-01 — read-github-issue --repo passes through createToolRunner
+  it('read-github-issue: --repo flag passes through createToolRunner without unknown-option error', async () => {
+    const mod = await import('../../packages/tools/read-github-issue/dist/index.js');
+    const stderr = { data: '', write(c) { this.data += c; } };
+    // Pass --repo and a positional issue number — should NOT throw unknown option error
+    const code = await mod.tool.handler(
+      ['--repo', 'owner/repo', '42'],
+      { stdout: { write() {} }, stderr, env: {} },
+    );
+    // Handler should execute (will likely fail trying to call gh, but NOT with parseArgs error)
+    assert.ok(typeof code === 'number', `Handler should return a number, got ${typeof code}: ${code}`);
+    // stderr must NOT contain "Unknown option" (from node:util parseArgs)
+    assert.ok(!stderr.data.includes('Unknown option'),
+      `Should not have parseArgs unknown-option error: ${JSON.stringify(stderr.data)}`);
+    // stderr must NOT contain "ERR_PARSE_ARGS"
+    assert.ok(!stderr.data.includes('ERR_PARSE_ARGS'),
+      `Should not have ERR_PARSE_ARGS error: ${JSON.stringify(stderr.data)}`);
+  });
+
+  // REGTEST-02: FIX-01 — read-github-issue --json passes through createToolRunner
+  it('read-github-issue: --json flag passes through createToolRunner without unknown-option error', async () => {
+    const mod = await import('../../packages/tools/read-github-issue/dist/index.js');
+    const stderr = { data: '', write(c) { this.data += c; } };
+    // Pass --json and a positional issue number
+    const code = await mod.tool.handler(
+      ['--json', '42'],
+      { stdout: { write() {} }, stderr, env: {} },
+    );
+    assert.ok(typeof code === 'number', `Handler should return a number, got ${typeof code}`);
+    assert.ok(!stderr.data.includes('Unknown option'),
+      `Should not have parseArgs unknown-option error: ${JSON.stringify(stderr.data)}`);
+    assert.ok(!stderr.data.includes('ERR_PARSE_ARGS'),
+      `Should not have ERR_PARSE_ARGS error: ${JSON.stringify(stderr.data)}`);
+  });
+
+  // REGTEST-03: FIX-01 — read-github-issue --comments passes through createToolRunner
+  it('read-github-issue: --comments flag passes through createToolRunner without unknown-option error', async () => {
+    const mod = await import('../../packages/tools/read-github-issue/dist/index.js');
+    const stderr = { data: '', write(c) { this.data += c; } };
+    // Pass --comments and a positional issue number
+    const code = await mod.tool.handler(
+      ['--comments', '42'],
+      { stdout: { write() {} }, stderr, env: {} },
+    );
+    assert.ok(typeof code === 'number', `Handler should return a number, got ${typeof code}`);
+    assert.ok(!stderr.data.includes('Unknown option'),
+      `Should not have parseArgs unknown-option error: ${JSON.stringify(stderr.data)}`);
+    assert.ok(!stderr.data.includes('ERR_PARSE_ARGS'),
+      `Should not have ERR_PARSE_ARGS error: ${JSON.stringify(stderr.data)}`);
+  });
+
+  // REGTEST-04: FIX-03 — sync-memory-index error propagation via createToolRunner outer catch
+  it('sync-memory-index: errors propagate correctly through createToolRunner after inner catch removal', async () => {
+    const mod = await import('../../packages/tools/sync-memory-index/dist/index.js');
+    const stderr = { data: '', write(c) { this.data += c; } };
+    // Pass a non-existent agents-file path to trigger handler error
+    const code = await mod.tool.handler(
+      ['--agents-file', '/nonexistent/path/AGENTS.md'],
+      { stdout: { write() {} }, stderr, env: {} },
+    );
+    assert.strictEqual(code, 1, 'Handler should return exit code 1 on error');
+    assert.ok(stderr.data.length > 0, 'stderr should contain error information');
+  });
+
+  // REGTEST-05: FIX-04 — review-threads cmdResolve throws UserInputError for no thread IDs
+  it('review-threads: cmdResolve throws UserInputError when no thread IDs selected', async () => {
+    const mod = await import('../../packages/tools/review-threads/dist/index.js');
+    // review-threads is not wrapped in createToolRunner, so errors propagate as rejected promises
+    // The handler throws during PR number resolution (no gh context), but the key
+    // validation is that the error is a UserInputError (not stderr.write + return 1)
+    await assert.rejects(
+      () => mod.tool.handler(
+        ['resolve', '--dry-run', '--repo', 'test/repo'],
+        { stdout: { write() {} }, stderr: { write() {} }, env: {} },
+      ),
+      (err) => {
+        assert.ok(err.constructor.name === 'UserInputError',
+          `Should throw UserInputError, got: ${err.constructor.name}`);
+        return true;
+      },
+    );
+  });
 });

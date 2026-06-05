@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { createPlatformAdapter, createToolRunner, formatAppError } from '@laitszkin/tool-utils';
+import { createPlatformAdapter, createToolRunner } from '@laitszkin/tool-utils';
 
 const START_MARKER = '<!-- codex-memory-manager:start -->';
 const END_MARKER = '<!-- codex-memory-manager:end -->';
@@ -36,7 +36,7 @@ function iterMemoryFiles(memoryDir: string): string[] {
     .sort((a, b) => path.basename(a).toLowerCase().localeCompare(path.basename(b).toLowerCase()));
 }
 
-function renderSection(memoryFiles: string[], sectionTitle: string, instructionLines: string[]): string {
+function renderSection(memoryFiles: string[], sectionTitle: string, instructionLines: string[], eol: string = '\n'): string {
   const lines = [START_MARKER, sectionTitle.trim(), ''];
 
   const cleaned = instructionLines.filter((line) => line && line.trim());
@@ -57,7 +57,7 @@ function renderSection(memoryFiles: string[], sectionTitle: string, instructionL
   }
 
   lines.push(END_MARKER);
-  return lines.join('\n');
+  return lines.join(eol);
 }
 
 function removeExistingSection(content: string): string {
@@ -102,31 +102,26 @@ const syncMemoryIndexSchema = {
     context: ToolContext,
   ): Promise<number> => {
     const stdout = context.stdout ?? process.stdout;
-    const stderr = context.stderr ?? process.stderr;
 
-    try {
-      const homeDir = createPlatformAdapter().homeDir() || '';
-      const agentsFile = (values['agents-file'] as string) || path.join(homeDir, '.codex', 'AGENTS.md');
-      const memoryDir = (values['memory-dir'] as string) || path.join(homeDir, '.codex', 'memory');
-      const sectionTitle = (values['section-title'] as string) || DEFAULT_SECTION_TITLE;
-      const instructionLines = [...DEFAULT_INSTRUCTIONS];
-      const extraLines = values['instruction-line'] as string | string[] | undefined;
-      if (extraLines) {
-        if (Array.isArray(extraLines)) instructionLines.push(...extraLines);
-        else instructionLines.push(extraLines);
-      }
-
-      const memoryFiles = iterMemoryFiles(memoryDir);
-      const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines);
-      syncAgentsFile(agentsFile, sectionText);
-
-      stdout.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);
-      stdout.write(`MEMORY_FILES_INDEXED=${memoryFiles.length}\n`);
-      return 0;
-    } catch (err) {
-      formatAppError(stderr, err);
-      return 1;
+    const adapter = createPlatformAdapter();
+    const homeDir = adapter.homeDir() || '';
+    const agentsFile = (values['agents-file'] as string) || path.join(homeDir, '.codex', 'AGENTS.md');
+    const memoryDir = (values['memory-dir'] as string) || path.join(homeDir, '.codex', 'memory');
+    const sectionTitle = (values['section-title'] as string) || DEFAULT_SECTION_TITLE;
+    const instructionLines = [...DEFAULT_INSTRUCTIONS];
+    const extraLines = values['instruction-line'] as string | string[] | undefined;
+    if (extraLines) {
+      if (Array.isArray(extraLines)) instructionLines.push(...extraLines);
+      else instructionLines.push(extraLines);
     }
+
+    const memoryFiles = iterMemoryFiles(memoryDir);
+    const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines, adapter.EOL);
+    syncAgentsFile(agentsFile, sectionText);
+
+    stdout.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);
+    stdout.write(`MEMORY_FILES_INDEXED=${memoryFiles.length}\n`);
+    return 0;
   },
 };
 

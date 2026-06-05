@@ -10,8 +10,15 @@
 # Thresholds are enforced via post-hoc grep since --check-coverage is not
 # available in Node.js 25+. See docs/plans/2026-06-04/cli-refactor/REPORT.md §4.
 #
-# The --test-coverage-exclude=packages/tools/eval/** glob may behave
-# differently on Windows with backslash paths. See REPORT.md P3-18.
+# Combined coverage is estimated from Group 1 + Group 2 "all files" lines,
+# not directly measured — the Node test runner only reports per-process coverage.
+#
+# Blind spots and limitations:
+# - Group 3 (mock.module tests) is excluded from coverage entirely since
+#   --experimental-test-module-mocks and --experimental-test-coverage are not
+#   compatible in the same process.
+# - The --test-coverage-exclude=packages/tools/eval/** glob may behave
+#   differently on Windows with backslash paths. See REPORT.md P3-18.
 
 EXIT=0
 
@@ -21,7 +28,8 @@ if [ "${COVERAGE:-}" = "true" ]; then
   GROUP1_FLAGS="--experimental-test-coverage --test-coverage-lines=65 --test-coverage-branches=60 --test-coverage-functions=65 --test-coverage-exclude=packages/tools/eval/**"
 fi
 
-RUN_TEST_LOG=$(mktemp /tmp/test-run-XXXXXX.log)
+# Use TMPDIR, TEMP, or /tmp as fallback for platforms without mktemp (e.g., Windows CMD)
+RUN_TEST_LOG="${TMPDIR:-${TEMP:-/tmp}}/test-run-$$.log"
 
 run_test_group() {
   local label="$1"
@@ -62,6 +70,24 @@ if [ "${COVERAGE:-}" = "true" ] && [ -s "$RUN_TEST_LOG" ]; then
     echo "COVERAGE THRESHOLD VIOLATIONS:"
     grep "does not meet threshold" "$RUN_TEST_LOG"
     EXIT=1
+  fi
+
+  # Check that grep pattern matched at least one threshold line
+  if ! grep -q "does not meet threshold" "$RUN_TEST_LOG" 2>/dev/null; then
+    # Check if coverage output exists at all
+    if grep -q "all files" "$RUN_TEST_LOG" 2>/dev/null; then
+      echo "  (all thresholds met)"
+    else
+      echo "  (warning: no coverage data found — Node version may have changed output format)"
+    fi
+  fi
+
+  # Estimate combined line coverage from Group 1 and Group 2 reports
+  GROUP1_LINES=$(grep "all files" "$RUN_TEST_LOG" | head -1 | awk '{print $5}')
+  GROUP2_LINES=$(grep "all files" "$RUN_TEST_LOG" | tail -1 | awk '{print $5}')
+  if [ -n "$GROUP1_LINES" ] && [ -n "$GROUP2_LINES" ]; then
+    echo "  (combined coverage estimate: G1=$GROUP1_LINES G2=$GROUP2_LINES)"
+    echo "  (SPEC requires 80% — see REPORT.md for split-process limitation)"
   fi
 fi
 rm -f "$RUN_TEST_LOG"
