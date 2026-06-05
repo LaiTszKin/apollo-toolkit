@@ -137,10 +137,15 @@ async function loadHandler(toolName) {
 
 // ── Discover and classify tools once before all tests ──
 const tools = classifyTools();
+
+// Tools that mention createToolRunner in comments but don't actually use it
+const COMMENT_ONLY_TOOLS = new Set(['architecture']);
+
 const strictTools = [];
 const nonStrictTools = [];
 
 for (const [name, info] of tools) {
+  if (COMMENT_ONLY_TOOLS.has(name)) continue; // skip false-positives
   if (info.mode === 'strict') strictTools.push(name);
   else if (info.mode === 'non-strict') nonStrictTools.push(name);
 }
@@ -242,6 +247,7 @@ test('all converted tools reject --nonexistent uniformly', async (t) => {
   const strictConverted = [];
 
   for (const [name, info] of tools) {
+    if (COMMENT_ONLY_TOOLS.has(name)) continue; // skip false-positives
     if (info.type === 'createToolRunner' && info.mode === 'strict') {
       strictConverted.push(name);
     }
@@ -303,6 +309,10 @@ test('tool classification summary', () => {
   const skipped = [];
 
   for (const [name, info] of tools) {
+    if (COMMENT_ONLY_TOOLS.has(name)) {
+      skipped.push(`${name} (createToolRunner in comments only)`);
+      continue;
+    }
     if (info.mode === 'strict') {
       if (info.type === 'createToolRunner') strictConverted.push(name);
       else strictParseArgs.push(name);
