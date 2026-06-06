@@ -2,6 +2,20 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v5.0.4] - 2026-06-07
+
+### Added
+
+- **design skill `references/` folder**: Design phase now populates `<spec_dir>/references/` with external method/API reference documents (name, purpose, required parameters), reducing hallucinated external code during implementation.
+- **`apltk codegraph` as dedicated workflow step**: `spec` and `docs-project` skills now run `apltk codegraph survey` before reading requirements, ensuring BDD boundaries align with real code. `design` uses codegraph survey before architecture design.
+- **Brownfield refactoring assessment**: `design` skill now includes explicit T1–T3 refactoring planning for brownfield changes as a standard workflow step.
+- **Worker prompt separation**: `plan` and `qa` skills now store worker prompts in `plan/*.md` and `fix/*.md` files respectively, keeping coordinator prompts focused on strategy. PROMPT.md/FIX.md Reference sections cite all worker prompt paths and code file paths.
+- **Prompt generation guidance consolidated**: Notes on writing quality worker prompts moved from PROMPT.md/FIX.md templates into `plan`/`qa` SKILL.md, aligning with the optimise-skill principle of behavioral guidance in SKILL.md.
+
+### Changed
+
+- **Self-review renamed to Verification**: `design` and `spec` skills now use "Pre-delivery Verification" with explicit completeness and quality checks, plus code traceability validation.
+
 ## [v5.0.3] - 2026-06-06
 
 ### Added
