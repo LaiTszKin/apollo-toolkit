@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
+import { SystemError } from '@laitszkin/tool-utils';
 
 const SWIFT_SCRIPT = [
   'import Foundation',
@@ -61,7 +62,7 @@ Output format:
 
   const resolvedPath = path.resolve(pdfPath);
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const child = spawn('swift', ['-', resolvedPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: context.env || process.env as Record<string, string>,
@@ -82,8 +83,7 @@ Output format:
     });
 
     child.on('error', (err: Error) => {
-      stderr.write(`Failed to start swift: ${err.message}\n`);
-      resolve(1);
+      reject(new SystemError(`Failed to start swift: ${err.message}`));
     });
 
     child.on('close', (code: number | null) => {
