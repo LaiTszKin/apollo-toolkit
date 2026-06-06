@@ -338,7 +338,7 @@ test('run distinguishes overview help from install help dispatch', async () => {
   assert.match(text2, /Use this when:/);
 });
 
-test('dispatch table errors produce stderr output (SystemError path)', async () => {
+test('dispatch table processes uninstall --help successfully', async () => {
   // This test verifies that dispatch routing works correctly when parsers
   // return expected command types. The error boundary path (formatAppError)
   // is tested in handler-error-propagation.test.js.
