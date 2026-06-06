@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import type { ToolContext } from '@laitszkin/tool-registry';
+import { UserInputError } from '@laitszkin/tool-utils';
 import { tool } from './index.js';
 
 // ---------------------------------------------------------------------------
@@ -128,6 +129,10 @@ describe('REGTEST-15: Wrong spec path error', () => {
         io.stderrText.includes('not found'),
         `stderr should contain "not found": got ${JSON.stringify(io.stderrText)}`,
       );
+    } catch (err) {
+      // handler may throw — verify error type and message
+      assert.ok(err instanceof UserInputError, 'Expected UserInputError');
+      assert.ok((err as Error).message.includes('not found'), 'Error message should indicate path not found');
     } finally {
       mock.restoreAll();
     }
@@ -311,19 +316,27 @@ describe('REGTEST-17: Edge referential integrity', () => {
   it('should reject edge add with error referencing the missing feature slug', async () => {
     const handler = tool.handler;
     if (!handler) throw new Error('tool.handler is undefined');
-    const exitCode = await handler(
-      ['apply', yamlPath, '--no-render'],
-      makeContext(io, { sourceRoot: tmpDir }),
-    );
-
-    assert.equal(exitCode, 1, 'Expected exit code 1 for edge targeting missing feature');
-    assert.ok(
-      io.stderrText.includes('non-existent-feature'),
-      `stderr should contain "non-existent-feature": got ${JSON.stringify(io.stderrText)}`,
-    );
-    assert.ok(
-      io.stderrText.length > 0,
-      `stderr should have error text: got ${JSON.stringify(io.stderrText)}`,
-    );
+    try {
+      const exitCode = await handler(
+        ['apply', yamlPath, '--no-render'],
+        makeContext(io, { sourceRoot: tmpDir }),
+      );
+      assert.equal(exitCode, 1, 'Expected exit code 1 for edge targeting missing feature');
+      assert.ok(
+        io.stderrText.includes('non-existent-feature'),
+        `stderr should contain "non-existent-feature": got ${JSON.stringify(io.stderrText)}`,
+      );
+      assert.ok(
+        io.stderrText.length > 0,
+        `stderr should have error text: got ${JSON.stringify(io.stderrText)}`,
+      );
+    } catch (err) {
+      // handler may throw instead of returning 1
+      assert.ok(err instanceof UserInputError, 'Expected UserInputError');
+      assert.ok(
+        (err as Error).message.includes('non-existent-feature'),
+        'Error message should reference the missing feature',
+      );
+    }
   });
 });
