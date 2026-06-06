@@ -313,7 +313,7 @@ const schema = {
 
       const data = response.data;
       if (!Array.isArray(data) || data.length === 0) {
-        stderr.write(`Error: No image data returned for prompt ${i + 1}.\n`);
+        stderr.write(`No image data returned for prompt ${i + 1}.\n`);
         failures++;
         continue;
       }
@@ -326,7 +326,7 @@ const schema = {
       } else if (typeof first.url === 'string') {
         imageBytes = await fetchBinary(first.url);
       } else {
-        stderr.write(`Error: Image payload missing b64_json/url for prompt ${i + 1}.\n`);
+        stderr.write(`Image payload missing b64_json/url for prompt ${i + 1}.\n`);
         failures++;
         continue;
       }
@@ -364,7 +364,7 @@ const schema = {
     if (failures > 0) {
       stderr.write(`Warning: ${failures} out of ${promptItems.length} prompts failed to generate images.\n`);
     }
-    return 0;
+    return failures > 0 ? 1 : 0;
   },
 };
 
