@@ -32,5 +32,39 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Publish packages
-        run: npm publish --workspaces --access public
+      - name: Publish packages (dependency order)
+        run: |
+          # Publish in dependency order — lowest-level packages first
+          for pkg in \
+            packages/tool-utils \
+            packages/tui \
+            packages/tool-registry \
+            packages/cli \
+            packages/tools/validate-skill-frontmatter \
+            packages/tools/validate-openai-agent-config \
+            packages/tools/filter-logs \
+            packages/tools/search-logs \
+            packages/tools/extract-conversations \
+            packages/tools/extract-pdf-text \
+            packages/tools/enforce-video-aspect-ratio \
+            packages/tools/generate-storyboard-images \
+            packages/tools/render-katex \
+            packages/tools/render-error-book \
+            packages/tools/sync-memory-index \
+            packages/tools/find-github-issues \
+            packages/tools/read-github-issue \
+            packages/tools/review-threads \
+            packages/tools/open-github-issue \
+            packages/tools/create-specs \
+            packages/tools/create-review-report \
+            packages/tools/docs-to-voice \
+            packages/tools/eval \
+            packages/tools/architecture \
+            packages/tools/codegraph; do
+            if [ -d "$pkg" ]; then
+              echo "Publishing $pkg..."
+              npm publish --workspace="$pkg" --access public
+            else
+              echo "Skipping $pkg (not found)"
+            fi
+          done
