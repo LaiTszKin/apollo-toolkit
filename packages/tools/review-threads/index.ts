@@ -1,3 +1,12 @@
+/*
+ * review-threads — Carryover tool migrated from the pre-monorepo CLI
+ * architecture (originally resolve-review-comments/scripts/review_threads.py).
+ *
+ * Carryover status (Round 16, 2026-06-06):
+ * - Added --help/-h support for subcommand-based usage.
+ * - Stdout/stderr invariant: resolved data -> stdout, failures -> stderr.
+ */
+
 import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
@@ -61,6 +70,7 @@ interface ReviewThreadsArgs {
   threadIdFile: string | null;
   allUnresolved: boolean;
   dryRun: boolean;
+  help: boolean;
 }
 
 function parseArgs(argv: string[]): ReviewThreadsArgs {
@@ -74,7 +84,14 @@ function parseArgs(argv: string[]): ReviewThreadsArgs {
     threadIdFile: null,
     allUnresolved: false,
     dryRun: false,
+    help: false,
   };
+
+  // Check for --help/-h before positional parsing
+  if (argv.includes('--help') || argv.includes('-h')) {
+    args.help = true;
+    return args;
+  }
 
   // First argument is the subcommand (list/resolve)
   let i = 0;
@@ -460,7 +477,7 @@ async function cmdList(
   args: ReviewThreadsArgs,
   context: ToolContext,
 ): Promise<number> {
-  const { stdout, stderr } = context;
+  const { stdout } = context;
 
   const repo = await resolveRepo(args.repo);
   const prNumber = await resolvePrNumber(repo, args.pr);
@@ -493,7 +510,7 @@ async function cmdResolve(
   args: ReviewThreadsArgs,
   context: ToolContext,
 ): Promise<number> {
-  const { stdout, stderr } = context;
+  const { stdout } = context;
 
   const repo = await resolveRepo(args.repo);
   const prNumber = await resolvePrNumber(repo, args.pr);
@@ -510,17 +527,35 @@ async function cmdResolve(
 
   const { resolved, failed } = await resolveThreads(threadIds, args.dryRun);
 
-  const summary = {
-    repo,
-    pr_number: prNumber,
-    requested: threadIds,
-    resolved,
-    failed,
-    dry_run: args.dryRun,
-  };
-  stdout!.write(JSON.stringify(summary, null, 2) + '\n');
+  stdout!.write(JSON.stringify({ resolved }, null, 2) + '\n');
+  context.stderr!.write(JSON.stringify({ failed }, null, 2) + '\n');
 
   return failed.length > 0 ? 1 : 0;
+}
+
+// ---- Help ----
+
+function printHelp(stdout: NodeJS.WriteStream): void {
+  stdout.write(`Usage: apltk review-threads <subcommand> [options]
+
+List or resolve GitHub PR review threads.
+
+Subcommands:
+  list       List review threads for a pull request
+  resolve    Resolve specific review threads
+
+Options:
+  --repo <owner/name>       GitHub repository (default: current repo)
+  --pr <number>             PR number (default: current branch's PR)
+  --state <unresolved|resolved|all>
+                            Filter threads by state (default: unresolved)
+  --output <table|json>     Output format for list (default: table)
+  --thread-id <id>          Thread ID to resolve (may be repeated)
+  --thread-id-file <path>   JSON file with thread IDs to resolve
+  --all-unresolved          Resolve all unresolved threads
+  --dry-run                 Simulate resolution without mutating
+  --help, -h                Show this help message
+`);
 }
 
 // ---- Main handler ----
@@ -542,6 +577,11 @@ export async function reviewThreadsHandler(
   context: ToolContext,
 ): Promise<number> {
   const args = parseArgs(argv);
+
+  if (args.help) {
+    printHelp(stdout!);
+    return 0;
+  }
 
   switch (args.command) {
     case 'list':
