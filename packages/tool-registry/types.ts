@@ -1,4 +1,3 @@
-import type { StdioWriter } from '@laitszkin/tui';
 import type { ToolContext } from '@laitszkin/tool-utils';
 
 export interface ToolHelp {
