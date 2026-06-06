@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { EOL } from 'node:os';
 import { createInterface } from 'node:readline/promises';
 import { isInteractive } from '@laitszkin/tui';
 import { createPlatformAdapter } from '@laitszkin/tool-utils';
@@ -155,17 +156,17 @@ export async function checkForPackageUpdate({ packageName, currentVersion, env =
     const approved = await confirmUpdate({ stdin, stdout, currentVersion, latestVersion, packageName });
 
     if (!approved) {
-      stdout.write(`Continuing with ${packageName} ${currentVersion}.\n`);
+      stdout.write(`Continuing with ${packageName} ${currentVersion}.${EOL}`);
       return { checked: true, updated: false, latestVersion };
     }
 
-    stdout.write(`Updating ${packageName} to ${latestVersion}...\n`);
+    stdout.write(`Updating ${packageName} to ${latestVersion}...${EOL}`);
     await exec('npm', ['install', '-g', `${packageName}@latest`], { env, stdout, stderr });
-    stdout.write(`Update complete. Continuing with ${packageName} ${latestVersion}.\n`);
+    stdout.write(`Update complete. Continuing with ${packageName} ${latestVersion}.${EOL}`);
 
     return { checked: true, updated: true, latestVersion };
   } catch (error) {
-    stderr.write(`Warning: unable to check or install package updates: ${(error as Error).message}\n`);
+    stderr.write(`Warning: unable to check or install package updates: ${(error as Error).message}${EOL}`);
     return { checked: false, updated: false, error: error as Error };
   }
 }
