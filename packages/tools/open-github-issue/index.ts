@@ -77,6 +77,29 @@ const PAYLOAD_FIELDS = new Set([
   'dry_run',
 ]);
 
+const HELP_TEXT = `
+Usage: open-github-issue [options]
+
+Options:
+  --payload-file <path>          Path to JSON payload file with issue fields
+  --title <text>                 Issue title
+  --issue-type <type>            Issue type (problem|feature|performance|security|docs|observability)
+  --problem-description <text>   Description of the problem
+  --suspected-cause <text>       Suspected root cause
+  --reproduction <text>          Reproduction steps
+  --proposal <text>              Feature proposal description
+  --reason <text>                Reason for the feature
+  --suggested-architecture <text> Suggested architecture
+  --impact <text>                Impact description
+  --evidence <text>              Evidence supporting the issue
+  --suggested-action <text>      Suggested action
+  --severity <text>              Severity level (for security issues)
+  --affected-scope <text>        Affected scope
+  --repo <owner/repo>            Target repository (e.g., owner/repo)
+  --dry-run                      Validate and print issue body without publishing
+  --help, -h                     Show this help message
+`;
+
 interface OpenIssueArgs {
   payloadFile: string | null;
   title: string | null;
@@ -94,6 +117,7 @@ interface OpenIssueArgs {
   affectedScope: string | null;
   repo: string | null;
   dryRun: boolean;
+  helpRequested: boolean;
 }
 
 function parseArgs(argv: string[]): OpenIssueArgs {
@@ -114,6 +138,7 @@ function parseArgs(argv: string[]): OpenIssueArgs {
     affectedScope: null,
     repo: null,
     dryRun: false,
+    helpRequested: false,
   };
 
   let i = 0;
@@ -167,6 +192,10 @@ function parseArgs(argv: string[]): OpenIssueArgs {
         break;
       case '--dry-run':
         args.dryRun = true;
+        break;
+      case '--help':
+      case '-h':
+        args.helpRequested = true;
         break;
       default:
         if (!arg.startsWith('-')) {
@@ -792,7 +821,6 @@ interface IssueResult {
   publish_error: string;
 }
 
-/**
  * openGitHubIssueHandler — Known carryover from createToolRunner migration.
  *
  * Reason for not using createToolRunner:
@@ -803,6 +831,7 @@ interface IssueResult {
  * - Argument parsing and help text are handled manually — 83-line parseArgs().
  *
  * See DESIGN.md §2.3 for the full architecture discussion.
+ * --help is now supported.
  */
 export async function openGitHubIssueHandler(
   argv: string[],
@@ -810,7 +839,12 @@ export async function openGitHubIssueHandler(
 ): Promise<number> {
   const { stdout, stderr, env } = context;
 
-  const args = hydrateArgs(parseArgs(argv));
+  const parsed = parseArgs(argv);
+  if (parsed.helpRequested) {
+    stdout!.write(HELP_TEXT + '\n');
+    return 0;
+  }
+  const args = hydrateArgs(parsed);
   validateIssueContent(args);
 
   const ghAuthenticated = await hasGhAuth();
