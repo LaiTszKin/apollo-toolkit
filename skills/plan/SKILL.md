@@ -60,7 +60,7 @@ Decompose the architecture design from DESIGN.md into tasks precise to the file 
 
 **Decide whether each task needs an independent worker:**
 - Touches ≥2 files → needs independent worker
-- **No file overlap between tasks → workers may run in parallel.** This is permitted ONLY when file lists have ZERO overlap across all workers within the same batch. Any shared file between tasks means sequential execution — this is a hard constraint to prevent overwrite conflicts.
+- **Workers may run in parallel only when BOTH conditions are met:** (1) file lists have ZERO overlap across all workers within the same batch, AND (2) no logical dependency exists between the tasks. If either condition is violated, the tasks must run sequentially.
 - File overlap or logical dependency between tasks → must run sequentially
 - Purely procedural operations (lockfile update, merge, commit) → no worker needed; coordinator handles directly
 
@@ -85,13 +85,13 @@ Analyze dependencies between specs:
 
 Output: Spec DAG.
 
-### 5. Detect File Overlap (Parallelism Gate)
+### 5. Parallelism Gate (File Overlap + Logical Dependency)
 
-File overlap detection is the **gate that determines parallelism**. Perform this across all task units:
+File overlap detection and dependency analysis form the **dual gate that determines parallelism**. Parallel execution is only permitted when BOTH conditions are met:
 
 1. Collect the file list each task unit is expected to modify
-2. Compare file lists and mark overlaps — zero overlap is the **only** condition for parallel execution
-3. Any file overlap at all → must be sequential. This is a hard constraint — never dispatch parallel workers for tasks sharing a file
+2. Compare file lists and mark overlaps — zero overlap is required for parallel execution. Any file overlap at all → must be sequential. This is a hard constraint — never dispatch parallel workers for tasks sharing a file.
+3. Check for logical dependencies between task units — even with no file overlap, tasks that depend on each other's output must run sequentially.
 
 ### 6. Write Worker Prompts (One Per Dispatchable Task)
 
@@ -99,17 +99,15 @@ For each task that needs an independent worker, write a self-contained worker pr
 
 **Worker prompt file naming**: `plan/T{batch}.{sequence}-{kebab-case-name}.md`
 
-Each worker prompt must include:
+Use `assets/templates/WORKER_PROMPT.md`. The template follows the P1-P5 architecture:
 
-```
-## Mission — What to do and why
-## Input — Which files to read
-## What to do — Concrete steps, each specifying the exact file path, the function or line range, and what specific change to make (add/delete/modify). Never leave the change description vague.
-## Scope — Allowed and forbidden files
-## Output — What to report on completion (file list, change summary, test results, risks)
-## Verify — Verification commands and expected results
-## Boundaries — Constraints (don't touch other workers' files, don't add dependencies, report blockers)
-```
+| Section | Purpose (P#) |
+|---------|--------------|
+| 1. Mission & Rules | Goal + behavioral rules |
+| 2. Context | Files to read, background knowledge |
+| 3. Tasks | Concrete file-level instructions (file, line range, change) |
+| 4. Verification | Commands and expected results |
+| 5. Scope & References | Allowed/forbidden files, related references |
 
 **Writing principles (move these to your process, not the template):**
 - **Self-contained**: Workers do not see the coordinator's context. The prompt must include everything necessary. Do not rely on shared context or assume the worker has read other documents.
@@ -123,8 +121,8 @@ Tasks that do not need a worker (purely procedural operations) do not get a work
 
 Based on dependency analysis and file overlap detection, build the batch schedule → PROMPT.md Section 7 (Batch Schedule).
 
-**Batch partitioning principles (file overlap is the hard gate):**
-- Within the same batch: tasks must have ZERO file overlap — only then may they dispatch workers in parallel. File-overlapping tasks must be placed in separate sequential batches regardless of dependency
+**Batch partitioning principles (file overlap and logical dependency are the hard gates):**
+- Within the same batch: tasks must have ZERO file overlap AND no logical dependency — only then may they dispatch workers in parallel. Tasks with file overlap or logical dependency must be placed in separate sequential batches regardless.
 - Between batches: the previous batch must complete and pass its gate before the next batch begins
 - A final integration batch handles housekeeping tasks (lockfile update, final test suite)
 
@@ -151,17 +149,11 @@ Use `assets/templates/PROMPT.md`. Fill each section according to the table below
 
 | Section | Content Source |
 |---------|---------------|
-| 1. Your Role | Fixed template (no modification needed) |
-| 2. Mission | SPEC.md Goal + business value |
-| 3. Scope & Boundaries | SPEC.md In/Out of Scope |
-| 4. Technical Context | DESIGN.md: module list with responsibilities, interaction anchors (INT-###) and dependency order, external dependency setup order (EXT-###), system invariants, technical decisions and trade-offs |
-| 5. Task Units | Step 3 (task decomposition) + Step 4 (dependency analysis) |
-| 6. Worker Prompt Index | Step 6 — list of `plan/*.md` files with task ID mapping |
-| 7. Batch Schedule | Step 7 (batch schedule) |
-| 8. Verification Checkpoints | CHECKLIST.md: behavior-to-test mapping (CL-###), hardening requirements, test execution commands |
-| 9. Error Recovery | Fixed template — populate spec-specific test commands from CHECKLIST.md |
-| 10. Boundaries | Fixed template + spec-specific rules (including worktree cleanup after each batch) |
-| 11. References | Worker prompt file paths (`plan/*.md`), all code file paths that need modification across all tasks, project context files (CLAUDE.md, AGENTS.md, architecture atlas, codegraph index) |
+| 1. Your Role & Rules | Fixed template (Mission from SPEC.md Goal + business value; Boundaries + Error Recovery are fixed scaffold; add spec-specific rules) |
+| 2. Context | SPEC.md In/Out of Scope + DESIGN.md: module list with responsibilities, interaction anchors (INT-###) and dependency order, external dependency setup order (EXT-###), system invariants, technical decisions and trade-offs |
+| 3. Execution Plan | Step 3 (task decomposition) + Step 4 (dependency analysis) + Step 6 (worker prompts per `assets/templates/WORKER_PROMPT.md`) + Step 7 (batch schedule). Per-batch verification commands from CHECKLIST.md |
+| 4. Final Verification | Fixed scaffold (meta-checks) |
+| 5. References | Worker prompt file paths (`plan/*.md`), all code file paths that need modification across all tasks, project context files, related documents |
 
 ### 11. Pre-delivery Self-Review
 
@@ -176,16 +168,16 @@ Before delivering PROMPT.md, verify all of the following.
 
 **Coverage completeness:**
 
-- Every BDD requirement from SPEC.md is addressed by at least one task in Section 5. If a requirement has no task, add one or document why it is already satisfied by existing code.
+- Every BDD requirement from SPEC.md is addressed by at least one task in Section 3 (Task Units). If a requirement has no task, add one or document why it is already satisfied by existing code.
 - Every module from DESIGN.md has a corresponding task or is explicitly noted as unchanged.
-- Every hardening requirement from CHECKLIST.md appears in Section 8.
+- Every hardening requirement from CHECKLIST.md appears in Section 4 (Final Verification) or in the Batch Schedule gates.
 
 **Structural consistency:**
 
-- Each task's Depends on field in Section 5 matches the batch ordering in Section 7. No task scheduled in a batch before its dependencies are met.
-- Every task listed in Section 7 (Batch Schedule) has a worker prompt in `plan/*.md` — unless it is explicitly marked as coordinator-handled.
-- No orphaned tasks (a task listed in Section 5 that never appears in any batch), no missing dependencies (a Depends on field referencing a task ID that does not exist).
-- PROMPT.md References section lists all worker prompt paths and all code file paths.
+- Each task's Depends on field matches the batch ordering. No task scheduled in a batch before its dependencies are met.
+- Every task listed in Batch Schedule has a worker prompt in `plan/*.md` — unless it is explicitly marked as coordinator-handled.
+- No orphaned tasks (a task listed in Task Units that never appears in any batch), no missing dependencies (a Depends on field referencing a task ID that does not exist).
+- Section 5 (References) lists all worker prompt paths and all code file paths.
 
 ### 12. Produce PROMPT.md and Worker Prompts
 
@@ -200,4 +192,5 @@ Place worker prompts in `<spec_dir>/plan/` or `<batch_dir>/plan/`.
 
 ## References
 
-- `assets/templates/PROMPT.md` — PROMPT.md template
+- `assets/templates/PROMPT.md` — Coordinator prompt template
+- `assets/templates/WORKER_PROMPT.md` — Worker prompt template (used in Step 6)

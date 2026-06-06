@@ -97,13 +97,13 @@ Design principles:
 - **Independent issues**: No file overlap and no logical dependency → can be parallel
 - **Regression test dependency**: Regression tests must run after their corresponding fix is complete (tests verify the fixed code)
 
-### 6. Detect File Overlap (Parallelism Gate)
+### 6. Parallelism Gate (File Overlap + Logical Dependency)
 
-File overlap detection is the **gate that determines parallel vs sequential execution**. Perform this across all fixes and regression tests:
+File overlap detection and dependency analysis form the **dual gate that determines parallel vs sequential execution**. Parallel execution is only permitted when BOTH conditions are met:
 
 1. Collect the file list for each fix and regression test
-2. Compare file lists and mark overlaps — zero overlap is the only condition for parallel execution
-3. Any file overlap at all → must be sequential. This is a hard constraint — never dispatch parallel workers for overlapping files
+2. Compare file lists and mark overlaps — zero overlap is required for parallel execution. Any file overlap at all → must be sequential. This is a hard constraint — never dispatch parallel workers for tasks sharing a file.
+3. Check for logical dependencies between fixes — even with no file overlap, a fix that depends on another fix's output must run sequentially.
 
 ### 7. Write Worker Prompts
 
@@ -113,18 +113,15 @@ Write a self-contained worker prompt for each fix issue. Save each prompt to a s
 
 **Worker prompt file naming**: `fix/FIX-{sequence}-{kebab-case-name}.md`
 
-Each fix worker prompt must include:
+Use `assets/templates/FIX_WORKER.md`. The template follows the P1-P5 architecture:
 
-```
-## Mission — What to fix and why
-## Context — Which review dimension, which spec requirement
-## Input — Which files to read
-## What to do — Concrete fix steps, each specifying the exact file path, the function or line range, and what specific change to make (add/delete/modify). Never leave the change description vague.
-## Scope — Allowed and forbidden files
-## Output — What to report on completion
-## Verify — Verification commands and expected results
-## Boundaries — Constraints (don't conflict with spec, preserve existing test semantics, report blockers)
-```
+| Section | Purpose (P#) |
+|---------|--------------|
+| 1. Mission & Rules | Goal + behavioral rules (preserve tests, no scope creep) |
+| 2. Context | Input files, root cause analysis |
+| 3. Tasks | Concrete fix steps (file, line range, before/after) |
+| 4. Verification | Commands and expected results |
+| 5. Scope & References | Allowed/forbidden files, related documents |
 
 **Simple fixes can be merged**: Multiple simple, non-conflicting fixes can be combined into one worker prompt.
 **Complex fixes stand alone**: Complex fixes (requiring systematic debug) must have independent worker prompts.
@@ -135,19 +132,15 @@ Write a self-contained worker prompt for each regression test. The regression te
 
 **Worker prompt file naming**: `fix/REGTEST-{sequence}-{kebab-case-name}.md`
 
-Each regression test worker prompt must include:
+Use `assets/templates/REGTEST_WORKER.md`. The template follows the P1-P5 architecture:
 
-```
-## Mission — Which fix needs a regression test and why
-## Context — What the fix addressed (summary), root cause
-## Input — Which files to read (fix-related files + existing test files as format reference)
-## What to do — Concrete test writing steps:
-  1. Create the test at the specified location
-  2. Test scenario (GIVEN/WHEN/THEN)
-  3. Oracle (must fail before fix, must pass after fix)
-## Scope — Allowed test files only
-## Verify — Run the test, confirm it passes (proving the fix works)
-```
+| Section | Purpose (P#) |
+|---------|--------------|
+| 1. Mission & Rules | Goal + behavioral rules (test-only, oracle must fail before fix) |
+| 2. Context | Input files, test design (type, location, scenario, oracle) |
+| 3. Tasks | Concrete test writing steps |
+| 4. Verification | Confirm test fails before fix, passes after |
+| 5. Scope & References | Allowed test files, forbidden source files |
 
 **Writing principles (move these to your process, not the template):**
 - Writing clear worker prompts means being concrete, not declarative. For every file the worker must modify, specify: (1) the exact file path, (2) the function or line range, (3) what to add, delete, or change.
@@ -162,8 +155,8 @@ Each regression test worker prompt must include:
 
 ### 8. Create Batch Schedule → FIX.md Section 7
 
-**Batch partitioning principles (file overlap is the hard gate):**
-- Fix batches: Ordered by dependencies. P0 issues first. Within each batch, workers require ZERO file overlap to run in parallel — overlapping fixes must be sequentialized across sub-batches
+**Batch partitioning principles (file overlap and logical dependency are the hard gates):**
+- Fix batches: Ordered by dependencies. P0 issues first. Within each batch, workers require ZERO file overlap AND no logical dependency to run in parallel — fixes with file overlap or logical dependency must be sequentialized across sub-batches.
 - Regression test batches: Dispatched **after all fixes are complete**, because tests verify the fixed code. Regression tests without file overlap can run in parallel; those sharing files must be sequential
 - Final batch: Full test suite + lint + confirmation that all issues are resolved.
 
@@ -192,19 +185,11 @@ Use `assets/templates/FIX.md`. Fill according to the table below.
 
 | Section | Content Source |
 |---------|---------------|
-| 1. Your Role | Fixed template (no modification needed) |
-| 2. Mission | REPORT.md verdict + total issue count |
-| 3. Issue Inventory | REPORT.md issue list (condensed to NL one-liners) |
-| 4. Fix Dependency Analysis | Steps 5-6 (dependency analysis + file overlap) |
-| 5. Fix Details (with regression test design) | Step 3 (fix plan) + Step 4 (regression test design) |
-| 6. Worker Prompt Index | Step 7 — list of `fix/*.md` files with FIX/REGTEST ID mapping |
-| 7. Fix Batch Schedule | Step 8 (batch schedule) |
-| 8. Regression Test Inventory | Step 4 full list. If regtests ≤ 3, omit (Section 5 is sufficient). If ≥ 4, include a condensed NL list. |
-| 9. Verification Checkpoints | Fixed scaffold, customized with spec-specific commands |
-| 10. Error Recovery | Fixed scaffold (natural language) |
-| 11. Fix History | Fixed scaffold (history entries only, no instructions) |
-| 12. References | Worker prompt file paths (`fix/*.md`), all code file paths that need modification across all fixes/regtests, project context files |
-| 13. Boundaries | Fixed scaffold + spec-specific rules (including worktree cleanup after each batch) |
+| 1. Your Role & Rules | Fixed template (Mission from REPORT.md verdict + total issue count; Boundaries + Error Recovery are fixed scaffold; add spec-specific rules) |
+| 2. Context | Step 3 (issue inventory from REPORT.md) + Steps 5-6 (dependency analysis + file overlap) + Steps 3-4 (fix details + regression test design) |
+| 3. Execution Plan | Step 7 (worker prompts per `assets/templates/FIX_WORKER.md` and `assets/templates/REGTEST_WORKER.md`) + Step 8 (batch schedule). Per-batch verification commands from CHECKLIST.md |
+| 4. Final Verification | Fixed scaffold (meta-checks) |
+| 5. References | Worker prompt file paths (`fix/*.md`), all code file paths that need modification across all fixes/regtests, project context files, Fix History |
 
 ### 11. Pre-delivery Self-Review
 
@@ -225,7 +210,7 @@ Before delivering FIX.md, verify all of the following.
 
 - Each fix's dependency analysis matches the batch ordering. No fix scheduled before its dependencies are met.
 - Regression tests are scheduled after all fix batches complete.
-- FIX.md References section lists all worker prompt paths and all code file paths.
+- Section 5 (References) lists all worker prompt paths and all code file paths.
 
 ### 12. Produce FIX.md and Worker Prompts
 
@@ -240,4 +225,6 @@ Place worker prompts in `<spec_dir>/fix/` or `<batch_dir>/fix/`.
 
 ## References
 
-- `assets/templates/FIX.md` — FIX.md template
+- `assets/templates/FIX.md` — Coordinator prompt template
+- `assets/templates/FIX_WORKER.md` — Fix worker prompt template (used in Step 7a)
+- `assets/templates/REGTEST_WORKER.md` — Regression test worker prompt template (used in Step 7b)

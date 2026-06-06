@@ -2,6 +2,15 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v5.0.5] - 2026-06-07
+
+### Changed
+
+- **P1-P5 prompt architecture**: `plan` and `qa` coordinator prompt templates (PROMPT.md, FIX.md) restructured into 5-section architecture: Your Role & Rules → Context → Execution Plan → Final Verification → References. All behavioral rules consolidated into Section 1.
+- **Dual parallelism gate**: Both `plan` and `qa` skills' parallelism conditions updated to require BOTH zero file overlap AND no logical dependency. Previous versions only enforced file overlap as the hard gate.
+- **Independent worker prompt templates**: Worker prompt formats extracted from inline SKILL.md blocks into dedicated template files (`WORKER_PROMPT.md`, `FIX_WORKER.md`, `REGTEST_WORKER.md`), each following the P1-P5 architecture.
+- **References section cleaned**: Hard-coded project file names removed from template placeholders, using generic descriptions with `— e.g.,` pattern consistent with other skills.
+
 ## [v5.0.4] - 2026-06-07
 
 ### Added
