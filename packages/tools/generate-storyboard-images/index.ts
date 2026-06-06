@@ -383,6 +383,7 @@ Either --prompts-file or at least one --prompt is required.
     fs.mkdirSync(outputDir, { recursive: true });
 
     const records: Array<Record<string, unknown>> = [];
+    let failures = 0;
 
     for (let i = 0; i < promptItems.length; i++) {
       const item = promptItems[i];
@@ -402,7 +403,8 @@ Either --prompts-file or at least one --prompt is required.
 
       const data = response.data;
       if (!Array.isArray(data) || data.length === 0) {
-        stderr.write(`Error: No image data returned for prompt ${i + 1}.\n`);
+        stderr.write(`No image data returned for prompt ${i + 1}.\n`);
+        failures++;
         continue;
       }
 
@@ -414,7 +416,8 @@ Either --prompts-file or at least one --prompt is required.
       } else if (typeof first.url === 'string') {
         imageBytes = await fetchBinary(first.url);
       } else {
-        stderr.write(`Error: Image payload missing b64_json/url for prompt ${i + 1}.\n`);
+        stderr.write(`Image payload missing b64_json/url for prompt ${i + 1}.\n`);
+        failures++;
         continue;
       }
 
@@ -448,7 +451,10 @@ Either --prompts-file or at least one --prompt is required.
     fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2), 'utf-8');
     stdout.write(`[OK] Wrote plan to ${summaryPath}\n`);
 
-    return 0;
+    if (failures > 0) {
+      stderr.write(`Warning: ${failures} out of ${promptItems.length} prompts failed to generate images.\n`);
+    }
+    return failures > 0 ? 1 : 0;
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     stderr.write(`Error: ${msg}\n`);
