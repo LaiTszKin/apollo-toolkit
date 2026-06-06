@@ -61,7 +61,7 @@ test('runTool ToolNotFoundError has correct properties', async () => {
 // runTool would not find it.
 // ---------------------------------------------------------------------------
 
-test('run: ToolNotFoundError from runTool is formatted correctly by error boundary', async () => {
+test('run: ToolNotFoundError from runTool is formatted as bare message (no Error: prefix)', async () => {
   const stdout = createMockStream();
   const stderr = createMockStream();
   const result = await run(['extract-pdf-text'], {
@@ -74,7 +74,6 @@ test('run: ToolNotFoundError from runTool is formatted correctly by error bounda
   });
   assert.equal(result, 1);
   const err = stderr.getOutput();
-  assert.ok(err.includes('Error:'), 'stderr should contain "Error:" prefix');
+  assert.ok(!err.includes('Error:'), 'stderr should NOT contain "Error:" prefix for ToolNotFoundError');
   assert.ok(err.includes('Unknown tool: extract-pdf-text'), 'stderr should contain the error message');
-  assert.ok(err.includes('Error: Unknown tool: extract-pdf-text'), 'stderr should have "Error: <message>" format');
 });
