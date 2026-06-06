@@ -59,7 +59,7 @@ Report to the user:
 
 ## Examples
 
-- FIX.md defines Batch 1 with 2 parallel fixes → Coordinator extracts FIX-01 and FIX-03 worker prompts from Section 6 → Dispatches 2 workers → Waits → Digests results → Runs gate verification → Proceeds to Batch 2
+- FIX.md defines Batch 1 with 2 parallel fixes → Coordinator reads FIX-01 and FIX-03 worker prompts from `fix/` files listed in Section 6 (Worker Prompt Index) → Dispatches 2 workers → Waits → Digests results → Runs gate verification → Proceeds to Batch 2
 - Worker FIX-02 reports failure → Coordinator retries the worker with more specific guidance → Second attempt still fails → Pauses, preserves FIX-01's success, notifies the user
 - All batches complete → Regression tests pass → Commit → Cross-check REPORT.md → Report
 

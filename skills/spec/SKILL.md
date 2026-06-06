@@ -17,33 +17,46 @@ Execution methodology (task breakdown, coordination routing) belongs to the `pla
 
 - SPEC.md follows the template format strictly
 - SPEC.md includes: clear business goal, scope (In/Out), BDD behaviors, error and edge cases, clarification questions
+- SPEC.md References section cites key code file paths affected by the requirements
 - High-uncertainty requirements are marked with Uncertainty Level and reflected in Clarification Questions
-- For non-greenfield repos: subagent repo research is complete, and every requirement's boundary is calibrated against the actual code
-- Single spec generated at `docs/plans/<YYYY-MM-DD>/<spec_name>/SPEC.md` or batch spec generated at `docs/plans/<YYYY-MM-DD>/<batch-name>/<spec_name>/SPEC.md`.
+- For non-greenfield repos: `apltk codegraph` survey completed, subagent repo research complete, and every requirement's boundary calibrated against the actual code
+- Single spec generated at `docs/plans/<YYYY-MM-DD>/<spec_name>/SPEC.md` or batch spec generated at `docs/plans/<YYYY-MM-DD>/<batch-name>/<spec_name>/SPEC.md`
 
 ## Workflow
 
-### 1. Understand Requirements and Research the Repo
+### 1. Survey the Repo with CodeGraph
+
+Before reading requirements, use `apltk codegraph` to deeply understand the repo.
+
+**Greenfield repo (no existing code)**: Skip this step. Proceed to Step 2.
+
+**Non-greenfield repo**:
+
+1. Run `apltk codegraph survey --json` to get entry points, function clusters, and cross-boundary edges across the project
+2. Use `apltk codegraph list-apis` to review API directory — function names, file paths, callers — in modules potentially affected by the requirements
+3. Use `apltk codegraph explore` or `apltk codegraph search` to dig into specific areas of interest
+
+Consult `references/codegraph.md` for detailed flags.
+
+**Purpose of this step**: Establish code-level understanding of module boundaries, existing APIs, and data structures BEFORE reading requirements. This ensures every BDD requirement is scoped correctly against real code.
+
+### 2. Read PROPOSAL.md and Understand Requirements
 
 Analyze the user's requirements from the PROPOSAL.md.
 
-**Greenfield repo (no existing code)**: Skip repo research. Proceed to Step 2.
+**Bridge from Step 1**: Compare codegraph findings against PROPOSAL.md. If the actual code contradicts or constrains what PROPOSAL.md describes, note these calibrations explicitly — they represent the core value the spec skill adds over simple template filling.
 
-**Non-greenfield repo**: Research the repo to ensure SPEC.md aligns with actual code.
+For complex repos, dispatch multiple subagents in parallel to deeply investigate:
+- Affected modules and their responsibility boundaries
+- Existing data structures and persistence patterns
+- Existing API contracts and call relationships
+- Existing features that overlap or conflict with the requirements
 
-Research method:
-- Dispatch multiple subagents in parallel to deeply investigate:
-  - Affected modules and their responsibility boundaries
-  - Existing data structures and persistence patterns
-  - Existing API contracts and call relationships
-  - Existing features that overlap or conflict with the requirements
-- Document findings for the next step
+Document findings for the next step.
 
-**Bridge to Step 2**: Compare research findings against PROPOSAL.md. If the actual code contradicts or constrains what PROPOSAL.md describes, adjust the requirement boundaries accordingly. Note these calibrations explicitly — they represent the core value the spec skill adds over simple template filling.
+### 3. Refine, Combine, Split Requirements into BDD
 
-### 2. Refine, Combine, Split Requirements into BDD
-
-Transform requirements into clearly-bounded BDD business requirements (GIVEN/WHEN/THEN). Use your research findings from Step 1 to correctly scope each requirement.
+Transform requirements into clearly-bounded BDD business requirements (GIVEN/WHEN/THEN). Use your codegraph findings from Step 1 and research from Step 2 to correctly scope each requirement.
 
 Process:
 - **Refine**: Convert vague descriptions into precise BDD behavior statements
@@ -78,7 +91,7 @@ Define:
 
 If a requirement remains unclear after research and it affects scope definition, record it and wait for the user's answer before proceeding.
 
-### 3. Generate SPEC.md
+### 4. Generate SPEC.md
 
 Generate SPEC.md using the template at `assets/templates/SPEC.md`.
 
@@ -91,12 +104,12 @@ Generate SPEC.md using the template at `assets/templates/SPEC.md`.
 
 2. Fill in each section of the generated template:
    - **Goal** → One sentence from the PROPOSAL.md's Problem Statement and your research context. State the business goal, not the implementation.
-   - **Scope (In/Out)** → Directly from Step 2. Be precise: ambiguous boundaries cause scope creep.
-   - **Functional Behaviors** → One BDD block per requirement from Step 2.
+   - **Scope (In/Out)** → Directly from Step 3. Be precise: ambiguous boundaries cause scope creep.
+   - **Functional Behaviors** → One BDD block per requirement from Step 3.
    - **Uncertainty Level** → Per requirement, mark Known or Exploratory.
-   - **Error and Edge Cases** → List specific cases. Free-form list; no fixed categories needed in the template (the five categories from Step 2 guide your thinking, not the output format).
+   - **Error and Edge Cases** → List specific cases. Free-form list; no fixed categories needed in the template (the five categories from Step 3 guide your thinking, not the output format).
    - **Clarification Questions** → List questions for the user. Must be populated when any requirement is Exploratory. Omit only if all requirements are fully clear.
-   - **References** → List important project context files the LLM will need (e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`), plus official docs and related code files for traceability.
+   - **References** → Cite key code file paths affected by the requirements, plus project context files and official docs. The code file paths serve as traceability anchors linking requirements to actual code.
 
    **BDD writing guidelines**:
    - **GIVEN** states the precondition and actor role
@@ -108,22 +121,24 @@ Generate SPEC.md using the template at `assets/templates/SPEC.md`.
 
 3. If creating a batch spec, repeat the template-filling process for each group of requirements, producing one SPEC.md per group.
 
-### 4. Pre-delivery Self-Review
+### 5. Pre-delivery Verification
 
 Before delivering, verify all of the following. Fix any issues found before proceeding.
 
 - **BDD verifiability**: Every requirement has a clear verification condition — THEN is observable and specific, not vague or qualitative
 - **Scope clarity**: In Scope and Out of Scope are unambiguous and do not overlap
-- **Error case completeness**: All five categories from Step 2 are substantively covered (individual cases, not category names)
+- **Error case completeness**: All five categories from Step 3 are substantively covered (individual cases, not category names)
 - **Uncertainty reflected**: High-uncertainty requirements are marked Exploratory AND mentioned in Clarification Questions
 - **Internal consistency**: No contradictions or overlaps between requirements
+- **Code traceability**: References section cites specific code file paths that each requirement maps to
+- **CodeGraph data used**: Boundary scoping decisions reference codegraph findings (what exists vs what needs to be built)
 
 Only deliver SPEC.md to the user after passing self-review.
 
 ## Examples
 
-- "Build a web-based Texas Hold'em game" → Research existing code → 4 BDD items (deal, bet, judge, chips). ≤5, single SPEC.md.
-- "Rewrite the user system: register, login, permissions, password reset, 2FA, session management" → Research existing auth code → 6 BDD items. >5, batch spec: Auth spec (register, login, password reset — 3 items) and Security spec (permissions, 2FA, sessions — 3 items).
+- "Build a web-based Texas Hold'em game" → CodeGraph survey to check for existing game engine → 4 BDD items (deal, bet, judge, chips). ≤5, single SPEC.md. → References cite game engine code paths
+- "Rewrite the user system: register, login, permissions, password reset, 2FA, session management" → CodeGraph survey of existing auth modules → 6 BDD items. >5, batch spec: Auth spec (register, login, password reset — 3 items) and Security spec (permissions, 2FA, sessions — 3 items). → References cite auth module code paths
 
 ## References
 

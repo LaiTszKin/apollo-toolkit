@@ -42,5 +42,6 @@ Map each BDD requirement from SPEC.md to one or more tests:
 
 ## References
 
+- **Designed code file paths**: [List code file paths that this design touches or references — e.g., `src/auth/login.ts`, `src/api/routes.ts`]
 - **Project context files**: [List important project files the LLM will need — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`]
 - **Related documents**: [Links to related SPEC.md, DESIGN.md, or external documentation]

@@ -100,112 +100,23 @@
 
 ---
 
-## 6. Worker Prompt Library
+## 6. Worker Prompt Index
+
+[Each dispatchable fix and regression test has a pre-written self-contained worker prompt in a separate file under `fix/`. The coordinator reads the corresponding file and dispatches it without modification.]
 
 ### Fix Worker Prompts
 
-[Each dispatchable fix task has a pre-written self-contained worker prompt.]
-
-#### FIX-01: [Issue title]
-
-```
-## Mission
-[Brief description: what to fix and why.]
-
-## Context
-- Review dimension: [Hallucinated code / Omission / Deviation / Architecture / Performance / Redundancy]
-- Spec requirement: [Related SPEC requirement]
-
-## Input
-- Read the following files: [list]
-
-## What to do
-1. [Specify the exact file path, the function or line range, and what specific change to make (add/delete/modify). Example: "In src/auth/login.ts, function validateToken() (line 42-58): add a null check for the token parameter before calling decode()."]
-2. [Repeat for each file — never leave the change description vague]
-
-## Scope
-- Allowed files:
-  - `[path]` — [explanation]
-- Forbidden files:
-  - `[path]` — (belongs to another worker)
-
-## Output
-On completion, report:
-- Which files were modified (absolute paths)
-- Change summary for each file
-- Test results (pass/fail)
-- Any blockers or risks encountered
-
-## Verify
-- Run: `[command]`
-- Expected: [what you should see]
-
-## Boundaries
-- Do not modify any file in the forbidden list
-- Fix must not conflict with the original spec requirements
-- Preserve existing test behavior semantics (unless the spec explicitly requires a change)
-- Do not write regression tests — that is handled by another worker
-- If you encounter an unexpected blocker, stop and report — do not invent alternative approaches
-```
-
----
-
-[Repeat the above block for each fix worker. Multiple simple fixes with no overlap can be merged into one worker prompt by combining their What to do sections.]
+| Fix ID | Worker Prompt File | Description |
+|---|---|---|
+| FIX-01 | `fix/FIX-01-[name].md` | [Brief description] |
+| FIX-02 | `fix/FIX-02-[name].md` | [Brief description] |
 
 ### Regression Test Worker Prompts
 
-[Each regression test has a pre-written self-contained worker prompt. The regression test worker's task is to **write test code**.]
-
-#### REGTEST-01: [Test name] (related to FIX-01)
-
-```
-## Mission
-Create a regression test for FIX-01 ([brief description]). This test ensures the issue never reappears.
-
-## Context
-- Fix summary: [What FIX-01 fixed]
-- Root cause: [Root cause explanation]
-- Fix files involved: [list]
-
-## Input
-- Read fix-related files: [list]
-- Read existing test files as format reference: `[existing test path]`
-
-## What to do
-Create a regression test at `[test location]`:
-
-Test scenario:
-- GIVEN [specific precondition and input]
-- WHEN [specific trigger]
-- THEN [expected output or behavior]
-
-Oracle: This test must fail on the unfixed code and pass after the fix is applied.
-
-## Scope
-- Allowed files:
-  - `[test file path]` — create/modify regression test
-- Forbidden files:
-  - All non-test source files (fixes are handled by another worker)
-
-## Output
-On completion, report:
-- The test file and test function name
-- Test execution result (must pass)
-- If the test cannot pass, explain why (may indicate an incomplete fix)
-
-## Verify
-- Run: `[test command]`
-- Expected: REGTEST-01 passes
-
-## Boundaries
-- Do not modify any source code files
-- The test must be independently executable, not dependent on external state
-- Follow the existing test file's formatting and naming conventions
-```
-
----
-
-[Repeat the above block for each regression test worker. Multiple regressions in the same file can be merged into one worker prompt.]
+| Test ID | Worker Prompt File | Related Fix | Description |
+|---|---|---|---|
+| REGTEST-01 | `fix/REGTEST-01-[name].md` | FIX-01 | [Brief description] |
+| REGTEST-02 | `fix/REGTEST-02-[name].md` | FIX-02 | [Brief description] |
 
 ---
 
@@ -313,6 +224,10 @@ If there are no entries here, see Section 5 for each fix's regression test desig
 
 ## 12. References
 
+- **Worker prompt files**: [List all `fix/*.md` files — e.g., `fix/FIX-01-*.md`, `fix/REGTEST-01-*.md`]
+- **Code files to modify** (across all fixes and regression tests):
+  - [File path — e.g., `src/auth/login.ts`]
+  - [File path — e.g., `src/auth/logout.ts`]
 - **Project context files**: [List important project files the fix coordinator and workers may need — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`, codegraph index files]
 - **Related documents**: [Links to REPORT.md, SPEC.md, DESIGN.md, or external documentation]
 
@@ -323,7 +238,7 @@ If there are no entries here, see Section 5 for each fix's regression test desig
 ### ALWAYS
 
 - Run gate verification immediately after every batch
-- Extract worker prompts verbatim from Section 6 — do not rewrite them
+- Extract worker prompts verbatim from `fix/*.md` files — do not rewrite them
 - After a worker reports, digest the results before deciding next steps
 - Fixes must not conflict with the original spec requirements
 - Regression tests must not start before all fix batches pass

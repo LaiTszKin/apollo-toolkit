@@ -13,6 +13,8 @@ description: >-
 
 ## 驗收條件
 
+- 使用 `apltk codegraph` 完成 repo 深度調查，產出模組邊界與 API 目錄分析
+- 使用 subagents 閱讀關鍵程式碼片段，確保文檔記述可驗證
 - repo 的所有細節被仔細閱讀，並轉化為標準化的 `docs/features/`、`docs/architecture/`、`docs/principles/` 文檔
 - 每條文檔記述皆有可追溯的來源證據（檔案路徑 + 行號區間）；無法證明的內容標記為 `[INFERRED]`
 - `AGENTS.md` / `CLAUDE.md` 已被同步更新
@@ -20,21 +22,36 @@ description: >-
 
 ## 工作流程
 
-### 1. 建立對 repo 的基線認知
+### 1. 使用 CodeGraph 深入調查 Repo
 
-閱讀項目現有文檔，建立對 repo 的基線認知，制定後續閱讀策略。
+在開始文檔工作前，先用 `apltk codegraph` 建立對 repo 的深度理解。
 
-### 2. 比對 repo 及項目文檔
+1. 執行 `apltk codegraph survey --json` 取得專案的 entry points、function clusters、cross-boundary edges
+2. 使用 `apltk codegraph list-apis` 檢視完整 API 目錄（函式名稱、檔案路徑、呼叫者）
+3. 對關鍵模組使用 `apltk codegraph explore` 深入了解內部結構
+
+將調查結果記錄為結構化摘要，供後續文檔撰寫使用。
+
+### 2. 建立對 Repo 的基線認知
+
+閱讀項目現有文檔，並結合 CodeGraph 調查結果，建立對 repo 的基線認知，制定後續閱讀策略。
+
+### 3. 比對 Repo 及項目文檔
 
 按照上一步建立的閱讀策略，通過並行調度 subagents 全面搜索整個 repo，驗證並確保現有項目文檔的描述正確、無遺漏。
 
-### 3. 制定文檔更新策略
+使用 subagents 深入閱讀關鍵程式碼片段：
+- 每個 subagent 負責一個模組或檔案群組
+- Subagent 閱讀原始碼後回報：模組職責、關鍵函式、資料流程、外部整合點
+- 將 subagent 發現與現有文檔比對，標記差異
+
+### 4. 制定文檔更新策略
 
 根據上一步發現的文檔遺漏或脫節之處，制定文檔更新策略。
 閱讀模板文檔；使用模板規定的格式重寫所有項目文檔。
 移除舊有說明文檔（必要文檔如 `CHANGELOG.md`、`CONTRIBUTION.md` 除外）。
 
-### 4. 後續維護指引
+### 5. 後續維護指引
 
 完成初始文檔後，在 `docs/README.md` 中記錄以下維護指引：
 

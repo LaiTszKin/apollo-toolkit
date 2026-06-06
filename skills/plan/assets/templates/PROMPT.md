@@ -15,7 +15,7 @@
 ### What you do
 
 - Read and understand the mission, scope, technical context, and task definitions below
-- Spawn workers to execute individual tasks, giving each a self-contained prompt (provided in Section 7)
+- Spawn workers to execute individual tasks, giving each a self-contained prompt (provided in Section 6)
 - Wait for all workers in a batch to complete, then digest their results
 - Run verification commands at each checkpoint
 - Decide whether to proceed to the next batch, retry a failed worker, or halt
@@ -74,14 +74,7 @@
 
 ---
 
-## 5. References
-
-- **Project context files**: [List important project files the coordinator and workers may need — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`, codegraph index files]
-- **Related documents**: [Links to related specs, design docs, or external documentation]
-
----
-
-## 6. Task Units
+## 5. Task Units
 
 [Each task is an atomic work unit. Task ID format: `T{batch}.{sequence}`.]
 
@@ -91,15 +84,7 @@
 
 - **Goal**: [One sentence]
 - **Files**: `[file list]`
-- **Depends on**: [Task ID, or — (no dependency)]
-- **Verify**:
-  - Command: `[command]`
-  - Expected: [what you should see]
-
-#### T{batch}.{sequence}: [Task name]
-
-- **Goal**: [One sentence]
-- **Files**: `[file list]`
+- **Worker prompt**: `plan/T{batch}.{sequence}-[name].md`
 - **Depends on**: [Task ID, or — (no dependency)]
 - **Verify**:
   - Command: `[command]`
@@ -107,53 +92,20 @@
 
 ---
 
-## 7. Worker Prompt Library
+## 6. Worker Prompt Index
 
-[Each dispatchable task has a pre-written self-contained worker prompt. The coordinator extracts the corresponding block and dispatches it without modification.]
+[Each dispatchable task has a pre-written self-contained worker prompt in a separate file under `plan/`. The coordinator reads the corresponding file and dispatches it without modification.]
 
-### T{batch}.{sequence}: [Task name]
+| Task ID | Worker Prompt File | Description |
+|---|---|---|
+| T1.1 | `plan/T1.1-implement-login.md` | [Brief description] |
+| T1.2 | `plan/T1.2-implement-logout.md` | [Brief description] |
 
-```
-## Mission
-[Brief description of what to do and why. Enough context for the worker to understand the task's purpose.]
-
-## Input
-- Read the following files: [list]
-
-## What to do
-1. [Specify the exact file path, the function or line range, and what specific change to make (add/delete/modify). Example: "In src/auth/login.ts, function validateToken() (line 42-58): add a null check for the token parameter before calling decode()."]
-2. [Repeat for each file — never leave the change description vague]
-
-## Scope
-- Allowed files:
-  - `[path]` — [explanation]
-- Forbidden files:
-  - `[path]` — (belongs to another worker)
-
-## Output
-On completion, report:
-- Which files were modified (absolute paths)
-- Change summary for each file
-- Test results (pass/fail)
-- Any blockers or risks encountered
-
-## Verify
-- Run: `[command]`
-- Expected: [what you should see]
-
-## Boundaries
-- Do not modify any file in the forbidden list
-- Do not introduce new external dependencies
-- If you encounter an unexpected blocker, stop and report — do not invent alternative approaches
-```
+[Tasks handled directly by the coordinator (purely procedural operations) do not have an entry here.]
 
 ---
 
-[Repeat the above block for each dispatchable task. Tasks handled directly by the coordinator (purely procedural operations) do not need a worker prompt.]
-
----
-
-## 8. Batch Schedule
+## 7. Batch Schedule
 
 [Batched according to the dependency graph. Tasks within the same batch have no file overlap and no logical dependency — they can run in parallel.]
 
@@ -190,7 +142,7 @@ On completion, report:
 
 ---
 
-## 9. Verification Checkpoints
+## 8. Verification Checkpoints
 
 ### Per-batch
 
@@ -213,7 +165,7 @@ On completion, report:
 
 ---
 
-## 10. Error Recovery
+## 9. Error Recovery
 
 | Scenario | Response |
 |---|---|
@@ -225,12 +177,12 @@ On completion, report:
 
 ---
 
-## 11. Boundaries
+## 10. Boundaries
 
 ### ALWAYS
 
 - Run gate verification immediately after every batch
-- Extract worker prompts verbatim from Section 7 — do not rewrite them
+- Extract worker prompts verbatim from `plan/*.md` files — do not rewrite them
 - After a worker reports, digest the results before deciding next steps
 - Follow the File Ownership implied by task assignments — do not let two workers modify the same file
 - **Resolve merge conflicts yourself** — when combining worker results, the coordinator handles conflict resolution. This is coordination, not implementation.
@@ -252,3 +204,14 @@ On completion, report:
 - Give workers vague instructions (e.g., "fix it" or "based on what you found")
 - Expand implementation scope beyond Section 3
 - Proceed to the next batch when the current batch's gate has not passed
+
+---
+
+## 11. References
+
+- **Worker prompt files**: [List all `plan/*.md` files — e.g., `plan/T1.1-implement-login.md`, `plan/T1.2-implement-logout.md`]
+- **Code files to modify** (across all tasks):
+  - [File path — e.g., `src/auth/login.ts`]
+  - [File path — e.g., `src/auth/logout.ts`]
+- **Project context files**: [List important project files — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`, codegraph index files]
+- **Related documents**: [Links to related specs, design docs, or external documentation]

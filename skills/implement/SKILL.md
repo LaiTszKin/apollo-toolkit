@@ -56,7 +56,7 @@ Report to the user:
 
 ## Examples
 
-- PROMPT.md defines Batch 1 with 2 parallel tasks → Coordinator extracts T1.1 and T1.2 worker prompts from Section 6 → Dispatches 2 workers → Waits for both → Digests results → Runs gate verification → Proceeds to Batch 2
+- PROMPT.md defines Batch 1 with 2 parallel tasks → Coordinator reads T1.1 and T1.2 worker prompts from `plan/` files listed in Section 6 (Worker Prompt Index) → Dispatches 2 workers → Waits for both → Digests results → Runs gate verification → Proceeds to Batch 2
 - Worker T2.1 reports failure → Coordinator retries the worker with more specific guidance → Second attempt still fails → Pauses, preserves T2.2's success, notifies the user
 - Merge conflict detected when combining worker results → Coordinator resolves the conflict markers → Re-runs batch gate verification → Proceeds
 

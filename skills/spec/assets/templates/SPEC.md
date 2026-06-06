@@ -44,7 +44,9 @@
 
 ## References
 
+- **Key code file paths** (affected by this spec):
+  - [File path — e.g., `src/auth/login.ts`]
 - Official docs:
   - [Link or document]
-- Related code files:
-  - [File path]
+- Related project context files:
+  - [File path — e.g., `CLAUDE.md`, `AGENTS.md`]
