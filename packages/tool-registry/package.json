@@ -15,5 +15,12 @@
   "scripts": {
     "build": "tsc --build",
     "test": "node --test dist/"
-  }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "dist"
+  ]
 }

@@ -18,5 +18,12 @@
   },
   "dependencies": {
     "@laitszkin/tool-registry": "*"
-  }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "dist"
+  ]
 }

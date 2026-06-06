@@ -41,5 +41,12 @@
     "@laitszkin/tool-create-review-report": "*",
     "@laitszkin/tool-eval": "*",
     "@laitszkin/tool-extract-pdf-text": "*"
-  }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "dist"
+  ]
 }

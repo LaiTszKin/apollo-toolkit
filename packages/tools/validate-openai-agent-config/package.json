@@ -20,5 +20,12 @@
     "@laitszkin/tool-registry": "*",
     "@laitszkin/tool-utils": "*",
     "js-yaml": "^4.1.1"
-  }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "dist"
+  ]
 }
