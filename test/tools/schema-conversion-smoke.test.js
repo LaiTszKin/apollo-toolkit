@@ -38,11 +38,7 @@ const TOOL_NAMES = [
  * Maintained manually — no staleness detection.
  */
 const HELP_SKIP = new Set([
-  'architecture',
-  'open-github-issue',
-  'render-error-book',
-  'render-katex',
-  'review-threads',
+  'architecture', 'render-error-book', 'render-katex',
 ]);
 
 function createMemoryStream() {
@@ -72,7 +68,7 @@ test('schema-conversion-smoke: all tools export a handler', async (t) => {
   }
 });
 
-test('buildHelpText shows description when provided', async () => {
+test('createToolRunner shows description when provided', async () => {
   const { createToolRunner } = await import('../../packages/tool-utils/dist/index.js');
 
   const schema = {

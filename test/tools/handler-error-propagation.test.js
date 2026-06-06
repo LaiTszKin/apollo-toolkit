@@ -313,9 +313,9 @@ describe('Handler error propagation via createToolRunner', () => {
     const { readFile } = await import('node:fs/promises');
     const content = await readFile('scripts/test.sh', 'utf8');
     assert.ok(content.includes('COVERAGE'), 'Script should handle COVERAGE env var');
-    assert.ok(content.includes('combined coverage estimate'),
+    assert.ok(content.includes('Combined coverage'),
       'Script should emit combined coverage estimate');
-    assert.ok(content.includes('all files'),
+    assert.ok(content.includes('_cov_col') || content.includes('all files'),
       'Script should grep for all files coverage data');
   });
 

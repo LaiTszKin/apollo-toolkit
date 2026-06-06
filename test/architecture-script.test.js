@@ -76,7 +76,7 @@ test('parseArguments routes architecture invocation through tool dispatch', () =
   assert.deepEqual(parsed.toolArgs, ['diff', '--no-open']);
 });
 
-test('buildHelpText surfaces architecture examples', async () => {
+test('HelpTextBuilder.overview surfaces architecture examples', async () => {
   await registerAllTools();
   const text = new HelpTextBuilder({ version: '0.0.0', colorEnabled: false }).overview();
   assert.match(text, /apltk architecture/);

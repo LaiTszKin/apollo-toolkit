@@ -120,12 +120,17 @@ test('isTopLevelToolHelpRequest returns false for other args', () => {
   assert.equal(isTopLevelToolHelpRequest(undefined), false);
 });
 
-test('runTool returns 1 for tool with no handler', async () => {
+test('runTool throws SystemError for tool with no handler', async () => {
   registerTestTools();
   // standalone-tool has no handler
   const stderr = { write() {} };
-  const code = await runTool('standalone-tool', [], { stderr });
-  assert.equal(code, 1);
+  await assert.rejects(
+    () => runTool('standalone-tool', [], { stderr }),
+    (err) => {
+      assert.ok(err.message.includes('not fully configured'));
+      return true;
+    }
+  );
 });
 
 test('listTools returns only canonical tools (no aliases)', () => {

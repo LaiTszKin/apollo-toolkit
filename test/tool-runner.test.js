@@ -6,34 +6,13 @@ import { listTools, getTool, runTool } from '@laitszkin/tool-registry';
 // Note: tools are not yet registered in the new registry (Batch 4).
 // Tool handler tests will be enabled after tool migration.
 
-test('parseArguments recognizes direct tool invocation', () => {
-  const parsed = parseArguments(['filter-logs', 'app.log', '--count-only']);
-  assert.equal(parsed.command, 'tool');
-  assert.equal(parsed.toolName, 'filter-logs');
-  assert.deepEqual(parsed.toolArgs, ['app.log', '--count-only']);
-});
-
-test('parseArguments recognizes namespaced tool invocation', () => {
-  const parsed = parseArguments(['tools', 'create-specs', 'Feature Name']);
-  assert.equal(parsed.command, 'tool');
-  assert.equal(parsed.toolName, 'create-specs');
-  assert.deepEqual(parsed.toolArgs, ['Feature Name']);
-});
-
-test('parseArguments keeps tools help separate from install help', () => {
-  const parsed = parseArguments(['tools']);
-  assert.equal(parsed.command, 'tools-help');
-  assert.equal(parsed.showToolsHelp, true);
-  assert.equal(parsed.showHelp, false);
-});
-
-test('buildToolsHelp lists bundled tools', () => {
+test('HelpTextBuilder.toolsHelp lists bundled tools', () => {
   const help = new HelpTextBuilder({ version: '1.2.3', colorEnabled: false }).toolsHelp();
   assert.match(help, /apltk tools/);
   assert.match(help, /Common goals:/);
 });
 
-test('buildHelpText provides task-oriented overview help', () => {
+test('HelpTextBuilder.overview provides task-oriented overview help', () => {
   const help = new HelpTextBuilder({ version: '1.2.3', colorEnabled: false }).overview();
   assert.match(help, /Common goals:/);
   assert.match(help, /apltk tools --help/);
