@@ -4,6 +4,18 @@ import { SystemError } from '@laitszkin/tool-utils';
 
 const ISSUE_FIELDS = 'number,title,state,updatedAt,url,labels,assignees';
 
+const HELP_TEXT = `Usage: apltk find-github-issues [options]
+
+Options:
+  --repo <owner/repo>    GitHub repository (required)
+  --state <state>        Filter by state: open|closed|all (default: open)
+  --limit <number>       Max results (default: 50)
+  --label <label>        Filter by label (repeatable)
+  --search <query>       Search query
+  --output <format>      Output format: table|json (default: table)
+  --help, -h             Show this help message
+`;
+
 interface FindIssuesArgs {
   repo: string | null;
   state: string;
@@ -11,6 +23,7 @@ interface FindIssuesArgs {
   label: string[];
   search: string | null;
   output: 'table' | 'json';
+  helpRequested: boolean;
 }
 
 function parseArgs(argv: string[]): FindIssuesArgs {
@@ -21,6 +34,7 @@ function parseArgs(argv: string[]): FindIssuesArgs {
     label: [],
     search: null,
     output: 'table',
+    helpRequested: false,
   };
 
   let i = 0;
@@ -56,17 +70,8 @@ function parseArgs(argv: string[]): FindIssuesArgs {
         break;
       case '--help':
       case '-h':
-        console.log(`Usage: apltk find-github-issues [options]
-
-Options:
-  --repo <owner/repo>    GitHub repository (required)
-  --state <state>        Filter by state: open|closed|all (default: open)
-  --limit <number>       Max results (default: 50)
-  --label <label>        Filter by label (repeatable)
-  --search <query>       Search query
-  --output <format>      Output format: table|json (default: table)
-  --help, -h             Show this help message`);
-        process.exit(0);
+        args.helpRequested = true;
+        return args;
       default:
         break;
     }
@@ -207,6 +212,11 @@ export async function findGitHubIssuesHandler(
 ): Promise<number> {
   const { stdout } = context;
   const args = parseArgs(argv);
+
+  if (args.helpRequested) {
+    stdout!.write(HELP_TEXT + '\n');
+    return 0;
+  }
 
   const cmd = buildCommand(args);
   const result = await runGh(cmd);
