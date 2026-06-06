@@ -1,7 +1,7 @@
 {
   "name": "@laitszkin/tui",
-  "version": "4.0.8",
-  "description": "Apollo Toolkit — interactive terminal UI components",
+  "version": "5.0.0",
+  "description": "Apollo Toolkit \u2014 interactive terminal UI components",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

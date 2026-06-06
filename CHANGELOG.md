@@ -2,6 +2,43 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v5.0.0] - 2026-06-06
+
+### Added
+
+- **Schema-based tool argument parsing**: New `createToolRunner()` function in `@laitszkin/tool-utils` that wraps `node:util.parseArgs`. Tools declare options, help text, and validation logic in a single `ToolSchema` declaration — no more hand-rolled `parseArgs()` loops. 18 of 21 in-scope tools migrated.
+- **`PlatformAdapter` cross-platform abstraction**: New `PlatformAdapter` interface in `@laitszkin/tool-utils` with `WindowsAdapter`/`PosixAdapter` implementations. Encapsulates `symlinkType()` (junction on Windows), `resolveCommand()` (`.cmd` resolution), `homeDir()` (multi-env fallback), and `EOL`.
+- **`AppError` hierarchy**: Typed error classes (`UserInputError`, `ToolNotFoundError`, `SystemError`) with `formatAppError()` boundary function. Business logic throws typed errors → CLI boundary catches + consistent stderr formatting.
+- **Command parser classes**: `InstallArgsParser`, `UninstallArgsParser`, `ToolArgsParser` implementing `CommandParser<T>` interface. Independently testable, map-based dispatch table replaces the monolithic `parseArguments()` if-else chain.
+- **`HelpTextBuilder`**: Unified help text generator replaces 4 nearly-identical help builders. Command types provide section content declaratively.
+- **Per-group test coverage thresholds**: Two-tier enforcement — Group 1 (`test/`) at 75/60/65 lines/branches/functions; Group 2 (`packages/`) at 65/60/65. Combined file-weighted ≥80% enforced in `scripts/test.sh`.
+- **CI matrix (ubuntu + windows)**: `.github/workflows/test.yml` runs `npm test` on both `ubuntu-latest` and `windows-latest` with `fail-fast: false`.
+
+### Changed
+
+- **Internal package versions unified to 5.0.0**: All 24 `@laitszkin/*` packages bumped from 4.0.8 to 5.0.0 to match the root package version.
+- **Global install dependency chain fixed**: Root `package.json` now lists `@laitszkin/cli` as a direct dependency; `@laitszkin/cli` now lists `@laitszkin/tool-codegraph` and `@laitszkin/tool-eval` so all registered tools are resolvable when installed via `npm install -g @laitszkin/apollo-toolkit`.
+- **Coverage enforcement**: `scripts/test.sh` enforces combined file-weighted ≥80% line coverage across Groups 1 and 2, with per-group minimums. Group 3 (mock.module tests, codegraph) excluded due to Node.js flag incompatibility.
+- **Design doc accuracy**: Six inaccuracies in DESIGN.md corrected — branch thresholds, split-process description, `--check-coverage` references aligned with actual implementation.
+- **Windows CI comment updated**: `.github/workflows/test.yml` comment now accurately describes coverage enforcement mechanism.
+
+### Fixed
+
+- **`docs-to-voice` syntax corruption**: Three structural defects from ToolSchema migration (fdf8628b) repaired — duplicated code block, missing `if (mode === "say")` wrapper, missing `textChunks` definition. These caused `tsc --build` to emit garbled JS, blocking `registerAllTools()` from loading any tool.
+- **Error cause chain preservation**: Original error causes are now passed via `{ cause: err }` in filter-logs, codegraph, and open-github-issue error re-wraps. Regression tests added.
+- **EPERM symlink fallback**: `installer.ts` degrades to copy mode with a warning when `fs.symlink` fails with EPERM on Windows.
+- **All `\n` hardcodes replaced**: Manifest writes, schema output, error formatting, and EPERM warnings now use `os.EOL` or `adapter.EOL`.
+- **Carryover tools `--help` support**: Three carryover tools (open-github-issue, find-github-issues, review-threads) received `--help` output handling.
+- **Storyboard failure return code**: `generate-storyboard-images` now returns non-zero exit code when API failures occur.
+- **TypeScript build config**: Narrowed `tui` and `tool-registry` tsconfig `include` from `"**/*.ts"` to `"*.ts"` to prevent TS5055 dist/ overwrite errors in TypeScript 5.5+.
+
+### Removed
+
+- **Monolithic `parseArguments()` if-else chain**: Replaced with Map-based dispatch table and per-command parser classes.
+- **Individual tool `parseArgs()` implementations**: 18 tools' ad-hoc argument parsing removed in favor of `createToolRunner` schema.
+- **Dead code in enforce-video-aspect-ratio**: ~75 lines of unreachable `parseArgs`/`AspectArgs`/`help` field removed after `createToolRunner` migration.
+- **Unused stderr bindings in architecture tool**: Both `handleApply` and `handleTemplate` cleaned.
+
 ## [v4.1.4] - 2026-06-04
 
 ### Fixed

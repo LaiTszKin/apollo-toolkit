@@ -1,7 +1,7 @@
 {
   "name": "@laitszkin/tool-codegraph",
-  "version": "4.0.8",
-  "description": "Apollo Toolkit — CodeGraph code intelligence: init, sync, status, search, explore, survey, list-apis, verify",
+  "version": "5.0.0",
+  "description": "Apollo Toolkit \u2014 CodeGraph code intelligence: init, sync, status, search, explore, survey, list-apis, verify",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

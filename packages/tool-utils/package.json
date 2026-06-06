@@ -1,7 +1,7 @@
 {
   "name": "@laitszkin/tool-utils",
-  "version": "4.0.8",
-  "description": "Apollo Toolkit — shared tool utilities (log parsing, skill discovery)",
+  "version": "5.0.0",
+  "description": "Apollo Toolkit \u2014 shared tool utilities (log parsing, skill discovery)",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

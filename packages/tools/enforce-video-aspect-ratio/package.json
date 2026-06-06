@@ -1,7 +1,7 @@
 {
   "name": "@laitszkin/tool-enforce-video-aspect-ratio",
-  "version": "4.0.8",
-  "description": "Apollo Toolkit — CLI tool",
+  "version": "5.0.0",
+  "description": "Apollo Toolkit \u2014 CLI tool",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
