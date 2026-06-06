@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { EOL } from 'node:os';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 
 const START_MARKER = '<!-- codex-memory-manager:start -->';
@@ -35,7 +36,7 @@ function iterMemoryFiles(memoryDir: string): string[] {
     .sort((a, b) => path.basename(a).toLowerCase().localeCompare(path.basename(b).toLowerCase()));
 }
 
-function renderSection(memoryFiles: string[], sectionTitle: string, instructionLines: string[]): string {
+function renderSection(memoryFiles: string[], sectionTitle: string, instructionLines: string[], eol: string): string {
   const lines = [START_MARKER, sectionTitle.trim(), ''];
 
   const cleaned = instructionLines.filter((line) => line && line.trim());
@@ -56,7 +57,7 @@ function renderSection(memoryFiles: string[], sectionTitle: string, instructionL
   }
 
   lines.push(END_MARKER);
-  return lines.join('\n');
+  return lines.join(eol);
 }
 
 function removeExistingSection(content: string): string {
@@ -106,7 +107,7 @@ async function syncMemoryIndexHandler(
     }
 
     const memoryFiles = iterMemoryFiles(memoryDir);
-    const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines);
+    const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines, EOL);
     syncAgentsFile(agentsFile, sectionText);
 
     stdout.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);

@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import * as os from 'node:os';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 
 function getCodexHome(): string {
-  return process.env.CODEX_HOME || path.join(process.env.HOME || '', '.codex');
+  const home = os.homedir();
+  return process.env.CODEX_HOME || path.join(home, '.codex');
 }
 
 interface Session {
