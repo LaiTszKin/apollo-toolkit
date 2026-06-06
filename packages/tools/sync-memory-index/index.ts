@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { EOL } from 'node:os';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 import { createPlatformAdapter, createToolRunner } from '@laitszkin/tool-utils';
 
@@ -37,7 +38,7 @@ function iterMemoryFiles(memoryDir: string): string[] {
     .sort((a, b) => path.basename(a).toLowerCase().localeCompare(path.basename(b).toLowerCase()));
 }
 
-function renderSection(memoryFiles: string[], sectionTitle: string, instructionLines: string[], eol: string = '\n'): string {
+function renderSection(memoryFiles: string[], sectionTitle: string, instructionLines: string[], eol: string): string {
   const lines = [START_MARKER, sectionTitle.trim(), ''];
 
   const cleaned = instructionLines.filter((line) => line && line.trim());
@@ -120,7 +121,7 @@ const syncMemoryIndexSchema = {
     }
 
     const memoryFiles = iterMemoryFiles(memoryDir);
-    const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines, adapter.EOL);
+    const sectionText = renderSection(memoryFiles, sectionTitle, instructionLines, EOL);
     syncAgentsFile(agentsFile, sectionText);
 
     stdout.write(`SYNCED_AGENTS_FILE=${path.resolve(agentsFile)}\n`);
