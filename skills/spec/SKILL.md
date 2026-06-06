@@ -96,7 +96,7 @@ Generate SPEC.md using the template at `assets/templates/SPEC.md`.
    - **Uncertainty Level** → Per requirement, mark Known or Exploratory.
    - **Error and Edge Cases** → List specific cases. Free-form list; no fixed categories needed in the template (the five categories from Step 2 guide your thinking, not the output format).
    - **Clarification Questions** → List questions for the user. Must be populated when any requirement is Exploratory. Omit only if all requirements are fully clear.
-   - **References** → Link to official docs and related code files for traceability.
+   - **References** → List important project context files the LLM will need (e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`), plus official docs and related code files for traceability.
 
    **BDD writing guidelines**:
    - **GIVEN** states the precondition and actor role

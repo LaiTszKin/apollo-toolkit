@@ -56,3 +56,10 @@
 - **Verdict**: [Ready to Merge / Needs Attention / Needs Work]
 - **Issues**: P0:X, P1:X, P2:X, P3:X
 - **Key findings**: [1-2 sentence summary of the most important findings in this round]
+
+---
+
+## References
+
+- **Project context files**: [List important project files the reviewer used — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`]
+- **Related documents**: [Links to related SPEC.md, DESIGN.md, or external documentation]

@@ -95,7 +95,7 @@ Each worker prompt must include:
 ```
 ## Mission — What to do and why
 ## Input — Which files to read
-## What to do — Concrete steps (describe "what" to do, not "which tool" to use)
+## What to do — Concrete steps, each specifying the exact file path, the function or line range, and what specific change to make (add/delete/modify). Never leave the change description vague.
 ## Scope — Allowed and forbidden files
 ## Output — What to report on completion (file list, change summary, test results, risks)
 ## Verify — Verification commands and expected results
@@ -104,7 +104,7 @@ Each worker prompt must include:
 
 **Writing principles:**
 - **Self-contained**: Workers do not see the coordinator's context. The prompt must include everything necessary
-- **Concrete**: Embed file paths, function names, line numbers. Do not write "fix it" or "based on your findings"
+- **Concrete**: For every file the worker must modify, specify: (1) the exact file path, (2) the function or line range, (3) what to add, delete, or change. Do not write "fix it", "update as needed", or "based on your findings"
 - **Declarative**: Describe "what to do", not "which tool to use"
 - **Clear boundaries**: Explicitly list allowed and forbidden files
 
@@ -146,12 +146,13 @@ Use `assets/templates/PROMPT.md`. Fill each section according to the table below
 | 2. Mission | SPEC.md Goal + business value |
 | 3. Scope & Boundaries | SPEC.md In/Out of Scope |
 | 4. Technical Context | DESIGN.md: module list with responsibilities, interaction anchors (INT-###) and dependency order, external dependency setup order (EXT-###), system invariants, technical decisions and trade-offs |
-| 5. Task Units | Step 3 (task decomposition) + Step 4 (dependency analysis) |
-| 6. Worker Prompt Library | Step 6 — one entry per dispatchable task |
-| 7. Batch Schedule | Step 7 (batch schedule) |
-| 8. Verification Checkpoints | CHECKLIST.md: behavior-to-test mapping (CL-###), hardening requirements, test execution commands |
-| 9. Error Recovery | Fixed template — populate spec-specific test commands from CHECKLIST.md |
-| 10. Boundaries | Fixed template + spec-specific rules |
+| 5. References | Important project context files (CLAUDE.md, AGENTS.md, architecture atlas, codegraph index) — reduces LLM search overhead |
+| 6. Task Units | Step 3 (task decomposition) + Step 4 (dependency analysis) |
+| 7. Worker Prompt Library | Step 6 — one entry per dispatchable task |
+| 8. Batch Schedule | Step 7 (batch schedule) |
+| 9. Verification Checkpoints | CHECKLIST.md: behavior-to-test mapping (CL-###), hardening requirements, test execution commands |
+| 10. Error Recovery | Fixed template — populate spec-specific test commands from CHECKLIST.md |
+| 11. Boundaries | Fixed template + spec-specific rules (including worktree cleanup after each batch) |
 
 ### 11. Pre-delivery Self-Review
 
@@ -159,21 +160,21 @@ Before delivering PROMPT.md, verify all of the following.
 
 **Worker prompt quality:**
 
-- Every worker prompt in Section 6 is self-contained. Scan for phrases like "based on your findings", "fix it appropriately", "as discussed above" — these leak shared context assumptions. If found, rewrite the prompt to include the necessary information inline.
+- Every worker prompt in Section 7 is self-contained. Scan for phrases like "based on your findings", "fix it appropriately", "as discussed above" — these leak shared context assumptions. If found, rewrite the prompt to include the necessary information inline.
 - Every worker prompt has a concrete file-level Scope (allowed + forbidden files listed explicitly).
 - Every worker prompt has a concrete Verify command with an expected output (not just "run tests").
 
 **Coverage completeness:**
 
-- Every BDD requirement from SPEC.md is addressed by at least one task in Section 5. If a requirement has no task, add one or document why it is already satisfied by existing code.
+- Every BDD requirement from SPEC.md is addressed by at least one task in Section 6. If a requirement has no task, add one or document why it is already satisfied by existing code.
 - Every module from DESIGN.md has a corresponding task or is explicitly noted as unchanged.
-- Every hardening requirement from CHECKLIST.md appears in Section 8.
+- Every hardening requirement from CHECKLIST.md appears in Section 9.
 
 **Structural consistency:**
 
-- Each task's Depends on field in Section 5 matches the batch ordering in Section 7. No task scheduled in a batch before its dependencies are met.
-- Every task listed in Section 7 (Batch Schedule) has a worker prompt in Section 6 — unless it is explicitly marked as coordinator-handled.
-- No orphaned tasks (a task listed in Section 5 that never appears in any batch), no missing dependencies (a Depends on field referencing a task ID that does not exist).
+- Each task's Depends on field in Section 6 matches the batch ordering in Section 8. No task scheduled in a batch before its dependencies are met.
+- Every task listed in Section 8 (Batch Schedule) has a worker prompt in Section 7 — unless it is explicitly marked as coordinator-handled.
+- No orphaned tasks (a task listed in Section 6 that never appears in any batch), no missing dependencies (a Depends on field referencing a task ID that does not exist).
 
 ### 12. Produce PROMPT.md
 

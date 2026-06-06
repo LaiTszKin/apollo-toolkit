@@ -151,3 +151,10 @@ Code health findings identified during architecture survey, classified by module
 | […] | […] | […] | […] | […] |
 
 If none, write **None**.
+
+---
+
+## 9. References
+
+- **Project context files**: [List important project files the LLM will need — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`]
+- **Related documents**: [Links to related SPEC.md, other design docs, or external documentation]

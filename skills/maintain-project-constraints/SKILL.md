@@ -41,6 +41,16 @@ description: 基於 repo 最新程式碼與文檔，更新 CLAUDE.md 和 AGENTS.
 
 > 兩份檔案皆應維持在 100 行以內。若超過此限制，優先精煉而非擴充。
 
+#### 加入 `apltk codegraph` 相關命令
+
+在兩份文檔的 `Common Development Commands` 區塊中，加入：
+
+- `apltk codegraph <subcommand> [options]` — CodeGraph code intelligence CLI（init/sync/status/search/explore/survey/list-apis/verify）。由 tree-sitter 驅動的代碼知識圖譜引擎。
+
+#### 加入代碼調查要求
+
+在兩份文檔中，明確要求 agent 在開始實作前，應先通過 `apltk codegraph` 進行代碼調查（如 `apltk codegraph survey`、`apltk codegraph explore`），確保變更基於對現有代碼的真實理解。此規則可放在 `Common Development Commands` 區塊的開頭作為前置條件說明，或放在 Prohibitions 區塊附近作為開發慣例。
+
 ## 參考資料
 
 - `references/constraint-file-reference.md`：三區塊契約、撰寫規則、AGENTS.md vs CLAUDE.md 區分指引、核對清單與輸出模板。

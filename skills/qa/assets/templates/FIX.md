@@ -120,8 +120,8 @@
 - Read the following files: [list]
 
 ## What to do
-1. [Concrete fix steps — describe "what" to do, not "which tool" to use]
-2. [Include specific file paths, function names, line numbers, modification approach]
+1. [Specify the exact file path, the function or line range, and what specific change to make (add/delete/modify). Example: "In src/auth/login.ts, function validateToken() (line 42-58): add a null check for the token parameter before calling decode()."]
+2. [Repeat for each file — never leave the change description vague]
 
 ## Scope
 - Allowed files:
@@ -311,7 +311,14 @@ If there are no entries here, see Section 5 for each fix's regression test desig
 
 ---
 
-## 12. Boundaries
+## 12. References
+
+- **Project context files**: [List important project files the fix coordinator and workers may need — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`, codegraph index files]
+- **Related documents**: [Links to REPORT.md, SPEC.md, DESIGN.md, or external documentation]
+
+---
+
+## 13. Boundaries
 
 ### ALWAYS
 
@@ -322,6 +329,7 @@ If there are no entries here, see Section 5 for each fix's regression test desig
 - Regression tests must not start before all fix batches pass
 - Resolve merge conflicts yourself — the coordinator handles them. This is coordination, not implementation.
 - **For fixes marked as Complex**: ensure the worker performs systematic debugging (reading related code, tracing execution paths) before applying the fix. Do not let the worker guess the fix.
+- **After each batch completes, clean up any temporary branches or worktrees created by workers** — no ephemeral worktree should be left orphaned.
 
 ### ASK FIRST — pause and confirm with the user
 

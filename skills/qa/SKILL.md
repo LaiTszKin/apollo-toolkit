@@ -109,7 +109,7 @@ Each fix worker prompt must include:
 ## Mission — What to fix and why
 ## Context — Which review dimension, which spec requirement
 ## Input — Which files to read
-## What to do — Concrete fix steps (describe "what" to do, not "which tool" to use)
+## What to do — Concrete fix steps, each specifying the exact file path, the function or line range, and what specific change to make (add/delete/modify). Never leave the change description vague.
 ## Scope — Allowed and forbidden files
 ## Output — What to report on completion
 ## Verify — Verification commands and expected results
@@ -186,7 +186,8 @@ Use `assets/templates/FIX.md`. Fill according to the table below.
 | 9. Verification Checkpoints | Fixed scaffold, customized with spec-specific commands |
 | 10. Error Recovery | Fixed scaffold (natural language) |
 | 11. Fix History | Fixed scaffold (history entries only, no instructions) |
-| 12. Boundaries | Fixed scaffold + spec-specific rules |
+| 12. References | Important project context files (CLAUDE.md, AGENTS.md, architecture atlas, codegraph index) — reduces LLM search overhead |
+| 13. Boundaries | Fixed scaffold + spec-specific rules (including worktree cleanup after each batch) |
 
 ### 11. Produce FIX.md
 

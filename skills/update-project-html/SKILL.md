@@ -17,14 +17,24 @@ Keep the architecture diagram continuously aligned with the actual codebase.
 
 ## Workflow
 
-### 1. Review the current atlas
+### 1. Analyze current code with `apltk codegraph survey`
+
+**Prerequisite** before measuring drift. The code graph provides the structural baseline for comparison with the atlas.
+
+Run `apltk codegraph survey --json` to get a structured view of the current codebase:
+- Entry points, function clusters, and suggested submodule groupings
+- Cross-boundary edges for identifying architectural relationships
+
+Consult `references/codegraph.md` for detailed flags.
+
+### 2. Review the current atlas
 
 Read the existing architecture diagram.
 Capture the relationship between features and submodules.
 
 > Read only `atlas.index.yaml` + the YAML files of affected features. Do not read unrelated features or unchanged modules to preserve context economy.
 
-### 2. Measure architecture drift
+### 3. Measure architecture drift
 
 Before deciding the update scope, compare the atlas against the current code:
 
@@ -36,7 +46,7 @@ Determine the update strategy based on drift severity:
 - **Low drift (< 20%)**: Update only the features affected by the diff
 - **High drift (≥ 20%)**: Flag as significant divergence, notify the user and recommend a full re-initialization via `init-project-html`
 
-### 3. Filter diff noise
+### 4. Filter diff noise
 
 Analyze the diff scope and filter non-architectural changes:
 
@@ -45,11 +55,11 @@ Analyze the diff scope and filter non-architectural changes:
 
 Map the filtered diff hunks to the affected features.
 
-### 4. Cross-reference code with the current atlas
+### 5. Cross-reference code with the current atlas
 
 Dispatch subagents in parallel to cross-reference the code against the architecture diagram and verify whether the atlas has errors or omissions.
 
-### 5. Update the atlas via `apltk` CLI
+### 6. Update the atlas via `apltk` CLI
 
 Use `apltk architecture` commands to update the architecture diagram:
 
@@ -67,7 +77,7 @@ apltk architecture function add --feature <slug> --submodule <slug> --name <fn> 
 
 After completing the update, re-measure drift to confirm it has been reduced to an acceptable range.
 
-### 6. Self-review
+### 7. Self-review
 
 Confirm the following before finishing:
 
@@ -79,5 +89,6 @@ Confirm the following before finishing:
 
 ## References
 
-- `references/architecture.md` — Full parameter reference for the apltk architecture tool (consult when CLI flag details are needed).
+- `references/codegraph.md` — `apltk codegraph` CLI reference (consult for subcommand flags).
+- `references/architecture.md` — Full parameter reference for the `apltk architecture` tool (consult when CLI flag details are needed).
 - `references/definition.md` — Detailed definitions of feature and submodule.

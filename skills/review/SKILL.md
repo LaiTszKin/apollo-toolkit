@@ -111,6 +111,7 @@ Include the following sections:
 - **Requirement Status Summary**: Per-requirement: completion status, evidence location, open findings
 - **Findings**: Issue list sorted by P0 → P3 (only levels with findings)
 - **Review History**: Previous rounds (if any)
+- **References**: List important project context files the next skill (qa) will need (e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`). This reduces the LLM's need to search for relevant files when processing the report.
 
 **Verdict criteria** (P-level directly determines verdict — no separate requirement check needed):
 

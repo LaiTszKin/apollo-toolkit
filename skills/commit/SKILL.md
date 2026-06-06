@@ -34,7 +34,12 @@ description: 提交指引與提交前的必要品控閘門。將變更提交到 
 
 若存在代碼變更，使用 `update-project-html` 檢查並更新項目架構圖。
 
-### 5. 提交及推送變更
+### 5. 同步代碼圖索引
+
+若存在代碼變更，執行 `apltk codegraph sync` 確保代碼圖與實際代碼同步。
+若 `CLAUDE.md` 或 `AGENTS.md` 缺少 `apltk codegraph` 的引用，必須添加。
+
+### 6. 提交及推送變更
 
 依使用者的 staging 邊界建立 commit。
 提交訊息須遵循 `references/commit-messages.md`。

@@ -37,6 +37,8 @@ CLAUDE.md 可在這三個區塊之後額外加入 Claude Code 特有設定區塊
 - 只收錄能被當前倉庫驗證的命令。
 - 優先從 `package.json`、`Makefile`、`bin/`、`scripts/`、CI 設定或其他真實入口提取。
 - 每條命令附上一句簡短用途說明，避免捏造不存在的工作流。
+- 若專案已安裝 `apltk codegraph`，必須在 Commands 區塊中包含該 CLI 的完整子命令列表（init/sync/status/search/explore/survey/list-apis/verify）。
+- 在 Commands 區塊開頭或附近加入前置條件：要求 agent 在開始實作前，先通過 `apltk codegraph survey`（或 `explore`）進行代碼調查，確保變更基於對現有代碼的真實理解。
 
 ### `Project Business Goals`
 

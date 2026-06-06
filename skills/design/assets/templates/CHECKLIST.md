@@ -37,3 +37,10 @@ Map each BDD requirement from SPEC.md to one or more tests:
 | Flow / Risk | Test Level | Rationale |
 |---|---|---|
 | [Flow description] | [E2E / Integration / Existing coverage / N/A] | [why] |
+
+---
+
+## References
+
+- **Project context files**: [List important project files the LLM will need — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`]
+- **Related documents**: [Links to related SPEC.md, DESIGN.md, or external documentation]

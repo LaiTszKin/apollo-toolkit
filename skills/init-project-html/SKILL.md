@@ -51,24 +51,20 @@ At load time, check the project state to select the correct mode:
 
 Applicable modes: design (full initialization), record (quick recording)
 
-### 1. Survey the project with `apltk codegraph survey`
+### 1. Analyze the project with `apltk codegraph`
 
-Before diving into the code, establish a high-level understanding:
-- Which external actors interact with the system (users, third-party services, other systems)
-- What high-level capabilities the system provides
+**Prerequisite** before any architecture work. The code graph provides the source-code evidence that powers the atlas.
 
-Then read `sample-demo/` to understand the expected output format and abstraction level.
+1. Initialize: `apltk codegraph init --index` (run once per project to build the symbol index).
+2. Survey: `apltk codegraph survey --json` for a structured report with file/function counts, entry points, and suggested submodule groupings.
 
-Next, run `apltk codegraph survey` to get a structured survey report:
-- List of all files in the project directory with function counts
-- Entry points (public functions called from external files)
-- Suggested submodule groupings and cross-boundary edges
-- Supports `--json` output for programmatic consumption by the LLM
-
-Based on the survey report, decide how to partition features (C4 Container level):
-- Group closely interconnected function clusters into the same feature's submodules
+Based on the survey, partition features (C4 Container level):
+- Group interconnected function clusters into the same feature's submodules
 - Identify feature boundaries and cross-feature call relationships
-- Record the directory path and entry points for each feature
+
+Then read `sample-demo/` to understand the expected output format and abstraction level before writing the atlas.
+
+Consult `references/codegraph.md` for detailed flags.
 
 ### 2. Write the atlas with `apltk architecture apply`
 
@@ -107,7 +103,8 @@ If time or context constraints prevent full traceability, record the scanned sco
 
 ## References
 
-- `references/architecture.md` — Full parameter reference for the apltk architecture tool (consult when CLI flag details are needed).
+- `references/codegraph.md` — `apltk codegraph` CLI reference (consult for subcommand flags).
+- `references/architecture.md` — Full parameter reference for the `apltk architecture` tool (consult when CLI flag details are needed).
 - `references/TEMPLATE_SPEC.md` — Atlas field reference, enum values, and CLI shape cheat sheet.
 - `references/definition.md` — Detailed definitions of feature and submodule.
 - `assets/architecture-page.template.html` — HTML template.

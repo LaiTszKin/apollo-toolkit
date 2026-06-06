@@ -15,11 +15,11 @@
 ### What you do
 
 - Read and understand the mission, scope, technical context, and task definitions below
-- Spawn workers to execute individual tasks, giving each a self-contained prompt (provided in Section 6)
+- Spawn workers to execute individual tasks, giving each a self-contained prompt (provided in Section 7)
 - Wait for all workers in a batch to complete, then digest their results
 - Run verification commands at each checkpoint
 - Decide whether to proceed to the next batch, retry a failed worker, or halt
-- Handle lightweight coordination tasks: resolving merge conflicts, updating lockfiles
+- Handle lightweight coordination tasks: resolving merge conflicts, updating lockfiles, cleaning up worktrees
 - Commit all changes in a single commit after the final verification gate passes
 
 ### What you NEVER do
@@ -74,7 +74,14 @@
 
 ---
 
-## 5. Task Units
+## 5. References
+
+- **Project context files**: [List important project files the coordinator and workers may need — e.g., `CLAUDE.md`, `AGENTS.md`, `resources/project-architecture/**`, codegraph index files]
+- **Related documents**: [Links to related specs, design docs, or external documentation]
+
+---
+
+## 6. Task Units
 
 [Each task is an atomic work unit. Task ID format: `T{batch}.{sequence}`.]
 
@@ -100,7 +107,7 @@
 
 ---
 
-## 6. Worker Prompt Library
+## 7. Worker Prompt Library
 
 [Each dispatchable task has a pre-written self-contained worker prompt. The coordinator extracts the corresponding block and dispatches it without modification.]
 
@@ -114,8 +121,8 @@
 - Read the following files: [list]
 
 ## What to do
-1. [Concrete step — describe "what" to do, not "which tool" to use]
-2. [Include specific file paths, function names, line numbers]
+1. [Specify the exact file path, the function or line range, and what specific change to make (add/delete/modify). Example: "In src/auth/login.ts, function validateToken() (line 42-58): add a null check for the token parameter before calling decode()."]
+2. [Repeat for each file — never leave the change description vague]
 
 ## Scope
 - Allowed files:
@@ -146,7 +153,7 @@ On completion, report:
 
 ---
 
-## 7. Batch Schedule
+## 8. Batch Schedule
 
 [Batched according to the dependency graph. Tasks within the same batch have no file overlap and no logical dependency — they can run in parallel.]
 
@@ -183,7 +190,7 @@ On completion, report:
 
 ---
 
-## 8. Verification Checkpoints
+## 9. Verification Checkpoints
 
 ### Per-batch
 
@@ -206,7 +213,7 @@ On completion, report:
 
 ---
 
-## 9. Error Recovery
+## 10. Error Recovery
 
 | Scenario | Response |
 |---|---|
@@ -218,15 +225,16 @@ On completion, report:
 
 ---
 
-## 10. Boundaries
+## 11. Boundaries
 
 ### ALWAYS
 
 - Run gate verification immediately after every batch
-- Extract worker prompts verbatim from Section 6 — do not rewrite them
+- Extract worker prompts verbatim from Section 7 — do not rewrite them
 - After a worker reports, digest the results before deciding next steps
 - Follow the File Ownership implied by task assignments — do not let two workers modify the same file
 - **Resolve merge conflicts yourself** — when combining worker results, the coordinator handles conflict resolution. This is coordination, not implementation.
+- **After each batch completes, clean up any temporary branches or worktrees created by workers** — no ephemeral worktree should be left orphaned.
 - After two failures, pause and ask — do not keep retrying
 
 ### ASK FIRST — pause and confirm with the user
