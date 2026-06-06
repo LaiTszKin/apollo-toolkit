@@ -124,8 +124,10 @@ test('run: handler throwing SystemError writes message and stack trace', async (
 });
 
 // ---- Error boundary: AppError (ToolNotFoundError) branch --------------------
+// ToolNotFoundError is formatted as bare message (no "Error:" prefix),
+// matching UserInputError behavior.
 
-test('run: handler throwing ToolNotFoundError writes "Error:" prefix and message', async () => {
+test('run: handler throwing ToolNotFoundError writes message without prefix', async () => {
   const stdout = createMockStream();
   const stderr = createMockStream();
   const result = await run(['filter-logs'], {
@@ -138,8 +140,6 @@ test('run: handler throwing ToolNotFoundError writes "Error:" prefix and message
   });
   assert.equal(result, 1);
   const err = stderr.getOutput();
-  assert.ok(err.includes('Error:'), 'stderr should contain "Error:" prefix for AppError subclasses');
   assert.ok(err.includes('unknown-tool is not a valid tool'), 'stderr should contain the error message');
-  // ToolNotFoundError extends AppError, which uses "Error: ${error.message}" format
-  assert.ok(err.includes('Error: unknown-tool is not a valid tool'), 'stderr should have "Error: <message>" format');
+  assert.ok(!err.includes('Error:'), 'stderr should NOT contain "Error:" prefix for ToolNotFoundError');
 });
