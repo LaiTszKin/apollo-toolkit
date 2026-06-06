@@ -54,6 +54,19 @@ function parseArgs(argv: string[]): FindIssuesArgs {
           if (val === 'table' || val === 'json') args.output = val;
         }
         break;
+      case '--help':
+      case '-h':
+        console.log(`Usage: apltk find-github-issues [options]
+
+Options:
+  --repo <owner/repo>    GitHub repository (required)
+  --state <state>        Filter by state: open|closed|all (default: open)
+  --limit <number>       Max results (default: 50)
+  --label <label>        Filter by label (repeatable)
+  --search <query>       Search query
+  --output <format>      Output format: table|json (default: table)
+  --help, -h             Show this help message`);
+        process.exit(0);
       default:
         break;
     }
@@ -192,7 +205,7 @@ export async function findGitHubIssuesHandler(
   argv: string[],
   context: ToolContext,
 ): Promise<number> {
-  const { stdout, stderr } = context;
+  const { stdout } = context;
   const args = parseArgs(argv);
 
   const cmd = buildCommand(args);
