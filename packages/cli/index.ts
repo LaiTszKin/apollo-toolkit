@@ -221,6 +221,12 @@ function parseArguments(argv: string[]): ParsedArguments {
     helpTopic: 'overview',
   };
 
+  // FIX-16: The sequential if-statement dispatch below (uninstall -> tools/tool ->
+  // install) is a known design limitation. The tools/tool redirect (FIX-15)
+  // demonstrates the target routing mechanism — routing known command names
+  // through a shared dispatch path rather than duplicating logic inline.
+  // A full handler-map refactor would need stronger type abstraction;
+  // keeping explicit sequential branches is clearer for now.
   if (args[0] === 'uninstall') {
     result.command = 'uninstall';
     args.shift();
@@ -256,12 +262,10 @@ function parseArguments(argv: string[]): ParsedArguments {
     return result;
   }
 
+  // Route known tool names through the tools/tool dispatch path (FIX-15)
   const firstArg = args[0];
   if (firstArg && isKnownToolName(firstArg)) {
-    result.command = 'tool';
-    result.toolName = args.shift() || null;
-    result.toolArgs = args;
-    return result;
+    args.unshift('tool');
   }
 
   while (args.length > 0) {
@@ -451,6 +455,12 @@ export async function run(argv: string[], context: CliContext = {}): Promise<num
       return 0;
     }
 
+    // Tool dispatch error patterns (FIX-10):
+    // Pattern A (createToolRunner tools): handler throws -> caught internally ->
+    //   formatAppError + return 1
+    // Pattern B (carryover tools): handler throws -> propagates through runTool ->
+    //   CLI boundary catch -> formatAppError + return 1
+    // Both patterns converge on the same formatting at the boundary.
     if (parsed.command === 'tool') {
       await registerAllTools();
       return (context.runTool || runTool)(parsed.toolName!, parsed.toolArgs, {
