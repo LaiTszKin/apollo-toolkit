@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
-import { SystemError } from '@laitszkin/tool-utils';
+import { SystemError, UserInputError, createToolRunner } from '@laitszkin/tool-utils';
 
 interface AspectArgs {
   inputVideo: string | null;

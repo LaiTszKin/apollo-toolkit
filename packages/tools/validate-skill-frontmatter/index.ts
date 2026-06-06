@@ -125,6 +125,6 @@ export const tool: ToolDefinition = {
     options: {},
     allowPositionals: true,
     usage: 'apltk validate-skill-frontmatter',
-    handler: (_values, positionals, context) => validateSkillFrontmatterHandler(positionals, context),
+    handler: (_values: Record<string, unknown>, positionals: string[], context: ToolContext) => validateSkillFrontmatterHandler(positionals, context),
   }),
 };

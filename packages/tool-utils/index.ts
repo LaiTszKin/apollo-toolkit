@@ -17,4 +17,5 @@ export {
 } from './app-error.js';
 export type { ErrorDetails } from './app-error.js';
 export { createPlatformAdapter } from './platform-adapter.js';
+export { createToolRunner } from './schema.js';
 

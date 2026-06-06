@@ -219,6 +219,6 @@ export const tool: ToolDefinition = {
     options: {},
     allowPositionals: true,
     usage: 'apltk validate-openai-agent-config',
-    handler: (_values, positionals, context) => validateOpenaiAgentConfigHandler(positionals, context),
+    handler: (_values: Record<string, unknown>, positionals: string[], context: ToolContext) => validateOpenaiAgentConfigHandler(positionals, context),
   }),
 };
