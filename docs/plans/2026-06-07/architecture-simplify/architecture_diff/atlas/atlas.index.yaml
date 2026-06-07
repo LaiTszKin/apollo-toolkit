@@ -1,0 +1,11 @@
+meta:
+  title: Project architecture (architecture CLI simplification overlay)
+  summary: >
+    Reduces 19+ architecture CLI verbs to 6 (add/remove/diff/merge/render/open).
+    Retires apply/template. Hides fine-grained entity verbs.
+    The architecture tool remains part of the cli-dispatch feature.
+  updatedAt: '2026-06-07'
+actors: []
+features:
+  - cli-dispatch
+edges: []

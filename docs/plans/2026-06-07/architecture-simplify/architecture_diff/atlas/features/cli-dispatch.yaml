@@ -1,0 +1,52 @@
+# Architecture simplification diff for cli-dispatch feature
+#
+# This overlay describes changes to the apltk architecture CLI tool,
+# which is part of the cli-dispatch feature under the tool-discovery
+# submodule (tool-registry.ts → tool: architecture).
+
+slug: cli-dispatch
+title: CLI Dispatch
+submodules:
+  - slug: tool-discovery
+    kind: service
+    role: Discovers and registers bundled tools (including architecture)
+    functions:
+      - name: architectureHandler
+        in: 'args: string[], context: ToolContext'
+        out: 'Promise<number>'
+        side: io
+        purpose: Route architecture subcommands. Currently intercepts apply/template; after change, delegates all verbs to cli.js.
+      - name: handleApply
+        in: 'applyArgs: string[], context: ToolContext'
+        out: 'Promise<number>'
+        side: io
+        purpose: "REMOVED from CLI route — no longer callable as `apltk architecture apply`. Internal code retained for optional use."
+      - name: handleTemplate
+        in: 'templateArgs: string[], context: ToolContext'
+        out: 'Promise<number>'
+        side: io
+        purpose: "REMOVED from CLI route — no longer callable as `apltk architecture template`."
+  - slug: arg-parser
+    kind: service
+    role: Parse CLI arguments and dispatch to verb handlers
+    functions:
+      - name: verbAdd
+        in: 'args, flags, projectRoot, io'
+        out: 'exitCode: number'
+        side: io
+        purpose: "ADDED — Unified add command. Parses entity-type, delegates to verbFeature/verbSubmodule/verbEdge."
+      - name: verbRemove
+        in: 'args, flags, projectRoot, io'
+        out: 'exitCode: number'
+        side: io
+        purpose: "ADDED — Unified remove command. Same pattern as add."
+  - slug: help-builder
+    kind: ui
+    role: Build CLI help text
+    functions:
+      - name: buildArchitectureHelpPage
+        in: 'verbs: VerbHelp[], allFlagInfos: FlagInfo[]'
+        out: 'helpText: string'
+        side: pure
+        purpose: "MODIFIED — Whitelist: only show add/remove/diff/merge/render/open; hide fine-grained verbs."
+edges: []
