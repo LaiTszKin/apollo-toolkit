@@ -50,8 +50,13 @@ const { buildArchitectureHelpPage } = cliHelp;
 const BOOLEAN_FLAGS = new Set(['no-render', 'no-open', 'help', 'dry-run', 'json']);
 const MULTI_VERBS = new Set(['feature', 'submodule', 'function', 'variable', 'dataflow', 'error', 'edge', 'meta', 'actor']);
 
-// formatFix generates apltk CLI commands from structured params,
-// injected into schema.validate() so schema stays decoupled from CLI syntax.
+/**
+ * formatFix generates apltk CLI commands from structured params.
+ * NOTE: Uses fine-grained verb syntax (e.g., 'feature add') which are
+ * hidden from help per Req 4. This is a known trade-off: the unified
+ * 'add' verb doesn't support all entity types (function, variable, etc.)
+ * that schema validation may need to suggest fixes for.
+ */
 function formatFix({ type, action, feature, submodule, name, side, scope, slug, kind }) {
   const parts = [`apltk architecture ${type} ${action}`];
   if (feature !== undefined) parts.push(`--feature ${feature}`);
@@ -251,14 +256,14 @@ async function performMutation(projectRoot, flags, action, args, mutate, io) {
     if (!flags.skipUndo) stateLib.writeUndoSnapshot(overlayDir, before);
     mutate(merged, base, overlay);
     stateLib.saveOverlay(overlayDir, stateLib.deriveOverlay(base, merged));
-    stateLib.appendHistory(overlayDir, { action, args, mode: 'spec' });
+    if (!flags.skipUndo) stateLib.appendHistory(overlayDir, { action, args, mode: 'spec' });
   } else {
     ensureBaseAtlasDir(projectRoot);
     const before = JSON.parse(JSON.stringify({ base }));
     if (!flags.skipUndo) stateLib.writeUndoSnapshot(baseAtlasDir(projectRoot), before);
     mutate(base, base, null);
     stateLib.save(baseAtlasDir(projectRoot), base);
-    stateLib.appendHistory(baseAtlasDir(projectRoot), { action, args, mode: 'base' });
+    if (!flags.skipUndo) stateLib.appendHistory(baseAtlasDir(projectRoot), { action, args, mode: 'base' });
   }
 
   if (!flags['no-render']) {
@@ -351,6 +356,35 @@ function isIntraFeatureEdge(from, to) {
   return from && to && from.feature && to.feature && from.feature === to.feature && from.submodule && to.submodule;
 }
 
+function sortBySimilarity(input, names) {
+  if (!names || names.length === 0) return [];
+  const lowerInput = input.toLowerCase();
+  const scored = names.map(name => {
+    const lower = name.toLowerCase();
+    let score = 0;
+    // Exact match (shouldn't happen in practice since we're listing alternatives)
+    if (lower === lowerInput) score += 100;
+    // Common prefix length
+    for (let i = 0; i < Math.min(lower.length, lowerInput.length); i++) {
+      if (lower[i] === lowerInput[i]) score += 2;
+      else break;
+    }
+    // Substring match
+    if (lower.includes(lowerInput)) score += 10;
+    if (lowerInput.includes(lower)) score += 5;
+    // Character overlap (bag of letters)
+    const inputChars = new Set(lowerInput);
+    const matchChars = [...lower].filter(c => inputChars.has(c)).length;
+    score += matchChars;
+    return { name, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  const top = scored.slice(0, 5).map(s => s.name);
+  const remaining = scored.length - top.length;
+  if (remaining > 0) top.push(`and ${remaining} more`);
+  return top;
+}
+
 // ---- verb dispatch ------------------------------------------------------
 
 async function verbFeature(action, flags, projectRoot, io) {
@@ -377,8 +411,9 @@ async function verbFeature(action, flags, projectRoot, io) {
     return performMutation(projectRoot, flags, 'feature remove', { slug }, (state) => {
       const removed = removeFeature(state, slug);
       if (!removed) {
-        const available = (state.features || []).map(f => f.slug).join(', ');
-        throw new Error(`Feature "${slug}" not found. Available features: ${available || '(none)'}`);
+        const allFeatures = (state.features || []).map(f => f.slug);
+        const similar = sortBySimilarity(slug, allFeatures);
+        throw new Error(`Feature "${slug}" not found. Available features: ${similar.join(', ') || '(none)'}`);
       }
     }, io);
   }
@@ -419,8 +454,9 @@ async function verbSubmodule(action, flags, projectRoot, io) {
       }
       const removed = removeSubmodule(feature, slug);
       if (!removed) {
-        const subs = (feature.submodules || []).map(s => s.slug).join(', ');
-        throw new Error(`Submodule "${slug}" not found in feature "${featureSlug}". Available submodules: ${subs || '(none)'}`);
+        const allSubs = (feature.submodules || []).map(s => s.slug);
+        const similar = sortBySimilarity(slug, allSubs);
+        throw new Error(`Submodule "${slug}" not found in feature "${featureSlug}". Available submodules: ${similar.join(', ') || '(none)'}`);
       }
     }, io);
   }
@@ -606,12 +642,14 @@ async function verbEdge(action, flags, projectRoot, io) {
           return !(f === from.submodule && t === to.submodule);
         });
         if (feature.edges.length >= before) {
-          const existing = (feature.edges || []).map(e => {
+          const inputEdgeStr = `"${from.submodule}" -> "${to.submodule}"`;
+          const existingList = (feature.edges || []).map(e => {
             const ef = typeof e.from === 'string' ? e.from : (e.from && e.from.submodule);
             const et = typeof e.to === 'string' ? e.to : (e.to && e.to.submodule);
             return `"${ef}" -> "${et}"${e.kind ? ` (${e.kind})` : ''}`;
-          }).join(', ') || '(none)';
-          throw new Error(`Edge "${from.feature}/${from.submodule}" -> "${to.feature}/${to.submodule}" not found. Available edges: ${existing}`);
+          });
+          const similar = sortBySimilarity(inputEdgeStr, existingList);
+          throw new Error(`Edge "${from.feature}/${from.submodule}" -> "${to.feature}/${to.submodule}" not found. Available edges: ${similar.join(', ') || '(none)'}`);
         }
         return;
       }
@@ -624,12 +662,14 @@ async function verbEdge(action, flags, projectRoot, io) {
       if ((state.edges ? state.edges.length : 0) >= before) {
         const fromStr = from.submodule ? `${from.feature}/${from.submodule}` : from.feature;
         const toStr = to.submodule ? `${to.feature}/${to.submodule}` : to.feature;
-        const existing = (state.edges || []).map(e => {
+        const inputEdgeStr = `"${fromStr}" -> "${toStr}"`;
+        const existingList = (state.edges || []).map(e => {
           const ef = e.from && (e.from.submodule ? `${e.from.feature}/${e.from.submodule}` : e.from.feature);
           const et = e.to && (e.to.submodule ? `${e.to.feature}/${e.to.submodule}` : e.to.feature);
           return `"${ef}" -> "${et}"${e.kind ? ` (${e.kind})` : ''}`;
-        }).join(', ') || '(none)';
-        throw new Error(`Edge "${fromStr}" -> "${toStr}" not found. Available edges: ${existing}`);
+        });
+        const similar = sortBySimilarity(inputEdgeStr, existingList);
+        throw new Error(`Edge "${fromStr}" -> "${toStr}" not found. Available edges: ${similar.join(', ') || '(none)'}`);
       }
       return;
     }
@@ -674,7 +714,20 @@ async function verbActor(action, flags, projectRoot, io) {
 async function verbAdd(args, flags, projectRoot, io) {
   // In batch mode (called with rawArgs), args contains interleaved --flags
   // In single-entity mode, args is positional only and flags are pre-parsed
+  // Batch mode detection: if more than 2 positional args we have type/name pairs.
+  // This heuristic works because entity type keywords (feature/module/relation)
+  // don't start with '--', and flag names always do.
   const isBatchMode = args.length > 2;
+
+  // Validate --spec directory exists before any entity processing
+  if (flags.spec) {
+    const specPath = path.isAbsolute(String(flags.spec))
+      ? String(flags.spec)
+      : path.resolve(projectRoot, String(flags.spec));
+    if (!fs.existsSync(specPath)) {
+      throw new Error(`Spec directory not found: ${flags.spec}`);
+    }
+  }
 
   async function processAddEntity(entityType, entityName, entityFlags) {
     switch (entityType) {
@@ -689,11 +742,21 @@ async function verbAdd(args, flags, projectRoot, io) {
             'dry-run': entityFlags['dry-run'],
             evidence: entityFlags.evidence,
           }, projectRoot, io);
+          if (featResult === 'skipped') return 'skipped';
 
           // Create dependency edges if --depends-on specified (supports comma-separated)
           const featDependsOn = entityFlags['depends-on'];
           if (featDependsOn) {
             const targets = String(featDependsOn).split(',').map(s => s.trim()).filter(Boolean);
+            // Validate that dependency targets exist
+            const { base, merged } = loadResolvedState(projectRoot, entityFlags);
+            const currentState = entityFlags.spec ? merged : base;
+            const availableFeatures = (currentState.features || []).map(f => f.slug);
+            for (const target of targets) {
+              if (!availableFeatures.includes(target)) {
+                throw new Error(`Dependency target "${target}" not found. Available features: ${availableFeatures.join(', ') || '(none)'}`);
+              }
+            }
             for (const target of targets) {
               await verbEdge('add', {
                 from: entityName,
@@ -703,7 +766,7 @@ async function verbAdd(args, flags, projectRoot, io) {
                 'no-render': true,
                 project: entityFlags.project,
                 'dry-run': entityFlags['dry-run'],
-                skipUndo: entityFlags.skipUndo,
+                skipUndo: true,
               }, projectRoot, io);
             }
           }
@@ -722,6 +785,7 @@ async function verbAdd(args, flags, projectRoot, io) {
           kind: entityFlags.kind,
           evidence: entityFlags.evidence,
         }, projectRoot, io);
+        if (result === 'skipped') return 'skipped';
 
         // Create implements/deployed-on edges if specified
         const implementsTarget = entityFlags.implements;
@@ -735,7 +799,7 @@ async function verbAdd(args, flags, projectRoot, io) {
             'no-render': true,
             project: entityFlags.project,
             'dry-run': entityFlags['dry-run'],
-            skipUndo: entityFlags.skipUndo,
+            skipUndo: true,
           }, projectRoot, io);
         }
         if (deployedOnTarget) {
@@ -747,7 +811,7 @@ async function verbAdd(args, flags, projectRoot, io) {
             'no-render': true,
             project: entityFlags.project,
             'dry-run': entityFlags['dry-run'],
-            skipUndo: entityFlags.skipUndo,
+            skipUndo: true,
           }, projectRoot, io);
         }
 
@@ -755,6 +819,29 @@ async function verbAdd(args, flags, projectRoot, io) {
         const dependsOn = entityFlags['depends-on'];
         if (dependsOn) {
           const targets = String(dependsOn).split(',').map(s => s.trim()).filter(Boolean);
+          // Validate dependency targets exist (feature or feature/submodule)
+          const { base, merged } = loadResolvedState(projectRoot, entityFlags);
+          const currentState = entityFlags.spec ? merged : base;
+          const availableFeatureSlugs = (currentState.features || []).map(f => f.slug);
+          for (const target of targets) {
+            const [featSlug, subSlug] = target.split('/').map(s => s.trim());
+            if (subSlug) {
+              // feature/submodule target
+              const feat = findFeature(currentState, featSlug);
+              if (!feat) {
+                throw new Error(`Dependency target feature "${featSlug}" not found. Available features: ${availableFeatureSlugs.join(', ') || '(none)'}`);
+              }
+              if (!findSubmodule(feat, subSlug)) {
+                const availableSubs = (feat.submodules || []).map(s => s.slug).join(', ') || '(none)';
+                throw new Error(`Dependency target submodule "${subSlug}" not found in feature "${featSlug}". Available submodules: ${availableSubs}`);
+              }
+            } else {
+              // Plain feature target
+              if (!availableFeatureSlugs.includes(featSlug)) {
+                throw new Error(`Dependency target "${featSlug}" not found. Available features: ${availableFeatureSlugs.join(', ') || '(none)'}`);
+              }
+            }
+          }
           for (const target of targets) {
             await verbEdge('add', {
               from: `${entityFlags['part-of']}/${entityName}`,
@@ -764,7 +851,7 @@ async function verbAdd(args, flags, projectRoot, io) {
               'no-render': true,
               project: entityFlags.project,
               'dry-run': entityFlags['dry-run'],
-              skipUndo: entityFlags.skipUndo,
+              skipUndo: true,
             }, projectRoot, io);
           }
         }
@@ -780,7 +867,7 @@ async function verbAdd(args, flags, projectRoot, io) {
             'no-render': true,
             project: entityFlags.project,
             'dry-run': entityFlags['dry-run'],
-            skipUndo: entityFlags.skipUndo,
+            skipUndo: true,
           }, projectRoot, io);
         }
 
@@ -798,18 +885,54 @@ async function verbAdd(args, flags, projectRoot, io) {
         else if (implementsTarget) kind = 'implements';
         else if (deployedOn) kind = 'deployed-on';
 
-        // Check for duplicate edge before creation
+        const { base, merged } = loadResolvedState(projectRoot, entityFlags);
+        const currentState = entityFlags.spec ? merged : base;
+
+        // Check for duplicate edge before creation (cross-feature + intra-feature)
         if (to) {
-          const { base, merged } = loadResolvedState(projectRoot, entityFlags);
-          const currentState = entityFlags.spec ? merged : base;
           const edges = currentState.edges || [];
           const fromEndpoint = parseEndpoint(entityName);
           const toEndpoint = parseEndpoint(to);
           const hasExistingEdge = edges.some(e =>
             endpointEquals(e.from, fromEndpoint) && endpointEquals(e.to, toEndpoint) && (e.kind || 'call') === kind
           );
-          if (hasExistingEdge) {
+          // Check intra-feature edges if both endpoints share a feature
+          let hasExistingIntraEdge = false;
+          if (fromEndpoint && toEndpoint && isIntraFeatureEdge(fromEndpoint, toEndpoint)) {
+            const feature = findFeature(currentState, fromEndpoint.feature);
+            if (feature) {
+              const intraEdges = feature.edges || [];
+              hasExistingIntraEdge = intraEdges.some(e => {
+                const eFrom = typeof e.from === 'string' ? e.from : (e.from && e.from.submodule);
+                const eTo = typeof e.to === 'string' ? e.to : (e.to && e.to.submodule);
+                return eFrom === fromEndpoint.submodule && eTo === toEndpoint.submodule && (e.kind || 'call') === kind;
+              });
+            }
+          }
+          if (hasExistingEdge || hasExistingIntraEdge) {
             return 'skipped';
+          }
+        }
+
+        // Check for duplicate dependency-only relation
+        if (!to && dependsOn) {
+          const edges = currentState.edges || [];
+          const fromEndpoint = parseEndpoint(entityName);
+          const toEndpoint = parseEndpoint(String(dependsOn).split(',')[0].trim());
+          const hasExistingDep = edges.some(e =>
+            endpointEquals(e.from, fromEndpoint) && endpointEquals(e.to, toEndpoint) && e.kind === 'dependency'
+          );
+          if (hasExistingDep) return 'skipped';
+        }
+
+        // Validate dependency targets exist before creating edges
+        if (dependsOn) {
+          const depTargets = String(dependsOn).split(',').map(s => s.trim()).filter(Boolean);
+          const availableFeatureSlugs = (currentState.features || []).map(f => f.slug);
+          for (const target of depTargets) {
+            if (!availableFeatureSlugs.includes(target)) {
+              throw new Error(`Dependency target "${target}" not found. Available features: ${availableFeatureSlugs.join(', ') || '(none)'}`);
+            }
           }
         }
 
@@ -825,7 +948,7 @@ async function verbAdd(args, flags, projectRoot, io) {
             project: entityFlags.project,
             'dry-run': entityFlags['dry-run'],
             id: entityFlags.id,
-            skipUndo: entityFlags.skipUndo,
+            skipUndo: true,
           }, projectRoot, io);
         }
 
@@ -841,7 +964,7 @@ async function verbAdd(args, flags, projectRoot, io) {
               'no-render': true,
               project: entityFlags.project,
               'dry-run': entityFlags['dry-run'],
-              skipUndo: entityFlags.skipUndo,
+              skipUndo: true,
             }, projectRoot, io);
           }
         }
@@ -914,6 +1037,14 @@ async function verbAdd(args, flags, projectRoot, io) {
           if (flags['deployed-on'] !== undefined && entityFlags['deployed-on'] === undefined) entityFlags['deployed-on'] = flags['deployed-on'];
           if (flags.to !== undefined && entityFlags.to === undefined) entityFlags.to = flags.to;
 
+          // Validate that value-required flags have actual values
+          if (entityFlags['depends-on'] === true) {
+            throw new Error(`--depends-on requires a value (e.g., --depends-on feature-name)`);
+          }
+          if (entityFlags['part-of'] === true) {
+            throw new Error(`--part-of requires a value (e.g., --part-of feature-name)`);
+          }
+
           entities.push({ type: entityType, name: entityName, flags: entityFlags });
         } else {
           i++;
@@ -962,7 +1093,9 @@ async function verbAdd(args, flags, projectRoot, io) {
         throw e;
       }
 
-      if (!flags['dry-run'] && !flags['no-render']) {
+      // Determine if any entity requested --no-render
+      const anyEntityNoRender = entities.some(e => e.flags['no-render']);
+      if (!flags['dry-run'] && !flags['no-render'] && !anyEntityNoRender) {
         await runRender({ projectRoot, flags });
       }
       const dryRunPrefix = flags['dry-run'] ? ' (dry-run, no changes written)' : '';
@@ -1025,7 +1158,8 @@ async function verbAdd(args, flags, projectRoot, io) {
       }
       throw e;
     }
-    if (!flags['dry-run'] && !flags['no-render']) {
+    const anyEntityNoRender = simpleEntities.some(e => e.flags['no-render']);
+    if (!flags['dry-run'] && !flags['no-render'] && !anyEntityNoRender) {
       await runRender({ projectRoot, flags });
     }
     const dryRunPrefix = flags['dry-run'] ? ' (dry-run, no changes written)' : '';
@@ -1050,11 +1184,11 @@ async function verbAdd(args, flags, projectRoot, io) {
   }
 
   const addResult = await processAddEntity(type, name, flags);
-  if (!flags['dry-run'] && !flags['no-render']) {
+  if (addResult !== 'skipped' && !flags['dry-run'] && !flags['no-render']) {
     await runRender({ projectRoot, flags });
   }
   if (addResult === 'skipped') {
-    io.stderr.write(`atlas: no change — ${type} "${name}" already exists\n`);
+    io.stdout.write(`atlas: no change — ${type} "${name}" already exists\n`);
   } else {
     const addedFlags = [];
     const flagConsumed = {
@@ -1121,7 +1255,7 @@ async function verbRemove(args, flags, projectRoot, io) {
       return 0;
     }
     case 'relation': {
-      if (!flags.to && !flags.id) throw new Error('Missing required flag --to or --id for relation');
+      if (!flags.to) throw new Error('Missing required flag --to for relation (--id is optional for precision targeting)');
       await verbEdge('remove', {
         from: name,
         to: flags.to,
@@ -1285,8 +1419,31 @@ async function verbUndo(flags, projectRoot, io) {
 }
 
 async function verbOpen(flags, projectRoot, io) {
+  if (flags.spec) {
+    const { htmlOutDir } = specOverlayDir(projectRoot, flags.spec);
+    // Render spec overlay if needed
+    const overlayHtml = path.join(htmlOutDir, 'index.html');
+    if (!fs.existsSync(overlayHtml)) {
+      await runRender({ projectRoot, flags });
+    }
+    if (!fs.existsSync(overlayHtml)) {
+      io.stderr.write(`Spec overlay not found after render: ${overlayHtml}\n`);
+      return 1;
+    }
+    io.stdout.write(`${overlayHtml}\n`);
+    if (!flags['no-open']) openInBrowser(overlayHtml);
+    return 0;
+  }
+  // Existing base atlas logic
   const atlas = path.join(projectRoot, ATLAS_INDEX_REL);
   if (!fs.existsSync(atlas)) {
+    // Before rendering a fresh (empty) base atlas, check if spec overlays exist
+    const plansRoot = path.join(projectRoot, PLANS_REL);
+    const diffDirs = walkArchitectureDiffDirs(plansRoot);
+    if (diffDirs.length > 0) {
+      io.stdout.write(`Base atlas not found. Use --spec <dir> to open a spec overlay, or remove spec overlays to start fresh.\n`);
+      return 0;
+    }
     await runRender({ projectRoot, flags: { ...flags, spec: undefined } });
   }
   if (!fs.existsSync(atlas)) {
@@ -1301,7 +1458,7 @@ async function verbOpen(flags, projectRoot, io) {
 async function verbDiff(flags, projectRoot, io) {
   const outDir = flags.out ? path.resolve(String(flags.out)) : path.join(projectRoot, DEFAULT_DIFF_OUT_REL);
   fs.mkdirSync(outDir, { recursive: true });
-  const changes = await collectDiffChanges({ projectRoot, outDir });
+  const changes = await collectDiffChanges({ projectRoot, outDir, flags });
 
   const html = renderDiffViewer({ changes, projectRoot, outDir });
   const indexPath = path.join(outDir, 'index.html');
@@ -1313,7 +1470,18 @@ async function verbDiff(flags, projectRoot, io) {
   return 0;
 }
 
-async function collectDiffChanges({ projectRoot, outDir }) {
+async function collectDiffChanges({ projectRoot, outDir, flags = {} }) {
+  if (flags.spec) {
+    // Single spec mode: only collect changes for the specified spec
+    const specPath = path.isAbsolute(String(flags.spec)) ? String(flags.spec) : path.resolve(projectRoot, String(flags.spec));
+    const overlayDir = path.join(specPath, DIFF_DIRNAME, ATLAS_DIRNAME);
+    if (hasOverlayState(overlayDir)) {
+      return collectSingleSpecChanges({ projectRoot, specDir: specPath, specLabel: String(flags.spec) });
+    }
+    // Fallback to HTML manifest
+    return collectHtmlManifestChanges({ projectRoot, diffDir: path.join(specPath, DIFF_DIRNAME), specLabel: String(flags.spec) });
+  }
+  // Existing behavior: walk all plans directories
   const plansRoot = path.join(projectRoot, PLANS_REL);
   const groups = groupDiffDirsByBatch({ projectRoot, plansRoot });
   const changes = [];

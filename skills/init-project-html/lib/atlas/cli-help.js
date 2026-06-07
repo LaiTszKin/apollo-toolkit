@@ -2,6 +2,9 @@
 
 // cli-help.js — help page builders for the atlas CLI command tree.
 
+// Hidden fine-grained verbs shared with cli.js MULTI_VERBS (Req 4: hidden from --help)
+const hiddenVerbs = new Set(['feature', 'submodule', 'function', 'variable', 'dataflow', 'error', 'edge', 'meta', 'actor']);
+
 function buildHelpPage({ title, summary, usageLines, useWhen, requiredFlags, optionalFlags, notes, examples }) {
   const lines = [title];
 
@@ -788,7 +791,6 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
   }
 
   // Fine-grained verbs are hidden from --help per SPEC Requirement 4
-  const hiddenVerbs = new Set(['feature', 'submodule', 'function', 'variable', 'dataflow', 'error', 'edge', 'meta', 'actor']);
   if (familyPages[verb] && !hiddenVerbs.has(verb)) {
     return familyPages[verb];
   }
@@ -1079,6 +1081,7 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
 
 module.exports = {
   buildArchitectureHelpPage,
+  hiddenVerbs,
   get USAGE() {
     const value = buildArchitectureHelpPage();
     Object.defineProperty(module.exports, 'USAGE', { value, enumerable: true, writable: false, configurable: false });

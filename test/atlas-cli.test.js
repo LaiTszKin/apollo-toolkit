@@ -918,6 +918,8 @@ test('add feature with --depends-on creates feature with dependency', async () =
   const root = mkProject();
   try {
     const io = makeIo();
+    // order must exist as a valid dependency target (P1-2 validation)
+    await cli.dispatch(['add', 'feature', 'order', '--project', root, '--no-render'], io);
     const code = await cli.dispatch(['add', 'feature', 'payment', '--depends-on', 'order', '--project', root, '--no-render'], io);
     assert.equal(code, 0);
     const featYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/payment.yaml'), 'utf8');
@@ -1022,6 +1024,7 @@ test('add --spec writes to overlay without mutating base files', async () => {
     const baseYamlBefore = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/base-feat.yaml'), 'utf8');
 
     const specDir = 'docs/plans/2026-05-14/spec-add-test';
+    fs.mkdirSync(path.join(root, specDir), { recursive: true });
     await cli.dispatch(['add', 'feature', 'spec-feat', '--spec', specDir, '--project', root, '--no-render'], io);
 
     const baseYamlAfter = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/base-feat.yaml'), 'utf8');
@@ -1040,6 +1043,8 @@ test('batch mode with entity types and per-entity flags', async () => {
   const root = mkProject();
   try {
     const io = makeIo();
+    // order must exist as a valid dependency target (P1-2 validation)
+    await cli.dispatch(['add', 'feature', 'order', '--project', root, '--no-render'], io);
     const code = await cli.dispatch(['add', 'feature', 'payment', '--depends-on', 'order', 'module', 'payment-api', '--part-of', 'payment', '--project', root, '--no-render'], io);
     assert.equal(code, 0);
     const featYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/payment.yaml'), 'utf8');
@@ -1165,7 +1170,8 @@ test('duplicate feature add warns', async () => {
     assert.equal(code, 0);
     code = await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
     assert.equal(code, 0);
-    assert.match(io.stderr_text, /already exists/);
+    assert.match(io.stdout_text, /already exists/);
+    assert.doesNotMatch(io.stderr_text, /already exists/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
@@ -1342,11 +1348,13 @@ test('REGTEST-F05: duplicate feature add shows "already exists" not "add applied
   try {
     const io = makeIo();
     await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
-    const code = await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
+    const io2 = makeIo();
+    const code = await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io2);
     assert.equal(code, 0);
-    // "already exists" goes to stderr (P2-7: duplicate entity warning to stderr)
-    assert.match(io.stderr_text, /already exists/);
-    assert.doesNotMatch(io.stderr_text, /add applied/);
+    // "already exists" goes to stdout (P2-1: duplicate entity warning to stdout)
+    assert.match(io2.stdout_text, /already exists/);
+    assert.doesNotMatch(io2.stdout_text, /add applied/);
+    assert.doesNotMatch(io2.stderr_text, /already exists/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
@@ -1614,6 +1622,406 @@ test('REGTEST-09: unified add --spec + diff end-to-end (P3-13)', async () => {
     // Check diff output
     assert.match(diffIo.stdout_text, /Diff pages/);
     assert.ok(fs.existsSync(path.join(outDir, 'index.html')), 'diff viewer HTML should exist');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// ---- Round 4 regression tests (REGTEST-10 through REGTEST-27) ---------------
+
+test('REGTEST-10: duplicate feature add with --depends-on skips edge creation (P1-1)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    // First add — creates feature + depends-on edge
+    let code = await cli.dispatch(['add', 'feature', 'existing', '--project', root, '--no-render'], io);
+    assert.equal(code, 0);
+    // Second add — should be skipped, no edge created
+    code = await cli.dispatch(['add', 'feature', 'existing', '--depends-on', 'nonexistent', '--project', root, '--no-render'], io);
+    assert.equal(code, 0);
+    assert.match(io.stdout_text, /already exists/);
+    // Verify no dangling edge was created
+    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    const depEdge = (state.edges || []).find(e => e.kind === 'dependency');
+    assert.equal(depEdge, undefined, 'dependency edge should not have been created');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-11: add feature --depends-on to non-existent target errors (P1-2)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    // Add a real feature first
+    await cli.dispatch(['add', 'feature', 'order', '--project', root, '--no-render'], io);
+    // Try to add feature with --depends-on to non-existent target
+    const code = await cli.dispatch(['add', 'feature', 'payment', '--depends-on', 'nonexistent', '--project', root, '--no-render'], io);
+    assert.notEqual(code, 0);
+    assert.match(io.stderr_text, /nonexistent/);
+    // Verify no dependency edge was created (feature may still be created with dependsOn ref)
+    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    const depEdge = (state.edges || []).find(e => e.kind === 'dependency');
+    assert.equal(depEdge, undefined, 'dependency edge should not have been created');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-12: add --spec to non-existent directory errors (P1-3)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    const code = await cli.dispatch(['add', 'feature', 'test', '--spec', 'nonexistent/spec-dir', '--project', root, '--no-render'], io);
+    assert.notEqual(code, 0);
+    assert.match(io.stderr_text, /not found|exist/);
+    // Verify no overlay was created
+    const overlayPath = path.join(root, 'nonexistent/spec-dir/architecture_diff/atlas');
+    assert.equal(fs.existsSync(overlayPath), false, 'overlay should not have been created');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-13: submodule remove --spec populates overlay.removed.submodules (P1-4)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    // Set up base: feature with two submodules
+    await cli.dispatch(['add', 'feature', 'register', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'api', '--part-of', 'register', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'ui', '--part-of', 'register', '--project', root, '--no-render'], io);
+
+    const specDir = 'docs/plans/test-remove-submodule-spec';
+    // Remove one submodule in spec mode
+    await cli.dispatch(['remove', 'module', 'api', '--part-of', 'register', '--spec', specDir, '--project', root, '--no-render'], io);
+
+    // Verify overlay has removed.submodules populated
+    const overlay = stateLib.loadOverlay(path.join(root, specDir, 'architecture_diff', 'atlas'));
+    assert.ok(overlay.removed, 'overlay should have removed field');
+    assert.equal(overlay.removed.submodules.length, 1, 'should have 1 removed submodule');
+    assert.equal(overlay.removed.submodules[0].feature, 'register');
+    assert.equal(overlay.removed.submodules[0].submodule, 'api');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-14: diff --spec filters to one spec directory (P1-5)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'base', '--project', root, '--no-render'], io);
+
+    // Create two spec overlays (directories must exist for P1-3 validation)
+    const specA = 'docs/plans/spec-a';
+    const specB = 'docs/plans/spec-b';
+    fs.mkdirSync(path.join(root, specA), { recursive: true });
+    fs.mkdirSync(path.join(root, specB), { recursive: true });
+    await cli.dispatch(['add', 'feature', 'from-a', '--spec', specA, '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'feature', 'from-b', '--spec', specB, '--project', root, '--no-render'], io);
+
+    // Render both spec overlays
+    await cli.dispatch(['render', '--spec', specA, '--project', root, '--no-open'], io);
+    await cli.dispatch(['render', '--spec', specB, '--project', root, '--no-open'], io);
+
+    // diff --spec spec-a should only show spec-a changes
+    const outDir = path.join(root, 'diff-filter');
+    const diffIo = makeIo();
+    const code = await cli.dispatch(['diff', '--spec', 'docs/plans/spec-a', '--project', root, '--out', outDir, '--no-open'], diffIo);
+    assert.equal(code, 0, 'diff --spec should succeed');
+    // Should mention spec-a (spec-a feature should appear)
+    assert.match(diffIo.stdout_text, /Diff pages/);
+    // Spec-b overlay index.html should NOT appear in the diff viewer (filtered out)
+    const specBIndex = path.join(root, specB, 'architecture_diff', 'index.html');
+    assert.ok(!diffIo.stdout_text.includes(specBIndex), 'spec-b should not appear in diff output');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-15: duplicate entity "already exists" message on stdout (P2-1)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
+    assert.equal(code, 0);
+    // Message should be on stdout, not stderr
+    assert.match(io.stdout_text, /already exists/);
+    assert.doesNotMatch(io.stderr_text, /already exists/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-16: batch rollback does not leave phantom history entries (P2-2)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'existing', '--project', root, '--no-render'], io);
+
+    // Read initial history length
+    const historyFile = path.join(root, 'resources/project-architecture/atlas', '_history.jsonl');
+    const historyBefore = fs.existsSync(historyFile) ? fs.readFileSync(historyFile, 'utf8').trim().split('\n').filter(Boolean).length : 0;
+
+    // Failed batch: module without --part-of
+    const code = await cli.dispatch(['add', 'feature', 'f1', 'module', 'm1', '--project', root, '--no-render'], io);
+    assert.notEqual(code, 0);
+
+    // Read history length after rollback
+    const historyAfter = fs.existsSync(historyFile) ? fs.readFileSync(historyFile, 'utf8').trim().split('\n').filter(Boolean).length : 0;
+    assert.equal(historyAfter, historyBefore, 'history length should not increase after rollback');
+
+    // Verify state was also restored
+    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    assert.equal(state.features.length, 1, 'only the original feature should exist');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-17: duplicate intra-feature relation is skipped (P2-3)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'f', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'svc', '--part-of', 'f', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'api', '--part-of', 'f', '--project', root, '--no-render'], io);
+
+    // First relation — should succeed
+    let code = await cli.dispatch(['add', 'relation', 'f/svc', '--data-flow-to', 'f/api', '--project', root, '--no-render'], io);
+    assert.equal(code, 0);
+    assert.match(io.stdout_text, /add applied/);
+
+    const io2 = makeIo();
+    // Duplicate relation — should be skipped
+    code = await cli.dispatch(['add', 'relation', 'f/svc', '--data-flow-to', 'f/api', '--project', root, '--no-render'], io2);
+    assert.equal(code, 0);
+    assert.match(io2.stdout_text, /already exists/i);
+
+    // Verify only ONE edge was created
+    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    const feat = state.features.find(f => f.slug === 'f');
+    const dataRowEdges = (feat.edges || []).filter(e => e.kind === 'data-row');
+    assert.equal(dataRowEdges.length, 1, 'should have exactly 1 data-row edge');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-18: --depends-on with missing value in batch errors (P2-4)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'order', '--project', root, '--no-render'], io);
+    // --depends-on followed by --no-render (boolean flag, not a value)
+    const code = await cli.dispatch(['add', 'feature', 'payment', '--depends-on', '--no-render', '--project', root], io);
+    assert.notEqual(code, 0);
+    assert.match(io.stderr_text, /Dependency target|not found/);
+    // Verify no dangling edge to "true" was created
+    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    const depEdge = (state.edges || []).find(e => e.kind === 'dependency');
+    assert.equal(depEdge, undefined, 'no dependency edge should exist');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-19: remove relation with --id but no --to requires --to (P2-5)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'a', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'feature', 'b', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['remove', 'relation', 'a', '--id', 'e-abc123', '--project', root, '--no-render'], io);
+    assert.notEqual(code, 0);
+    // Should mention --to requirement clearly
+    assert.match(io.stderr_text, /--to/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-20: hiddenVerbs export matches MULTI_VERBS (P2-7)', () => {
+  const cliHelp = require('../skills/init-project-html/lib/atlas/cli-help.js');
+  // Verify hiddenVerbs is exported
+  assert.ok(cliHelp.hiddenVerbs, 'hiddenVerbs should be exported from cli-help.js');
+  assert.ok(cli.MULTI_VERBS, 'MULTI_VERBS should be exported from cli.js');
+  // Compare sets: same size and same elements
+  assert.equal(cliHelp.hiddenVerbs.size, cli.MULTI_VERBS.size, 'sets should have same size');
+  for (const v of cli.MULTI_VERBS) {
+    assert.ok(cliHelp.hiddenVerbs.has(v), `hiddenVerbs should contain "${v}" from MULTI_VERBS`);
+  }
+});
+
+test('REGTEST-21: open --spec renders and opens spec overlay (P2-8)', async () => {
+  const root = mkProject();
+  try {
+    // Set up base feature
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'base', '--project', root, '--no-render'], io);
+    // Create a spec overlay
+    const specDir = 'docs/plans/test-open-spec';
+    fs.mkdirSync(path.join(root, specDir), { recursive: true });
+    await cli.dispatch(['add', 'feature', 'spec-feat', '--spec', specDir, '--project', root, '--no-render'], io);
+
+    // open --spec should render HTML in the spec overlay dir
+    const openIo = makeIo();
+    const code = await cli.dispatch(['open', '--spec', specDir, '--project', root, '--no-open'], openIo);
+    assert.equal(code, 0);
+    const outPath = openIo.stdout_text.trim().split('\n').pop();
+    // Should be inside the spec's architecture_diff directory
+    assert.ok(outPath.includes(specDir), 'output should reference spec directory');
+    assert.ok(outPath.endsWith('index.html'), 'output should be an HTML file');
+    assert.ok(fs.existsSync(outPath), 'spec overlay HTML should exist');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-22: skipped entity skips render (P3-1)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-open'], io);
+    // Verify HTML was rendered from first add
+    const htmlPath = path.join(root, 'resources/project-architecture/index.html');
+    const firstMtime = fs.statSync(htmlPath).mtimeMs;
+
+    // Small delay to ensure mtime changes
+    await new Promise(r => setTimeout(r, 100));
+
+    // Duplicate add — should NOT re-render (no change)
+    const io2 = makeIo();
+    await cli.dispatch(['add', 'feature', 'payment', '--project', root], io2);
+    // Without --no-open, the default render should be skipped since entity was skipped
+    assert.match(io2.stdout_text, /already exists/);
+
+    // HTML should not have been re-rendered (mtime unchanged)
+    const secondMtime = fs.statSync(htmlPath).mtimeMs;
+    assert.equal(secondMtime, firstMtime, 'HTML mtime should not change when entity was skipped');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-23: entity-level --no-render in batch suppresses batch render (P3-3)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    // Batch with a --no-render flag on the second entity
+    const code = await cli.dispatch(['add', 'feature', 'f1', 'feature', 'f2', '--no-render', '--project', root], io);
+    assert.equal(code, 0);
+    // HTML should NOT have been rendered (batch post-render suppressed by entity --no-render)
+    assert.equal(fs.existsSync(path.join(root, 'resources/project-architecture/index.html')), false,
+      'HTML should not exist when entity-level --no-render was specified');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-24: unified add --spec + diff end-to-end with deeper assertions (P2-9)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    const specDir = 'docs/plans/test-deep-diff';
+    fs.mkdirSync(path.join(root, specDir), { recursive: true });
+    // Add base feature
+    await cli.dispatch(['add', 'feature', 'base', '--project', root, '--no-render'], io);
+    // Add spec feature via unified add
+    await cli.dispatch(['add', 'feature', 'new-feature', '--spec', specDir, '--project', root, '--no-render'], io);
+
+    // Verify overlay was written correctly
+    const overlayPath = path.join(root, specDir, 'architecture_diff', 'atlas', 'features', 'new-feature.yaml');
+    assert.ok(fs.existsSync(overlayPath), 'overlay feature YAML should exist');
+
+    // Render the spec overlay
+    await cli.dispatch(['render', '--spec', specDir, '--project', root, '--no-open'], io);
+
+    // Verify overlay HTML was generated
+    const specHtmlPath = path.join(root, specDir, 'architecture_diff', 'features', 'new-feature', 'index.html');
+    assert.ok(fs.existsSync(specHtmlPath), 'spec overlay HTML should exist');
+
+    // Run diff
+    const outDir = path.join(root, 'diff-deep');
+    const diffIo = makeIo();
+    const code = await cli.dispatch(['diff', '--project', root, '--out', outDir, '--no-open'], diffIo);
+    assert.equal(code, 0);
+    // Should detect 1 added feature
+    assert.match(diffIo.stdout_text, /Diff pages/);
+    assert.match(diffIo.stdout_text, /added=\d+/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-25: render --spec produces output in correct location (P2-10/P2-11)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    // Set up base
+    await cli.dispatch(['add', 'feature', 'base', '--project', root, '--no-render'], io);
+
+    // Create spec overlay that modifies base
+    const specDir = 'docs/plans/test-render-spec';
+    fs.mkdirSync(path.join(root, specDir), { recursive: true });
+    await cli.dispatch(['add', 'feature', 'spec-feat', '--spec', specDir, '--project', root, '--no-render'], io);
+    await cli.dispatch(['render', '--spec', specDir, '--project', root, '--no-open'], io);
+
+    // Verify render --spec wrote to spec_dir/architecture_diff/
+    const specHtml = path.join(root, specDir, 'architecture_diff', 'index.html');
+    assert.ok(fs.existsSync(specHtml), 'spec overlay HTML should exist at spec_dir/architecture_diff/');
+
+    // Verify base HTML was NOT modified by spec render
+    const baseHtml = path.join(root, 'resources/project-architecture/index.html');
+    assert.equal(fs.existsSync(baseHtml), false, 'base HTML should NOT be generated by spec render alone');
+
+    // Test merge without --no-render — should produce base HTML
+    await cli.dispatch(['merge', '--spec', specDir, '--project', root, '--no-open'], io);
+    assert.ok(fs.existsSync(baseHtml), 'base HTML should exist after merge');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-26: submodule remove --spec records removal in _removed.txt and _removed.yaml (P2-12)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'register', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'api', '--part-of', 'register', '--project', root, '--no-render'], io);
+
+    const specDir = 'docs/plans/test-sub-remove-spec';
+    await cli.dispatch(['remove', 'module', 'api', '--part-of', 'register', '--spec', specDir, '--project', root, '--no-open'], io);
+
+    // Verify _removed.txt contains the submodule page
+    const removedTxt = fs.readFileSync(path.join(root, specDir, 'architecture_diff', '_removed.txt'), 'utf8');
+    assert.match(removedTxt, /register\/api\.html/, '_removed.txt should contain the removed submodule page');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('REGTEST-27: remove non-existent feature errors with suggestions AND spec-mode cascade works (P3-9/P3-10)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'feature', 'billing', '--project', root, '--no-render'], io);
+
+    // Remove non-existent feature — should error with suggestion
+    const code = await cli.dispatch(['remove', 'feature', 'paymint', '--project', root, '--no-render'], io);
+    assert.notEqual(code, 0);
+    assert.match(io.stderr_text, /paymint/);
+    assert.match(io.stderr_text, /payment/); // should suggest "payment" (similar name)
+
+    // Verify --spec mode cascade for feature remove
+    const specDir = 'docs/plans/test-spec-cascade';
+    await cli.dispatch(['remove', 'feature', 'billing', '--spec', specDir, '--project', root, '--no-open'], io);
+    const overlay = stateLib.loadOverlay(path.join(root, specDir, 'architecture_diff', 'atlas'));
+    assert.ok(overlay.removed, 'overlay should have removed tracking');
+    assert.ok(overlay.removed.features.includes('billing'), 'billing should be in removed features');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
