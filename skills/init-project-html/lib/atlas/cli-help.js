@@ -787,7 +787,9 @@ function buildArchitectureHelpPage(verb = null, subverb = null) {
     return actionPages[`${verb}:${subverb}`];
   }
 
-  if (familyPages[verb]) {
+  // Fine-grained verbs are hidden from --help per SPEC Requirement 4
+  const hiddenVerbs = new Set(['feature', 'submodule', 'function', 'variable', 'dataflow', 'error', 'edge', 'meta', 'actor']);
+  if (familyPages[verb] && !hiddenVerbs.has(verb)) {
     return familyPages[verb];
   }
 
