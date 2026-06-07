@@ -1,7 +1,6 @@
 # Regression Test Worker Prompt: REGTEST-01-integration
 
-- **Related fix**: FIX-01 — all cli.js behavioral fixes
-- **Source REPORT**: `docs/plans/2026-06-07/architecture-simplify/REPORT.md`
+- **Related fixes**: FIX-01 through FIX-09 — All fixes in this round
 
 ---
 
@@ -9,18 +8,18 @@
 
 ### Mission
 
-Write integration tests in `atlas-cli.test.js` covering batch mode, module relation flags, remove error handling, duplicate entity detection, edge kind correctness, and help text accuracy.
+Write regression tests for all 8 behavioral fixes plus 4 test-coverage gaps (P3 items). All 13 tests go in `test/atlas-cli.test.js`. Each test must fail on the unfixed code and pass after the fixes are applied.
 
 ### Context
 
-FIX-01 modifies `cli.js` to fix 11 issues across batch mode parsing, module relation flags, remove error handling, user messaging, and edge semantics. These tests verify the fixes work correctly and serve as regression guards.
+This covers FIX-01 through FIX-09 (P1 and P2 behavioral fixes) plus P3-10 through P3-13 (test coverage gaps from REPORT.md Round 2). All tests are integration tests that exercise `cli.dispatch()` with the `--project` flag, verifying YAML output, exit codes, and stdout/stderr content.
 
 ### Rules
 
-- Only create or modify test files — never modify source code
-- The test must fail on the unfixed code and pass after the fix is applied — this is the core oracle
-- Follow the existing test patterns and style in `atlas-cli.test.js` (CommonJS, `node:test`, `node:assert/strict`, `makeIo()`, `mkProject()`)
-- Append new tests at the end of the file, after the existing `// ---- add/remove verb tests ----` section
+- Only modify `test/atlas-cli.test.js` — never modify source code
+- Follow existing test patterns: use `makeIo()`, `mkProject()`, `cli.dispatch()`, and `assert` from `node:assert/strict`
+- Each test must fail on the unfixed code and pass after fixes are applied — this is the core oracle
+- Append new tests at the end, after the existing `add auto-render without --no-render` test
 - Workers are leaf nodes — do not spawn sub-workers
 
 ---
@@ -29,380 +28,284 @@ FIX-01 modifies `cli.js` to fix 11 issues across batch mode parsing, module rela
 
 ### Input Files
 
-- `test/atlas-cli.test.js` — Write tests here; follow existing patterns (L917-1035 add/remove tests for reference)
-- `skills/init-project-html/lib/atlas/cli.js` — The fixed code (read to understand what changed)
+- `test/atlas-cli.test.js` — Write tests here; existing add/remove tests (L917-1260) serve as format reference
+- `skills/init-project-html/lib/atlas/cli.js` — The fixed code (read to understand changed behavior)
+- `skills/init-project-html/lib/atlas/state.js` — State loading helpers
 
-### Test Design Reference
+### Test Design Summary
 
-Existing test patterns in `atlas-cli.test.js`:
-- Use `makeIo()` for IO capture
-- Use `mkProject()` for temp project directory
-- Use `cli.dispatch([...], io)` syntax
-- Check exit code with `assert.equal(code, N)`
-- Check YAML file contents with `fs.readFileSync` + `assert.match`
-- Use `try/finally` with `fs.rmSync(root, { recursive: true, force: true })` for cleanup
+| Test ID | Type | Scenario | Oracle |
+|---|---|---|---|
+| REGTEST-F01 | Integration | Add module with --implements, verify rendered edge | After add, atlas index YAML contains `implements` kind edge |
+| REGTEST-F02 | Integration | Add module with --data-flow-to | Atlas index contains `data-row` edge |
+| REGTEST-F03 | Integration | Batch --spec mode rollback on failure | Overlay dir is empty after failure |
+| REGTEST-F04 | Integration | Feature --depends-on creates graph edge | Atlas index contains `dependency` edge |
+| REGTEST-F05 | Integration | Duplicate feature output | stdout says "already exists" not "add applied" |
+| REGTEST-F06 | Integration | Change summary with relation flags | stdout shows `depends-on:` in summary |
+| REGTEST-F07 | Integration | Empty batch returns error | Exit non-zero, stderr mentions "No valid entities" |
+| REGTEST-F08 | Integration | Pre-entity flags in batch mode | Dependency edge created when --depends-on is before first entity |
+| REGTEST-F09 | Integration | Fine-grained verb --help hidden | `feature --help` shows default help, not fine-grained page |
+| P3-10 | Integration | Remove module happy path | Exit 0, submodule removed from YAML |
+| P3-11 | Integration | Remove relation happy path | Exit 0, edge removed from state |
+| P3-12 | Integration | Auto-render after remove | HTML exists after remove without --no-render |
+| P3-13 | Integration | Template verb integration | Exit non-zero, stderr suggests "add" |
 
 ---
 
 ## 3. Tasks
 
-Write the following tests in `test/atlas-cli.test.js`. Add them after the existing `// ---- add/remove verb tests ----` section (after line 1035). Each test should have its own `test()` call with a descriptive name.
-
-### Test 1: Batch mode with different entity types and per-entity flags (FIX-01-1)
+Add each test after the existing `add auto-render without --no-render` test (after the closing `})` bracket near line 1260). Start with a comment section marker:
 
 ```javascript
-test('add batch mode with mixed entity types and per-entity flags', async () => {
-  const root = mkProject();
-  try {
-    const io = makeIo();
-    // Create base features first
-    let code = await cli.dispatch(['add', 'feature', 'order', '--project', root, '--no-render'], io);
-    assert.equal(code, 0);
-    
-    // Batch: feature with --depends-on, then module with --part-of
-    code = await cli.dispatch([
-      'add', 'feature', 'payment', '--depends-on', 'order',
-      'module', 'payment-api', '--part-of', 'payment',
-      '--project', root, '--no-render',
-    ], io);
-    assert.equal(code, 0);
-    
-    // Verify: payment feature depends on order
-    const paymentYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/payment.yaml'), 'utf8');
-    assert.match(paymentYaml, /dependsOn/);
-    assert.match(paymentYaml, /order/);
-    
-    // Verify: payment-api is a submodule of payment
-    const featureYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/payment.yaml'), 'utf8');
-    assert.match(featureYaml, /slug: payment-api/);
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
+// ---- Round 2 regression tests (FIX-01 through FIX-09) ----------------------
 ```
 
-**Oracle**: This test must fail before FIX-01 because shared flags would cause `payment` feature to not get its `--depends-on order` correctly (cross-contamination with batch flags). After FIX-01, per-entity flags are correctly scoped.
-
-### Test 2: Add module with --implements creates edge (FIX-01-2)
+### REGTEST-F01: Module add with --implements renders complete output (FIX-01)
 
 ```javascript
-test('add module --implements creates implements edge', async () => {
+test('REGTEST-F01: module --implements renders edge in output (FIX-01)', async () => {
   const root = mkProject();
   try {
     const io = makeIo();
     await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
     await cli.dispatch(['add', 'feature', 'gateway', '--project', root, '--no-render'], io);
-    
-    const code = await cli.dispatch([
-      'add', 'module', 'stripe-adapter', '--part-of', 'payment',
-      '--implements', 'gateway/svc',
-      '--project', root, '--no-render',
-    ], io);
+    const code = await cli.dispatch(['add', 'module', 'stripe-adapter', '--part-of', 'payment', '--implements', 'gateway/svc', '--project', root, '--no-open'], io);
     assert.equal(code, 0);
-    
-    // Verify edge exists with kind 'implements' in atlas index
     const indexYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/atlas.index.yaml'), 'utf8');
     assert.match(indexYaml, /implements/);
+    // Verify HTML was auto-rendered
+    assert.ok(fs.existsSync(path.join(root, 'resources/project-architecture/index.html')));
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 ```
 
-**Oracle**: Must fail before FIX-01 because `processAddEntity` module case does not forward `--implements`. After FIX-01, the edge is created with kind `implements`.
-
-### Test 3: Add module with --deployed-on creates edge (FIX-01-2)
+### REGTEST-F02: Module --data-flow-to creates data-row edge (FIX-02)
 
 ```javascript
-test('add module --deployed-on creates deployment edge', async () => {
+test('REGTEST-F02: module --data-flow-to creates data-row edge (FIX-02)', async () => {
   const root = mkProject();
   try {
     const io = makeIo();
     await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
-    
-    const code = await cli.dispatch([
-      'add', 'module', 'payment-api', '--part-of', 'payment',
-      '--deployed-on', 'eks-cluster',
-      '--project', root, '--no-render',
-    ], io);
+    await cli.dispatch(['add', 'feature', 'ledger', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'svc', '--part-of', 'ledger', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['add', 'module', 'payment-gateway', '--part-of', 'payment', '--data-flow-to', 'ledger/svc', '--project', root, '--no-render'], io);
     assert.equal(code, 0);
-    
     const indexYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/atlas.index.yaml'), 'utf8');
-    assert.match(indexYaml, /deployed-on/);
+    assert.match(indexYaml, /data-row/);
+    assert.match(indexYaml, /ledger/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 ```
 
-### Test 4: Add module with --depends-on creates edge (FIX-01-3)
+### REGTEST-F03: Batch --spec mode rollback on failure (FIX-03)
 
 ```javascript
-test('add module --depends-on creates dependency edge', async () => {
+test('REGTEST-F03: batch add in --spec mode rolls back on failure (FIX-03)', async () => {
   const root = mkProject();
   try {
     const io = makeIo();
-    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
-    await cli.dispatch(['add', 'feature', 'billing', '--project', root, '--no-render'], io);
-    await cli.dispatch(['add', 'module', 'svc', '--part-of', 'billing', '--project', root, '--no-render'], io);
-    
-    const code = await cli.dispatch([
-      'add', 'module', 'payment-api', '--part-of', 'payment',
-      '--depends-on', 'billing/svc',
-      '--project', root, '--no-render',
-    ], io);
+    await cli.dispatch(['add', 'feature', 'existing', '--project', root, '--no-render'], io);
+    const specDir = 'docs/plans/2026-06-07/spec-rollback-test';
+    // Batch with a valid entity followed by an invalid one (module without --part-of)
+    const code = await cli.dispatch(['add', 'feature', 'f1', 'module', 'm1', '--spec', specDir, '--project', root, '--no-render'], io);
+    assert.notEqual(code, 0);
+    // Verify overlay does NOT contain f1 (rollback happened)
+    const overlayDir = path.join(root, specDir, 'architecture_diff', 'atlas');
+    if (fs.existsSync(overlayDir)) {
+      const overlayFiles = fs.readdirSync(overlayDir);
+      assert.equal(overlayFiles.filter(f => f.endsWith('.yaml')).length, 0,
+        'Overlay should be empty after rollback');
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+```
+
+### REGTEST-F04: Feature --depends-on creates graph edge (FIX-04)
+
+```javascript
+test('REGTEST-F04: feature --depends-on creates dependency edge (FIX-04)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'order', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['add', 'feature', 'payment', '--depends-on', 'order', '--project', root, '--no-render'], io);
     assert.equal(code, 0);
-    
+    // Feature YAML should still have dependsOn field
+    const featYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/features/payment.yaml'), 'utf8');
+    assert.match(featYaml, /dependsOn/);
+    // Plus a dependency edge in the atlas index
     const indexYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/atlas.index.yaml'), 'utf8');
     assert.match(indexYaml, /dependency/);
+    assert.match(indexYaml, /order/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 ```
 
-### Test 5: Remove non-existent feature returns non-zero exit code (FIX-01-4)
+### REGTEST-F05: Duplicate feature output corrected (FIX-05)
 
 ```javascript
-test('remove non-existent feature returns error with similar names', async () => {
-  const root = mkProject();
-  try {
-    const io = makeIo();
-    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
-    await cli.dispatch(['add', 'feature', 'billing', '--project', root, '--no-render'], io);
-    
-    const code = await cli.dispatch(['remove', 'feature', 'paymint', '--project', root, '--no-render'], io);
-    assert.notEqual(code, 0);
-    // Should mention the similar names (payment, billing)
-    assert.match(io.stderr_text, /paymint/);
-    assert.match(io.stderr_text, /payment/);
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-```
-
-**Oracle**: Must fail before FIX-01 (returns 0 with no error). Must pass after FIX-01 (returns non-zero with error listing similar names).
-
-### Test 6: Remove non-existent module returns error (FIX-01-4)
-
-```javascript
-test('remove non-existent module returns error', async () => {
-  const root = mkProject();
-  try {
-    const io = makeIo();
-    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
-    await cli.dispatch(['add', 'module', 'api', '--part-of', 'payment', '--project', root, '--no-render'], io);
-    
-    const code = await cli.dispatch(['remove', 'module', 'apix', '--part-of', 'payment', '--project', root, '--no-render'], io);
-    assert.notEqual(code, 0);
-    assert.match(io.stderr_text, /apix/);
-    assert.match(io.stderr_text, /api/);
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-```
-
-### Test 7: Remove with --dry-run doesn't mutate state (FIX-01-5)
-
-```javascript
-test('remove --dry-run does not mutate state', async () => {
-  const root = mkProject();
-  try {
-    const io = makeIo();
-    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
-    
-    const stateBefore = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
-    assert.equal(stateBefore.features.length, 1);
-    
-    const code = await cli.dispatch(['remove', 'feature', 'payment', '--project', root, '--no-render', '--dry-run'], io);
-    assert.equal(code, 0);
-    
-    const stateAfter = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
-    assert.equal(stateAfter.features.length, 1, 'feature should still exist after dry-run remove');
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-```
-
-**Oracle**: Must fail before FIX-01 (--dry-run is silently ignored, feature is actually removed). Must pass after FIX-01 (--dry-run is forwarded, feature remains).
-
-### Test 8: Add module with non-existent --part-of returns error (FIX-01-9)
-
-```javascript
-test('add module --part-of non-existent feature returns error with available features', async () => {
-  const root = mkProject();
-  try {
-    const io = makeIo();
-    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
-    await cli.dispatch(['add', 'feature', 'billing', '--project', root, '--no-render'], io);
-    
-    const code = await cli.dispatch(['add', 'module', 'orphan', '--part-of', 'nonexistent', '--project', root, '--no-render'], io);
-    assert.notEqual(code, 0);
-    assert.match(io.stderr_text, /nonexistent/);
-    assert.match(io.stderr_text, /payment/);
-    assert.match(io.stderr_text, /billing/);
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-```
-
-**Oracle**: Must fail before FIX-01 (phantom feature "nonexistent" is silently created). Must pass after FIX-01 (error thrown listing available features).
-
-### Test 9: Duplicate feature add warns (FIX-01-7)
-
-```javascript
-test('add duplicate feature warns and skips', async () => {
+test('REGTEST-F05: duplicate feature add shows "already exists" not "add applied" (FIX-05)', async () => {
   const root = mkProject();
   try {
     const io = makeIo();
     await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
     const code = await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
     assert.equal(code, 0);
-    assert.match(io.stderr_text, /already exists/i);
+    assert.match(io.stdout_text, /already exists/);
+    assert.doesNotMatch(io.stdout_text, /add applied/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 ```
 
-### Test 10: Relation --implements and --deployed-on produce correct edge kind (FIX-01-8)
+### REGTEST-F06: Change summary includes relation details (FIX-06)
 
 ```javascript
-test('relation --implements produces implements edge kind', async () => {
-  const root = mkProject();
-  try {
-    const io = makeIo();
-    await cli.dispatch(['add', 'feature', 'a', '--project', root, '--no-render'], io);
-    await cli.dispatch(['add', 'module', 'svc', '--part-of', 'a', '--project', root, '--no-render'], io);
-    await cli.dispatch(['add', 'feature', 'b', '--project', root, '--no-render'], io);
-    
-    await cli.dispatch(['add', 'relation', 'a/svc', '--implements', 'b/svc', '--project', root, '--no-render'], io);
-    
-    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
-    const edge = state.edges.find(e => e.from.feature === 'a');
-    assert.ok(edge, 'edge should exist');
-    assert.equal(edge.kind, 'implements', 'edge kind should be "implements" not "call"');
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-```
-
-### Test 11: Batch atomicity — partial failure doesn't leave partial state (FIX-01-11)
-
-This test is harder to write because the validation happens at the mutation callback level. The simplest approach: create a batch where one entity has an invalid `--part-of` reference. Before the fix, entities before the failing one are persisted. After the fix, nothing is persisted.
-
-```javascript
-test('batch add rolls back on entity validation failure', async () => {
-  const root = mkProject();
-  try {
-    const io = makeIo();
-    // Add a valid entity
-    await cli.dispatch(['add', 'feature', 'existing', '--project', root, '--no-render'], io);
-    
-    // Batch with valid feature, then invalid module (--part-of non-existent)
-    const code = await cli.dispatch([
-      'add', 'feature', 'f1',
-      'module', 'm1', '--part-of', 'nonexistent',
-      '--project', root, '--no-render',
-    ], io);
-    assert.notEqual(code, 0);
-    
-    // Verify f1 was NOT added (batch should roll back)
-    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
-    assert.equal(state.features.find(f => f.slug === 'f1'), undefined, 'f1 should not exist after batch rollback');
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-```
-
-**Oracle**: Must fail before FIX-01 (f1 is persisted despite m1 failing). Must pass after FIX-01 (pre-validation rejects the batch before any mutation).
-
-### Test 12: Legacy apply verb suggests add (FIX-01-12)
-
-```javascript
-test('legacy apply verb suggests using add instead', async () => {
-  const io = makeIo();
-  const code = await cli.dispatch(['apply', '/tmp/dummy.yaml'], io);
-  assert.notEqual(code, 0);
-  assert.match(io.stderr_text, /add/);
-  assert.doesNotMatch(io.stderr_text, /Unknown verb/);  // Should have specific message
-});
-```
-
-### Test 13: remove --dry-run is forwarded (regression guard for FIX-01-5)
-
-```javascript
-test('remove --dry-run produces JSON diff output', async () => {
+test('REGTEST-F06: add module output includes relation flags in summary (FIX-06)', async () => {
   const root = mkProject();
   try {
     const io = makeIo();
     await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
-    
-    const code = await cli.dispatch(['remove', 'feature', 'payment', '--project', root, '--no-render', '--dry-run'], io);
+    await cli.dispatch(['add', 'feature', 'order', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['add', 'module', 'payment-api', '--part-of', 'payment', '--depends-on', 'order', '--project', root, '--no-render'], io);
     assert.equal(code, 0);
-    // Dry-run should output JSON diff
-    assert.match(io.stdout_text, /dry-run/);
-    
-    // Feature should still exist
-    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
-    assert.equal(state.features.length, 1);
+    assert.match(io.stdout_text, /depends-on/);
+    assert.match(io.stdout_text, /payment-api/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 ```
 
-### Test 14: Help text shows operational verbs (FIX-02-13, P2-13 regression guard)
-
-Update the existing `test('help prints usage and exits 0')` at L358-365 to also verify `validate`, `status`, `scan`, `undo` appear:
-
-Instead of modifying the existing test, add a new test:
-```javascript
-test('help text shows operational commands validate/status/scan/undo', async () => {
-  const io = makeIo();
-  const code = await cli.dispatch(['help'], io);
-  assert.equal(code, 0);
-  assert.match(io.stdout_text, /validate/);
-  assert.match(io.stdout_text, /status/);
-  assert.match(io.stdout_text, /scan/);
-  assert.match(io.stdout_text, /undo/);
-});
-```
-
-### Test 15: Help text hides fine-grained mutation verbs (P3-16)
+### REGTEST-F07: Empty batch returns error (FIX-07)
 
 ```javascript
-test('help text does not show fine-grained mutation verbs', async () => {
-  const io = makeIo();
-  const code = await cli.dispatch(['help'], io);
-  assert.equal(code, 0);
-  assert.doesNotMatch(io.stdout_text, /feature add/);
-  assert.doesNotMatch(io.stdout_text, /submodule add/);
-  assert.doesNotMatch(io.stdout_text, /edge add/);
-});
-```
-
-### Test 16: Add auto-render without --no-render (P3-14)
-
-```javascript
-test('add triggers auto-render without --no-render', async () => {
+test('REGTEST-F07: batch mode with no valid entities returns error (FIX-07)', async () => {
   const root = mkProject();
   try {
     const io = makeIo();
-    const code = await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-open'], io);
-    assert.equal(code, 0);
-    // HTML should be rendered
-    assert.ok(fs.existsSync(path.join(root, 'resources/project-architecture/index.html')));
-    assert.match(io.stdout_text, /applied/);
+    const code = await cli.dispatch(['add', '--project', root, '--no-render'], io);
+    assert.notEqual(code, 0);
+    assert.match(io.stderr_text, /No valid entities/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+```
+
+### REGTEST-F08: Pre-entity flags in batch mode (FIX-08)
+
+```javascript
+test('REGTEST-F08: --depends-on before first entity in batch creates dependency (FIX-08)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'order', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['add', '--depends-on', 'order', 'feature', 'payment', '--project', root, '--no-render'], io);
+    assert.equal(code, 0);
+    const indexYaml = fs.readFileSync(path.join(root, 'resources/project-architecture/atlas/atlas.index.yaml'), 'utf8');
+    assert.match(indexYaml, /dependency/);
+    assert.match(indexYaml, /order/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+```
+
+### REGTEST-F09: Fine-grained verb --help hidden (FIX-09)
+
+```javascript
+test('REGTEST-F09: fine-grained verb --help shows default help (FIX-09)', async () => {
+  const io = makeIo();
+  const code = await cli.dispatch(['feature', '--help'], io);
+  assert.equal(code, 0);
+  assert.doesNotMatch(io.stdout_text, /feature add --slug/);
+  assert.doesNotMatch(io.stdout_text, /manage feature modules/);
+});
+```
+
+### P3-10: Remove module happy path via unified dispatch
+
+```javascript
+test('P3-10: remove module via unified dispatch (happy path)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'api', '--part-of', 'payment', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['remove', 'module', 'api', '--part-of', 'payment', '--project', root, '--no-render'], io);
+    assert.equal(code, 0);
+    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    const payment = state.features.find(f => f.slug === 'payment');
+    assert.ok(payment, 'feature should still exist');
+    assert.equal(payment.submodules.length, 0, 'submodule should be removed');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+```
+
+### P3-11: Remove relation happy path via unified dispatch
+
+```javascript
+test('P3-11: remove relation via unified dispatch (happy path)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'a', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'feature', 'b', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'svc', '--part-of', 'a', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'module', 'api', '--part-of', 'b', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'relation', 'a/svc', '--data-flow-to', 'b/api', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['remove', 'relation', 'a/svc', '--to', 'b/api', '--project', root, '--no-render'], io);
+    assert.equal(code, 0);
+    const state = stateLib.load(path.join(root, 'resources/project-architecture/atlas'));
+    const edge = (state.edges || []).find(e => e.from.feature === 'a' && e.to.feature === 'b');
+    assert.equal(edge, undefined, 'edge should be removed');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+```
+
+### P3-12: Auto-render after remove without --no-render
+
+```javascript
+test('P3-12: remove without --no-render triggers auto-render', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'payment', '--project', root, '--no-render'], io);
+    await cli.dispatch(['add', 'feature', 'test-x', '--project', root, '--no-render'], io);
+    const code = await cli.dispatch(['remove', 'feature', 'test-x', '--project', root, '--no-open'], io);
+    assert.equal(code, 0);
+    assert.ok(fs.existsSync(path.join(root, 'resources/project-architecture/index.html')),
+      'HTML should be rendered after remove');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+```
+
+### P3-13: Template verb integration test
+
+```javascript
+test('P3-13: legacy template suggests add', async () => {
+  const io = makeIo();
+  const code = await cli.dispatch(['template', '/tmp/dummy.yaml'], io);
+  assert.notEqual(code, 0);
+  assert.match(io.stderr_text, /add/);
+  assert.doesNotMatch(io.stderr_text, /Unknown verb/);
 });
 ```
 
@@ -410,31 +313,32 @@ test('add triggers auto-render without --no-render', async () => {
 
 When done, report back to the coordinator:
 - **Test file**: `test/atlas-cli.test.js`
-- **Tests added**: [list all tests by name]
-- **Oracle confirmed**: Run each test individually on unfixed code — confirm at least Test 1, 5, 7, 8, 11, 12 fail before fix
+- **Tests added**: 13 total (REGTEST-F01 through REGTEST-F09, P3-10 through P3-13)
+- **Oracle confirmed**: List which tests were verified to fail before fix (or note if fix was already applied)
 - **Risks or concerns**: [or "None"]
 
 ---
 
 ## 4. Verification
 
-1. Run all new tests on unfixed code (temporarily revert FIX-01 changes):
+1. After fixes are applied, run:
    ```bash
    node --test test/atlas-cli.test.js
    ```
-   - Expected: Some new tests fail (confirming the oracle detects the unfixed bugs) while all existing tests pass
+   - Expected: All tests pass (both old and new)
 
-2. After fix is applied, run:
-   ```bash
-   node --test test/atlas-cli.test.js
-   ```
-   - Expected: All tests pass
-
-3. Run full test suite:
+2. Run full test suite:
    ```bash
    npm test
    ```
-   - Expected: All tests pass (no regressions)
+   - Expected: All tests pass
+
+3. For oracle verification (if the fix hasn't been applied yet):
+   Run each test individually on the unfixed code:
+   - REGTEST-F01: Should fail (implements edge not created)
+   - REGTEST-F05: Should fail (duplicate shows "add applied")
+   - REGTEST-F07: Should fail (empty batch silently succeeds)
+   - REGTEST-F09: Should fail (fine-grained --help still shows old page)
 
 ---
 
@@ -442,14 +346,17 @@ When done, report back to the coordinator:
 
 ### Allowed Files
 
-- `test/atlas-cli.test.js` — Write all regression tests here
+- `test/atlas-cli.test.js` — write all regression tests here (append at end)
 
 ### Forbidden Files
 
-- All source code files (`cli.js`, `cli-help.js`, `index.ts`, etc.) — the regression test worker must not modify source code
+- All source code files (`cli.js`, `cli-help.js`, `index.ts`, etc.) — never modify source code
+- `packages/tools/architecture/*` — TS handler files
+- `test/tools/*` — other test files
 
 ### Related Documents
 
-- `docs/plans/2026-06-07/architecture-simplify/fix/FIX-01-cli-fixes.md` — Fix description
-- `docs/plans/2026-06-07/architecture-simplify/SPEC.md` — Expected behavior
-- `docs/plans/2026-06-07/architecture-simplify/REPORT.md` — Issue descriptions
+- `docs/plans/2026-06-07/architecture-simplify/fix/FIX-01-cli-behavioral.md` — cli.js fixes
+- `docs/plans/2026-06-07/architecture-simplify/fix/FIX-02-help-hidden.md` — cli-help.js fix
+- `docs/plans/2026-06-07/architecture-simplify/REPORT.md` — Review findings
+- `docs/plans/2026-06-07/architecture-simplify/SPEC.md` — Business requirements

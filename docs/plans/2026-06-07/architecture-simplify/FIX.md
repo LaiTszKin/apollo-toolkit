@@ -1,10 +1,10 @@
-# Fix Coordinator Prompt: 簡化 apltk architecture 指令
+# Fix Coordinator Prompt: 簡化 apltk architecture 指令 (Round 2)
 
 - **Date**: 2026-06-07
 - **Source REPORT**: `docs/plans/2026-06-07/architecture-simplify/REPORT.md`
 - **Source Spec**: `docs/plans/2026-06-07/architecture-simplify/`
-- **Total Issues**: P1: 5, P2: 8, P3: 7
-- **Total Regression Tests**: 16
+- **Total Issues**: P1: 3, P2: 6, P3: 4
+- **Total Regression Tests**: 13
 
 ---
 
@@ -12,17 +12,17 @@
 
 ### Mission
 
-Fix all 20 issues identified in REPORT.md for the architecture CLI simplification. The fixes span three source files: `cli.js` (11 behavioral issues), `cli-help.js` (2 documentation issues + 1 clarification), and `index.ts` (1 cleanup). 16 regression tests across 3 test files verify correctness. All changes are confined to the CLI dispatch layer — never modify YAML state management, render, diff, merge, or schema logic.
+Fix all 13 issues identified in REPORT.md Round 2 for the architecture CLI simplification. The fixes span two source files: `cli.js` (8 behavioral issues) and `cli-help.js` (1 documentation issue). 13 regression tests in `test/atlas-cli.test.js` verify correctness. All changes are confined to the CLI dispatch layer — never modify YAML state management, render, diff, merge, or schema logic.
 
-**Success looks like**: All 20 REPORT.md issues are resolved, all 16 new regression tests pass on the fixed code, the full test suite passes with no regressions, and every commit is atomic.
+**Success looks like**: All 13 REPORT.md issues are resolved, all 13 new regression tests pass on the fixed code, the full test suite passes with no regressions.
 
 ### Your Role
 
-**You are the fix coordinator.** You do not write code. Your job is to dispatch fix and regression test workers, verify results, resolve merge conflicts, and manage execution flow.
+**You are the fix coordinator.** You do not write code. Your job is to understand issues, delegate each fix and regression test to workers, and verify that every issue is resolved without introducing regressions.
 
 **What you do:**
 - Read and understand the issue inventory, dependency analysis, and fix details below
-- Spawn workers to execute individual fixes, giving each a self-contained prompt (provided in `fix/*.md`)
+- Spawn workers to execute individual fixes, giving each a self-contained prompt (provided in `fix/*.md` files referenced in Section 3)
 - After all fixes pass verification, spawn workers to implement regression tests
 - Wait for all workers in a batch to complete, then digest their results
 - Run verification commands at each checkpoint
@@ -47,7 +47,7 @@ Fix all 20 issues identified in REPORT.md for the architecture CLI simplificatio
 - Fixes must not conflict with the original spec requirements
 - Regression tests must not start before all fix batches pass
 - Resolve merge conflicts yourself — the coordinator handles them
-- For fix workers marked as Complex: ensure the worker performs systematic debugging (reading related code, tracing execution paths) before applying the fix
+- For fixes marked as Complex (FIX-01): ensure the worker performs systematic debugging before applying the fix
 - After each batch completes, clean up any temporary branches or worktrees created by workers
 
 **ASK FIRST** — pause and confirm with the user:
@@ -83,89 +83,81 @@ Fix all 20 issues identified in REPORT.md for the architecture CLI simplificatio
 
 | Fix ID | REPORT Issue | Severity | File | Description |
 |---|---|---|---|---|
-| FIX-01-1 | P1-1 | P1 | cli.js | Batch mode per-entity relation flags not scoped |
-| FIX-01-2 | P1-2 | P1 | cli.js | `--implements`/`--deployed-on` not supported for `module` entity type |
-| FIX-01-3 | P1-3 | P1 | cli.js | `add module` silently ignores `--depends-on` |
-| FIX-01-4 | P1-4 | P1 | cli.js | Non-existent entity removal silently succeeds |
-| FIX-01-5 | P1-5 | P1 | cli.js | `verbRemove` does not forward `--dry-run` |
-| FIX-01-6 | P2-6 | P2 | cli.js | `add` missing change summary |
-| FIX-01-7 | P2-7 | P2 | cli.js | Duplicate entity add silently skips without warning |
-| FIX-01-8 | P2-8 | P2 | cli.js | `--implements`/`--deployed-on` edges indistinguishable from `call` |
-| FIX-01-9 | P2-9 | P2 | cli.js | `--part-of` creates phantom parent feature |
-| FIX-01-11 | P2-11 | P2 | cli.js | Batch non-atomicity (no rollback on partial failure) |
-| FIX-01-12 | P2-12 | P2 | cli.js | Legacy verb error message doesn't suggest `add` |
-| FIX-02-10 | P2-10 | P2 | cli-help.js | Help page claims `--depends-on` works for modules when it doesn't |
-| FIX-02-13 | P2-13 | P2 | cli-help.js | Operational verbs hidden from top-level help |
-| FIX-03-19 | P3-19 | P3 | cli-help.js | Help text relation flags not marked as mutually exclusive |
-| FIX-03-20 | P3-20 | P3 | index.ts | Pre-existing duplicated helper functions |
-| Test-14 | P3-14 | P3 | atlas-cli.test.js | No test for `add` auto-render |
-| Test-15 | P3-15 | P3 | atlas-cli.test.js | No test for `--implements`/`--deployed-on` relation flags |
-| Test-16 | P3-16 | P3 | atlas-cli.test.js | No negative assertion in help tests |
-| Test-17 | P3-17 | P3 | atlas-cli.test.js | No test for batch partial failure or mixed-type |
-| Test-18 | P3-18 | P3 | atlas-cli.test.js | No test for `remove` on non-existent entity |
+| FIX-01 | P1-1 | P1 | cli.js | Module add triggers render before edge creation |
+| FIX-01 | P1-2 | P1 | cli.js | `--data-flow-to` silently ignored for module entities |
+| FIX-01 | P1-3 | P1 | cli.js | Batch rollback in `--spec` mode does not restore overlay state |
+| FIX-01 | P2-4 | P2 | cli.js | Feature `--depends-on` stores YAML field instead of graph edge |
+| FIX-01 | P2-5 | P2 | cli.js | Duplicate entity output contradictions |
+| FIX-01 | P2-6 | P2 | cli.js | Missing change summary after `add` |
+| FIX-01 | P2-7 | P2 | cli.js | Empty entity list in batch mode silently succeeds |
+| FIX-01 | P2-8 | P2 | cli.js | Entity-specific flags before first entity type in batch mode silently lost |
+| FIX-02 | P2-9 | P2 | cli-help.js | Fine-grained verbs still discoverable via `--help` |
+| — | P3-10 | P3 | atlas-cli.test.js | Remove module happy path not tested (regression test only) |
+| — | P3-11 | P3 | atlas-cli.test.js | Remove relation not tested (regression test only) |
+| — | P3-12 | P3 | atlas-cli.test.js | No auto-render test for remove (regression test only) |
+| — | P3-13 | P3 | atlas-cli.test.js | Missing integration test for template verb (regression test only) |
 
 ### Fix Dependency Analysis
 
 **File overlaps (hard constraint for parallelization):**
 
-- **`cli.js`**: FIX-01 (all parts) — this is the only file modified by Fix Worker A. All FIX-01 sub-fixes are in one worker prompt.
-- **`cli-help.js`**: FIX-02-10, FIX-02-13, FIX-03-19 — all handled by Fix Worker B.
-- **`index.ts`**: FIX-03-20 — handled by Fix Worker B.
-- **`atlas-cli.test.js`**: REGTEST-01 (all integration tests).
-- **`index.test.ts`**: REGTEST-02 (TS handler tests).
-- **`architecture-error-types.test.js`**: REGTEST-03 (error path tests).
+- **`cli.js`**: FIX-01 — all 8 behavioral fixes are in one worker prompt. This worker modifies cli.js only.
+- **`cli-help.js`**: FIX-02 — help page fix. No overlap with cli.js.
+- **`test/atlas-cli.test.js`**: REGTEST-01 — all regression tests.
 
-Fix Worker A (cli.js) and Fix Worker B (cli-help.js + index.ts) have **zero file overlap** → can run in parallel.
+Fix Worker A (cli.js) and Fix Worker B (cli-help.js) have **zero file overlap** → they can run in parallel.
+
+All regression tests go in `test/atlas-cli.test.js` → single REGTEST worker (file overlap within the test file requires sequential test writing, handled by one worker prompt).
 
 **Logical dependencies:**
-- REGTEST workers depend on all fix workers completing first
-- REGTEST-01 depends on FIX-01 (tests verify cli.js behavior)
-- REGTEST-02 depends on FIX-01 (test assertions match new error messages) and FIX-02 (retired code removal)
-- REGTEST-03 depends on FIX-01 (new remove error path tests)
+- REGTEST-01 depends on both Fix Worker A and Fix Worker B completing first
+- No dependency between Fix Worker A and Fix Worker B (independent files)
 
 ### Fix Details (with Regression Test Design)
 
-#### FIX-01: All cli.js behavioral fixes (P1-1 through P2-12)
+#### FIX-01: All cli.js behavioral fixes (P1-1 through P2-8)
 
-**Root cause**: Multiple interrelated issues in `cli.js` across batch mode parsing, module relation flag forwarding, remove error handling, and user messaging.
+**Root cause**: Eight interrelated issues in `cli.js` across render timing, missing flag forwarding, batch rollback correctness, and output message quality. All fixed in one worker due to shared file.
 
 **Files involved**: `skills/init-project-html/lib/atlas/cli.js` — multiple functions
 
-**Fix approach**: Ten tasks handled by one worker:
-1. Change dispatch to `return await` for add/remove so verbs can signal non-zero exit
-2. Add per-entity flag parsing for batch mode with pre-validation (atomicity)
-3. Forward `--implements`/`--deployed-on` from module case to `verbEdge`
-4. Forward `--depends-on` from module case to `verbEdge` with kind `dependency`
-5. Check feature existence in `verbSubmodule` — throw on non-existent parent instead of creating phantom
-6. Check mutation results in verbFeature/verbSubmodule/verbEdge remove — throw if no-op with similar-name list
-7. Forward `--dry-run` in all three verbRemove paths
-8. Detect duplicate entity in verbFeature/verbSubmodule add — emit warning to stderr
-9. Set distinct edge kinds for implements/deployed-on/dependency/data-row/call
-10. Add specific error message for apply/template suggesting `add`
+**Fix approach** (8 tasks in one worker):
+1. Suppress auto-render inside `processAddEntity` sub-verb calls; add final render to `verbAdd` single-entity path
+2. Add `--data-flow-to` code path in module case of `processAddEntity`
+3. Fix batch rollback to handle `--spec` mode; suppress undo snapshots during batch
+4. Add graph edge creation for feature `--depends-on`; handle comma-separated module `--depends-on`
+5. Move duplicate detection before `performMutation` in `verbFeature`/`verbSubmodule`; conditional success messages in `verbAdd`
+6. Add change summary with entity details to `verbAdd` output
+7. Add empty entity list validation in batch parser
+8. Copy entity-specific flags from global flags in batch mode
 
-See `fix/FIX-01-cli-fixes.md` for the complete worker prompt.
+See `fix/FIX-01-cli-behavioral.md` for the complete worker prompt.
 
-**Complexity**: Complex — requires systematic understanding of dispatch flow, parseFlags, performMutation, and multiple verb functions. Several changes are interdependent (batch parsing, remove error handling).
+**Complexity**: Complex — requires systematic understanding of dispatch flow, `processAddEntity`, `performMutation`, batch parsing, and multiple verb functions. Several changes are interdependent (render timing, batch rollback, output messages).
 
-**Regression tests**: REGTEST-01 (Tests 1-13, Tests 15)
+**Regression tests**: REGTEST-01 (Tests F01 through F08)
 
-#### FIX-02: Help text and code cleanup (P2-10, P2-13, P3-19, P3-20)
+#### FIX-02: Hide fine-grained verbs from `--help` routing (P2-9)
 
-**Root cause**: Help text was oversimplified during whitelisting; operational verbs were accidentally hidden; relation flag documentation unclear. Duplicated helpers in index.ts are dead code after apply/template removal.
+**Root cause**: `buildArchitectureHelpPage()` routes `familyPages[verb]` for any verb without checking whether it should be hidden.
 
-**Files involved**: `skills/init-project-html/lib/atlas/cli-help.js`, `packages/tools/architecture/index.ts`
+**Files involved**: `skills/init-project-html/lib/atlas/cli-help.js` > `buildArchitectureHelpPage()` (L790-792)
 
-**Fix approach**: Four tasks:
-1. Add note in add help clarifying module `--depends-on` creates an edge
-2. Restore validate/status/scan/undo to top-level help usage lines
-3. Mark relation flags as alternatives in add help
-4. Remove retired handleApply/handleTemplate and their duplicated helpers from index.ts
+**Fix approach**: Add a `hiddenVerbs` Set in the routing check that excludes 9 fine-grained verbs from `familyPages` routing.
 
-See `fix/FIX-02-docs-cleanup.md` for the complete worker prompt.
+**Complexity**: Simple — single-line change with a Set-based filter.
 
-**Complexity**: Simple — independent changes in separate files.
+**Regression test**: REGTEST-01 (Test F09)
 
-**Regression tests**: REGTEST-01 (Test 14, Test 15), REGTEST-02
+#### P3-10 through P3-13: Test coverage gaps
+
+These are P3 findings that require only regression tests (no source code changes):
+- Remove module happy path via unified dispatch (P3-10)
+- Remove relation happy path via unified dispatch (P3-11)
+- Auto-render after remove (P3-12)
+- Template verb integration test (P3-13)
+
+**Regression tests**: REGTEST-01 (Tests P3-10 through P3-13)
 
 ---
 
@@ -177,25 +169,23 @@ See `fix/FIX-02-docs-cleanup.md` for the complete worker prompt.
 
 | Fix ID | Worker Prompt File | Description |
 |---|---|---|
-| FIX-01 | `fix/FIX-01-cli-fixes.md` | All cli.js behavioral fixes (11 issues) |
-| FIX-02 | `fix/FIX-02-docs-cleanup.md` | Help text fixes + index.ts cleanup (4 issues) |
+| FIX-01 | `fix/FIX-01-cli-behavioral.md` | All 8 cli.js behavioral fixes (3 P1 + 5 P2 issues) |
+| FIX-02 | `fix/FIX-02-help-hidden.md` | Hide fine-grained verbs from `--help` routing (1 P2 issue) |
 
 **Regression Test Worker Prompts:**
 
 | Test ID | Worker Prompt File | Related Fix | Description |
 |---|---|---|---|
-| REGTEST-01 | `fix/REGTEST-01-integration.md` | FIX-01 | 15 integration tests in atlas-cli.test.js |
-| REGTEST-02 | `fix/REGTEST-02-ts-handler.md` | FIX-01, FIX-02 | 4 test updates in index.test.ts |
-| REGTEST-03 | `fix/REGTEST-03-error-paths.md` | FIX-01 | 20+ assertion updates + 3 new tests in architecture-error-types.test.js |
+| REGTEST-01 | `fix/REGTEST-01-integration.md` | FIX-01, FIX-02 | 13 integration tests in atlas-cli.test.js |
 
 ### Batch Schedule
 
-#### Batch 1 — Fix Source Code (Parallel)
+#### Batch 1 — Fix Source Code (Parallel — zero file overlap)
 
-**FIX-01 Worker**: All `cli.js` fixes
-**FIX-02 Worker**: `cli-help.js` + `index.ts` fixes
+**FIX-01 Worker**: All `cli.js` behavioral fixes (8 issues)
+**FIX-02 Worker**: `cli-help.js` familyPages routing fix (1 issue)
 
-- **Strategy**: **Parallel** — zero file overlap between cli.js and cli-help.js/index.ts
+- **Strategy**: **Parallel** — zero file overlap between cli.js and cli-help.js
 - **Gate**:
   - [ ] FIX-01 worker reports success
   - [ ] FIX-02 worker reports success
@@ -204,25 +194,23 @@ See `fix/FIX-02-docs-cleanup.md` for the complete worker prompt.
   - [ ] Verification: `node --test test/tools/architecture-error-types.test.js` → all tests pass
   - [ ] Verification: `node --test test/architecture-script.test.js` → all tests pass
 
-#### Batch 2 — Regression Tests (Parallel)
+#### Batch 2 — Regression Test Implementation
 
-**REGTEST-01 Worker**: Integration tests in `atlas-cli.test.js`
-**REGTEST-02 Worker**: Handler tests in `index.test.ts`
-**REGTEST-03 Worker**: Error path tests in `architecture-error-types.test.js`
+**REGTEST-01 Worker**: 13 integration tests in `atlas-cli.test.js`
 
-- **Strategy**: **Parallel** — three different test files with no overlap
+- **Strategy**: Sequential (single file, single worker)
 - **Depends on**: Batch 1 completed
 - **Gate**:
-  - [ ] All REGTEST workers report success
+  - [ ] REGTEST-01 worker reports success
   - [ ] `node --test test/atlas-cli.test.js` → all tests pass (new + existing)
-  - [ ] `node --test packages/tools/architecture/index.test.ts` → all tests pass
-  - [ ] `node --test test/tools/architecture-error-types.test.js` → all tests pass
   - [ ] Logical check: each REGTEST oracle is "fails on unfixed code, passes after fix"
+  - [ ] Existing test suite passes: `node --test packages/tools/architecture/index.test.ts`
+  - [ ] Existing test suite passes: `node --test test/tools/architecture-error-types.test.js`
   - [ ] Existing test suite passes: `node --test test/architecture-script.test.js`
 
 #### Batch 3 — Final Integration
 
-- **Tasks**: Full test suite, lint, cross-check REPORT.md
+- **Tasks**: Full test suite, cross-check REPORT.md
 - **Strategy**: Sequential
 - **Depends on**: Batch 2 completed
 - **Gate**:
@@ -233,7 +221,7 @@ See `fix/FIX-02-docs-cleanup.md` for the complete worker prompt.
 
 ## 4. Final Verification
 
-- [ ] Every issue in REPORT.md (P1: 5, P2: 8, P3: 7) has a completed fix
+- [ ] Every issue in REPORT.md (P1: 3, P2: 6, P3: 4) has a completed fix
 - [ ] Every fix has a corresponding regression test that passes
 - [ ] All worker prompts in Section 3 have been dispatched and returned success
 - [ ] `npm test` passes with no regressions
@@ -244,35 +232,33 @@ See `fix/FIX-02-docs-cleanup.md` for the complete worker prompt.
 ## 5. References
 
 - **Worker prompt files**:
-  - `fix/FIX-01-cli-fixes.md` — All cli.js behavioral fixes (11 REPORT.md issues)
-  - `fix/FIX-02-docs-cleanup.md` — Help text + code cleanup (4 REPORT.md issues)
-  - `fix/REGTEST-01-integration.md` — 15 integration tests in atlas-cli.test.js
-  - `fix/REGTEST-02-ts-handler.md` — Handler delegation tests in index.test.ts
-  - `fix/REGTEST-03-error-paths.md` — Error path tests in architecture-error-types.test.js
+  - `fix/FIX-01-cli-behavioral.md` — All 8 cli.js behavioral fixes (P1-1 through P2-8)
+  - `fix/FIX-02-help-hidden.md` — Hide fine-grained verbs from --help routing (P2-9)
+  - `fix/REGTEST-01-integration.md` — 13 integration tests in atlas-cli.test.js
 
 - **Code files to modify** (across all fixes and regression tests):
   - `skills/init-project-html/lib/atlas/cli.js` — FIX-01 worker
   - `skills/init-project-html/lib/atlas/cli-help.js` — FIX-02 worker
-  - `packages/tools/architecture/index.ts` — FIX-02 worker
   - `test/atlas-cli.test.js` — REGTEST-01 worker
-  - `packages/tools/architecture/index.test.ts` — REGTEST-02 worker
-  - `test/tools/architecture-error-types.test.js` — REGTEST-03 worker
 
 - **Project context files**:
   - `CLAUDE.md` — Project instructions
   - `docs/architecture/cli-architecture.md` — CLI architecture docs
-  - `docs/architecture/installer-architecture.md` — Installer design
 
 - **Related documents**:
   - `docs/plans/2026-06-07/architecture-simplify/REPORT.md` — Review findings (source of all issues)
   - `docs/plans/2026-06-07/architecture-simplify/SPEC.md` — Business requirements
   - `docs/plans/2026-06-07/architecture-simplify/DESIGN.md` — Technical design
   - `docs/plans/2026-06-07/architecture-simplify/CHECKLIST.md` — Verification strategy
+  - `docs/plans/2026-06-07/architecture-simplify/architecture_diff/ARCHITECTURE_DIFF.md` — Architecture baseline diff
 
 - **Fix History**:
-  <!--
   ### Round 1 — 2026-06-07
   - **Issues fixed**: FIX-01, FIX-02, REGTEST-01, REGTEST-02, REGTEST-03 (P1:5, P2:8, P3:7)
-  - **Outcome**: TBD
-  - **Key notes**: First fix round for architecture CLI simplification. All issues in REPORT.md addressed.
-  -->
+  - **Outcome**: All resolved — 20 issues in REPORT.md Round 1 were fixed in commit f9ae733.
+  - **Key notes**: All Round 1 P1 issues (batch flag leakage, module relation flags, remove errors) were addressed.
+
+  ### Round 2 — 2026-06-07
+  - **Issues fixed**: FIX-01, FIX-02, REGTEST-01 (P1:3, P2:6, P3:4)
+  - **Outcome**: TBD (this plan)
+  - **Key notes**: Round 2 uncovered issues in module render timing, --data-flow-to for module, batch spec-mode rollback, and output message quality. All fixes are in this plan.

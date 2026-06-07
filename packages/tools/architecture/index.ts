@@ -8,14 +8,12 @@ import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
  * architectureHandler — Known carryover from the createToolRunner migration.
  *
  * Reason for not using createToolRunner:
- * - Mixed TS/JS dispatch: "apply" and "template" subcommands use TypeScript
- *   with AppError throws. Other subcommands delegate to the JS atlas CLI
- *   (cli.js) which has its own error handling.
+ * - All subcommands delegate to the JS atlas CLI (cli.js) which has its own
+ *   error handling (retired apply/template verbs included).
  * - Subcommand-level flag parsing: Each subcommand has unique flags; a single
  *   ToolSchema can't express this. See DESIGN.md §2.3 for the full picture.
  *
- * Error handling: All TS paths throw UserInputError/SystemError. JS paths are
- * handled by cli.dispatch()'s internal catch.
+ * Error handling: All paths are handled by cli.dispatch()'s internal catch.
  */
 export async function architectureHandler(
   args: string[],
