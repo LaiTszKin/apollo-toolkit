@@ -2,6 +2,22 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v5.0.6] - 2026-06-09
+
+### Added
+
+- **Unified `add`/`remove` CLI commands**: Architecture atlas (`apltk architecture add feature|module|relation` and `apltk architecture remove feature|module|relation`) now replaces 19+ fine-grained entity verbs. Supports single-entity and batch modes with relationship flags (`--depends-on`, `--part-of`, `--data-flow-to`, `--implements`, `--deployed-on`).
+- **Batch mode with rollback**: `apltk architecture add` in batch mode validates all entities before writing; partial failures roll back state files to the pre-batch snapshot.
+
+### Removed
+
+- **Retired `apply`/`template` subcommands**: `apltk architecture apply` and `apltk architecture template` return clear error messages directing users to `apltk architecture add`. Corresponding TypeScript routes removed.
+
+### Changed
+
+- **Help text simplified**: Architecture CLI help now lists only 6 core verbs (`add`, `remove`, `diff`, `merge`, `render`, `open`). Fine-grained entity verbs (`feature`, `submodule`, `function`, etc.) remain operational for backward compatibility but are hidden from help output.
+- **CLAUDE.md and AGENTS.md**: Updated architecture verb reference to `[add|remove|diff|merge|render|open]`.
+
 ## [v5.0.5] - 2026-06-07
 
 ### Changed
