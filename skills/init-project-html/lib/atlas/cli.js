@@ -52,10 +52,11 @@ const MULTI_VERBS = new Set(['feature', 'submodule', 'function', 'variable', 'da
 
 /**
  * formatFix generates apltk CLI commands from structured params.
- * NOTE: Uses fine-grained verb syntax (e.g., 'feature add') which are
- * hidden from help per Req 4. This is a known trade-off: the unified
- * 'add' verb doesn't support all entity types (function, variable, etc.)
- * that schema validation may need to suggest fixes for.
+ * NOTE: formatFix generates CLI commands using fine-grained verb syntax
+ * (e.g., "apltk architecture function add") because the unified "add" verb
+ * does not support entity types like function, variable, dataflow, error, or edge.
+ * These fix suggestions appear only in validation/status error output, not in help.
+ * Trade-off: agents reading validation errors may discover hidden verb syntax.
  */
 function formatFix({ type, action, feature, submodule, name, side, scope, slug, kind }) {
   const parts = [`apltk architecture ${type} ${action}`];
@@ -450,7 +451,9 @@ async function verbSubmodule(action, flags, projectRoot, io) {
     return performMutation(projectRoot, flags, 'submodule remove', { feature: featureSlug, slug }, (state) => {
       const feature = findFeature(state, featureSlug);
       if (!feature) {
-        throw new Error(`Feature "${featureSlug}" not found for submodule removal`);
+        const available = (state.features || []).map(f => f.slug);
+        const similar = sortBySimilarity(featureSlug, available);
+        throw new Error(`Feature "${featureSlug}" not found for submodule removal. Available features: ${similar.join(', ') || '(none)'}`);
       }
       const removed = removeSubmodule(feature, slug);
       if (!removed) {
@@ -791,6 +794,14 @@ async function verbAdd(args, flags, projectRoot, io) {
         const implementsTarget = entityFlags.implements;
         const deployedOnTarget = entityFlags['deployed-on'];
         if (implementsTarget) {
+          // Validate implements target exists (feature part of endpoint must be a known feature slug)
+          const { base: vBase, merged: vMerged } = loadResolvedState(projectRoot, entityFlags);
+          const vState = entityFlags.spec ? vMerged : vBase;
+          const allFeats = (vState.features || []).map(f => f.slug);
+          const implFeat = parseEndpoint(implementsTarget).feature;
+          if (!allFeats.includes(implFeat)) {
+            throw new Error(`Target "${implementsTarget}" not found for --implements. Available features: ${allFeats.join(', ') || '(none)'}`);
+          }
           await verbEdge('add', {
             from: `${entityFlags['part-of']}/${entityName}`,
             to: implementsTarget,
@@ -859,6 +870,14 @@ async function verbAdd(args, flags, projectRoot, io) {
         // Create data-flow edge if --data-flow-to specified
         const dataFlowTo = entityFlags['data-flow-to'];
         if (dataFlowTo) {
+          // Validate data-flow-to target exists (feature part of endpoint must be a known feature slug)
+          const { base: vBase, merged: vMerged } = loadResolvedState(projectRoot, entityFlags);
+          const vState = entityFlags.spec ? vMerged : vBase;
+          const allFeats = (vState.features || []).map(f => f.slug);
+          const dfFeat = parseEndpoint(dataFlowTo).feature;
+          if (!allFeats.includes(dfFeat)) {
+            throw new Error(`Target "${dataFlowTo}" not found for --data-flow-to. Available features: ${allFeats.join(', ') || '(none)'}`);
+          }
           await verbEdge('add', {
             from: `${entityFlags['part-of']}/${entityName}`,
             to: dataFlowTo,
@@ -914,15 +933,22 @@ async function verbAdd(args, flags, projectRoot, io) {
           }
         }
 
-        // Check for duplicate dependency-only relation
+        // Check for duplicate dependency-only relation (all comma-separated targets)
         if (!to && dependsOn) {
+          const dependsOnItems = splitList(dependsOn);
           const edges = currentState.edges || [];
           const fromEndpoint = parseEndpoint(entityName);
-          const toEndpoint = parseEndpoint(String(dependsOn).split(',')[0].trim());
-          const hasExistingDep = edges.some(e =>
-            endpointEquals(e.from, fromEndpoint) && endpointEquals(e.to, toEndpoint) && e.kind === 'dependency'
+          const existingDepEdges = edges.filter(e =>
+            e.kind === 'dependency' &&
+            endpointEquals(e.from, fromEndpoint)
           );
-          if (hasExistingDep) return 'skipped';
+          for (const depTarget of dependsOnItems) {
+            const depEndpoint = parseEndpoint(depTarget);
+            const hasExistingDep = existingDepEdges.some(e =>
+              endpointEquals(e.to, depEndpoint)
+            );
+            if (hasExistingDep) return 'skipped';
+          }
         }
 
         // Validate dependency targets exist before creating edges
@@ -939,6 +965,12 @@ async function verbAdd(args, flags, projectRoot, io) {
         // Create the primary edge (data-flow, implements, or deployed-on)
         let result;
         if (to) {
+          // Validate target feature exists
+          const allFeats = (currentState.features || []).map(f => f.slug);
+          const toFeat = parseEndpoint(to).feature;
+          if (!allFeats.includes(toFeat)) {
+            throw new Error(`Target "${to}" not found. Available features: ${allFeats.join(', ') || '(none)'}`);
+          }
           result = await verbEdge('add', {
             from: entityName,
             to,
@@ -1077,6 +1109,9 @@ async function verbAdd(args, flags, projectRoot, io) {
         preBatchState = stateLib.load(baseAtlasDir(projectRoot));
       }
       let skipped = 0;
+      // NOTE: Batch atomicity is best-effort via JS-level try/catch rollback.
+      // A process crash (SIGKILL) mid-batch can leave partial state on disk.
+      // For strict atomicity, use --spec mode + diff + merge workflow instead.
       try {
         for (const entity of entities) {
           entity.flags.skipUndo = true;
@@ -1093,6 +1128,26 @@ async function verbAdd(args, flags, projectRoot, io) {
         throw e;
       }
 
+      // Write batch-level undo snapshot and history entry
+      if (!flags['dry-run']) {
+        if (flags.spec) {
+          const base = stateLib.load(baseAtlasDir(projectRoot));
+          stateLib.writeUndoSnapshot(overlayDir, { base, overlay: preBatchOverlayState });
+          stateLib.appendHistory(overlayDir, {
+            action: `batch add (${entities.length} entities: ${entities.map(e => `${e.type}:${e.name}`).join(', ')})`,
+            args: entities.map(e => ({ type: e.type, name: e.name, flags: e.flags })),
+            mode: 'spec',
+          });
+        } else {
+          stateLib.writeUndoSnapshot(baseAtlasDir(projectRoot), { base: preBatchState });
+          stateLib.appendHistory(baseAtlasDir(projectRoot), {
+            action: `batch add (${entities.length} entities: ${entities.map(e => `${e.type}:${e.name}`).join(', ')})`,
+            args: entities.map(e => ({ type: e.type, name: e.name, flags: e.flags })),
+            mode: 'base',
+          });
+        }
+      }
+
       // Determine if any entity requested --no-render
       const anyEntityNoRender = entities.some(e => e.flags['no-render']);
       if (!flags['dry-run'] && !flags['no-render'] && !anyEntityNoRender) {
@@ -1101,7 +1156,7 @@ async function verbAdd(args, flags, projectRoot, io) {
       const dryRunPrefix = flags['dry-run'] ? ' (dry-run, no changes written)' : '';
       const applied = entities.length - skipped;
       if (skipped > 0 && applied > 0) {
-        io.stdout.write(`atlas: add applied — ${applied} entity(ies) added, ${skipped} skipped (already exist)${dryRunPrefix}\n`);
+        io.stdout.write(`atlas: add applied — ${applied} entity(ies) added, ${skipped} skipped (already exists)${dryRunPrefix}\n`);
       } else if (applied > 0) {
         io.stdout.write(`atlas: add applied — ${applied} entities${dryRunPrefix}\n`);
       } else if (skipped > 0) {
@@ -1158,6 +1213,27 @@ async function verbAdd(args, flags, projectRoot, io) {
       }
       throw e;
     }
+
+    // Write batch-level undo snapshot and history entry
+    if (!flags['dry-run']) {
+      if (flags.spec) {
+        const base = stateLib.load(baseAtlasDir(projectRoot));
+        stateLib.writeUndoSnapshot(overlayDir, { base, overlay: preBatchOverlayState });
+        stateLib.appendHistory(overlayDir, {
+          action: `batch add (${simpleEntities.length} entities: ${simpleEntities.map(e => `${e.type}:${e.name}`).join(', ')})`,
+          args: simpleEntities.map(e => ({ type: e.type, name: e.name, flags: e.flags })),
+          mode: 'spec',
+        });
+      } else {
+        stateLib.writeUndoSnapshot(baseAtlasDir(projectRoot), { base: preBatchState });
+        stateLib.appendHistory(baseAtlasDir(projectRoot), {
+          action: `batch add (${simpleEntities.length} entities: ${simpleEntities.map(e => `${e.type}:${e.name}`).join(', ')})`,
+          args: simpleEntities.map(e => ({ type: e.type, name: e.name, flags: e.flags })),
+          mode: 'base',
+        });
+      }
+    }
+
     const anyEntityNoRender = simpleEntities.some(e => e.flags['no-render']);
     if (!flags['dry-run'] && !flags['no-render'] && !anyEntityNoRender) {
       await runRender({ projectRoot, flags });
@@ -1183,6 +1259,7 @@ async function verbAdd(args, flags, projectRoot, io) {
     throw new Error('Usage: apltk architecture add <feature|module|relation> <name> [relation-flags...]');
   }
 
+  validateEntity({ type, name, flags });
   const addResult = await processAddEntity(type, name, flags);
   if (addResult !== 'skipped' && !flags['dry-run'] && !flags['no-render']) {
     await runRender({ projectRoot, flags });
@@ -1213,8 +1290,8 @@ function validateEntity(entity) {
   if (entity.type === 'module' && !entity.flags['part-of']) {
     throw new Error('Missing required flag --part-of for module');
   }
-  if (entity.type === 'relation' && !entity.flags['data-flow-to'] && !entity.flags.implements && !entity.flags['deployed-on']) {
-    throw new Error('Missing required flag --data-flow-to, --implements, or --deployed-on for relation');
+  if (entity.type === 'relation' && !entity.flags['data-flow-to'] && !entity.flags.implements && !entity.flags['deployed-on'] && !entity.flags['depends-on']) {
+    throw new Error('Missing required flag --data-flow-to, --implements, --deployed-on, or --depends-on for relation');
   }
 }
 
@@ -1474,7 +1551,7 @@ async function collectDiffChanges({ projectRoot, outDir, flags = {} }) {
   if (flags.spec) {
     // Single spec mode: only collect changes for the specified spec
     const specPath = path.isAbsolute(String(flags.spec)) ? String(flags.spec) : path.resolve(projectRoot, String(flags.spec));
-    const overlayDir = path.join(specPath, DIFF_DIRNAME, ATLAS_DIRNAME);
+    const { overlayDir } = specOverlayDir(projectRoot, flags.spec);
     if (hasOverlayState(overlayDir)) {
       return collectSingleSpecChanges({ projectRoot, specDir: specPath, specLabel: String(flags.spec) });
     }
@@ -1842,17 +1919,17 @@ async function dispatch(argv, io = { stdout: process.stdout, stderr: process.std
   const rawArgs = [...args];
   const { flags, positional: rest } = parseFlags(args);
 
+  if (verb === 'apply' || verb === 'template') {
+    io.stderr.write(`Error: "${verb}" has been removed. Use "apltk architecture add <feature|module|relation>" instead.\n`);
+    return 1;
+  }
+
   if (verb === 'help' || verb === '--help' || verb === '-h' || flags.help) {
     const helpText = explicitVerb && verb !== 'help' && verb !== '--help' && verb !== '-h'
       ? buildArchitectureHelpPage(verb, subverb)
       : buildArchitectureHelpPage();
     io.stdout.write(`${helpText || cliHelp.USAGE}\n`);
     return 0;
-  }
-
-  if (verb === 'apply' || verb === 'template') {
-    io.stderr.write(`Error: "${verb}" has been removed. Use "apltk architecture add <feature|module|relation>" instead.\n`);
-    return 1;
   }
 
   let projectRoot;

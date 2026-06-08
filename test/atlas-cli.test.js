@@ -30,6 +30,25 @@ function mkBareRoot() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-atlas-bare-'));
 }
 
+function prepareIsolatedAtlas() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aplt-atlas-iso-'));
+  return root;
+}
+
+async function runCli(args, opts = {}) {
+  const projectDir = opts.cwd || process.cwd();
+  const dispatchArgs = args[0] === 'architecture' ? args.slice(1) : [...args];
+  if (!dispatchArgs.some(a => a === '--project' || a.startsWith('--project='))) {
+    dispatchArgs.push('--project', projectDir);
+  }
+  if (!dispatchArgs.some(a => a === '--no-render' || a === '--no-open')) {
+    dispatchArgs.push('--no-render');
+  }
+  const io = makeIo();
+  const code = await cli.dispatch(dispatchArgs, io);
+  return { code, stdout_text: io.stdout_text, stderr_text: io.stderr_text };
+}
+
 test('feature add with --project creates resources/project-architecture when entirely missing', async () => {
   const root = mkBareRoot();
   try {
@@ -1732,9 +1751,10 @@ test('REGTEST-14: diff --spec filters to one spec directory (P1-5)', async () =>
     assert.equal(code, 0, 'diff --spec should succeed');
     // Should mention spec-a (spec-a feature should appear)
     assert.match(diffIo.stdout_text, /Diff pages/);
-    // Spec-b overlay index.html should NOT appear in the diff viewer (filtered out)
-    const specBIndex = path.join(root, specB, 'architecture_diff', 'index.html');
-    assert.ok(!diffIo.stdout_text.includes(specBIndex), 'spec-b should not appear in diff output');
+    // Verify the diff viewer HTML contains only spec A's feature, not spec B's
+    const viewerHtml = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
+    assert.ok(viewerHtml.includes('from-a'), 'diff HTML should reference spec A feature');
+    assert.ok(!viewerHtml.includes('from-b'), 'diff HTML should NOT reference spec B feature');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
@@ -2024,5 +2044,76 @@ test('REGTEST-27: remove non-existent feature errors with suggestions AND spec-m
     assert.ok(overlay.removed.features.includes('billing'), 'billing should be in removed features');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// REGTEST-28: relation --depends-on in batch mode should succeed (P1-1)
+test('REGTEST-28: relation --depends-on in batch mode should succeed (P1-1)', async () => {
+  const dir = prepareIsolatedAtlas();
+  try {
+    const io = await runCli(['architecture', 'add', 'feature', 'featA'], { cwd: dir });
+    assert.equal(io.code, 0, 'add feature featA');
+
+    const io2 = await runCli([
+      'architecture', 'add',
+      'relation', 'relX', '--depends-on', 'featA',
+      'feature', 'featB',
+    ], { cwd: dir });
+    assert.equal(io2.code, 0, 'batch with relation --depends-on should succeed');
+    assert.ok(io2.stdout_text.includes('add applied'), 'should report add applied');
+    assert.ok(io2.stdout_text.includes('relX'), 'should mention relation name');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// REGTEST-29: batch undo should revert batch operations (P2-1)
+test('REGTEST-29: batch undo should revert batch operations (P2-1)', async () => {
+  const root = mkProject();
+  try {
+    const io = makeIo();
+    await cli.dispatch(['add', 'feature', 'preFeat', '--project', root, '--no-render'], io);
+
+    // Batch add multiple entities
+    const batchIo = makeIo();
+    await cli.dispatch(['add', 'feature', 'batchFeat', 'module', 'batchMod', '--part-of', 'batchFeat', '--project', root, '--no-render'], batchIo);
+
+    // Verify batch entities exist
+    const stateAfter = stateLib.load(root + '/resources/project-architecture/atlas');
+    const featSlugs = (stateAfter.features || []).map(f => f.slug);
+    assert.ok(featSlugs.includes('batchFeat'), 'batch feature should exist before undo');
+
+    // Undo should revert the batch
+    const undoIo = makeIo();
+    await cli.dispatch(['undo', '--project', root, '--no-open'], undoIo);
+
+    // Verify batch entities are gone but pre-batch entity remains
+    const stateAfterUndo = stateLib.load(root + '/resources/project-architecture/atlas');
+    const featSlugsAfter = (stateAfterUndo.features || []).map(f => f.slug);
+    assert.ok(!featSlugsAfter.includes('batchFeat'), 'batch feature should be gone after undo');
+    assert.ok(featSlugsAfter.includes('preFeat'), 'pre-batch feature should remain after undo');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// REGTEST-32: --data-flow-to/--implements should reject non-existent targets (P3-4)
+test('REGTEST-32: --data-flow-to/--implements should reject non-existent targets (P3-4)', async () => {
+  const dir = prepareIsolatedAtlas();
+  try {
+    const io = await runCli(['architecture', 'add', 'feature', 'featA'], { cwd: dir });
+    assert.equal(io.code, 0, 'add feature featA');
+
+    // --data-flow-to non-existent target
+    const io2 = await runCli(['architecture', 'add', 'module', 'modX', '--part-of', 'featA', '--data-flow-to', 'nonexistent'], { cwd: dir });
+    assert.notEqual(io2.code, 0, '--data-flow-to nonexistent should fail');
+    assert.ok(io2.stderr_text.includes('not found'), 'error should mention target not found');
+
+    // --implements non-existent target
+    const io3 = await runCli(['architecture', 'add', 'module', 'modY', '--part-of', 'featA', '--implements', 'nonexistent'], { cwd: dir });
+    assert.notEqual(io3.code, 0, '--implements nonexistent should fail');
+    assert.ok(io3.stderr_text.includes('not found'), 'error should mention target not found');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 });
