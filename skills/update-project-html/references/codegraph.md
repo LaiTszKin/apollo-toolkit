@@ -8,6 +8,8 @@ Parse source code into a knowledge graph of symbols (functions, classes) and rel
 apltk codegraph <subcommand> [options]
 ```
 
+Run `apltk codegraph --help` for the full subcommand list, or `apltk codegraph <subcommand> --help` for per-subcommand details including all flags and examples.
+
 ## Subcommands
 
 ### Lifecycle

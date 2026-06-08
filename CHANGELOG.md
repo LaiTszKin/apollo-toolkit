@@ -2,6 +2,12 @@
 
 All notable changes to this repository are documented in this file.
 
+## [v5.0.7] - 2026-06-09
+
+### Changed
+
+- **codegraph `--help` hint in skill references**: Three skill reference files (`skills/init-project-html/references/codegraph.md`, `skills/update-project-html/references/codegraph.md`, `skills/design/references/codegraph.md`) now include a prompt telling agents to use `apltk codegraph --help` and `apltk codegraph <subcommand> --help` for complete flag details and examples.
+
 ## [v5.0.6] - 2026-06-09
 
 ### Added
