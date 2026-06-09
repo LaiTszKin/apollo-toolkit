@@ -1,6 +1,7 @@
 # Atlas component schema — reference cheat sheet
 
 > Reference material only. The binding rules (read strategy, evidence requirements, what each verb means) live in `SKILL.md`. This file lists the exact fields and enum values that `apltk architecture` accepts; the renderer applies them to consistent DOM/CSS/ARIA hooks so agents never need to touch HTML.
+> Before using any CLI example here, run `apltk architecture --help` and relevant subcommand help; live CLI guidance is authoritative.
 
 ## State files on disk
 

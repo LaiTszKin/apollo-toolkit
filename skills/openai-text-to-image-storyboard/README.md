@@ -27,6 +27,8 @@ Workflow: the agent first decides which prompts are needed, then this tool sends
 
 ## Quick start
 
+Before using any `apltk` command below, run the corresponding `--help` first and follow the live CLI guidance.
+
 1. Copy env template in the skill folder
 
 ```bash

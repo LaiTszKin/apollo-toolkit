@@ -105,7 +105,7 @@ test('codegraphHandler returns 1 for search without query', async () => {
     ),
     (err) => {
       assert.ok(err instanceof UserInputError);
-      assert.ok(err.message.includes('Usage: apltk codegraph search'));
+      assert.ok(err.message.includes('Usage: apltk codegraph query'));
       return true;
     }
   );
@@ -122,13 +122,13 @@ test('codegraphHandler returns 1 for explore without query', async () => {
     ),
     (err) => {
       assert.ok(err instanceof UserInputError);
-      assert.ok(err.message.includes('Usage: apltk codegraph explore'));
+      assert.ok(err.message.includes('Usage: apltk codegraph context'));
       return true;
     }
   );
 });
 
-test('codegraphHandler returns 1 for verify without --spec', async () => {
+test('codegraphHandler rejects removed verify subcommand', async () => {
   const { codegraphHandler } = await import(
     '../../packages/tools/codegraph/dist/index.js'
   );
@@ -138,8 +138,8 @@ test('codegraphHandler returns 1 for verify without --spec', async () => {
       { cwd: process.cwd(), stdout: { write: () => {} }, stderr: { write: () => {} } },
     ),
     (err) => {
-      assert.ok(err instanceof UserInputError);
-      assert.ok(err.message.includes('Usage: apltk codegraph verify'));
+      assert.ok(err instanceof SystemError);
+      assert.ok(err.message.includes('Unknown codegraph subcommand'));
       return true;
     }
   );
@@ -206,28 +206,6 @@ test('formatOutput returns string directly when data is a string', async () => {
   // JSON.stringify('hello') produces '"hello"' but our function
   // returns the string directly for non-TTY when data is a string
   // because of the formatting logic
-});
-
-test('formatApiListGrouped groups APIs by directory', async () => {
-  const { formatApiListGrouped } = await import(
-    '../../packages/tools/codegraph/dist/lib/formatter.js'
-  );
-  const apis = [
-    { name: 'funcA', kind: 'function', filePath: 'src/feature/a.ts', startLine: 10, callerCount: 1, callers: [{ name: 'main', filePath: 'src/main.ts', startLine: 5 }] },
-    { name: 'funcB', kind: 'function', filePath: 'src/lib/b.ts', startLine: 20, callerCount: 0 },
-  ];
-  const output = formatApiListGrouped(apis);
-  assert.ok(output.includes('=== src/feature/ ==='), 'should group src/feature/');
-  assert.ok(output.includes('=== src/lib/ ==='), 'should group src/lib/');
-  assert.ok(output.includes('funcA'), 'should contain funcA');
-  assert.ok(output.includes('funcB'), 'should contain funcB');
-});
-
-test('formatApiListGrouped returns "No public APIs found" for empty', async () => {
-  const { formatApiListGrouped } = await import(
-    '../../packages/tools/codegraph/dist/lib/formatter.js'
-  );
-  assert.strictEqual(formatApiListGrouped([]), 'No public APIs found.');
 });
 
 test('formatSummary formats key-value pairs padded', async () => {

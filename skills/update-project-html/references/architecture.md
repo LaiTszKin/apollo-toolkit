@@ -4,6 +4,8 @@
 Manage architecture diagrams under `resources/project-architecture/` via YAML state files. Supports base atlas and spec overlay diff/merge comparison.
 
 ## Usage
+Before using this tool, run `apltk architecture --help` and the relevant subcommand help, then follow the live CLI guidance.
+
 ```
 apltk architecture [verb] [options]
 ```

@@ -4,6 +4,8 @@
 Copies the review report template (REPORT.md) to the corresponding spec directory.
 
 ## Usage
+Before using this tool, run `apltk create-review-report --help` and follow the live CLI guidance.
+
 ```
 apltk create-review-report [options] [<spec-path>]
 ```

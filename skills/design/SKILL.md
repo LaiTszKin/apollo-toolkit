@@ -49,11 +49,11 @@ This gate is critical: the spec phase validates against existing code only — i
 
 **2c. Tech Stack Compatibility** — Verify external dependency compatibility: version conflict risks, alternatives comparison, license compatibility.
 
-### 3. CodeGraph Survey & Code Health
+### 3. CodeGraph Exploration & Code Health
 
-**3a. Survey** — `apltk codegraph survey --json` for entry points, function clusters, cross-boundary edges.
+**3a. Discover CodeGraph commands** — run `apltk codegraph --help` and `apltk codegraph <subcommand> --help` before selecting commands. Use the live help output instead of memorized command names.
 
-**3b. List APIs** — `apltk codegraph list-apis` in affected modules to understand existing contracts and callers.
+**3b. Explore affected code** — use CodeGraph to inspect real files, symbols, callers/callees, contextual flows, and change impact for affected modules. Record only findings that influence design decisions.
 
 See `references/codegraph.md` for all flags and subcommands.
 
@@ -97,15 +97,13 @@ Use `assets/templates/CHECKLIST.md`. Use `test-case-strategy` skill to guide tes
 
 ### 6. Generate Architecture Diff
 
-Use `apltk architecture` CLI. See `references/architecture.md` for exact mutation commands and flags.
+Use `apltk architecture` CLI. Before invoking it, run `apltk architecture --help` and the relevant subcommand help, then follow the live CLI guidance. See `references/architecture.md` only as supporting reference.
 
 1. Read existing architecture (affected features only — context economy). Skip baseline if none exists.
 2. Check baseline drift — if > 20% entries inconsistent with code, flag risk in diff.
 3. Define diff by C4 level (see `references/definition.md`): System Context → Container (features) → Component (submodules) → Code (selective).
 4. Trace evidence: requirement → module, research decision → dependency choice.
-5. Generate and validate. Two flows:
-   - **Classic**: `apltk architecture` commands manually; validate after.
-   - **CodeGraph-integrated**: `architecture add` → `codegraph verify` → `architecture diff` for visual confirmation.
+5. Generate and validate with `apltk architecture` commands. Use CodeGraph only as source-code evidence while deciding what to add or change.
 
 ### 7. Populate references/ Folder
 

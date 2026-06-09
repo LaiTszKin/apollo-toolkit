@@ -38,6 +38,8 @@ A shared planning skill for feature work. It centralizes creation and maintenanc
 
 ## Quick start
 
+Before using any `apltk` command below, run the corresponding `--help` first and follow the live CLI guidance.
+
 ```bash
 WORKSPACE_ROOT=/path/to/target-project
 apltk create-specs "Membership upgrade flow" \

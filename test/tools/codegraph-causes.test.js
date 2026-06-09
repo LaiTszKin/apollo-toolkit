@@ -89,7 +89,7 @@ describe('codegraph error cause preservation', () => {
     );
   });
 
-  it('handler throws UserInputError for search without query (no double-wrap)', async () => {
+  it('handler throws UserInputError for search alias without query (no double-wrap)', async () => {
     const { codegraphHandler } = await import(
       '../../packages/tools/codegraph/dist/index.js'
     );
@@ -101,7 +101,7 @@ describe('codegraph error cause preservation', () => {
       ),
       (err) => {
         assert.ok(err instanceof UserInputError, 'should be UserInputError (not double-wrapped)');
-        assert.ok(err.message.includes('Usage: apltk codegraph search'), 'message should show usage');
+        assert.ok(err.message.includes('Usage: apltk codegraph query'), 'message should show canonical query usage');
         return true;
       },
     );

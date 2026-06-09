@@ -41,15 +41,16 @@ description: 基於 repo 最新程式碼與文檔，更新 CLAUDE.md 和 AGENTS.
 
 > 兩份檔案皆應維持在 100 行以內。若超過此限制，優先精煉而非擴充。
 
-#### 加入 `apltk codegraph` 相關命令
+#### 加入 `apltk` 工具使用規則
 
 在兩份文檔的 `Common Development Commands` 區塊中，加入：
 
-- `apltk codegraph <subcommand> [options]` — CodeGraph code intelligence CLI（init/sync/status/search/explore/survey/list-apis/verify）。由 tree-sitter 驅動的代碼知識圖譜引擎。
+- 通用規則：使用任何 `apltk` 或 `node dist/bin/apollo-toolkit.js` 命令前，先執行對應 `--help`，依 live CLI 指引選擇子命令與 flags。
+- `apltk codegraph <subcommand> [options]` — CodeGraph 代碼庫探索工具。開始前用 `apltk codegraph --help` 與子命令 help 確認最新用法。
 
 #### 加入代碼調查要求
 
-在兩份文檔中，明確要求 agent 在開始實作前，應先通過 `apltk codegraph` 進行代碼調查（如 `apltk codegraph survey`、`apltk codegraph explore`），確保變更基於對現有代碼的真實理解。此規則可放在 `Common Development Commands` 區塊的開頭作為前置條件說明，或放在 Prohibitions 區塊附近作為開發慣例。
+在兩份文檔中，明確要求 agent 在開始實作前，應先執行相關 `apltk ... --help`；若需要代碼調查，先執行 `apltk codegraph --help`，再根據子命令 help 選擇合適的 CodeGraph 探索命令，確保變更基於對現有代碼的真實理解。此規則可放在 `Common Development Commands` 區塊的開頭作為前置條件說明。
 
 ## 參考資料
 

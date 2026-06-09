@@ -4,6 +4,8 @@
 將影片輸出調整為目標長寬比或尺寸，支援置中裁切與縮放。
 
 ## 用法
+使用此工具前，先執行 `apltk enforce-video-aspect-ratio --help`，並以 live CLI 指引為準。
+
 ```
 apltk enforce-video-aspect-ratio [options]
 ```

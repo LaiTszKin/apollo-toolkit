@@ -4,6 +4,8 @@
 將結構化 error-book JSON 轉換為 PDF 成品。
 
 ## 用法
+使用此工具前，先執行 `apltk render-error-book --help`，並以 live CLI 指引為準。
+
 ```
 apltk render-error-book [options]
 ```

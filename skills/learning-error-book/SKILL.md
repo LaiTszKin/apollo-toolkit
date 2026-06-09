@@ -111,7 +111,7 @@ error_book/
 
 5) Render structured data -> PDF (CJK font support)
    - Run:
-     - 在執行前先閱讀 `references/render-error-book.md` 了解參數。
+     - 在執行前先閱讀 `references/render-error-book.md`，並執行 `apltk render-error-book --help`，以 live CLI 指引確認參數。
      - `apltk render-error-book error_book/references/mc-question-reference.json error_book/mc-question-error-book.pdf`
      - `apltk render-error-book error_book/references/long-question-reference.json error_book/long-question-error-book.pdf`
    - If paper size/font needs change: adjust script flags (`--help`)
@@ -129,4 +129,4 @@ error_book/
 
 ## 參考資料
 
-- `references/render-error-book.md` — apltk render-error-book 工具的完整參數說明。在步驟 5 渲染 PDF 前閱讀。
+- `references/render-error-book.md` — apltk render-error-book 工具參考；仍必須以 `apltk render-error-book --help` 的 live 輸出確認最新用法。

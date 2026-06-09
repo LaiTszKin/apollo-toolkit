@@ -2,6 +2,17 @@
 
 All notable changes to this repository are documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- **CodeGraph CLI refactored**: Replaced monolithic command modules (`cmd-explore`, `cmd-search`, `cmd-survey`, `cmd-list-apis`, `cmd-verify`) with focused smaller commands (`cmd-index`, `cmd-query`, `cmd-files`, `cmd-relations`, `cmd-impact`, `cmd-node`, `cmd-context`, `graph-output`). Run `apltk codegraph --help` for the current command surface.
+- **Documentation**: Added "--help first" guidance across all docs; updated codegraph subcommand descriptions in CLAUDE.md, AGENTS.md, and feature docs.
+
+### Removed
+
+- **CodeGraph legacy tests and survey/verify modules**: Removed test files and source modules for the deprecated monolithic command structure.
+
 ## [v5.1.0] - 2026-06-09
 
 ### Removed

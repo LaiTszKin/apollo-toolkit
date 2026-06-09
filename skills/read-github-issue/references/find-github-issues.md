@@ -4,6 +4,8 @@
 透過 gh CLI 搜尋和列出 GitHub Issue。
 
 ## 用法
+使用此工具前，先執行 `apltk find-github-issues --help`，並以 live CLI 指引為準。
+
 ```
 apltk find-github-issues [options]
 ```

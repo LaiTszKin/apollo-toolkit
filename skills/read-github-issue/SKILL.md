@@ -33,14 +33,14 @@ description: Read and search remote GitHub issues via GitHub CLI (`gh`). Use whe
 
 ### 2) Find candidate issues with the bundled CLI
 
-- 在步驟 2 操作前先閱讀 `references/find-github-issues.md` 了解搜尋參數。
+- 在步驟 2 操作前先閱讀 `references/find-github-issues.md`，並執行 `apltk find-github-issues --help`，以 live CLI 指引確認搜尋參數。
 - Raw `gh` fallback when the script is missing or broken:
 - `gh issue list --limit 50 --state open`
 - If the issue target is still unclear, present top candidates and ask which issue number or URL should be inspected next.
 
 ### 3) Read a specific issue in detail
 
-- 在步驟 3 操作前先閱讀 `references/read-github-issue.md` 了解旗標。
+- 在步驟 3 操作前先閱讀 `references/read-github-issue.md`，並執行 `apltk read-github-issue --help`，以 live CLI 指引確認旗標。
 - Raw `gh` fallback when the script is missing or broken:
 - `gh issue view 123 --comments`
 - Use the returned title, body, labels, assignees, state, timestamps, and comments to summarize the issue precisely.
@@ -52,5 +52,5 @@ description: Read and search remote GitHub issues via GitHub CLI (`gh`). Use whe
 
 ## CLI reference
 
-- `references/find-github-issues.md` — apltk find-github-issues 工具的完整參數說明。在步驟 2 搜尋 Issue 前閱讀。
-- `references/read-github-issue.md` — apltk read-github-issue 工具的完整參數說明。在步驟 3 讀取 Issue 明細前閱讀。
+- `references/find-github-issues.md` — apltk find-github-issues 工具參考；仍必須以 `apltk find-github-issues --help` 的 live 輸出確認最新用法。
+- `references/read-github-issue.md` — apltk read-github-issue 工具參考；仍必須以 `apltk read-github-issue --help` 的 live 輸出確認最新用法。

@@ -4,6 +4,8 @@
 透過 YAML 狀態檔案管理 `resources/project-architecture/` 下的架構圖，支援基礎架構圖與 spec 覆蓋層的差異比對與合併。
 
 ## 用法
+使用此工具前，先執行 `apltk architecture --help` 及相關子命令 help，並以 live CLI 指引為準。
+
 ```
 apltk architecture [verb] [options]
 ```

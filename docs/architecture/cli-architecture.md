@@ -1,5 +1,7 @@
 # CLI 設計原則
 
+對外文檔或 agent 指令引用 `apltk` 時，應要求先執行對應 `--help`，並以 live CLI 指引作為命令拼寫與 flags 的權威來源。
+
 ## 統一進入點、多命令調度
 
 CLI 由 `bin/apollo-toolkit.ts` 啟動，委派給 `lib/cli.ts` 的 `run()` 函數。命令分類由 `parseArguments()` 處理，支援三種主要流程：安裝、解除安裝與工具執行。所有非工具參數若無法識別則視為目標模式，允許 `apltk codex` 這類簡潔語法。

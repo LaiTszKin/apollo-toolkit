@@ -17,13 +17,11 @@ Keep the architecture diagram continuously aligned with the actual codebase.
 
 ## Workflow
 
-### 1. Analyze current code with `apltk codegraph survey`
+### 1. Analyze current code with `apltk codegraph`
 
 **Prerequisite** before measuring drift. The code graph provides the structural baseline for comparison with the atlas.
 
-Run `apltk codegraph survey --json` to get a structured view of the current codebase:
-- Entry points, function clusters, and suggested submodule groupings
-- Cross-boundary edges for identifying architectural relationships
+Before choosing commands, run `apltk codegraph --help` and `apltk codegraph <subcommand> --help`. Use the live help output to inspect files, symbols, call relationships, contextual flows, or impact radius relevant to the atlas drift.
 
 Consult `references/codegraph.md` for detailed flags.
 
@@ -62,6 +60,7 @@ Dispatch subagents in parallel to cross-reference the code against the architect
 ### 6. Update the atlas via `apltk` CLI
 
 Use `apltk architecture` commands to update the architecture diagram:
+Before invoking any `apltk architecture` command, run `apltk architecture --help` and the relevant subcommand help, then follow the live CLI guidance.
 
 Consult `references/architecture.md` for CLI flag details (parameter reference, mutation series).
 
@@ -89,6 +88,6 @@ Confirm the following before finishing:
 
 ## References
 
-- `references/codegraph.md` — `apltk codegraph` CLI reference (consult for subcommand flags).
-- `references/architecture.md` — Full parameter reference for the `apltk architecture` tool (consult when CLI flag details are needed).
+- `references/codegraph.md` — `apltk codegraph` CLI reference; verify current usage with `apltk codegraph --help`.
+- `references/architecture.md` — `apltk architecture` CLI reference; verify current usage with `apltk architecture --help`.
 - `references/definition.md` — Detailed definitions of feature and submodule.

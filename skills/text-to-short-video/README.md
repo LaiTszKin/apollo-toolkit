@@ -55,6 +55,8 @@ cp ~/.codex/skills/text-to-short-video/.env.example \
 
 If API-generated video ratio/size does not match the target, run:
 
+Before using any `apltk` command below, run the corresponding `--help` first and follow the live CLI guidance.
+
 ```bash
 apltk enforce-video-aspect-ratio \
   --input-video "<downloaded_video_path>" \

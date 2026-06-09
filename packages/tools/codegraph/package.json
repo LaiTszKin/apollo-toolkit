@@ -1,7 +1,7 @@
 {
   "name": "@laitszkin/tool-codegraph",
   "version": "5.0.0",
-  "description": "Apollo Toolkit \u2014 CodeGraph code intelligence: init, sync, status, search, explore, survey, list-apis, verify",
+  "description": "Apollo Toolkit \u2014 CodeGraph codebase exploration: init, index, sync, status, query, files, callers, callees, impact, node, context",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,7 +17,7 @@
     "test": "node --test dist/"
   },
   "dependencies": {
-    "@colbymchenry/codegraph": "^0.9.0",
+    "@colbymchenry/codegraph": "^0.9.9",
     "@laitszkin/tool-registry": "*"
   },
   "publishConfig": {

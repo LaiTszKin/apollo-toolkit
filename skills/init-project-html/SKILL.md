@@ -55,10 +55,9 @@ Applicable modes: design (full initialization), record (quick recording)
 
 **Prerequisite** before any architecture work. The code graph provides the source-code evidence that powers the atlas.
 
-1. Initialize: `apltk codegraph init --index` (run once per project to build the symbol index).
-2. Survey: `apltk codegraph survey --json` for a structured report with file/function counts, entry points, and suggested submodule groupings.
+Before choosing commands, run `apltk codegraph --help` and `apltk codegraph <subcommand> --help`. Use the live help output to initialize/index if needed, then inspect files, symbols, call relationships, contextual flows, or impact radius relevant to the architecture atlas.
 
-Based on the survey, partition features (C4 Container level):
+Based on CodeGraph findings, partition features (C4 Container level):
 - Group interconnected function clusters into the same feature's submodules
 - Identify feature boundaries and cross-feature call relationships
 
@@ -67,6 +66,8 @@ Then read `sample-demo/` to understand the expected output format and abstractio
 Consult `references/codegraph.md` for detailed flags.
 
 ### 2. Write the atlas with `apltk architecture add`
+
+Before invoking any `apltk architecture` command, run `apltk architecture --help` and the relevant subcommand help, then follow the live CLI guidance.
 
 Generate the atlas incrementally by C4 level:
 Consult `references/architecture.md` for CLI flag details when needed (parameter reference, mutation series).
@@ -103,8 +104,8 @@ If time or context constraints prevent full traceability, record the scanned sco
 
 ## References
 
-- `references/codegraph.md` — `apltk codegraph` CLI reference (consult for subcommand flags).
-- `references/architecture.md` — Full parameter reference for the `apltk architecture` tool (consult when CLI flag details are needed).
+- `references/codegraph.md` — `apltk codegraph` CLI reference; verify current usage with `apltk codegraph --help`.
+- `references/architecture.md` — `apltk architecture` CLI reference; verify current usage with `apltk architecture --help`.
 - `references/TEMPLATE_SPEC.md` — Atlas field reference, enum values, and CLI shape cheat sheet.
 - `references/definition.md` — Detailed definitions of feature and submodule.
 - `assets/architecture-page.template.html` — HTML template.

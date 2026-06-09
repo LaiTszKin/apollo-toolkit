@@ -1,5 +1,7 @@
 # 技能結構設計原則
 
+技能內若引用 `apltk` 命令，必須要求 agent 先執行對應 `--help`，再依 live CLI 指引操作。
+
 ## 每技能一目錄
 
 每個技能是 `skills/` 下的 kebab-case 目錄，根目錄包含 `SKILL.md` 作為技能進入點。CLI 透過掃描 `skills/` 下含 `SKILL.md` 的子目錄來發現技能清單。

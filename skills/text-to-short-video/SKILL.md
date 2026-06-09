@@ -150,7 +150,7 @@ If provider returns multiple outputs, keep the best one that matches requested s
 
 ### 6) Enforce final aspect ratio and size (optional but recommended)
 
-在操作前先閱讀 `references/enforce-video-aspect-ratio.md` 了解各參數的行為。
+在操作前先閱讀 `references/enforce-video-aspect-ratio.md`，並執行 `apltk enforce-video-aspect-ratio --help`，以 live CLI 指引確認各參數的行為。
 
 When output ratio or resolution differs from target, run:
 
@@ -204,4 +204,4 @@ Before finishing, verify:
 
 ## References
 
-- `references/enforce-video-aspect-ratio.md` — apltk enforce-video-aspect-ratio 工具的完整參數說明。在步驟 6 執行長寬比修正前閱讀。
+- `references/enforce-video-aspect-ratio.md` — apltk enforce-video-aspect-ratio 工具參考；仍必須以 `apltk enforce-video-aspect-ratio --help` 的 live 輸出確認最新用法。

@@ -4,6 +4,8 @@
 透過 OpenAI 相容 API 從文字 prompt 生成故事板圖片。
 
 ## 用法
+使用此工具前，先執行 `apltk generate-storyboard-images --help`，並以 live CLI 指引為準。
+
 ```
 apltk generate-storyboard-images --input <name> [options]
 ```

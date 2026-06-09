@@ -36,7 +36,7 @@ description: 提交指引與提交前的必要品控閘門。將變更提交到 
 
 ### 5. 同步代碼圖索引
 
-若存在代碼變更，執行 `apltk codegraph sync` 確保代碼圖與實際代碼同步。
+若存在代碼變更，先執行 `apltk codegraph --help` 與相關子命令 `--help`，再按 live CLI 指引同步代碼圖，確保代碼圖與實際代碼同步。
 若 `CLAUDE.md` 或 `AGENTS.md` 缺少 `apltk codegraph` 的引用，必須添加。
 
 ### 6. 提交及推送變更

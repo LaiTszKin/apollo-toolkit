@@ -2,13 +2,15 @@ import type { ToolDefinition, ToolContext } from '@laitszkin/tool-registry';
 import { SystemError, UserInputError } from '@laitszkin/tool-utils';
 import { findProjectRoot } from './lib/cg-instance.js';
 import { handleInit } from './lib/cmd-init.js';
+import { handleIndex } from './lib/cmd-index.js';
 import { handleSync } from './lib/cmd-sync.js';
 import { handleStatus } from './lib/cmd-status.js';
-import { handleSearch } from './lib/cmd-search.js';
-import { handleExplore } from './lib/cmd-explore.js';
-import { handleSurvey } from './lib/cmd-survey.js';
-import { handleListApis } from './lib/cmd-list-apis.js';
-import { handleVerify } from './lib/cmd-verify.js';
+import { handleQuery } from './lib/cmd-query.js';
+import { handleFiles } from './lib/cmd-files.js';
+import { handleRelations } from './lib/cmd-relations.js';
+import { handleImpact } from './lib/cmd-impact.js';
+import { handleNode } from './lib/cmd-node.js';
+import { handleContext } from './lib/cmd-context.js';
 
 export async function codegraphHandler(args: string[], context: ToolContext): Promise<number> {
   const stdout = context.stdout || process.stdout;
@@ -49,31 +51,10 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
     throw new SystemError(`Error finding project root: ${message}`);
   }
 
-  // Parse --spec <dir> for verify
-  const specIndex = rest.indexOf('--spec');
-  let specDir: string | undefined;
-  if (specIndex >= 0 && specIndex + 1 < rest.length) {
-    specDir = rest[specIndex + 1];
-    rest.splice(specIndex, 2);
-  }
-
-  // Parse --all flag for list-apis
-  const allIndex = rest.indexOf('--all');
-  const isAll = allIndex >= 0;
-  if (allIndex >= 0) rest.splice(allIndex, 1);
-
   // Parse --index flag for init
   const shouldIndex = rest.includes('--index');
   const indexIdx = rest.indexOf('--index');
   if (indexIdx >= 0) rest.splice(indexIdx, 1);
-
-  // Parse --feature <name> for survey
-  const featureIndex = rest.indexOf('--feature');
-  let featureName: string | undefined;
-  if (featureIndex >= 0 && featureIndex + 1 < rest.length) {
-    featureName = rest[featureIndex + 1];
-    rest.splice(featureIndex, 2);
-  }
 
   // Parse limit for search
   const limitIndex = rest.indexOf('--limit');
@@ -83,10 +64,45 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
     rest.splice(limitIndex, 2);
   }
 
+  const kindIndex = rest.indexOf('--kind');
+  let kind: string | undefined;
+  if (kindIndex >= 0 && kindIndex + 1 < rest.length) {
+    kind = rest[kindIndex + 1];
+    rest.splice(kindIndex, 2);
+  }
+
+  const depthIndex = rest.indexOf('--depth');
+  let depth: number | undefined;
+  if (depthIndex >= 0 && depthIndex + 1 < rest.length) {
+    depth = parseInt(rest[depthIndex + 1], 10);
+    rest.splice(depthIndex, 2);
+  }
+
+  const filterIndex = rest.indexOf('--filter');
+  let filter: string | undefined;
+  if (filterIndex >= 0 && filterIndex + 1 < rest.length) {
+    filter = rest[filterIndex + 1];
+    rest.splice(filterIndex, 2);
+  }
+
+  const maxNodesIndex = rest.indexOf('--max-nodes');
+  let maxNodes: number | undefined;
+  if (maxNodesIndex >= 0 && maxNodesIndex + 1 < rest.length) {
+    maxNodes = parseInt(rest[maxNodesIndex + 1], 10);
+    rest.splice(maxNodesIndex, 2);
+  }
+
+  const includeCode = !rest.includes('--no-code');
+  const noCodeIndex = rest.indexOf('--no-code');
+  if (noCodeIndex >= 0) rest.splice(noCodeIndex, 1);
+
   try {
     switch (subcommand) {
       case 'init':
         return await handleInit(projectRoot, { index: shouldIndex, json: isJson });
+
+      case 'index':
+        return await handleIndex(projectRoot, { json: isJson });
 
       case 'sync':
         return await handleSync(projectRoot, { json: isJson });
@@ -94,40 +110,50 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
       case 'status':
         return await handleStatus(projectRoot, { json: isJson });
 
+      case 'query':
       case 'search': {
         const query = rest.join(' ');
         if (!query) {
-          throw new UserInputError('Usage: apltk codegraph search <query> [--limit N] [--json]');
+          throw new UserInputError('Usage: apltk codegraph query <query> [--kind KIND] [--limit N] [--json]');
         }
-        return await handleSearch(projectRoot, query, { limit, json: isJson });
+        return await handleQuery(projectRoot, query, { kind, limit, json: isJson });
       }
 
+      case 'files':
+        return await handleFiles(projectRoot, { filter: filter || rest[0], json: isJson });
+
+      case 'callers':
+      case 'callees': {
+        const symbol = rest.join(' ');
+        if (!symbol) {
+          throw new UserInputError(`Usage: apltk codegraph ${subcommand} <symbol> [--limit N] [--json]`);
+        }
+        return await handleRelations(projectRoot, subcommand, symbol, { limit, json: isJson });
+      }
+
+      case 'impact': {
+        const symbol = rest.join(' ');
+        if (!symbol) {
+          throw new UserInputError('Usage: apltk codegraph impact <symbol> [--depth N] [--json]');
+        }
+        return await handleImpact(projectRoot, symbol, { depth, json: isJson });
+      }
+
+      case 'node': {
+        const symbol = rest.join(' ');
+        if (!symbol) {
+          throw new UserInputError('Usage: apltk codegraph node <symbol-or-id> [--json]');
+        }
+        return await handleNode(projectRoot, symbol, { json: isJson });
+      }
+
+      case 'context':
       case 'explore': {
         const query = rest.join(' ');
         if (!query) {
-          throw new UserInputError('Usage: apltk codegraph explore <query> [--json]');
+          throw new UserInputError('Usage: apltk codegraph context <question> [--max-nodes N] [--no-code] [--json]');
         }
-        return await handleExplore(projectRoot, query, { json: isJson, feature: featureName });
-      }
-
-      case 'survey': {
-        const dirPath = rest[0] || '.';
-        return await handleSurvey(projectRoot, dirPath, { feature: featureName, json: isJson });
-      }
-
-      case 'list-apis': {
-        const pathArg = rest[0];
-        const combinedPath = featureName
-          ? (pathArg ? `${featureName}/${pathArg.replace(/^\//, '')}` : featureName)
-          : pathArg;
-        return await handleListApis(projectRoot, combinedPath, { all: isAll, json: isJson });
-      }
-
-      case 'verify': {
-        if (!specDir) {
-          throw new UserInputError('Usage: apltk codegraph verify --spec <spec-dir> [--json]');
-        }
-        return await handleVerify(projectRoot, specDir, { json: isJson });
+        return await handleContext(projectRoot, query, { maxNodes, includeCode, json: isJson });
       }
 
       default:
@@ -142,9 +168,8 @@ export async function codegraphHandler(args: string[], context: ToolContext): Pr
 function printHelp(stream: NodeJS.WriteStream): void {
   stream.write(`Usage: apltk codegraph <subcommand> [options]
 
-CodeGraph code intelligence — parse source code into a knowledge graph
-of symbols (functions, classes) and relationships (call edges), backed by
-a local SQLite database with FTS5 full-text search.
+CodeGraph code intelligence — local codebase exploration over symbols,
+relationships, files, callers, callees, and impact radius.
 
 Powered by @colbymchenry/codegraph (tree-sitter-backed code knowledge graph).
 
@@ -155,6 +180,9 @@ Subcommands:
                        --index    Run initial indexing immediately after init
                        --json     JSON output
 
+    index              Build or rebuild the full code graph index
+                       --json     JSON output
+
     sync               Sync the index with current file state
                        --json     JSON output
 
@@ -162,28 +190,34 @@ Subcommands:
                        --json     JSON output
 
   discovery:
-    search <query>     Search the code graph for symbols via FTS5
-                       --limit N  Max results (default: 20, max: 100)
+    query <query>      Search symbols via FTS5
+                       --kind K   Filter by node kind (function, class, route...)
+                       --limit N  Max results (default: 20)
                        --json     JSON output
 
-    explore <query>    Deep-dive on a symbol — show callers, callees, and source
-                       --feature <name>  Only show results within this feature
-                       --json            JSON output
+    context <question> Build task-oriented context with related symbols and code
+                       --max-nodes N  Max graph nodes (default: 50)
+                       --no-code      Exclude source snippets
+                       --json         JSON output
 
-    survey [dir]       Scan a directory, suggest submodule groupings and
-                       cross-boundary edges for atlas modelling
-                       --feature <name>  Feature context for grouping
-                       --json            JSON output
+    files [path]       List indexed files, optionally filtered by path
+                       --filter PATH  Filter to files under a path
+                       --json         JSON output
 
-    list-apis [path]   List public APIs in the project or within a sub-path
-                       --all      Include non-exported (internal) symbols
+    callers <symbol>   Find symbols that call a function or method
+                       --limit N  Max results (default: 20)
                        --json     JSON output
 
-  validation:
-    verify --spec <dir>
-                       Verify a spec overlay against actual code —
-                       checks that every declared feature, submodule,
-                       function, and edge exists in the code graph
+    callees <symbol>   Find symbols called by a function or method
+                       --limit N  Max results (default: 20)
+                       --json     JSON output
+
+    impact <symbol>    Analyze what code may be affected by changing a symbol
+                       --depth N  Traversal depth (default: 2)
+                       --json     JSON output
+
+    node <symbol-or-id>
+                       Show symbol details and source
                        --json     JSON output
 
 Global options:
@@ -195,14 +229,12 @@ Use "apltk codegraph <subcommand> --help" for per-subcommand details.
 Examples:
   apltk codegraph init
   apltk codegraph init --index
+  apltk codegraph index
   apltk codegraph status --json
-  apltk codegraph search getUser
-  apltk codegraph search getUser --limit 5 --json
-  apltk codegraph explore handleLogin
-  apltk codegraph survey src/
-  apltk codegraph survey src/ --feature auth --json
-  apltk codegraph list-apis --all
-  apltk codegraph verify --spec docs/plans/2026-05-11/add-2fa
+  apltk codegraph query getUser --kind function
+  apltk codegraph context "How does login reach the database?"
+  apltk codegraph callers handleLogin
+  apltk codegraph impact UserService --depth 3
 `);
 }
 
@@ -218,13 +250,24 @@ Creates the .codegraph/ directory and SQLite database.
 Flags:
   --index    Run initial indexing immediately after init, so the
              knowledge graph is ready for queries right away.
-             Without this flag, you need to run "apltk codegraph sync"
+             Without this flag, you need to run "apltk codegraph index"
              separately before searching or exploring.
   --json     Output confirmation as JSON.
 
 Examples:
   apltk codegraph init
   apltk codegraph init --index
+`,
+    index: `Usage: apltk codegraph index [--json]
+
+Build or rebuild the full CodeGraph index for the project.
+
+Flags:
+  --json     Output indexing results as JSON.
+
+Examples:
+  apltk codegraph index
+  apltk codegraph index --json
 `,
     sync: `Usage: apltk codegraph sync [--json]
 
@@ -254,100 +297,108 @@ Examples:
   apltk codegraph status
   apltk codegraph status --json
 `,
-    search: `Usage: apltk codegraph search <query> [--limit N] [--json]
+    query: `Usage: apltk codegraph query <query> [--kind KIND] [--limit N] [--json]
 
-Full-text search the code graph for symbols (functions, classes, variables).
-Uses FTS5 (SQLite full-text search) under the hood.
+Full-text search the code graph for symbols.
 
 Arguments:
   query      Search term (required). Matches against symbol names and
              source code content.
 
 Flags:
-  --limit N  Max results to return (default: 20, max: 100).
+  --kind K   Filter by node kind, such as function, class, method, or route.
+  --limit N  Max results to return (default: 20).
   --json     Output results as a JSON array.
 
 Examples:
-  apltk codegraph search getUser
-  apltk codegraph search handleLogin --limit 5
-  apltk codegraph search "class.*Handler" --limit 10 --json
+  apltk codegraph query getUser
+  apltk codegraph query handleLogin --kind function --limit 5
+  apltk codegraph query UserService --json
 `,
-    explore: `Usage: apltk codegraph explore <query> [--feature <name>] [--json]
+    search: `Usage: apltk codegraph search <query> [--kind KIND] [--limit N] [--json]
 
-Deep-dive on a symbol — shows who calls it, what it calls, and its
-full source code. Useful for understanding how a function or class
-fits into the broader codebase.
+Alias for "apltk codegraph query". Prefer "query" in new scripts and skill instructions.
+`,
+    context: `Usage: apltk codegraph context <question> [--max-nodes N] [--no-code] [--json]
+
+Build task-oriented context for an architecture or implementation question.
+This uses CodeGraph's context builder: search likely entry points, expand the
+relationship graph, and include relevant source snippets by default.
 
 Arguments:
-  query      Symbol name to explore (required).
+  question   Natural-language question or task description.
 
 Flags:
-  --feature <name>
-             Scope results to only show callers/callees within a
-             specific feature directory (e.g. "auth", "billing").
-  --json     Output full exploration data as JSON (callers, callees,
-             source code, file path, line numbers).
+  --max-nodes N  Max graph nodes to include (default: 50).
+  --no-code      Exclude source snippets.
+  --json         Output structured context as JSON.
 
 Examples:
-  apltk codegraph explore handleLogin
-  apltk codegraph explore authenticate --feature auth
-  apltk codegraph explore sendEmail --json
+  apltk codegraph context "How does login reach the database?"
+  apltk codegraph context "Where is billing authorization enforced?" --max-nodes 30
 `,
-    survey: `Usage: apltk codegraph survey [dir] [--feature <name>] [--json]
+    explore: `Usage: apltk codegraph explore <question> [--max-nodes N] [--no-code] [--json]
 
-Scan a directory and produce a structured survey report with suggested
-submodule groupings, cross-boundary edges, and entry points.
+Alias for "apltk codegraph context". Prefer "context" in new scripts and skill instructions.
+`,
+    files: `Usage: apltk codegraph files [path] [--filter PATH] [--json]
 
-This is the primary input for the "init-project-html" skill's Step 1 —
-it tells the LLM how to model features and submodules for the atlas.
+List files currently tracked in the CodeGraph index.
 
 Arguments:
-  dir        Directory to scan (default: current directory ".").
+  path       Optional path prefix to filter by.
 
 Flags:
-  --feature <name>
-             Feature context: scope the survey to only one feature's
-             boundary. Helps the grouper cluster symbols more accurately.
-  --json     Output survey results as JSON — best for LLM consumption.
+  --filter PATH  Filter to files under a path.
+  --json         Output file records as JSON.
 
 Examples:
-  apltk codegraph survey
-  apltk codegraph survey src/
-  apltk codegraph survey src/auth --feature auth --json
+  apltk codegraph files
+  apltk codegraph files src/auth --json
 `,
-    'list-apis': `Usage: apltk codegraph list-apis [path] [--all] [--json]
+    callers: `Usage: apltk codegraph callers <symbol> [--limit N] [--json]
 
-List public (exported) symbols in the project or a specific sub-path.
-Useful for understanding the public surface area of a module.
+Find symbols that call the matched function or method.
 
 Arguments:
-  path       Sub-path to scan (e.g. "src/auth"). When omitted, scans
-             the entire project.
+  symbol     Symbol name to inspect.
 
 Flags:
-  --all      Include non-exported (internal) symbols in the listing.
-  --json     Output API list as JSON.
+  --limit N  Max relation results per matched symbol (default: 20).
+  --json     Output relation data as JSON.
 
 Examples:
-  apltk codegraph list-apis
-  apltk codegraph list-apis src/auth
-  apltk codegraph list-apis --all --json
+  apltk codegraph callers handleLogin
 `,
-    verify: `Usage: apltk codegraph verify --spec <spec-dir> [--json]
+    callees: `Usage: apltk codegraph callees <symbol> [--limit N] [--json]
 
-Verify a spec overlay's architecture proposals against actual code.
-Checks that every feature, submodule, function, and edge referenced
-in the overlay's atlas state actually exists in the code graph.
+Find symbols called by the matched function or method.
 
 Flags:
-  --spec <spec-dir>
-             Path to the spec directory containing an architecture_diff/
-             overlay (required). For example, "docs/plans/2026-05-11/add-2fa".
-  --json     Output verification results as JSON (passed/failed checks).
+  --limit N  Max relation results per matched symbol (default: 20).
+  --json     Output relation data as JSON.
 
 Examples:
-  apltk codegraph verify --spec docs/plans/2026-05-11/add-2fa
-  apltk codegraph verify --spec docs/plans/2026-05-11/add-2fa --json
+  apltk codegraph callees handleLogin
+`,
+    impact: `Usage: apltk codegraph impact <symbol> [--depth N] [--json]
+
+Analyze symbols that may be affected by changing the matched symbol.
+
+Flags:
+  --depth N  Traversal depth (default: 2).
+  --json     Output impact subgraph as JSON.
+
+Examples:
+  apltk codegraph impact UserService --depth 3
+`,
+    node: `Usage: apltk codegraph node <symbol-or-id> [--json]
+
+Show details and source for a specific symbol or node id.
+
+Examples:
+  apltk codegraph node handleLogin
+  apltk codegraph node src/auth.ts::handleLogin --json
 `,
   };
 
@@ -362,6 +413,6 @@ Examples:
 export const tool: ToolDefinition = {
   name: 'codegraph',
   category: 'Code analysis',
-  description: 'CodeGraph code intelligence — init, sync, status, search, explore, survey, list-apis, verify',
+  description: 'CodeGraph codebase exploration — init, index, sync, status, query, files, callers, callees, impact, node, context',
   handler: codegraphHandler,
 };

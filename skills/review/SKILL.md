@@ -21,6 +21,8 @@ Every critical requirement must have a traceable status judgment, evidence locat
 
 ## Workflow
 
+Before invoking any `apltk` helper command in this workflow, run the corresponding `--help` command and follow the live CLI guidance.
+
 ### 1. Parse Requirements and Locate Code
 
 Read the SPEC.md and parse all `### Requirement N` sections — each is an independent review unit.
@@ -100,5 +102,5 @@ Defined by impact on **requirement satisfaction**:
 ## References
 
 - `assets/templates/REPORT.md` — Review report template (populate during step 4)
-- `references/create-review-report.md` — `apltk create-review-report` CLI tool parameters
+- `references/create-review-report.md` — `apltk create-review-report` CLI reference; verify with `apltk create-review-report --help` before use
 - `references/halluciation-review-instruction.md` — Optional: detailed patterns for hallucinated code detection

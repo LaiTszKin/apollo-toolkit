@@ -5,7 +5,7 @@ description: Transforms user requirements into strictly-scoped business specific
 
 ## Goal
 
-Transform user requirements into pure business specifications (SPEC.md). Answer only "what business goal to achieve" and "what is in/out of scope" — no technical implementation. Ground every requirement's scope and boundary in the actual repository state through CodeGraph survey.
+Transform user requirements into pure business specifications (SPEC.md). Answer only "what business goal to achieve" and "what is in/out of scope" — no technical implementation. Ground every requirement's scope and boundary in the actual repository state through CodeGraph-assisted exploration.
 
 Technical architecture belongs to `design`. Execution methodology belongs to `plan`.
 
@@ -14,24 +14,22 @@ Technical architecture belongs to `design`. Execution methodology belongs to `pl
 - SPEC.md follows the template format, including: business goal, scope (In/Out), BDD behaviors, error/edge cases, clarification questions
 - SPEC.md References section cites key code file paths affected by the requirements
 - High-uncertainty requirements marked with Uncertainty Level and reflected in Clarification Questions
-- For non-greenfield repos: codegraph survey completed, subagent repo research complete, every requirement's boundary calibrated against actual code
+- For non-greenfield repos: CodeGraph-assisted repo exploration completed, subagent repo research complete, every requirement's boundary calibrated against actual code
 - Output at `docs/plans/<YYYY-MM-DD>/<spec_name>/SPEC.md` (single) or `docs/plans/<YYYY-MM-DD>/<batch-name>/<spec_name>/SPEC.md` (batch)
 
 ## Workflow
 
-### 1. Survey the Repo with CodeGraph
+### 1. Explore the Repo with CodeGraph
 
 **Greenfield repo (no existing code)**: Skip to Step 2.
 
 **Non-greenfield repo**: Establish code-level understanding of module boundaries, existing APIs, and data structures BEFORE reading requirements. This ensures every BDD requirement is scoped correctly against real code.
 
-- `apltk codegraph survey --json` — entry points, function clusters, cross-boundary edges
-- `apltk codegraph list-apis` — review API directory in potentially affected modules
-- `apltk codegraph explore` or `apltk codegraph search` — dig into specific areas
+Before choosing commands, run `apltk codegraph --help` and `apltk codegraph <subcommand> --help`. Use the live help output to pick suitable exploration commands for files, symbols, callers/callees, context, or impact analysis. Record the CodeGraph findings that affect requirement scope.
 
 ### 2. Read PROPOSAL.md and Understand Requirements
 
-Analyze the user's requirements from PROPOSAL.md. Compare codegraph findings against what PROPOSAL.md describes — if actual code contradicts or constrains the proposal, note these calibrations explicitly.
+Analyze the user's requirements from PROPOSAL.md. Compare CodeGraph findings against what PROPOSAL.md describes — if actual code contradicts or constrains the proposal, note these calibrations explicitly.
 
 For complex repos, dispatch multiple subagents in parallel to investigate:
 - Affected modules and responsibility boundaries
@@ -59,7 +57,7 @@ If a requirement remains unclear after research and affects scope, record it and
 
 ### 4. Generate SPEC.md
 
-Use `assets/templates/SPEC.md`. Create structure with:
+Use `assets/templates/SPEC.md`. Before creating files, run `apltk create-specs --help` and follow the live CLI guidance. Create structure with:
 ```
 apltk create-specs <feature_name> [--batch-name <name>]
 ```
@@ -86,7 +84,7 @@ Verify all of the following before delivering. Fix any issues found.
 - **Error case completeness**: All five categories from Step 3 are substantively covered (individual cases, not category names). Authorization boundaries, data boundaries, external anomalies, abuse scenarios, and failure handling are all addressed.
 - **Uncertainty reflected**: Exploratory requirements appear in Clarification Questions. Spike/prototype suggested where warranted.
 - **Internal consistency**: No contradictions or overlaps between requirements.
-- **Code traceability**: References cite specific code file paths mapping to each requirement. Boundary scoping decisions reference codegraph findings.
+- **Code traceability**: References cite specific code file paths mapping to each requirement. Boundary scoping decisions reference CodeGraph findings.
 
 ## Examples
 

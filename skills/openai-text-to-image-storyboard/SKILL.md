@@ -51,6 +51,8 @@ A template is provided at:
 
 ## Command
 
+Before running the CLI, execute `apltk generate-storyboard-images --help` and follow the live CLI guidance.
+
 Use JSON prompt file:
 
 ```bash
@@ -86,7 +88,7 @@ Notes:
 
 ## 參考資料
 
-- `references/generate-storyboard-images.md` — apltk generate-storyboard-images 工具的完整參數說明。在執行 CLI 生成圖片前閱讀。
+- `references/generate-storyboard-images.md` — apltk generate-storyboard-images 工具參考；仍必須以 `apltk generate-storyboard-images --help` 的 live 輸出確認最新用法。
 
 ## Output Convention
 

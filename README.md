@@ -89,12 +89,11 @@ apltk architecture          # opens resources/project-architecture/index.html
 apltk architecture diff     # paginates docs/plans/**/architecture_diff/ vs atlas
 
 # CodeGraph code intelligence (powered by @colbymchenry/codegraph)
-apltk codegraph init        # Initialize code knowledge graph for the project
-apltk codegraph status      # Show index statistics (files, nodes, edges, languages)
-apltk codegraph search <q>  # Search code for symbols via FTS5
-apltk codegraph survey      # Survey directory with submodule and edge suggestions
-apltk codegraph verify --spec <dir>  # Verify spec overlay against actual code
+apltk codegraph --help      # Discover current CodeGraph exploration commands
+apltk codegraph <subcommand> --help
 ```
+
+Before scripting or delegating any `apltk` command, inspect the current guidance with `apltk --help`, `apltk tools`, and the relevant `apltk <tool> --help`.
 
 ### Non-interactive install
 
@@ -189,7 +188,7 @@ Compatibility note:
 
 ## Code Intelligence: CodeGraph
 
-The `apltk codegraph` subcommand system is built on [**@colbymchenry/codegraph**](https://github.com/colbymchenry/codegraph), a tree-sitter-backed code knowledge graph engine by Colt McHenry. CodeGraph parses source code into nodes (functions, classes) and edges (call relationships) in a local SQLite database, supporting FTS5 full-text search and structured queries.
+The `apltk codegraph` subcommand system is built on [**@colbymchenry/codegraph**](https://github.com/colbymchenry/codegraph), a tree-sitter-backed local code knowledge graph engine by Colt McHenry. Use it as a codebase exploration tool: start with `apltk codegraph --help`, then inspect subcommand help for the current command surface.
 
 Special thanks to Colt McHenry for this excellent work, enabling LLM agents to discover code structure deterministically instead of relying on grep/Read.
 

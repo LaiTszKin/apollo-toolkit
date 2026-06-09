@@ -13,7 +13,7 @@ description: >-
 
 ## 驗收條件
 
-- 使用 `apltk codegraph` 完成 repo 深度調查，產出模組邊界與 API 目錄分析
+- 使用 `apltk codegraph` 完成 repo 深度調查，產出模組邊界與關鍵 API 證據摘要
 - 使用 subagents 閱讀關鍵程式碼片段，確保文檔記述可驗證
 - repo 的所有細節被仔細閱讀，並轉化為標準化的 `docs/features/`、`docs/architecture/`、`docs/principles/` 文檔
 - 每條文檔記述皆有可追溯的來源證據（檔案路徑 + 行號區間）；無法證明的內容標記為 `[INFERRED]`
@@ -26,9 +26,9 @@ description: >-
 
 在開始文檔工作前，先用 `apltk codegraph` 建立對 repo 的深度理解。
 
-1. 執行 `apltk codegraph survey --json` 取得專案的 entry points、function clusters、cross-boundary edges
-2. 使用 `apltk codegraph list-apis` 檢視完整 API 目錄（函式名稱、檔案路徑、呼叫者）
-3. 對關鍵模組使用 `apltk codegraph explore` 深入了解內部結構
+1. 先執行 `apltk codegraph --help`，再對候選 subcommand 執行 `apltk codegraph <subcommand> --help`。
+2. 根據 live help 選擇合適命令，探索檔案、符號、呼叫關係、上下文或變更影響。
+3. 對關鍵模組保留結構化摘要：模組職責、關鍵函式、資料流程、外部整合點與來源路徑。
 
 將調查結果記錄為結構化摘要，供後續文檔撰寫使用。
 

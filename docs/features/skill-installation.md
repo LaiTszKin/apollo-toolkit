@@ -1,5 +1,7 @@
 # 技能安裝與管理
 
+使用任何 `apltk` 命令前，先執行對應的 `--help` 並以 live CLI 指引為準。
+
 ## 安裝 Apollo Toolkit
 
 - **Given** 使用者尚未安裝 Apollo Toolkit

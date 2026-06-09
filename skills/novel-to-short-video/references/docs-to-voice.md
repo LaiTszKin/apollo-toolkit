@@ -4,6 +4,8 @@
 將文字轉換為音檔、時間軸 JSON 與 SRT 字幕。
 
 ## 用法
+使用此工具前，先執行 `apltk docs-to-voice --help`，並以 live CLI 指引為準。
+
 ```
 apltk docs-to-voice [options]
 ```

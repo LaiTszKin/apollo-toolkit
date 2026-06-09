@@ -4,6 +4,8 @@
 透過 gh CLI 讀取單個 GitHub Issue 完整內容。
 
 ## 用法
+使用此工具前，先執行 `apltk read-github-issue --help`，並以 live CLI 指引為準。
+
 ```
 apltk read-github-issue [options] <issue-number>
 ```

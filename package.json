@@ -1,6 +1,6 @@
 {
   "name": "@laitszkin/apollo-toolkit",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "description": "Apollo Toolkit npm installer for managed skill copying across Codex, OpenClaw, and Trae.",
   "license": "MIT",
   "author": "LaiTszKin",
@@ -52,7 +52,7 @@
     "js-yaml": "^4.1.1"
   },
   "optionalDependencies": {
-    "@colbymchenry/codegraph": "^0.9.0"
+    "@colbymchenry/codegraph": "^0.9.9"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

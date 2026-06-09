@@ -4,6 +4,8 @@
 Creates SPEC.md files from the template under `docs/plans/`.
 
 ## Usage
+Before using this tool, run `apltk create-specs --help` and follow the live CLI guidance.
+
 ```
 apltk create-specs <feature_name> [options]
 ```
