@@ -4,6 +4,12 @@ All notable changes to this repository are documented in this file.
 
 ## [Unreleased]
 
+## [v5.2.4] - 2026-06-14
+
+### Fixed
+
+- **create-specs tool, eval tool**: Use local time instead of UTC for date generation — fixes incorrect dates in spec template output and eval directory names when the user's timezone causes the local date to differ from UTC (e.g., UTC+8 at 1 AM).
+
 ## [v5.2.3] - 2026-06-11
 
 ### Changed
