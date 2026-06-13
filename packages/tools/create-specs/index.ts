@@ -95,7 +95,8 @@ Output:
       }
 
       const outputDir = path.resolve(values['output-dir'] as string || 'docs/plans');
-      const today = new Date().toISOString().slice(0, 10);
+      const now = new Date();
+      const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
       // Prevent double-nesting: if outputDir's last component is already today's date,
       // use it directly as the date root rather than appending the date again.

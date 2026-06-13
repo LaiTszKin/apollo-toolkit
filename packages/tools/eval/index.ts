@@ -256,7 +256,8 @@ async function evalHandler(
     const env: EnvConfig = loadEnv();
     stderr.write('[1/7] OK\n');
 
-    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
     // 2. Load question bank
     const questionsPath = path.join(
