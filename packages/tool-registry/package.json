@@ -16,6 +16,9 @@
     "build": "tsc --build",
     "test": "node --test dist/"
   },
+  "dependencies": {
+    "@laitszkin/tool-utils": "workspace:*"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"

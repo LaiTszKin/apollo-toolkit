@@ -34,6 +34,12 @@ jobs:
       - name: Build TypeScript
         run: pnpm run build
 
+      - name: Lint check
+        run: pnpm lint --cache
+
+      - name: Format check
+        run: pnpm format:check
+
       - name: Run tests
         run: pnpm test
 

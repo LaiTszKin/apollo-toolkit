@@ -101,7 +101,11 @@ importers:
         specifier: workspace:*
         version: link:../tui
 
-  packages/tool-registry: {}
+  packages/tool-registry:
+    dependencies:
+      '@laitszkin/tool-utils':
+        specifier: workspace:*
+        version: link:../tool-utils
 
   packages/tool-utils: {}
 
@@ -119,18 +123,27 @@ importers:
       '@laitszkin/tool-registry':
         specifier: workspace:*
         version: link:../../tool-registry
+      '@laitszkin/tool-utils':
+        specifier: workspace:*
+        version: link:../../tool-utils
 
   packages/tools/create-review-report:
     dependencies:
       '@laitszkin/tool-registry':
         specifier: workspace:*
         version: link:../../tool-registry
+      '@laitszkin/tool-utils':
+        specifier: workspace:*
+        version: link:../../tool-utils
 
   packages/tools/create-specs:
     dependencies:
       '@laitszkin/tool-registry':
         specifier: workspace:*
         version: link:../../tool-registry
+      '@laitszkin/tool-utils':
+        specifier: workspace:*
+        version: link:../../tool-utils
 
   packages/tools/eval:
     dependencies:
@@ -143,24 +156,36 @@ importers:
       '@laitszkin/tool-registry':
         specifier: workspace:*
         version: link:../../tool-registry
+      '@laitszkin/tool-utils':
+        specifier: workspace:*
+        version: link:../../tool-utils
 
   packages/tools/open-github-issue:
     dependencies:
       '@laitszkin/tool-registry':
         specifier: workspace:*
         version: link:../../tool-registry
+      '@laitszkin/tool-utils':
+        specifier: workspace:*
+        version: link:../../tool-utils
 
   packages/tools/read-github-issue:
     dependencies:
       '@laitszkin/tool-registry':
         specifier: workspace:*
         version: link:../../tool-registry
+      '@laitszkin/tool-utils':
+        specifier: workspace:*
+        version: link:../../tool-utils
 
   packages/tools/review-threads:
     dependencies:
       '@laitszkin/tool-registry':
         specifier: workspace:*
         version: link:../../tool-registry
+      '@laitszkin/tool-utils':
+        specifier: workspace:*
+        version: link:../../tool-utils
 
   packages/tools/validate-openai-agent-config:
     dependencies:

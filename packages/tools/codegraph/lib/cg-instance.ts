@@ -201,7 +201,7 @@ export function findProjectRoot(startPath?: string): string {
  * runs initial indexing inline -- this deviates from a two-step init-then-index
  * pattern but is the supported API through the npm package.
  */
-export function createOrOpenIndex(
+export async function createOrOpenIndex(
   projectRoot: string,
   options?: {
     index?: boolean;

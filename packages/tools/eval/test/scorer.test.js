@@ -616,6 +616,58 @@ describe('REGTEST-02: scoreSingleTest should acquire lock before calling judge A
 });
 
 // =========================================================================
+// REGTEST-01: buildJudgePrompt fallback text when thinking/response absent
+// =========================================================================
+describe('REGTEST-01: buildJudgePrompt uses fallback text when thinking and response events are absent', () => {
+  it('should include (未記錄) and (無回應) when trace has only an end event', () => {
+    const criteria = {
+      outcome: {
+        description: '',
+        weight: 0.25,
+        checks: [
+          { id: 'O1', description: 'Task completed', passCondition: 'yes' },
+        ],
+      },
+      process: {
+        description: '',
+        weight: 0.25,
+        checks: [
+          { id: 'P1', description: 'Followed process', passCondition: 'yes' },
+        ],
+      },
+      style: {
+        description: '',
+        weight: 0.25,
+        checks: [
+          { id: 'S1', description: 'Proper format', passCondition: 'yes' },
+        ],
+      },
+      efficiency: {
+        description: '',
+        weight: 0.25,
+        checks: [{ id: 'E1', description: 'Efficient', passCondition: 'yes' }],
+      },
+    };
+    const trace = [
+      {
+        type: 'end',
+        timestamp: '2024-01-01T00:00:00.000Z',
+        data: { duration_ms: 1, status: 'completed' },
+      },
+    ];
+    const prompt = buildJudgePrompt(trace, criteria, 'REGTEST-01');
+    assert.ok(
+      prompt.includes('(未記錄)'),
+      'prompt should contain user prompt fallback (未記錄)',
+    );
+    assert.ok(
+      prompt.includes('(無回應)'),
+      'prompt should contain response fallback (無回應)',
+    );
+  });
+});
+
+// =========================================================================
 // REGTEST-03 (FIX-B): JSONL 損壞跳過
 // =========================================================================
 describe('REGTEST-03: should skip judge API call when trace has corruption', () => {

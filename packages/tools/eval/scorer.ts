@@ -192,12 +192,9 @@ export function buildJudgePrompt(
     else if (e.type === 'error') errorEvents.push(e);
   }
 
-  const userPrompt = safeString(
-    thinkingEvent?.data?.['userPrompt'],
-    '(未記錄)',
-  );
+  const userPrompt = safeString(thinkingEvent?.data['userPrompt'], '(未記錄)');
   const assistantResponse = safeString(
-    (responseEvent?.data?.['message'] as Record<string, unknown> | undefined)?.[
+    (responseEvent?.data['message'] as Record<string, unknown> | undefined)?.[
       'content'
     ],
     '(無回應)',

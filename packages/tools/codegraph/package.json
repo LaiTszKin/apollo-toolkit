@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@colbymchenry/codegraph": "^0.9.9",
-    "@laitszkin/tool-registry": "workspace:*"
+    "@laitszkin/tool-registry": "workspace:*",
+    "@laitszkin/tool-utils": "workspace:*"
   },
   "publishConfig": {
     "access": "public",
