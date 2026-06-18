@@ -2,9 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { promptForModes, promptYesNo } from '@laitszkin/tui';
 
+/**
+ * Create a mock readline-like stream for prompt tests.
+ * On Windows, @inquirer/prompts calls output.on('keypress', ...) even
+ * when isTTY is false, so the mock needs an on() method.
+ */
+function mockStream(isTTY = false) {
+  return { isTTY, on: () => mockStream(isTTY) };
+}
+
 test('promptForModes throws when not in a TTY', async () => {
-  const input = { isTTY: false };
-  const output = { isTTY: false };
+  const input = mockStream(false);
+  const output = mockStream(false);
   await assert.rejects(
     () =>
       promptForModes({
@@ -45,8 +54,8 @@ test('promptForModes throws when output is null', async () => {
 
 test('promptYesNo returns default (true) when not in a TTY', async () => {
   const result = await promptYesNo({
-    input: { isTTY: false },
-    output: { isTTY: false },
+    input: mockStream(false),
+    output: mockStream(false),
     message: 'Continue?',
     default: true,
   });
@@ -55,8 +64,8 @@ test('promptYesNo returns default (true) when not in a TTY', async () => {
 
 test('promptYesNo returns default (false) when not in a TTY', async () => {
   const result = await promptYesNo({
-    input: { isTTY: false },
-    output: { isTTY: false },
+    input: mockStream(false),
+    output: mockStream(false),
     message: 'Continue?',
     default: false,
   });
@@ -65,8 +74,8 @@ test('promptYesNo returns default (false) when not in a TTY', async () => {
 
 test('promptYesNo returns true as default when default is omitted and not TTY', async () => {
   const result = await promptYesNo({
-    input: { isTTY: false },
-    output: { isTTY: false },
+    input: mockStream(false),
+    output: mockStream(false),
     message: 'Continue?',
   });
   assert.equal(result, true);

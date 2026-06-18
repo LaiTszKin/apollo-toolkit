@@ -118,49 +118,53 @@ test('detectPlatform respects override', () => {
 // macOS (darwin)
 // ---------------------------------------------------------------------------
 
-test('macOS: register creates plist and calls launchctl bootstrap', async () => {
-  const tmp = createTempHome();
-  const exec = createFakeExecutor();
-  const opts = makeSchedulerOptions({
-    tempHome: tmp.path,
-    platform: 'darwin',
-    execOverride: exec,
-  });
+test(
+  'macOS: register creates plist and calls launchctl bootstrap',
+  { skip: os.platform() !== 'darwin' },
+  async () => {
+    const tmp = createTempHome();
+    const exec = createFakeExecutor();
+    const opts = makeSchedulerOptions({
+      tempHome: tmp.path,
+      platform: 'darwin',
+      execOverride: exec,
+    });
 
-  const result = await registerAutoUpdateTask(opts);
+    const result = await registerAutoUpdateTask(opts);
 
-  assert.equal(result.registered, true);
-  assert.equal(result.platform, 'darwin');
-  assert.match(result.message, /launchd job/);
+    assert.equal(result.registered, true);
+    assert.equal(result.platform, 'darwin');
+    assert.match(result.message, /launchd job/);
 
-  // Plist was written to correct path
-  const plistPath = path.join(
-    tmp.path,
-    'Library',
-    'LaunchAgents',
-    'com.apollotoolkit.auto-update.plist',
-  );
-  assert.ok(fs.existsSync(plistPath), 'plist file should exist');
+    // Plist was written to correct path
+    const plistPath = path.join(
+      tmp.path,
+      'Library',
+      'LaunchAgents',
+      'com.apollotoolkit.auto-update.plist',
+    );
+    assert.ok(fs.existsSync(plistPath), 'plist file should exist');
 
-  const plistContent = fs.readFileSync(plistPath, 'utf-8');
-  assert.match(plistContent, /com\.apollotoolkit\.auto-update/);
-  assert.match(plistContent, /ProgramArguments/);
-  assert.match(plistContent, /StartCalendarInterval/);
-  assert.match(plistContent, /StandardOutPath/);
-  assert.match(plistContent, /StandardErrorPath/);
+    const plistContent = fs.readFileSync(plistPath, 'utf-8');
+    assert.match(plistContent, /com\.apollotoolkit\.auto-update/);
+    assert.match(plistContent, /ProgramArguments/);
+    assert.match(plistContent, /StartCalendarInterval/);
+    assert.match(plistContent, /StandardOutPath/);
+    assert.match(plistContent, /StandardErrorPath/);
 
-  // launchctl was called
-  assert.equal(exec.calls.length, 1);
-  assert.equal(exec.calls[0].command, 'launchctl');
-  assert.equal(exec.calls[0].args[0], 'bootstrap');
-  assert.match(exec.calls[0].args[1], /^gui\/\d+$/);
-  assert.equal(exec.calls[0].args[2], plistPath);
+    // launchctl was called
+    assert.equal(exec.calls.length, 1);
+    assert.equal(exec.calls[0].command, 'launchctl');
+    assert.equal(exec.calls[0].args[0], 'bootstrap');
+    assert.match(exec.calls[0].args[1], /^gui\/\d+$/);
+    assert.equal(exec.calls[0].args[2], plistPath);
 
-  // Log directory was created
-  assert.ok(fs.existsSync(path.join(opts.toolkitHome, 'logs')));
+    // Log directory was created
+    assert.ok(fs.existsSync(path.join(opts.toolkitHome, 'logs')));
 
-  tmp.cleanup();
-});
+    tmp.cleanup();
+  },
+);
 
 test('macOS: unregister calls bootout and removes plist', async () => {
   const tmp = createTempHome();
