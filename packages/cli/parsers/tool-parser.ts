@@ -47,6 +47,7 @@ export class ToolArgsParser implements CommandParser<
         linkMode: null,
         assumeYes: false,
         explicitInstallCommand: false,
+        autoUpdateAction: null,
         helpTopic: 'tools-help',
       };
     }
@@ -61,6 +62,7 @@ export class ToolArgsParser implements CommandParser<
       linkMode: null,
       assumeYes: false,
       explicitInstallCommand: false,
+      autoUpdateAction: null,
       helpTopic: 'overview',
     };
   }

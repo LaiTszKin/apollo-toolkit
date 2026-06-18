@@ -68,6 +68,7 @@ export class UninstallArgsParser implements CommandParser<UninstallCommand> {
       linkMode: null,
       assumeYes: result.assumeYes,
       explicitInstallCommand: false,
+      autoUpdateAction: null,
       helpTopic: result.helpTopic,
     };
   }
