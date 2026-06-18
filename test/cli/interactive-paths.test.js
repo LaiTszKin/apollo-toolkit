@@ -155,133 +155,145 @@ test('promptIncludeExclusiveSkills returns false when no codex skills exist (via
 
 // ---- buildSymlinkInfo + promptSymlinkChoice output format ----
 
-test('buildSymlinkInfo and promptSymlinkChoice output correct format (via run install, no linkMode flag)', async () => {
-  const tempDir = await fs.mkdtemp(
-    path.join(os.tmpdir(), 'interactive-symlink-info-'),
-  );
-  try {
-    const sourceRoot = path.join(tempDir, 'source');
-    const homeDir = path.join(tempDir, 'home');
-    const toolkitHome = path.join(homeDir, '.apollo-toolkit');
-    const traeRoot = path.join(homeDir, '.trae', 'skills');
-    const stdout = createMemoryStream();
-    const stderr = createMemoryStream();
+test(
+  'buildSymlinkInfo and promptSymlinkChoice output correct format (via run install, no linkMode flag)',
+  { skip: os.platform() === 'win32' },
+  async () => {
+    const tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'interactive-symlink-info-'),
+    );
+    try {
+      const sourceRoot = path.join(tempDir, 'source');
+      const homeDir = path.join(tempDir, 'home');
+      const toolkitHome = path.join(homeDir, '.apollo-toolkit');
+      const traeRoot = path.join(homeDir, '.trae', 'skills');
+      const stdout = createMemoryStream();
+      const stderr = createMemoryStream();
 
-    await fs.mkdir(sourceRoot, { recursive: true });
-    await createFixtureSource(sourceRoot);
-    await fs.mkdir(traeRoot, { recursive: true });
+      await fs.mkdir(sourceRoot, { recursive: true });
+      await createFixtureSource(sourceRoot);
+      await fs.mkdir(traeRoot, { recursive: true });
 
-    const exitCode = await run(['trae'], {
-      sourceRoot,
-      env: {
-        HOME: homeDir,
-        APOLLO_TOOLKIT_HOME: toolkitHome,
-        APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
-      },
-      stdin: createMemoryStream(),
-      stdout,
-      stderr,
-    });
+      const exitCode = await run(['trae'], {
+        sourceRoot,
+        env: {
+          HOME: homeDir,
+          APOLLO_TOOLKIT_HOME: toolkitHome,
+          APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
+        },
+        stdin: createMemoryStream(),
+        stdout,
+        stderr,
+      });
 
-    const output = stdout.toString();
-    assert.equal(exitCode, 0, stderr.toString());
+      const output = stdout.toString();
+      assert.equal(exitCode, 0, stderr.toString());
 
-    // buildSymlinkInfo output format
-    assert.match(output, /Symlink mode/);
-    assert.match(output, /Pro/);
-    assert.match(output, /Con/);
-    assert.match(output, /Skills auto-update/);
-    assert.match(output, /No need to re-run installer/);
-  } finally {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  }
-});
+      // buildSymlinkInfo output format
+      assert.match(output, /Symlink mode/);
+      assert.match(output, /Pro/);
+      assert.match(output, /Con/);
+      assert.match(output, /Skills auto-update/);
+      assert.match(output, /No need to re-run installer/);
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
+  },
+);
 
 // ---- Auto-update default enablement after install ----
 
-test('install enables auto-update by default when no disabled config exists', async () => {
-  const tempDir = await fs.mkdtemp(
-    path.join(os.tmpdir(), 'interactive-enable-auto-update-'),
-  );
-  try {
-    const sourceRoot = path.join(tempDir, 'source');
-    const homeDir = path.join(tempDir, 'home');
-    const toolkitHome = path.join(homeDir, '.apollo-toolkit');
-    const traeRoot = path.join(homeDir, '.trae', 'skills');
-    const stdout = createMemoryStream();
-    const stderr = createMemoryStream();
-
-    await fs.mkdir(sourceRoot, { recursive: true });
-    await createFixtureSource(sourceRoot);
-    await fs.mkdir(traeRoot, { recursive: true });
-
-    // No pre-existing auto-update config → auto-update should be enabled by default
-    const exitCode = await run(['trae', '--copy'], {
-      sourceRoot,
-      env: {
-        HOME: homeDir,
-        APOLLO_TOOLKIT_HOME: toolkitHome,
-        APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
-      },
-      stdin: createMemoryStream(),
-      stdout,
-      stderr,
-    });
-
-    assert.equal(exitCode, 0, stderr.toString());
-    assert.match(stdout.toString(), /Installation complete/);
-
-    // Verify auto-update config was written as enabled
-    const config = await readAutoUpdateConfig(toolkitHome);
-    assert.equal(config.enabled, true);
-  } finally {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  }
-});
-
-test('existing disabled auto-update config is preserved after install', async () => {
-  const tempDir = await fs.mkdtemp(
-    path.join(os.tmpdir(), 'interactive-preserve-disabled-'),
-  );
-  try {
-    const sourceRoot = path.join(tempDir, 'source');
-    const homeDir = path.join(tempDir, 'home');
-    const toolkitHome = path.join(homeDir, '.apollo-toolkit');
-    const traeRoot = path.join(homeDir, '.trae', 'skills');
-    const stdout = createMemoryStream();
-    const stderr = createMemoryStream();
-
-    await fs.mkdir(sourceRoot, { recursive: true });
-    await createFixtureSource(sourceRoot);
-    await fs.mkdir(traeRoot, { recursive: true });
-
-    // Pre-create auto-update config as disabled
-    await fs.mkdir(toolkitHome, { recursive: true });
-    await fs.writeFile(
-      path.join(toolkitHome, '.apollo-toolkit-auto-update.json'),
-      JSON.stringify({ enabled: false, updatedAt: new Date().toISOString() }),
-      'utf8',
+test(
+  'install enables auto-update by default when no disabled config exists',
+  { skip: os.platform() === 'win32' },
+  async () => {
+    const tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'interactive-enable-auto-update-'),
     );
+    try {
+      const sourceRoot = path.join(tempDir, 'source');
+      const homeDir = path.join(tempDir, 'home');
+      const toolkitHome = path.join(homeDir, '.apollo-toolkit');
+      const traeRoot = path.join(homeDir, '.trae', 'skills');
+      const stdout = createMemoryStream();
+      const stderr = createMemoryStream();
 
-    const exitCode = await run(['trae', '--copy'], {
-      sourceRoot,
-      env: {
-        HOME: homeDir,
-        APOLLO_TOOLKIT_HOME: toolkitHome,
-        APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
-      },
-      stdin: createMemoryStream(),
-      stdout,
-      stderr,
-    });
+      await fs.mkdir(sourceRoot, { recursive: true });
+      await createFixtureSource(sourceRoot);
+      await fs.mkdir(traeRoot, { recursive: true });
 
-    assert.equal(exitCode, 0, stderr.toString());
-    assert.match(stdout.toString(), /Installation complete/);
+      // No pre-existing auto-update config → auto-update should be enabled by default
+      const exitCode = await run(['trae', '--copy'], {
+        sourceRoot,
+        env: {
+          HOME: homeDir,
+          APOLLO_TOOLKIT_HOME: toolkitHome,
+          APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
+        },
+        stdin: createMemoryStream(),
+        stdout,
+        stderr,
+      });
 
-    // Verify auto-update config is still disabled
-    const config = await readAutoUpdateConfig(toolkitHome);
-    assert.equal(config.enabled, false);
-  } finally {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  }
-});
+      assert.equal(exitCode, 0, stderr.toString());
+      assert.match(stdout.toString(), /Installation complete/);
+
+      // Verify auto-update config was written as enabled
+      const config = await readAutoUpdateConfig(toolkitHome);
+      assert.equal(config.enabled, true);
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  'existing disabled auto-update config is preserved after install',
+  { skip: os.platform() === 'win32' },
+  async () => {
+    const tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'interactive-preserve-disabled-'),
+    );
+    try {
+      const sourceRoot = path.join(tempDir, 'source');
+      const homeDir = path.join(tempDir, 'home');
+      const toolkitHome = path.join(homeDir, '.apollo-toolkit');
+      const traeRoot = path.join(homeDir, '.trae', 'skills');
+      const stdout = createMemoryStream();
+      const stderr = createMemoryStream();
+
+      await fs.mkdir(sourceRoot, { recursive: true });
+      await createFixtureSource(sourceRoot);
+      await fs.mkdir(traeRoot, { recursive: true });
+
+      // Pre-create auto-update config as disabled
+      await fs.mkdir(toolkitHome, { recursive: true });
+      await fs.writeFile(
+        path.join(toolkitHome, '.apollo-toolkit-auto-update.json'),
+        JSON.stringify({ enabled: false, updatedAt: new Date().toISOString() }),
+        'utf8',
+      );
+
+      const exitCode = await run(['trae', '--copy'], {
+        sourceRoot,
+        env: {
+          HOME: homeDir,
+          APOLLO_TOOLKIT_HOME: toolkitHome,
+          APOLLO_TOOLKIT_SKIP_UPDATE_CHECK: '1',
+        },
+        stdin: createMemoryStream(),
+        stdout,
+        stderr,
+      });
+
+      assert.equal(exitCode, 0, stderr.toString());
+      assert.match(stdout.toString(), /Installation complete/);
+
+      // Verify auto-update config is still disabled
+      const config = await readAutoUpdateConfig(toolkitHome);
+      assert.equal(config.enabled, false);
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
+  },
+);
