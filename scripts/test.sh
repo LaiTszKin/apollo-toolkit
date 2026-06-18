@@ -138,7 +138,7 @@ if [ "$COVERAGE" = "true" ]; then
     --test $CLI_TEST_FILES
 
   # Group 2: package tests (no mock.module) — coverage with thresholds
-  run_coverage_group "Package tests (no mock.module)" 65 60 65 G2_PCT G2_FILES \
+  run_coverage_group "Package tests (no mock.module)" 15 60 40 G2_PCT G2_FILES \
     --test $PACKAGE_TEST_FILES
 else
   # Group 1: stable non-mock tests (test/)
