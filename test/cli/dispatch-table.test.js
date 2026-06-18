@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import path from 'node:path';
 import { run, parseArguments } from '@laitszkin/cli';
 
 function mockStd() {
@@ -135,7 +136,7 @@ test('parseArguments recognizes explicit install command', () => {
 test('parseArguments recognizes --home flag', () => {
   const result = parseArguments(['codex', '--home', '/custom/path']);
   assert.equal(result.command, 'install');
-  assert.equal(result.toolkitHome, '/custom/path');
+  assert.equal(result.toolkitHome, path.resolve('/custom/path'));
   assert.deepEqual(result.modes, ['codex']);
 });
 
@@ -169,7 +170,7 @@ test('parseArguments uninstall with --home', () => {
   ]);
   assert.equal(result.command, 'uninstall');
   assert.equal(result.assumeYes, true);
-  assert.equal(result.toolkitHome, '/tmp/alt-home');
+  assert.equal(result.toolkitHome, path.resolve('/tmp/alt-home'));
   assert.deepEqual(result.modes, ['codex']);
 });
 
